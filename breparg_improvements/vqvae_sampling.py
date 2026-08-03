@@ -82,12 +82,58 @@ def rounded_patch_hash(kind, array):
     return hashlib.sha256(_canonical_patch_bytes(kind, array, decimals=4)).hexdigest()
 
 
+def _stable_value_key(value):
+    if value is None:
+        return ("none",)
+    if isinstance(value, (bool, np.bool_)):
+        return ("bool", bool(value))
+    if isinstance(value, (int, np.integer)):
+        return ("int", str(int(value)))
+    if isinstance(value, (float, np.floating)):
+        number = float(value)
+        if math.isnan(number):
+            return ("float", "nan")
+        if math.isinf(number):
+            return ("float", "inf" if number > 0 else "-inf")
+        return ("float", number.hex())
+    if isinstance(value, str):
+        return ("str", value)
+    if isinstance(value, bytes):
+        return ("bytes", value.hex())
+    if isinstance(value, Path):
+        return ("path", str(value))
+    if isinstance(value, np.ndarray):
+        array = np.ascontiguousarray(value)
+        return (
+            "ndarray",
+            str(array.dtype),
+            tuple(array.shape),
+            hashlib.sha256(array.tobytes(order="C")).hexdigest(),
+        )
+    if isinstance(value, dict):
+        return (
+            "dict",
+            tuple(
+                sorted(
+                    (_stable_value_key(key), _stable_value_key(item))
+                    for key, item in value.items()
+                )
+            ),
+        )
+    if isinstance(value, (list, tuple)):
+        return (type(value).__name__, tuple(_stable_value_key(item) for item in value))
+    if isinstance(value, (set, frozenset)):
+        return (type(value).__name__, tuple(sorted(_stable_value_key(item) for item in value)))
+    return (type(value).__qualname__, repr(value))
+
+
 def _record_sort_key(record):
     return (
         str(record.get("record_id", "")),
         str(record.get("source_path", "")),
         str(record.get("parent_id", "")),
         str(record.get("kind", "")),
+        _stable_value_key(record),
     )
 
 
@@ -131,6 +177,13 @@ def deduplicate_patch_records(records):
                 str(value)
                 for record in group
                 for value in _record_values(record, "provenance_source_paths", "source_path")
+            }
+        )
+        representative["provenance_source_keys"] = sorted(
+            {
+                canonical_source_key(value)
+                for record in group
+                for value in _record_values(record, "provenance_source_keys", "source_key")
             }
         )
         representative["provenance_parent_ids"] = sorted(
