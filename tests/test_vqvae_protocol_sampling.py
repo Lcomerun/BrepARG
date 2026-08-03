@@ -15,6 +15,7 @@ from vqvae_sampling import (  # noqa: E402
     audit_train_val_inventories,
     canonical_patch_hash,
     deduplicate_patch_records,
+    remove_train_exact_hash_overlap,
     patch_records_from_parsed,
     rounded_patch_hash,
 )
@@ -317,6 +318,36 @@ def test_train_val_inventory_audit_fails_closed_on_unknown_parent():
 
     with pytest.raises(ValueError, match="unknown parent_id.*train"):
         audit_train_val_inventories(train, val)
+
+
+def test_remove_train_exact_hash_overlap_keeps_validation_authoritative():
+    shared = np.zeros((32, 32, 3), dtype=np.float32)
+    train_unique = np.ones((32, 32, 3), dtype=np.float32)
+    val_unique = np.full((32, 32, 3), 2.0, dtype=np.float32)
+    train, _ = deduplicate_patch_records(
+        [
+            record("train-shared", source("a" * 24), "a" * 24, shared),
+            record("train-unique", source("b" * 24), "b" * 24, train_unique),
+        ]
+    )
+    val, _ = deduplicate_patch_records(
+        [
+            record("val-shared", source("c" * 24), "c" * 24, shared),
+            record("val-unique", source("d" * 24), "d" * 24, val_unique),
+        ]
+    )
+
+    filtered, summary = remove_train_exact_hash_overlap(train, val)
+
+    assert [item["record_id"] for item in filtered] == ["train-unique"]
+    assert summary == {
+        "train_records_before": 2,
+        "train_records_after": 1,
+        "train_records_removed": 1,
+        "overlap_hashes_removed": 1,
+        "removed_fraction": 0.5,
+    }
+    assert audit_train_val_inventories(filtered, val)["status"] == "VERIFIED"
 
 
 def test_train_val_inventory_audit_fails_on_unknown_merged_parent_provenance():

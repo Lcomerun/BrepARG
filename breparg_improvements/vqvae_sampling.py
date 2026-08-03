@@ -251,6 +251,30 @@ def _inventory_parents(records):
     return parents, unknown
 
 
+def remove_train_exact_hash_overlap(train_records, val_records):
+    """Keep validation fixed and remove exact-content overlaps from training."""
+    train_records = list(train_records)
+    val_hashes = _inventory_exact_hashes(val_records)
+    kept = [
+        record
+        for record in train_records
+        if canonical_patch_hash(record.get("kind"), record.get("array")) not in val_hashes
+    ]
+    removed_hashes = {
+        canonical_patch_hash(record.get("kind"), record.get("array"))
+        for record in train_records
+        if canonical_patch_hash(record.get("kind"), record.get("array")) in val_hashes
+    }
+    removed = len(train_records) - len(kept)
+    return kept, {
+        "train_records_before": len(train_records),
+        "train_records_after": len(kept),
+        "train_records_removed": removed,
+        "overlap_hashes_removed": len(removed_hashes),
+        "removed_fraction": removed / len(train_records) if train_records else 0.0,
+    }
+
+
 def audit_train_val_inventories(train_records, val_records):
     train_records = list(train_records)
     val_records = list(val_records)

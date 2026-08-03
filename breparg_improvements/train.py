@@ -62,6 +62,7 @@ from vqvae_sampling import (
     collect_vqvae_patch_shard_records,
     collect_vqvae_sample_records,
     deduplicate_patch_records,
+    remove_train_exact_hash_overlap,
     records_to_chw_array,
     records_to_patch_weights,
 )
@@ -309,6 +310,11 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
     val_records, val_sampling, val_dedup = _collect_protocol_inventory(
         split.get('val', []), val_cap, seed=1
     )
+    train_records, cross_split_exact = remove_train_exact_hash_overlap(
+        train_records, val_records
+    )
+    if not train_records:
+        raise RuntimeError("Protocol V2 exact-overlap filtering removed all train patches")
     integrity = audit_train_val_inventories(train_records, val_records)
     return {
         'X_train': records_to_chw_array(train_records),
@@ -327,6 +333,7 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
         'val_sampling': val_sampling,
         'train_dedup': train_dedup,
         'val_dedup': val_dedup,
+        'cross_split_exact': cross_split_exact,
         'integrity': integrity,
     }
 
@@ -720,6 +727,7 @@ def stage_vqvae():
         'sampling': {
             'train': protocol_data['train_sampling'], 'val': protocol_data['val_sampling'],
             'train_dedup': protocol_data['train_dedup'], 'val_dedup': protocol_data['val_dedup'],
+            'cross_split_exact': protocol_data['cross_split_exact'],
             'integrity': protocol_data['integrity'],
         },
         'last_val_metrics': meta.get('last_val_metrics'),

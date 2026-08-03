@@ -64,6 +64,7 @@ def test_collect_protocol_vq_data_uses_disjoint_cad_splits_and_exact_dedup(
     assert data["X_val"].shape == (2, 3, 32, 32)
     assert data["train_dedup"]["duplicates_removed"] == 0
     assert data["val_dedup"]["duplicates_removed"] == 0
+    assert data["cross_split_exact"]["train_records_removed"] == 0
     assert data["integrity"]["status"] == "VERIFIED"
     assert data["val_buckets"] == ["edge", "surface_planar_like"]
 
