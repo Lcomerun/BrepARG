@@ -1,0 +1,319 @@
+{
+  "schema_version": 1,
+  "artifacts": [
+    {
+      "schema_version": 1,
+      "id": "v13_selected_vq",
+      "title": "Selected finite V13 FSQ VQ-VAE checkpoint",
+      "role": "Recommended V13 geometry encoder and decoder",
+      "type": "file",
+      "path_var": "V13_SELECTED_VQ",
+      "build_source_path": "ABC/processed/train_outputs/ubuntu/fsq_vqvae_best.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "fsq_levels": [8, 8, 8, 16],
+        "codebook_size": 8192,
+        "finite": true
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_selected_ar",
+      "title": "Selected finite V13 AR checkpoint",
+      "role": "Recommended V13 free-running and teacher-forcing AR model",
+      "type": "file",
+      "path_var": "V13_SELECTED_AR",
+      "build_source_path": "ABC/processed/train_outputs/ubuntu/ar_best.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "epoch": 122,
+        "vocab_size": 10294,
+        "d_model": 256,
+        "layers": 8,
+        "max_seq_len": 2048,
+        "finite": true,
+        "known_val_ce": 0.29836
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_selected_sequence",
+      "title": "Selected V13 FSQ and RCM sequence package",
+      "role": "Canonical current V13 train, validation, and test token package",
+      "type": "file",
+      "path_var": "V13_SELECTED_SEQUENCE",
+      "build_source_path": "ABC/processed/train_outputs/ubuntu/sequences_fsq_rcm.pkl",
+      "required_identity": true,
+      "known_metadata": {
+        "train_records": 382903,
+        "val_records": 21214,
+        "test_records": 21003,
+        "vocab_size": 10294,
+        "ordering": "RCM/GNN lineage",
+        "parent_cad_isolated": false
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_parsed_archives",
+      "title": "Parsed ABC full archive root",
+      "role": "Parsed geometry source used by complex-curved diagnostics and patch-shard rebuilding",
+      "type": "directory",
+      "path_var": "V13_PARSED_ARCHIVE_ROOT",
+      "build_source_path": "ABC/processed/abc_parsed_full_archives",
+      "required_identity": true,
+      "identity_semantics": "Sorted relative file name, NUL, decimal size, newline inventory; this is not a full content hash."
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_parsed_shards_unresolved",
+      "title": "Parsed ABC shard root",
+      "role": "Optional sequence-rebuild input",
+      "type": "directory",
+      "path_var": "V13_PARSED_SHARD_ROOT",
+      "required_identity": false,
+      "known_metadata": {
+        "expected_chunks": "abc_0000 through abc_0099",
+        "identity_status": "No complete current file-by-file identity manifest was observed at package build time."
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_patch_shards_unresolved",
+      "title": "Historical VQ patch-shard root",
+      "role": "VQ training input",
+      "type": "directory",
+      "path_var": "V13_VQ_PATCH_SHARD_ROOT",
+      "required_identity": false,
+      "known_metadata": {
+        "historical_shards": 344,
+        "historical_patches": 34393215,
+        "historical_surfaces": 9951179,
+        "historical_edges": 24442036,
+        "identity_status": "Directory no longer exists locally; rebuild from identified parsed archives before training."
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_fsq_capacity_vq",
+      "title": "FSQ levels 16,16,8,8 capacity candidate",
+      "role": "Inconclusive capacity ablation checkpoint",
+      "type": "file",
+      "path_var": "V13_FSQ_CAPACITY_VQ",
+      "build_source_path": "local_runs/complex_curved_rootcause_suite_20260715/experiments/01a_train_fsq_capacity_candidate/fsq_levels_16_16_8_8_complex_curved_20260715/fsq_vqvae_best.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "fsq_levels": [16, 16, 8, 8],
+        "codebook_size": 16384,
+        "scientific_status": "Surface Chamfer p95 improved while overall Chamfer p95 worsened; not promoted."
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_dfs_medium_ar",
+      "title": "DFS medium matched AR checkpoint",
+      "role": "Ordering control AR model",
+      "type": "file",
+      "path_var": "V13_DFS_MEDIUM_AR",
+      "build_source_path": "local_runs/complex_curved_rootcause_suite_20260715/experiments/02_dfs_rcm_ordering/ar_train_outputs/ar_dfs_medium_safe_20260715/ar_best.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "ordering": "DFS",
+        "finite": true,
+        "scope": "medium control, not full matched training"
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_rcm_medium_ar",
+      "title": "RCM medium matched AR checkpoint",
+      "role": "Ordering control AR model",
+      "type": "file",
+      "path_var": "V13_RCM_MEDIUM_AR",
+      "build_source_path": "local_runs/complex_curved_rootcause_suite_20260715/experiments/02_dfs_rcm_ordering/ar_train_outputs/ar_rcm_medium_safe_20260715/ar_best.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "ordering": "RCM",
+        "finite": true,
+        "scope": "medium control, not full matched training"
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_dfs_medium_sequence",
+      "title": "DFS medium sequence package",
+      "role": "Ordering control data",
+      "type": "file",
+      "path_var": "V13_DFS_MEDIUM_SEQUENCE",
+      "build_source_path": "local_runs/complex_curved_rootcause_suite_20260715/experiments/02_dfs_rcm_ordering/sequence_rebuild_medium/sequences_fsq_dfs.pkl",
+      "required_identity": true,
+      "known_metadata": {
+        "ordering": "DFS",
+        "scope": "medium control"
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_rcm_medium_sequence",
+      "title": "RCM medium sequence package",
+      "role": "Ordering control data",
+      "type": "file",
+      "path_var": "V13_RCM_MEDIUM_SEQUENCE",
+      "build_source_path": "local_runs/complex_curved_rootcause_suite_20260715/experiments/02_dfs_rcm_ordering/sequence_rebuild_medium/sequences_fsq_rcm.pkl",
+      "required_identity": true,
+      "known_metadata": {
+        "ordering": "RCM",
+        "scope": "medium control"
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_same_data_split",
+      "title": "BrepARG same-data split",
+      "role": "10k/1k/1k same-data baseline split",
+      "type": "file",
+      "path_var": "BREPARG_SAME_DATA_SPLIT",
+      "build_source_path": "../../V13_rootcause_recovery_20260717/breparg_same_data_fallback/data_staged/same_data_split.pkl",
+      "required_identity": true,
+      "known_metadata": {
+        "train_records": 10000,
+        "val_records": 1000,
+        "test_records": 1000,
+        "parent_cad_isolated": false
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_short_vq",
+      "title": "BrepARG same-data short VQ checkpoint",
+      "role": "Short baseline geometry model",
+      "type": "file",
+      "path_var": "BREPARG_SHORT_VQ",
+      "build_source_path": "../../V13_rootcause_recovery_20260717/breparg_same_data_fallback/vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc/abc_se_vqvae_best.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "best_epoch": 70,
+        "configured_epochs": 160
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_short_ar",
+      "title": "BrepARG same-data short AR checkpoint",
+      "role": "Short baseline autoregressive model",
+      "type": "file",
+      "path_var": "BREPARG_SHORT_AR",
+      "build_source_path": "../../V13_rootcause_recovery_20260717/breparg_same_data_fallback/ar_3060_safe_len1536_bs4_20260717_d/same_data_abc/abc_ar_vqvae_best_model.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "best_epoch": 77,
+        "completed_epochs": 80,
+        "max_seq_len": 1536,
+        "known_val_ce": 0.871925
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_short_sequence",
+      "title": "BrepARG same-data short sequence package",
+      "role": "Short baseline token package",
+      "type": "file",
+      "path_var": "BREPARG_SHORT_SEQUENCE",
+      "build_source_path": "../../V13_rootcause_recovery_20260717/breparg_same_data_fallback/sequence_3060_safe_len1536_bs4_20260717_d/breparg_same_data_sequences.pkl",
+      "required_identity": true
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_long_vq",
+      "title": "BrepARG same-data long VQ checkpoint",
+      "role": "Long baseline geometry model",
+      "type": "file",
+      "path_var": "BREPARG_LONG_VQ",
+      "build_source_path": "../../V13_rootcause_recovery_20260717/breparg_same_data_fallback_long_20260720/vqvae_3060_long_vq400_ar300_save20_20260720/same_data_abc/abc_se_vqvae_best.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "best_epoch": 269,
+        "completed_epochs": 400
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_long_ar_completed",
+      "title": "BrepARG same-data long resumed AR checkpoint",
+      "role": "Long baseline AR used for the completed 100-sample generation",
+      "type": "file",
+      "path_var": "BREPARG_LONG_AR",
+      "build_source_path": "local_runs/breparg_long_ar_resume_best_20260724/ar_epoch127_best_to300/same_data_abc/abc_ar_vqvae_best_model.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "best_epoch": 254,
+        "completed_epochs": 300,
+        "max_seq_len": 1536,
+        "known_val_ce": 0.765318,
+        "lineage": "Resumed from the earlier long best at epoch 127."
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_long_ar_epoch127_source",
+      "title": "BrepARG long AR source checkpoint before resume",
+      "role": "Lineage-only checkpoint",
+      "type": "file",
+      "path_var": "BREPARG_LONG_AR_EPOCH127_SOURCE",
+      "build_source_path": "../../V13_rootcause_recovery_20260717/breparg_same_data_fallback_long_20260720/ar_3060_long_vq400_ar300_save20_20260720/same_data_abc/abc_ar_vqvae_best_model.pt",
+      "required_identity": true,
+      "known_metadata": {
+        "resume_epoch": 127,
+        "scientific_status": "Not the final long-baseline generation checkpoint."
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_long_sequence",
+      "title": "BrepARG same-data long sequence package",
+      "role": "Long baseline token package",
+      "type": "file",
+      "path_var": "BREPARG_LONG_SEQUENCE",
+      "build_source_path": "../../V13_rootcause_recovery_20260717/breparg_same_data_fallback_long_20260720/sequence_3060_long_vq400_ar300_save20_20260720/breparg_same_data_sequences.pkl",
+      "required_identity": true
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_official_ar_unresolved",
+      "title": "Official BrepARG AR checkpoint",
+      "role": "Official-paper baseline probe only",
+      "type": "file",
+      "path_var": "BREPARG_OFFICIAL_AR",
+      "required_identity": false,
+      "known_metadata": {
+        "official_vocab_size": 7222,
+        "local_protocol_vocab_size": 10294,
+        "compatibility": "incompatible with the local same-data sequence protocol"
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "breparg_official_vq_unresolved",
+      "title": "Official BrepARG VQ checkpoint",
+      "role": "Official-paper baseline probe only",
+      "type": "file",
+      "path_var": "BREPARG_OFFICIAL_VQ",
+      "required_identity": false,
+      "known_metadata": {
+        "compatibility": "Official protocol and local preprocessing have not been matched."
+      }
+    },
+    {
+      "schema_version": 1,
+      "id": "v13_parent_isolated_sequence_unresolved",
+      "title": "Parent-CAD-isolated V13 sequence package",
+      "role": "Required future paper-grade evaluation package",
+      "type": "file",
+      "path_var": "V13_PARENT_ISOLATED_SEQUENCE",
+      "required_identity": false,
+      "known_metadata": {
+        "identity_status": "Not yet constructed and promoted."
+      }
+    }
+  ]
+}

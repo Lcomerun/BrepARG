@@ -1,0 +1,356 @@
+{
+  "created": "2026-07-31 17:18:13",
+  "limits": [
+    1024,
+    1536,
+    2048
+  ],
+  "thresholds": {
+    "complex_min_faces": 12,
+    "complex_min_edges": 20
+  },
+  "splits": {
+    "train": {
+      "nonempty_sequences": 382903,
+      "lengths": {
+        "count": 382903,
+        "min": 49,
+        "p25": 259.0,
+        "median": 542.0,
+        "mean": 684.58,
+        "p75": 997.0,
+        "p90": 1396.0,
+        "p95": 1714.0,
+        "p99": 2071.0,
+        "max": 2353
+      },
+      "faces": {
+        "count": 382903,
+        "min": 2,
+        "p25": 7.0,
+        "median": 14.0,
+        "mean": 16.92,
+        "p75": 24.0,
+        "p90": 33.0,
+        "p95": 40.0,
+        "p99": 48.0,
+        "max": 50
+      },
+      "edges": {
+        "count": 382903,
+        "min": 2,
+        "p25": 14.0,
+        "median": 32.0,
+        "mean": 41.28,
+        "p75": 60.0,
+        "p90": 85.0,
+        "p95": 105.0,
+        "p99": 129.0,
+        "max": 150
+      },
+      "grammar_ok": 382903,
+      "grammar_failed": 0,
+      "complex_total": 260248,
+      "complex_fraction_of_grammar_ok": 0.679671,
+      "faces_ge_12_total": 222084,
+      "faces_ge_20_total": 132615,
+      "edges_ge_20_total": 260243,
+      "by_limit": {
+        "1024": {
+          "allowed": 290706,
+          "excluded": 92197,
+          "allowed_fraction": 0.7592,
+          "complex_allowed": 168051,
+          "complex_excluded": 92197,
+          "complex_allowed_fraction": 0.6457,
+          "faces_ge_12_allowed": 129890,
+          "faces_ge_20_allowed": 40444,
+          "edges_ge_20_allowed": 168046
+        },
+        "1536": {
+          "allowed": 354149,
+          "excluded": 28754,
+          "allowed_fraction": 0.9249,
+          "complex_allowed": 231494,
+          "complex_excluded": 28754,
+          "complex_allowed_fraction": 0.8895,
+          "faces_ge_12_allowed": 193331,
+          "faces_ge_20_allowed": 103863,
+          "edges_ge_20_allowed": 231489
+        },
+        "2048": {
+          "allowed": 378496,
+          "excluded": 4407,
+          "allowed_fraction": 0.9885,
+          "complex_allowed": 255841,
+          "complex_excluded": 4407,
+          "complex_allowed_fraction": 0.9831,
+          "faces_ge_12_allowed": 217677,
+          "faces_ge_20_allowed": 128208,
+          "edges_ge_20_allowed": 255836
+        }
+      },
+      "total_groups": 382903,
+      "empty_sequences": 0
+    },
+    "val": {
+      "nonempty_sequences": 21214,
+      "lengths": {
+        "count": 21214,
+        "min": 49,
+        "p25": 260.0,
+        "median": 563.0,
+        "mean": 691.8,
+        "p75": 1012.0,
+        "p90": 1412.7,
+        "p95": 1717.0,
+        "p99": 2091.87,
+        "max": 2353
+      },
+      "faces": {
+        "count": 21214,
+        "min": 2,
+        "p25": 8.0,
+        "median": 14.0,
+        "mean": 17.07,
+        "p75": 24.0,
+        "p90": 34.0,
+        "p95": 41.0,
+        "p99": 48.0,
+        "max": 50
+      },
+      "edges": {
+        "count": 21214,
+        "min": 2,
+        "p25": 15.0,
+        "median": 33.0,
+        "mean": 41.75,
+        "p75": 61.0,
+        "p90": 86.0,
+        "p95": 107.0,
+        "p99": 131.87,
+        "max": 150
+      },
+      "grammar_ok": 21214,
+      "grammar_failed": 0,
+      "complex_total": 14513,
+      "complex_fraction_of_grammar_ok": 0.684124,
+      "faces_ge_12_total": 12372,
+      "faces_ge_20_total": 7428,
+      "edges_ge_20_total": 14513,
+      "by_limit": {
+        "1024": {
+          "allowed": 15979,
+          "excluded": 5235,
+          "allowed_fraction": 0.7532,
+          "complex_allowed": 9278,
+          "complex_excluded": 5235,
+          "complex_allowed_fraction": 0.6393,
+          "faces_ge_12_allowed": 7138,
+          "faces_ge_20_allowed": 2194,
+          "edges_ge_20_allowed": 9278
+        },
+        "1536": {
+          "allowed": 19582,
+          "excluded": 1632,
+          "allowed_fraction": 0.9231,
+          "complex_allowed": 12881,
+          "complex_excluded": 1632,
+          "complex_allowed_fraction": 0.8875,
+          "faces_ge_12_allowed": 10740,
+          "faces_ge_20_allowed": 5796,
+          "edges_ge_20_allowed": 12881
+        },
+        "2048": {
+          "allowed": 20925,
+          "excluded": 289,
+          "allowed_fraction": 0.9864,
+          "complex_allowed": 14224,
+          "complex_excluded": 289,
+          "complex_allowed_fraction": 0.9801,
+          "faces_ge_12_allowed": 12083,
+          "faces_ge_20_allowed": 7139,
+          "edges_ge_20_allowed": 14224
+        }
+      },
+      "total_groups": 21214,
+      "empty_sequences": 0
+    },
+    "test": {
+      "nonempty_sequences": 21003,
+      "lengths": {
+        "count": 21003,
+        "min": 49,
+        "p25": 260.0,
+        "median": 552.0,
+        "mean": 687.1,
+        "p75": 1011.0,
+        "p90": 1397.8,
+        "p95": 1717.0,
+        "p99": 2067.0,
+        "max": 2353
+      },
+      "faces": {
+        "count": 21003,
+        "min": 2,
+        "p25": 8.0,
+        "median": 14.0,
+        "mean": 16.98,
+        "p75": 24.0,
+        "p90": 33.0,
+        "p95": 40.9,
+        "p99": 48.0,
+        "max": 50
+      },
+      "edges": {
+        "count": 21003,
+        "min": 2,
+        "p25": 15.0,
+        "median": 32.0,
+        "mean": 41.44,
+        "p75": 60.0,
+        "p90": 86.0,
+        "p95": 106.0,
+        "p99": 129.0,
+        "max": 150
+      },
+      "grammar_ok": 21003,
+      "grammar_failed": 0,
+      "complex_total": 14315,
+      "complex_fraction_of_grammar_ok": 0.681569,
+      "faces_ge_12_total": 12210,
+      "faces_ge_20_total": 7266,
+      "edges_ge_20_total": 14315,
+      "by_limit": {
+        "1024": {
+          "allowed": 15861,
+          "excluded": 5142,
+          "allowed_fraction": 0.7552,
+          "complex_allowed": 9173,
+          "complex_excluded": 5142,
+          "complex_allowed_fraction": 0.6408,
+          "faces_ge_12_allowed": 7069,
+          "faces_ge_20_allowed": 2125,
+          "edges_ge_20_allowed": 9173
+        },
+        "1536": {
+          "allowed": 19409,
+          "excluded": 1594,
+          "allowed_fraction": 0.9241,
+          "complex_allowed": 12721,
+          "complex_excluded": 1594,
+          "complex_allowed_fraction": 0.8886,
+          "faces_ge_12_allowed": 10616,
+          "faces_ge_20_allowed": 5672,
+          "edges_ge_20_allowed": 12721
+        },
+        "2048": {
+          "allowed": 20771,
+          "excluded": 232,
+          "allowed_fraction": 0.989,
+          "complex_allowed": 14083,
+          "complex_excluded": 232,
+          "complex_allowed_fraction": 0.9838,
+          "faces_ge_12_allowed": 11978,
+          "faces_ge_20_allowed": 7034,
+          "edges_ge_20_allowed": 14083
+        }
+      },
+      "total_groups": 21003,
+      "empty_sequences": 0
+    }
+  },
+  "overall": {
+    "nonempty_sequences": 425120,
+    "lengths": {
+      "count": 425120,
+      "min": 49,
+      "p25": 259.0,
+      "median": 542.0,
+      "mean": 685.06,
+      "p75": 998.0,
+      "p90": 1396.0,
+      "p95": 1715.0,
+      "p99": 2072.0,
+      "max": 2353
+    },
+    "faces": {
+      "count": 425120,
+      "min": 2,
+      "p25": 7.0,
+      "median": 14.0,
+      "mean": 16.93,
+      "p75": 24.0,
+      "p90": 33.0,
+      "p95": 40.0,
+      "p99": 48.0,
+      "max": 50
+    },
+    "edges": {
+      "count": 425120,
+      "min": 2,
+      "p25": 14.0,
+      "median": 32.0,
+      "mean": 41.32,
+      "p75": 60.0,
+      "p90": 85.0,
+      "p95": 105.0,
+      "p99": 130.0,
+      "max": 150
+    },
+    "grammar_ok": 425120,
+    "grammar_failed": 0,
+    "complex_total": 289076,
+    "complex_fraction_of_grammar_ok": 0.679987,
+    "faces_ge_12_total": 246666,
+    "faces_ge_20_total": 147309,
+    "edges_ge_20_total": 289071,
+    "by_limit": {
+      "1024": {
+        "allowed": 322546,
+        "excluded": 102574,
+        "allowed_fraction": 0.7587,
+        "complex_allowed": 186502,
+        "complex_excluded": 102574,
+        "complex_allowed_fraction": 0.6452,
+        "faces_ge_12_allowed": 144097,
+        "faces_ge_20_allowed": 44763,
+        "edges_ge_20_allowed": 186497
+      },
+      "1536": {
+        "allowed": 393140,
+        "excluded": 31980,
+        "allowed_fraction": 0.9248,
+        "complex_allowed": 257096,
+        "complex_excluded": 31980,
+        "complex_allowed_fraction": 0.8894,
+        "faces_ge_12_allowed": 214687,
+        "faces_ge_20_allowed": 115331,
+        "edges_ge_20_allowed": 257091
+      },
+      "2048": {
+        "allowed": 420192,
+        "excluded": 4928,
+        "allowed_fraction": 0.9884,
+        "complex_allowed": 284148,
+        "complex_excluded": 4928,
+        "complex_allowed_fraction": 0.983,
+        "faces_ge_12_allowed": 241738,
+        "faces_ge_20_allowed": 142381,
+        "edges_ge_20_allowed": 284143
+      }
+    },
+    "total_groups": 425120,
+    "empty_sequences": 0
+  },
+  "recommendation": {
+    "action": "train_long_context_ar",
+    "preferred_max_seq_len": 2048,
+    "baseline_max_seq_len": 1024,
+    "baseline_complex_allowed": 186502,
+    "preferred_complex_allowed": 284148,
+    "additional_complex_sequences": 97646,
+    "reason": "longer context admits more grammar-valid complex sequences into AR training/evaluation"
+  },
+  "sequence": "ABC\\processed\\train_outputs\\ubuntu\\sequences_fsq_rcm.pkl"
+}

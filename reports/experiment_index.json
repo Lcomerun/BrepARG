@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "updated": "2026-08-03",
+  "entries": [
+    {
+      "id": "current-scientific-conclusions",
+      "status": "current",
+      "category": "project-summary",
+      "summary": "reproducibility/reports/current_conclusions.md",
+      "metrics": null,
+      "artifacts_external": true
+    },
+    {
+      "id": "experiment-ledger",
+      "status": "current",
+      "category": "experiment-history",
+      "summary": "reproducibility/project_history/03_experiment_ledger/experiment_ledger.md",
+      "metrics": "reproducibility/project_history/03_experiment_ledger/experiment_ledger.json",
+      "artifacts_external": true
+    },
+    {
+      "id": "full-postmortem-20260731",
+      "status": "completed",
+      "category": "root-cause-analysis",
+      "summary": "docs/full_experiment_postmortem_20260731.md",
+      "metrics": null,
+      "artifacts_external": true
+    },
+    {
+      "id": "v13-parent-cad-split-integrity-20260731",
+      "status": "completed",
+      "category": "data-audit",
+      "summary": null,
+      "metrics": "docs/audits/v13_sequence_split_integrity_20260731.json",
+      "artifacts_external": true
+    },
+    {
+      "id": "breparg-same-data-split-integrity-20260731",
+      "status": "completed",
+      "category": "data-audit",
+      "summary": null,
+      "metrics": "docs/audits/breparg_same_data_split_integrity_20260731.json",
+      "artifacts_external": true
+    },
+    {
+      "id": "v13-ar-length-coverage-20260731",
+      "status": "completed",
+      "category": "sequence-audit",
+      "summary": "docs/audits/v13_ar_length_coverage_20260731.md",
+      "metrics": "docs/audits/v13_ar_length_coverage_20260731.json",
+      "artifacts_external": true
+    },
+    {
+      "id": "v13-ar-distribution-coverage-20260731",
+      "status": "completed",
+      "category": "sequence-audit",
+      "summary": "docs/audits/v13_ar_distribution_coverage_20260731.md",
+      "metrics": "docs/audits/v13_ar_distribution_coverage_20260731.json",
+      "artifacts_external": true
+    }
+  ]
+}

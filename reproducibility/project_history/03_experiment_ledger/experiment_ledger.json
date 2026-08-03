@@ -1,0 +1,243 @@
+{
+  "schema_version": 1,
+  "generated_for": "v13_repro_source_20260802",
+  "field_notes": {
+    "unknown": "Unknown values are intentionally not inferred.",
+    "metrics": "Every ratio should retain numerator and denominator when known.",
+    "confidence": "confirmed, strong_inference, or insufficient_evidence"
+  },
+  "experiments": [
+    {
+      "id": "v13_stable_vq_40",
+      "date": "2026-06-27",
+      "method": "V13 FSQ-VQ-VAE",
+      "data_cohort": "historical local VQ cohort",
+      "configuration": {"epochs_completed": 40, "fsq_levels": [8, 8, 8, 16]},
+      "metrics": {"best_validation_reconstruction_mse": 0.00056, "all_batches_finite": true},
+      "status": "completed",
+      "outcome": "Established a finite training baseline after an earlier val=inf incident.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E001", "E002"]
+    },
+    {
+      "id": "v13_vq_continuation_85",
+      "date": "2026-06-27",
+      "method": "V13 FSQ-VQ-VAE continuation",
+      "data_cohort": "same historical local VQ cohort",
+      "configuration": {"absolute_epoch_reached": 85, "best_epoch": 73},
+      "metrics": {"best_validation_reconstruction_mse": 0.00037},
+      "status": "completed",
+      "outcome": "Improved global MSE but did not establish complex-curved reconstruction quality.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E002"]
+    },
+    {
+      "id": "vq_resume_scratch_50k_comparison",
+      "date": "2026-07-10",
+      "method": "V13 selected VQ checkpoint comparison",
+      "data_cohort": "independent 50,000 patch evaluation",
+      "configuration": {"candidates": ["old_epoch100", "resume_best", "scratch_best"]},
+      "metrics": {
+        "resume_all_mse": {"mean": 0.00037250, "median": 0.00000914, "p95": 0.00064665},
+        "old_all_mse": {"mean": 0.00042419, "median": 0.00002229, "p95": 0.00075367},
+        "scratch_all_mse": {"mean": 0.00045153, "median": 0.00003321, "p95": 0.00104564}
+      },
+      "status": "completed",
+      "outcome": "Promoted resume-best as the current candidate; scratch continuation remained exploratory.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E017"]
+    },
+    {
+      "id": "v13_full_sequence_rcm",
+      "date": "2026-07-11",
+      "method": "FSQ + RCM sequence construction",
+      "data_cohort": "ABC chunks 0000-0099",
+      "configuration": {"max_faces": 50, "max_global_edges": 150, "vocab_size": 10294},
+      "metrics": {"train_records": 382903, "val_records": 21214, "test_records": 21003, "max_sequence_length": 2353},
+      "status": "completed",
+      "outcome": "Produced the canonical current sequence package; later audit found parent-CAD leakage.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E003", "E018"]
+    },
+    {
+      "id": "v13_ar_bs32_lr5e4_ctx2048",
+      "date": "2026-07-12",
+      "method": "V13 AR continuation",
+      "data_cohort": "full RCM sequence",
+      "configuration": {"batch_size": 32, "learning_rate": 0.0005, "max_seq_len": 2048},
+      "metrics": {"last_known_good_val_ce": 0.3097, "divergence_started_near_epoch": 115},
+      "status": "failed",
+      "outcome": "Training CE exploded, CUDA OOM occurred, and a later latest checkpoint became nonfinite.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E019", "E020"]
+    },
+    {
+      "id": "v13_ar_finite_best_selection",
+      "date": "2026-07-12",
+      "method": "AR checkpoint health audit",
+      "data_cohort": "full RCM sequence",
+      "configuration": {"checkpoint_epoch": 117, "batch_size": 24, "learning_rate": 0.0001, "max_seq_len": 2048},
+      "metrics": {"train_ce": 0.3182005966, "val_ce": 0.2990635254, "finite_float_tensors": 101},
+      "status": "completed",
+      "outcome": "Selected finite best and rejected epoch-142 latest with nonfinite embedding weights.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E020"]
+    },
+    {
+      "id": "v13_generation_original_breparg_logic",
+      "date": "2026-07-15",
+      "method": "Current V13 weights with original BrepARG sampling",
+      "data_cohort": "unconditional generation",
+      "configuration": {"target_retained": 100},
+      "metrics": {"attempts": 124, "step_saved": 103, "retained": 100, "complex_retained": 11, "faces_median": 6, "edges_median": 12},
+      "status": "completed",
+      "outcome": "Sampler swap retained valid STEP quickly but did not remove simple-topology collapse.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E009"]
+    },
+    {
+      "id": "v13_generation_quality_gate",
+      "date": "2026-07-13",
+      "method": "Constrained generation plus quality survivor gate",
+      "data_cohort": "unconditional generation",
+      "configuration": {"target_retained": 100, "keep_rejected": true},
+      "metrics": {"attempts": 2405, "retained": 100, "step_saved": 1630, "brep_valid_checked": 1242},
+      "status": "completed",
+      "outcome": "Collected complex survivors at high cost; this is selection, not distribution repair.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E009", "E012"]
+    },
+    {
+      "id": "complex_curved_fsq_only_50",
+      "date": "2026-07-15",
+      "method": "FSQ-only complex-curved patch reconstruction",
+      "data_cohort": "deterministic validation subset: 50 shapes, 3399 patches",
+      "configuration": {"skip_ar": true, "skip_brep_reconstruction": true, "chamfer_backend": "torch.cdist"},
+      "metrics": {"all_chamfer_median": 0.0152609535, "all_chamfer_p95": 0.1501216799, "surface_chamfer_p95": 0.4123849943, "edge_chamfer_p95": 0.1016861200},
+      "status": "completed",
+      "outcome": "Confirmed a heavy tail concentrated in complex curved surfaces.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E006"]
+    },
+    {
+      "id": "complex_curved_true_token_50",
+      "date": "2026-07-16",
+      "method": "Teacher forcing plus real-token BRep reconstruction",
+      "data_cohort": "same deterministic 50-shape subset",
+      "configuration": {"max_seq_len": 2048, "free_running_ar": false},
+      "metrics": {"attempted": 50, "grammar_valid": 50, "step_saved": 27, "brep_valid": 9},
+      "status": "completed",
+      "outcome": "Showed major reconstruction/assembly failure even when free-running AR is bypassed.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E007", "E008"]
+    },
+    {
+      "id": "fsq_capacity_16_16_8_8",
+      "date": "2026-07-17",
+      "method": "Higher-capacity FSQ candidate evaluation",
+      "data_cohort": "same 50 shapes and 3399 patches",
+      "configuration": {"fsq_levels": [16, 16, 8, 8], "codebook_size": 16384},
+      "metrics": {"all_chamfer_p95": 0.1564181745, "all_p95_relative_change_pct": 4.1942606872, "surface_p95_relative_change_pct": -26.9115625276},
+      "status": "completed",
+      "outcome": "Mixed result; surface p95 improved but overall and edge metrics regressed, so capacity hypothesis remains inconclusive.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E016"]
+    },
+    {
+      "id": "dfs_rcm_medium_teacher_forcing",
+      "date": "2026-07-17",
+      "method": "Matched medium ordering control",
+      "data_cohort": "same complex-curved 50-shape cohort",
+      "configuration": {"comparison": "DFS vs RCM", "full_data_matched": false},
+      "metrics": {"dfs_token_weighted_ce": 1.2586939125, "rcm_token_weighted_ce": 1.3130185280},
+      "status": "completed",
+      "outcome": "DFS modestly outperformed RCM; ordering is a secondary contributor, not the dominant failure.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E010"]
+    },
+    {
+      "id": "breparg_official_weight_probe",
+      "date": "2026-07-17",
+      "method": "Official BrepARG checkpoint compatibility probe",
+      "data_cohort": "official checkpoint versus local same-data protocol",
+      "configuration": {"official_vocab_size": 7222, "local_vocab_size": 10294},
+      "metrics": {},
+      "status": "blocked",
+      "outcome": "Checkpoint cannot be fairly loaded into the local vocabulary; official metric reproduction remains unavailable.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E021"]
+    },
+    {
+      "id": "breparg_same_data_short",
+      "date": "2026-07-20",
+      "method": "Self-trained BrepARG short baseline",
+      "data_cohort": "record-level 10000/1000/1000 split",
+      "configuration": {"vq_best_epoch": 70, "ar_completed_epochs": 80, "ar_best_epoch": 77, "max_seq_len": 1536},
+      "metrics": {"ar_best_val_ce": 0.871925, "generated_evaluated": 92, "complex": 5, "strict_accepted": 0},
+      "status": "completed",
+      "outcome": "Runnable same-data fallback with poor complex quality; split later shown to leak parent CAD.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E005", "E013", "E022"]
+    },
+    {
+      "id": "breparg_same_data_long",
+      "date": "2026-07-26",
+      "method": "Self-trained BrepARG VQ400/AR300 baseline",
+      "data_cohort": "same record-level split as short baseline",
+      "configuration": {"vq_completed_epochs": 400, "vq_best_epoch": 269, "ar_completed_epochs": 300, "ar_best_epoch": 254, "max_seq_len": 1536},
+      "metrics": {"ar_best_val_ce": 0.765318, "generated_evaluated": 100, "complex": 13, "strict_accepted": 6, "faces_median": 6, "edges_median": 12},
+      "status": "completed",
+      "outcome": "Longer training improved baseline metrics but did not remove simple topology collapse.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E005", "E014", "E023"]
+    },
+    {
+      "id": "v13_parent_cad_split_audit",
+      "date": "2026-07-31",
+      "method": "Parent-CAD leakage audit",
+      "data_cohort": "canonical V13 RCM sequence",
+      "configuration": {"exact_path_overlap": 0},
+      "metrics": {"val_records_sharing_parent_fraction": 0.5674554539, "test_records_sharing_parent_fraction": 0.5717278484},
+      "status": "completed",
+      "outcome": "Detected leakage despite disjoint exact source paths; historical validation is not independent.",
+      "confidence": "confirmed",
+      "evidence_ids": ["E004"]
+    },
+    {
+      "id": "ground_truth_assembly_oracle",
+      "date": null,
+      "method": "Untouched parsed geometry to BRep assembly",
+      "data_cohort": "future parent-isolated complex-curved holdout",
+      "configuration": {},
+      "metrics": {},
+      "status": "blocked",
+      "outcome": "No package-safe implementation yet; required to isolate assembly before FSQ.",
+      "confidence": "insufficient_evidence",
+      "evidence_ids": ["E027"]
+    },
+    {
+      "id": "continuous_latent_bypass_oracle",
+      "date": null,
+      "method": "Decoder reconstruction without FSQ quantization",
+      "data_cohort": "future parent-isolated complex-curved holdout",
+      "configuration": {},
+      "metrics": {},
+      "status": "blocked",
+      "outcome": "Current code has no verified bypass preserving the same decoder and assembly path.",
+      "confidence": "insufficient_evidence",
+      "evidence_ids": ["E027"]
+    },
+    {
+      "id": "teacher_forced_argmax_reconstruction",
+      "date": null,
+      "method": "One-step argmax under true prefixes followed by reconstruction",
+      "data_cohort": "future parent-isolated complex-curved holdout",
+      "configuration": {},
+      "metrics": {},
+      "status": "blocked",
+      "outcome": "Existing diagnostic computes CE and reconstructs target tokens, but does not reconstruct one-step predictions.",
+      "confidence": "insufficient_evidence",
+      "evidence_ids": ["E027"]
+    }
+  ]
+}

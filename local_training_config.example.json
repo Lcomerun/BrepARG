@@ -1,0 +1,35 @@
+{
+  "paths": {
+    "raw_root": "<path-to-raw-abc-step-files>",
+    "parsed_root": "<path-to-parsed-abc-records>",
+    "train_out_root": "<path-to-local-training-outputs>"
+  },
+  "processing": {
+    "chunks": "all",
+    "workers": 4,
+    "timeout_seconds": 60,
+    "limit": 0
+  },
+  "training": {
+    "run_name": "newscheme_full_local",
+    "ns_n": 999999,
+    "ns_vq_samples": 300000,
+    "ns_vq_epochs": 120,
+    "ns_vq_bs": 128,
+    "ns_vq_min_epochs": 12,
+    "ns_vq_patience": 8,
+    "ns_vq_min_delta": 0.00001,
+    "ns_vq_max_nonfinite_val_epochs": 2,
+    "ns_disable_amp_vqvae": false,
+    "ns_vq_complex_fraction": 0.0,
+    "ns_vq_complex_min_faces": 12,
+    "ns_vq_complex_min_edges": 20,
+    "ns_vq_curved_fraction": 0.0,
+    "ns_ar_epochs": 120,
+    "ns_ar_bs": 8,
+    "ns_ar_dmodel": 256,
+    "ns_ar_layers": 8,
+    "ns_ar_max_seq_len": 1024,
+    "cuda_visible_devices": "0"
+  }
+}

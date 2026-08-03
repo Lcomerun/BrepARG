@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+# derived caches / heavy artifacts — regenerable, not tracked
+repro_outputs/_abc_seq_sample.pkl
+repro_outputs/e2e/parsed/
+repro_outputs/e2e/*.pkl
+repro_outputs/e2e/*.pt

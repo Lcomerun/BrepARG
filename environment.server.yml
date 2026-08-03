@@ -1,0 +1,13 @@
+name: v13-brepgen
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - numpy<2.3
+  - scipy
+  - tqdm
+  - zstandard
+  # VQ-VAE training does not need OpenCascade. Install pythonocc-core
+  # separately only for STEP reconstruction / validity checks.
