@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "experiment_id": "breparg_same_data_vqvae_long_400",
+  "model": "BrepARG SE-VQ-VAE",
+  "protocol": "same-data local comparison",
+  "status": "completed",
+  "target_epoch": 400,
+  "resumed_from_epoch": 70,
+  "first_recorded_epoch": 71,
+  "last_completed_epoch": 400,
+  "best_epoch": 269,
+  "batch_size": 128,
+  "learning_rate": 0.0001,
+  "train_samples": 606160,
+  "validation_samples": 59922,
+  "epoch_400": {
+    "train_total_loss": 0.00007758993161,
+    "train_reconstruction_loss": 0.00002662176848,
+    "train_vq_loss": 0.00005096816312,
+    "train_perplexity": 191.8865204,
+    "validation_total_loss": 0.0002617769642,
+    "validation_reconstruction_loss": 0.0002194372355,
+    "validation_vq_loss": 0.0000423397214,
+    "validation_codebook_activity": 0.462890625,
+    "validation_perplexity": 150.1914673
+  },
+  "best_checkpoint": {
+    "filename": "abc_se_vqvae_best.pt",
+    "epoch": 269,
+    "validation_reconstruction_loss": 0.0002105516178,
+    "sha256": "5C5AE4BCCF04DB7C61F8335EE70505E23B8733973A80960C6837A7C5A1E4B680",
+    "included_in_git": false
+  },
+  "epoch_400_checkpoint": {
+    "filename": "abc_se_vqvae_epoch_400.pt",
+    "sha256": "487E6518E4556980C0D5FF2A4CBEB6FD0B5CF9AA89F41D70AF58D23D172DE52A",
+    "included_in_git": false
+  },
+  "tensorboard_event": "events.out.tfevents.1784547631.DESKTOP-VDBMPQG.27412.0",
+  "scalar_csv": "scalars.csv",
+  "notes": [
+    "The run restored complete model, optimizer, scaler, iteration, and best-loss state from epoch 70.",
+    "The continuation completed all epochs 71-400.",
+    "Best validation reconstruction loss was reached at epoch 269; later training reduced train loss but did not improve the best validation value.",
+    "The 660 MiB best and epoch-400 checkpoints and the 442 MiB tqdm stderr file are deliberately excluded from Git."
+  ]
+}

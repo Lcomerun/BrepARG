@@ -23,3 +23,5 @@ From the repository root, inspect them on another machine with:
     tensorboard --logdir reports/tensorboard
 
 These are selected historical logs, not a guarantee that every experiment produced or retained TensorBoard events. The raw run directories, checkpoints, and training datasets remain excluded.
+
+`reports/training_results/` contains richer packages for selected later runs. Each package combines the original event file with a CSV scalar export and concise JSON/Markdown summaries, allowing results to be inspected even when TensorBoard is unavailable.

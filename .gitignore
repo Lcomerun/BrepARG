@@ -123,6 +123,8 @@ events.out.tfevents.*
 # Curated TensorBoard logs copied into the lightweight reports tree
 !/reports/tensorboard/
 !/reports/tensorboard/**
+!/reports/training_results/
+!/reports/training_results/**
 
 # Generated CAD, meshes, and previews
 *.step

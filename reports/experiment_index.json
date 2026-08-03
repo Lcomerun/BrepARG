@@ -57,6 +57,26 @@
       "summary": "docs/audits/v13_ar_distribution_coverage_20260731.md",
       "metrics": "docs/audits/v13_ar_distribution_coverage_20260731.json",
       "artifacts_external": true
+    },
+    {
+      "id": "breparg_same_data_vqvae_short_target160",
+      "status": "interrupted",
+      "category": "training-result",
+      "summary": "reports/training_results/breparg_same_data_vqvae_short_target160/README.md",
+      "metrics": "reports/training_results/breparg_same_data_vqvae_short_target160/summary.json",
+      "tensorboard": "reports/training_results/breparg_same_data_vqvae_short_target160/events.out.tfevents.1784363313.DESKTOP-VDBMPQG.14760.0",
+      "scalars": "reports/training_results/breparg_same_data_vqvae_short_target160/scalars.csv",
+      "artifacts_external": true
+    },
+    {
+      "id": "breparg_same_data_vqvae_long_400",
+      "status": "completed",
+      "category": "training-result",
+      "summary": "reports/training_results/breparg_same_data_vqvae_long_400/README.md",
+      "metrics": "reports/training_results/breparg_same_data_vqvae_long_400/summary.json",
+      "tensorboard": "reports/training_results/breparg_same_data_vqvae_long_400/events.out.tfevents.1784547631.DESKTOP-VDBMPQG.27412.0",
+      "scalars": "reports/training_results/breparg_same_data_vqvae_long_400/scalars.csv",
+      "artifacts_external": true
     }
   ]
 }

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "experiment_id": "breparg_same_data_vqvae_short_target160",
+  "model": "BrepARG SE-VQ-VAE",
+  "protocol": "same-data local comparison",
+  "status": "interrupted",
+  "target_epoch": 160,
+  "first_recorded_epoch": 1,
+  "last_completed_epoch": 73,
+  "best_checkpoint_retained_epoch": 70,
+  "batch_size": 128,
+  "learning_rate": 0.0001,
+  "train_samples": 606160,
+  "validation_samples": 59922,
+  "train_surface_samples": 176605,
+  "train_edge_samples": 429555,
+  "validation_surface_samples": 17370,
+  "validation_edge_samples": 42552,
+  "epoch_1": {
+    "train_total_loss": 0.05345306545,
+    "validation_reconstruction_loss": 0.002499439521
+  },
+  "epoch_73": {
+    "train_total_loss": 0.000175545385,
+    "train_reconstruction_loss": 0.0001042967706,
+    "validation_total_loss": 0.0002846377029,
+    "validation_reconstruction_loss": 0.0002383627434,
+    "validation_codebook_activity": 0.927734375,
+    "validation_perplexity": 156.121933
+  },
+  "retained_best_checkpoint": {
+    "filename": "abc_se_vqvae_best.pt",
+    "epoch": 70,
+    "validation_reconstruction_loss": 0.0002403665,
+    "sha256": "ED40D6B50564158A738A6B62A3069939DB1C2E7B84975ECCACDBA41DE27D4270",
+    "included_in_git": false
+  },
+  "tensorboard_event": "events.out.tfevents.1784363313.DESKTOP-VDBMPQG.14760.0",
+  "scalar_csv": "scalars.csv",
+  "notes": [
+    "The run was configured for 160 epochs but the available event stream ends at epoch 73.",
+    "The epoch-73 validation reconstruction loss improved to 0.0002383627, but checkpoint saving did not complete; the retained finite best checkpoint is epoch 70.",
+    "The 660 MiB checkpoint and 97 MiB tqdm stderr file are deliberately excluded from Git."
+  ]
+}
