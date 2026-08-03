@@ -320,6 +320,8 @@ def _write_outputs(
         output_dir / "split_integrity.json",
         (json.dumps(integrity, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"),
     )
+
+
 def _summarize_split_integrity(
     split: Mapping[str, Sequence[str]],
 ) -> dict[str, Any]:
