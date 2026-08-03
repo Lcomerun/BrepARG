@@ -365,10 +365,21 @@ def patch_records_from_parsed(
     return records
 
 
-def load_patch_records(path, complex_min_faces=12, complex_min_edges=20):
+def load_patch_records(
+    path,
+    complex_min_faces=12,
+    complex_min_edges=20,
+    require_parent_id=False,
+):
     with open(path, "rb") as handle:
         data = pickle.load(handle)
-    return patch_records_from_parsed(data, path, complex_min_faces, complex_min_edges)
+    return patch_records_from_parsed(
+        data,
+        path,
+        complex_min_faces,
+        complex_min_edges,
+        require_parent_id=require_parent_id,
+    )
 
 
 def select_patch_records(records, target, curved_fraction=0.0, seed=0, exclude_ids=None):
@@ -414,6 +425,7 @@ def collect_vqvae_sample_records(
     max_source_faces=0,
     max_source_edges=0,
     oversample_factor=1.2,
+    require_parent_id=False,
 ):
     cap = max(0, int(cap))
     paths = [Path(path) for path in paths]
@@ -437,7 +449,12 @@ def collect_vqvae_sample_records(
 
     for path in paths:
         try:
-            records = load_patch_records(path, complex_min_faces, complex_min_edges)
+            records = load_patch_records(
+                path,
+                complex_min_faces,
+                complex_min_edges,
+                require_parent_id=require_parent_id,
+            )
         except Exception:
             failed_paths += 1
             continue

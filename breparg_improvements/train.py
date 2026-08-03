@@ -58,11 +58,14 @@ from ar_training_utils import (
     save_ar_checkpoint,
 )
 from vqvae_sampling import (
+    audit_train_val_inventories,
     collect_vqvae_patch_shard_records,
     collect_vqvae_sample_records,
+    deduplicate_patch_records,
     records_to_chw_array,
     records_to_patch_weights,
 )
+from vqvae_metrics import VQValidationAccumulator, patch_bucket
 from vqvae_sample_cache import load_vqvae_sample_cache, save_vqvae_sample_cache
 
 # ---- paths (heavy artifacts on /data) ----
@@ -72,7 +75,8 @@ PARSED_POOL = os.environ.get('NS_POOL', os.path.join(DATA, 'abc_parsed_50c'))
 # NS_OUTBASE:重产物输出根目录。默认写 /data;当 /data 只读时设为 /home 上的目录做自包含验证。
 OUT = os.path.join(os.environ.get('NS_OUTBASE', DATA), os.environ.get('NS_OUT', 'newscheme_5k'))
 os.makedirs(OUT, exist_ok=True)
-SPLIT = os.path.join(OUT, 'split.pkl')
+PROTOCOL_DIR = os.environ.get('NS_PROTOCOL_DIR', '').strip()
+SPLIT = os.path.join(PROTOCOL_DIR, 'split.pkl') if PROTOCOL_DIR else os.path.join(OUT, 'split.pkl')
 VQVAE_PT = os.path.join(OUT, 'fsq_vqvae_best.pt')
 VQVAE_FINAL_PT = os.path.join(OUT, 'fsq_vqvae_final.pt')
 SWEEP_JSON = os.path.join(OUT, 'vqvae_hp_sweep.json')
@@ -93,6 +97,7 @@ N_DATA = int(os.environ.get('NS_N', '5000'))
 FSQ_LEVELS = tuple(int(x) for x in os.environ.get('NS_LEVELS', '8,8,8,16').split(','))
 SE_CODEBOOK = int(np.prod(FSQ_LEVELS))
 VQ_SAMPLES = int(os.environ.get('NS_VQ_SAMPLES', '60000'))
+VQ_VAL_SAMPLES = int(os.environ.get('NS_VQ_VAL_SAMPLES', '12000'))
 VQ_EPOCHS = int(os.environ.get('NS_VQ_EPOCHS', '120'))
 VQ_BS = int(os.environ.get('NS_VQ_BS', '512'))
 VQ_MIN_EPOCHS = int(os.environ.get('NS_VQ_MIN_EPOCHS', '12'))
@@ -115,6 +120,8 @@ VQ_MAX_SOURCE_EDGES = int(os.environ.get('NS_VQ_MAX_SOURCE_EDGES', '0'))
 VQ_COMPLEX_LOSS_WEIGHT = float(os.environ.get('NS_VQ_COMPLEX_LOSS_WEIGHT', '1'))
 VQ_CURVED_LOSS_WEIGHT = float(os.environ.get('NS_VQ_CURVED_LOSS_WEIGHT', '1'))
 VQ_CURVED_LOSS_THRESHOLD = float(os.environ.get('NS_VQ_CURVED_LOSS_THRESHOLD', '0.02'))
+PROTOCOL_V2 = parse_env_bool(os.environ.get('NS_PROTOCOL_V2'), True)
+VQ_TB_LOG_DIR = os.environ.get('NS_VQ_TB_LOG_DIR', '').strip()
 AR_EPOCHS = int(os.environ.get('NS_AR_EPOCHS', '120'))
 AR_BS = int(os.environ.get('NS_AR_BS', '32'))
 AR_DMODEL = int(os.environ.get('NS_AR_DMODEL', '256'))
@@ -145,7 +152,9 @@ def load_report():
     return json.load(open(REPORT)) if os.path.exists(REPORT) else {
         'created': time.strftime('%Y-%m-%d %H:%M:%S'), 'config': {
             'n_data': N_DATA, 'fsq_levels': list(FSQ_LEVELS), 'se_codebook': SE_CODEBOOK,
-            'vq_epochs': VQ_EPOCHS, 'vq_bs': VQ_BS, 'ar_epochs': AR_EPOCHS, 'ar_bs': AR_BS,
+            'vq_epochs': VQ_EPOCHS, 'vq_bs': VQ_BS, 'vq_val_samples': VQ_VAL_SAMPLES,
+            'protocol_v2': PROTOCOL_V2, 'vq_tb_log_dir': VQ_TB_LOG_DIR or None,
+            'ar_epochs': AR_EPOCHS, 'ar_bs': AR_BS,
             'vq_min_epochs': VQ_MIN_EPOCHS, 'vq_patience': VQ_PATIENCE,
             'vq_min_delta': VQ_MIN_DELTA, 'vq_max_nonfinite_val_epochs': VQ_MAX_NONFINITE_VAL_EPOCHS,
             'vq_amp': VQ_AMP, 'vq_lr': VQ_LR, 'vq_resume_from': VQ_RESUME_FROM or None,
@@ -268,6 +277,60 @@ def collect_se(paths, cap, return_weights=False):
     return samples
 
 
+def _collect_protocol_inventory(paths, cap, seed):
+    records, summary = collect_vqvae_sample_records(
+        paths,
+        cap,
+        seed=seed,
+        complex_fraction=VQ_COMPLEX_FRACTION,
+        complex_min_faces=VQ_COMPLEX_MIN_FACES,
+        complex_min_edges=VQ_COMPLEX_MIN_EDGES,
+        curved_fraction=VQ_CURVED_FRACTION,
+        max_source_faces=VQ_MAX_SOURCE_FACES,
+        max_source_edges=VQ_MAX_SOURCE_EDGES,
+        require_parent_id=True,
+    )
+    deduplicated, dedup_summary = deduplicate_patch_records(records)
+    if not deduplicated:
+        raise RuntimeError("Protocol V2 VQ inventory produced zero geometry patches")
+    return deduplicated, summary, dedup_summary
+
+
+def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES):
+    """Build audited VQ tensors from independent train and validation CADs."""
+    if VQ_SAMPLE_CACHE or VQ_PATCH_SHARD_ROOT or VQ_PATCH_SHARDS:
+        raise RuntimeError(
+            "Protocol V2 rejects legacy VQ cache/shards without split-specific "
+            "parent provenance and a matching protocol fingerprint"
+        )
+    train_records, train_sampling, train_dedup = _collect_protocol_inventory(
+        split.get('train', []), train_cap, seed=0
+    )
+    val_records, val_sampling, val_dedup = _collect_protocol_inventory(
+        split.get('val', []), val_cap, seed=1
+    )
+    integrity = audit_train_val_inventories(train_records, val_records)
+    return {
+        'X_train': records_to_chw_array(train_records),
+        'X_val': records_to_chw_array(val_records),
+        'train_weights': records_to_patch_weights(
+            train_records,
+            complex_weight=VQ_COMPLEX_LOSS_WEIGHT,
+            curved_weight=VQ_CURVED_LOSS_WEIGHT,
+            curved_threshold=VQ_CURVED_LOSS_THRESHOLD,
+        ),
+        'val_buckets': [
+            patch_bucket(record, curved_threshold=VQ_CURVED_LOSS_THRESHOLD)
+            for record in val_records
+        ],
+        'train_sampling': train_sampling,
+        'val_sampling': val_sampling,
+        'train_dedup': train_dedup,
+        'val_dedup': val_dedup,
+        'integrity': integrity,
+    }
+
+
 def weighted_reconstruction_loss(recon, target, weights=None):
     per_sample = (recon - target).pow(2).flatten(1).mean(dim=1)
     if weights is None:
@@ -280,6 +343,38 @@ def weighted_reconstruction_loss(recon, target, weights=None):
 
 # ===========================================================================
 def stage_split():
+    if PROTOCOL_V2:
+        if not PROTOCOL_DIR:
+            raise RuntimeError(
+                "Protocol V2 requires NS_PROTOCOL_DIR from tools/build_cad_protocol.py"
+            )
+        summary_path = os.path.join(PROTOCOL_DIR, 'protocol_summary.json')
+        if not os.path.isfile(SPLIT) or not os.path.isfile(summary_path):
+            raise RuntimeError("Protocol V2 split.pkl and protocol_summary.json are required")
+        with open(summary_path, encoding='utf-8') as handle:
+            summary = json.load(handle)
+        if summary.get('status') != 'VERIFIED':
+            raise RuntimeError("Protocol V2 summary must have status VERIFIED")
+        overlaps = summary.get('parent_overlap_counts', {})
+        if any(int(value) != 0 for value in overlaps.values()):
+            raise RuntimeError("Protocol V2 summary reports parent overlap")
+        with open(SPLIT, 'rb') as handle:
+            split = pickle.load(handle)
+        if not split.get('train') or not split.get('val'):
+            raise RuntimeError("Protocol V2 split requires non-empty train and val cohorts")
+        log(
+            f"  Protocol V2 verified hash={summary.get('protocol_sha256')} "
+            f"train/val/test={len(split.get('train', []))}/{len(split.get('val', []))}/{len(split.get('test', []))}"
+        )
+        report = load_report()
+        report['stages']['split'] = {
+            'protocol_v2': True,
+            'protocol_sha256': summary.get('protocol_sha256'),
+            **{name: len(split.get(name, [])) for name in ('train', 'val', 'test')},
+            'status': 'VERIFIED',
+        }
+        save_report(report)
+        return True
     log("SPLIT: 从 abc_parsed_50c 采样 5K(复用解析几何,无需重解析原始 step)")
     files = sorted(glob.glob(os.path.join(PARSED_POOL, '*.pkl')))
     if not files:                                              # 分 chunk 子目录布局(abc_parsed_100c/abc_XXXX/*.pkl)
@@ -359,7 +454,10 @@ def _train_vqvae(
         initial_best_epoch=-1,
         history_prefix=None,
         save_final_path=None,
-        train_weights=None):
+        train_weights=None,
+        val_buckets=None,
+        codebook_size=None,
+        tb_log_dir=None):
     model = model.to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-6)
     amp_enabled = VQ_AMP if amp_enabled is None else bool(amp_enabled)
@@ -371,6 +469,11 @@ def _train_vqvae(
     )
     scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
     Xtr = torch.tensor(Xtr); Xva = torch.tensor(Xva)
+    val_buckets = list(val_buckets or [])
+    if val_buckets and len(val_buckets) != len(Xva):
+        raise ValueError(f"validation bucket count mismatch: {len(val_buckets)} != {len(Xva)}")
+    if val_buckets and not codebook_size:
+        raise ValueError("codebook_size is required with validation buckets")
     Wtr = torch.tensor(train_weights, dtype=torch.float32) if train_weights is not None else None
     start_epoch = int(start_epoch)
     initial_best = float(initial_best_val) if initial_best_val is not None else float('inf')
@@ -389,8 +492,14 @@ def _train_vqvae(
         'save_final_path': save_final_path,
         'train_weight_mean': float(torch.mean(Wtr).item()) if Wtr is not None and len(Wtr) else None,
         'train_weight_max': float(torch.max(Wtr).item()) if Wtr is not None and len(Wtr) else None,
+        'last_val_metrics': None,
     }
-    for ep in range(epochs):
+    writer = None
+    if tb_log_dir:
+        from torch.utils.tensorboard import SummaryWriter
+        writer = SummaryWriter(log_dir=tb_log_dir)
+    try:
+      for ep in range(epochs):
         absolute_epoch = start_epoch + ep
         model.train(); perm = torch.randperm(len(Xtr)); tot = nb = 0
         train_batches = skipped_train_batches = 0
@@ -414,15 +523,22 @@ def _train_vqvae(
             scaler.step(opt); scaler.update()
             tot += loss.item(); nb += 1
         model.eval(); vtot = vnb = 0; val_batches = 0
+        val_accumulator = (
+            VQValidationAccumulator(int(codebook_size), val_buckets)
+            if val_buckets else None
+        )
         with torch.no_grad():
             for i in range(0, len(Xva), bs):
                 val_batches += 1
                 xb = Xva[i:i + bs].to(DEVICE)
                 with torch.cuda.amp.autocast(enabled=amp_enabled):
                     h = model.encoder(xb); h = model.quant_conv(h)
-                    zq, _, _ = model.quantize(h)
+                    zq, _, quantizer_info = model.quantize(h)
                     recon = model.decoder(model.post_quant_conv(zq))
-                    v = weighted_reconstruction_loss(recon, xb).item()
+                    per_sample = (recon - xb).pow(2).flatten(1).mean(dim=1)
+                    v = per_sample.mean().item()
+                if val_accumulator is not None:
+                    val_accumulator.update(per_sample, quantizer_info[2])
                 if np.isfinite(v):
                     vtot += v; vnb += 1
         tr = finite_average(tot, nb); va = finite_average(vtot, vnb)
@@ -433,6 +549,7 @@ def _train_vqvae(
             torch.save({'model_state_dict': model.state_dict(), 'fsq_levels': list(FSQ_LEVELS)}, save_path)
         if save_final_path:
             torch.save({'model_state_dict': model.state_dict(), 'fsq_levels': list(FSQ_LEVELS)}, save_final_path)
+        val_metrics = val_accumulator.summary() if val_accumulator is not None else None
         record = {
             'epoch': absolute_epoch,
             'train_loss': metric_for_report(tr),
@@ -448,13 +565,28 @@ def _train_vqvae(
             'consecutive_nonfinite_val_epochs': stop_state.consecutive_nonfinite_val_epochs,
             'epochs_without_improvement': stop_state.epochs_without_improvement,
         }
+        if val_metrics is not None:
+            record['val_code_usage'] = val_metrics['code_usage']
+            record['val_reconstruction_mse'] = val_metrics['reconstruction_mse']
         history.append(record)
         meta.update({
             'epochs_ran': ep + 1,
             'best_epoch': stop_state.best_epoch,
             'end_epoch': absolute_epoch,
             'stop_reason': stop_state.stop_reason,
+            'last_val_metrics': val_metrics,
         })
+        if writer is not None:
+            writer.add_scalar('train/loss', tr, absolute_epoch)
+            writer.add_scalar('validation/loss', va, absolute_epoch)
+            if val_metrics is not None:
+                for name, value in val_metrics['code_usage'].items():
+                    writer.add_scalar(f'validation/code_usage/{name}', value, absolute_epoch)
+                for name, bucket in val_metrics['reconstruction_mse'].items():
+                    if bucket['mse'] is not None:
+                        writer.add_scalar(
+                            f'validation/reconstruction_mse/{name}', bucket['mse'], absolute_epoch
+                        )
         if history_path:
             json.dump({
                 'tag': tag,
@@ -481,14 +613,17 @@ def _train_vqvae(
             meta['stopped_early'] = True
             log(f"  {tag} early stop at ep {absolute_epoch}: {stop_state.stop_reason} best={format_metric(best_val)} best_epoch={stop_state.best_epoch}")
             break
+    finally:
+        if writer is not None:
+            writer.close()
     return hist, best_val, meta
 
 
 def stage_vqsweep():
     log("VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)")
     split = pickle.load(open(SPLIT, 'rb'))
-    X = collect_se(split['train'], 12000)
-    ntr = int(len(X) * 0.9); Xtr, Xva = X[:ntr], X[ntr:]
+    protocol_data = collect_protocol_vq_data(split, train_cap=12000, val_cap=VQ_VAL_SAMPLES)
+    Xtr = protocol_data['X_train']; Xva = protocol_data['X_val']
     log(f"  sweep 数据: train={len(Xtr)} val={len(Xva)}  (短训 15 ep)")
     configs = [
         {'name': 'lr1e-3_L8.8.8.16', 'levels': (8, 8, 8, 16), 'lr': 1e-3},
@@ -499,7 +634,10 @@ def stage_vqsweep():
     for c in configs:
         torch.manual_seed(0); np.random.seed(0); random.seed(0)
         m = build_fsq_vqvae(c['levels'])
-        _, bv, _ = _train_vqvae(m, Xtr, Xva, epochs=15, bs=VQ_BS, lr=c['lr'], tag=c['name'])
+        _, bv, _ = _train_vqvae(
+            m, Xtr, Xva, epochs=15, bs=VQ_BS, lr=c['lr'], tag=c['name'],
+            val_buckets=protocol_data['val_buckets'], codebook_size=int(np.prod(c['levels']))
+        )
         results.append({'name': c['name'], 'levels': list(c['levels']),
                         'codebook': int(np.prod(c['levels'])), 'lr': c['lr'], 'best_val_recon': round(bv, 5)})
         log(f"  -> {c['name']}: best_val_recon={bv:.5f}")
@@ -512,12 +650,10 @@ def stage_vqsweep():
 
 def stage_vqvae():
     log(f"VQVAE: 全量训练 FSQ-VQVAE (levels={FSQ_LEVELS}, codebook={SE_CODEBOOK})")
-    if vq_patch_shard_paths():
-        X, W = collect_se([], VQ_SAMPLES, return_weights=True)
-    else:
-        split = pickle.load(open(SPLIT, 'rb'))
-        X, W = collect_se(split['train'], VQ_SAMPLES, return_weights=True)
-    ntr = int(len(X) * 0.95); Xtr, Xva = X[:ntr], X[ntr:]; Wtr = W[:ntr]
+    split = pickle.load(open(SPLIT, 'rb'))
+    protocol_data = collect_protocol_vq_data(split)
+    Xtr = protocol_data['X_train']; Xva = protocol_data['X_val']
+    Wtr = protocol_data['train_weights']
     resume_summary = None
     start_epoch = 0
     initial_best_val = None
@@ -552,12 +688,16 @@ def stage_vqvae():
         initial_best_epoch=initial_best_epoch,
         save_final_path=VQVAE_FINAL_PT,
         train_weights=Wtr,
+        val_buckets=protocol_data['val_buckets'],
+        codebook_size=SE_CODEBOOK,
+        tb_log_dir=VQ_TB_LOG_DIR or None,
     )
     first_val = hist[0][1] if hist else float('inf')
     baseline_best = initial_best_val if initial_best_val is not None else first_val
     ok = bool(hist) and np.isfinite(bv) and np.isfinite(first_val) and bv <= baseline_best
     r = load_report(); r['stages']['vqvae'] = {
-        'samples': len(X), 'epochs': epochs_to_run, 'target_epoch': int(VQ_TARGET_EPOCH) if VQ_TARGET_EPOCH else None,
+        'samples': len(Xtr) + len(Xva), 'train_samples': len(Xtr), 'val_samples': len(Xva),
+        'epochs': epochs_to_run, 'target_epoch': int(VQ_TARGET_EPOCH) if VQ_TARGET_EPOCH else None,
         'start_epoch': meta.get('start_epoch', start_epoch), 'end_epoch': meta.get('end_epoch'),
         'epochs_ran': meta.get('epochs_ran', len(hist)),
         'train_init': metric_for_report(hist[0][0]) if hist else None,
@@ -577,7 +717,13 @@ def stage_vqvae():
         'lr': VQ_LR,
         'train_weight_mean': meta.get('train_weight_mean'),
         'train_weight_max': meta.get('train_weight_max'),
-        'sampling': _LAST_VQVAE_SAMPLING_SUMMARY,
+        'sampling': {
+            'train': protocol_data['train_sampling'], 'val': protocol_data['val_sampling'],
+            'train_dedup': protocol_data['train_dedup'], 'val_dedup': protocol_data['val_dedup'],
+            'integrity': protocol_data['integrity'],
+        },
+        'last_val_metrics': meta.get('last_val_metrics'),
+        'tensorboard': VQ_TB_LOG_DIR or None,
         'history': VQVAE_HISTORY_JSON,
         'checkpoint_best': VQVAE_PT,
         'checkpoint_final': VQVAE_FINAL_PT,
