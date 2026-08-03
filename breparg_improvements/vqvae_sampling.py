@@ -1,3 +1,4 @@
+import hashlib
 import math
 import pickle
 import random
@@ -5,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
+from cad_protocol import canonical_source_key, parent_cad_id
 from sharded_data import PATCH_SHARD_FORMAT, iter_shard_records
 
 
@@ -56,13 +58,223 @@ def edge_to_surface_patch(edge):
     return np.tile(edge[:, None, :], (1, 32, 1))
 
 
-def patch_records_from_parsed(data, source_path, complex_min_faces=12, complex_min_edges=20):
+def _canonical_patch_bytes(kind, array, decimals=None):
+    kind_bytes = str(kind).encode("utf-8")
+    values = np.asarray(array)
+    if decimals is not None:
+        values = np.round(values.astype(np.float64), decimals=decimals)
+    values = np.ascontiguousarray(values, dtype="<f4")
+    shape = np.asarray(values.shape, dtype="<u8").tobytes()
+    return (
+        len(kind_bytes).to_bytes(8, "little")
+        + kind_bytes
+        + values.ndim.to_bytes(8, "little")
+        + shape
+        + values.tobytes(order="C")
+    )
+
+
+def canonical_patch_hash(kind, array):
+    return hashlib.sha256(_canonical_patch_bytes(kind, array)).hexdigest()
+
+
+def rounded_patch_hash(kind, array):
+    return hashlib.sha256(_canonical_patch_bytes(kind, array, decimals=4)).hexdigest()
+
+
+def _record_sort_key(record):
+    return (
+        str(record.get("record_id", "")),
+        str(record.get("source_path", "")),
+        str(record.get("parent_id", "")),
+        str(record.get("kind", "")),
+    )
+
+
+def _record_values(record, plural_key, singular_key, keep_missing=False):
+    values = record.get(plural_key)
+    if values is None:
+        values = [record.get(singular_key)]
+    if keep_missing:
+        return list(values)
+    return [value for value in values if value is not None and str(value)]
+
+
+def deduplicate_patch_records(records):
+    records = list(records)
+    groups = {}
+    rounded_groups = {}
+    for original in records:
+        record = dict(original)
+        kind = record.get("kind")
+        array = record.get("array")
+        exact_hash = canonical_patch_hash(kind, array)
+        audit_hash = rounded_patch_hash(kind, array)
+        record["exact_hash"] = exact_hash
+        record["rounded_hash"] = audit_hash
+        groups.setdefault(exact_hash, []).append(record)
+        rounded_groups.setdefault(audit_hash, set()).add(exact_hash)
+
+    deduplicated = []
+    for exact_hash in sorted(groups):
+        group = sorted(groups[exact_hash], key=_record_sort_key)
+        representative = dict(group[0])
+        representative["provenance_record_ids"] = sorted(
+            {
+                str(value)
+                for record in group
+                for value in _record_values(record, "provenance_record_ids", "record_id")
+            }
+        )
+        representative["provenance_source_paths"] = sorted(
+            {
+                str(value)
+                for record in group
+                for value in _record_values(record, "provenance_source_paths", "source_path")
+            }
+        )
+        representative["provenance_parent_ids"] = sorted(
+            {
+                None if value is None else str(value)
+                for record in group
+                for value in _record_values(
+                    record,
+                    "provenance_parent_ids",
+                    "parent_id",
+                    keep_missing=True,
+                )
+            },
+            key=lambda value: "" if value is None else value,
+        )
+        representative["duplicate_count"] = sum(
+            int(record.get("duplicate_count", 0)) + 1 for record in group
+        ) - 1
+        deduplicated.append(representative)
+
+    deduplicated.sort(key=_record_sort_key)
+    input_records = sum(int(record.get("duplicate_count", 0)) + 1 for record in records)
+    summary = {
+        "input_records": input_records,
+        "unique_records": len(deduplicated),
+        "duplicates_removed": input_records - len(deduplicated),
+        "exact_duplicate_groups": sum(len(group) > 1 for group in groups.values()),
+        "rounded_only_duplicate_groups": sum(len(hashes) > 1 for hashes in rounded_groups.values()),
+    }
+    return deduplicated, summary
+
+
+def _inventory_values(records, plural_key, singular_key):
+    return {
+        str(value)
+        for record in records
+        for value in _record_values(record, plural_key, singular_key)
+    }
+
+
+def _inventory_exact_hashes(records):
+    return {
+        canonical_patch_hash(record.get("kind"), record.get("array"))
+        for record in records
+    }
+
+
+def _inventory_parents(records):
+    parents = set()
+    unknown = False
+    for record in records:
+        values = _record_values(
+            record,
+            "provenance_parent_ids",
+            "parent_id",
+            keep_missing=True,
+        )
+        if not values:
+            unknown = True
+        for value in values:
+            if value is None or not str(value).strip():
+                unknown = True
+            else:
+                parents.add(str(value).casefold())
+    return parents, unknown
+
+
+def audit_train_val_inventories(train_records, val_records):
+    train_records = list(train_records)
+    val_records = list(val_records)
+    train_sources = {
+        canonical_source_key(value)
+        for value in _inventory_values(train_records, "provenance_source_paths", "source_path")
+    }
+    val_sources = {
+        canonical_source_key(value)
+        for value in _inventory_values(val_records, "provenance_source_paths", "source_path")
+    }
+    train_sources.update(
+        canonical_source_key(value)
+        for value in _inventory_values(train_records, "provenance_source_keys", "source_key")
+    )
+    val_sources.update(
+        canonical_source_key(value)
+        for value in _inventory_values(val_records, "provenance_source_keys", "source_key")
+    )
+    train_parents, train_unknown = _inventory_parents(train_records)
+    val_parents, val_unknown = _inventory_parents(val_records)
+    unknown_splits = []
+    if train_unknown:
+        unknown_splits.append("train")
+    if val_unknown:
+        unknown_splits.append("val")
+    if unknown_splits:
+        raise ValueError(f"unknown parent_id in {' and '.join(unknown_splits)} inventory")
+
+    train_hashes = _inventory_exact_hashes(train_records)
+    val_hashes = _inventory_exact_hashes(val_records)
+    source_overlap = sorted(train_sources & val_sources)
+    parent_overlap = sorted(train_parents & val_parents)
+    hash_overlap = sorted(train_hashes & val_hashes)
+    failures = []
+    if source_overlap:
+        failures.append(f"source_key overlap: {source_overlap}")
+    if parent_overlap:
+        failures.append(f"parent_id overlap: {parent_overlap}")
+    if hash_overlap:
+        failures.append(f"exact_hash overlap: {hash_overlap}")
+    if failures:
+        raise ValueError("train/val inventory audit failed: " + "; ".join(failures))
+
+    return {
+        "status": "VERIFIED",
+        "train_records": len(train_records),
+        "val_records": len(val_records),
+        "train_source_keys": len(train_sources),
+        "val_source_keys": len(val_sources),
+        "train_parent_ids": len(train_parents),
+        "val_parent_ids": len(val_parents),
+        "train_exact_hashes": len(train_hashes),
+        "val_exact_hashes": len(val_hashes),
+        "source_key_overlap": source_overlap,
+        "parent_id_overlap": parent_overlap,
+        "exact_hash_overlap": hash_overlap,
+    }
+
+
+def patch_records_from_parsed(
+    data,
+    source_path,
+    complex_min_faces=12,
+    complex_min_edges=20,
+    require_parent_id=False,
+):
     surfaces = _as_array(data.get("surf_ncs"), 4)
     edges = _as_array(data.get("edge_ncs"), 3)
     n_faces = int(len(surfaces))
     n_edges = int(len(edges))
     is_complex = n_faces >= int(complex_min_faces) or n_edges >= int(complex_min_edges)
     source = str(source_path)
+    parent = parent_cad_id(source)
+    if require_parent_id and parent is None:
+        raise ValueError(f"unknown parent CAD ID for source path: {source}")
+    source_key = canonical_source_key(source)
     records = []
 
     for index, surface in enumerate(surfaces):
@@ -70,6 +282,8 @@ def patch_records_from_parsed(data, source_path, complex_min_faces=12, complex_m
             {
                 "record_id": f"{source}:surface:{index}",
                 "source_path": source,
+                "source_key": source_key,
+                "parent_id": parent,
                 "kind": "surface",
                 "array": np.asarray(surface, dtype=np.float32),
                 "curvature_score": surface_curvature_proxy(surface),
@@ -84,6 +298,8 @@ def patch_records_from_parsed(data, source_path, complex_min_faces=12, complex_m
             {
                 "record_id": f"{source}:edge:{index}",
                 "source_path": source,
+                "source_key": source_key,
+                "parent_id": parent,
                 "kind": "edge",
                 "array": edge_to_surface_patch(edge),
                 "curvature_score": edge_curvature_proxy(edge),
