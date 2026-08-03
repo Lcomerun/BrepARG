@@ -1,5 +1,6 @@
 import json
 import pickle
+import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -18,6 +19,7 @@ from cad_protocol import (  # noqa: E402
     assign_parent_splits,
     build_manifest_row,
     build_protocol,
+    inspect_cad_record,
     parent_cad_id,
 )
 
@@ -52,6 +54,9 @@ def eligible_row(parent: str, parts: int = 1) -> list[dict]:
         (f"abc_0000/{'f' * 24}_step_1.pkl", None),
         (f"abc_0000/{'0' * 24}_step_0001.pkl", None),
         (f"abc_0000/{'1' * 24}_step_001.pkl\n", None),
+        (f"abc_0000/prefix_{'2' * 24}_step_001.pkl", None),
+        (f"abc_0000/123_{'3' * 23}_step_001.pkl", None),
+        (f"abc_0000/123_{'4' * 33}_step_001.pkl", None),
         ("abc_0000/train_a.pkl", None),
     ],
 )
@@ -125,7 +130,7 @@ def test_rejection_reason_is_record_level_and_has_stable_priority():
         edges=31,
     )
 
-    assert missing_and_unknown["reject_reason"] == "unknown_parent_id"
+    assert missing_and_unknown["reject_reason"] == "missing_surf_ncs"
     assert build_manifest_row(source("a" * 24), mixed, config)["reject_reason"] == "too_many_edges_per_face"
 
     mixed_order = make_cad(
@@ -133,6 +138,36 @@ def test_rejection_reason_is_record_level_and_has_stable_priority():
         edges=31,
     )
     assert build_manifest_row(source("b" * 24), mixed_order, config)["reject_reason"] == "too_many_edges_per_face"
+
+
+def test_record_inspection_scans_all_adjacency_before_selecting_reason():
+    data = make_cad(
+        faces=9,
+        edges=151,
+        face_edges=[["not-an-index"], list(range(31)), list(range(47))] + [[151]] * 6,
+    )
+
+    result = inspect_cad_record(data, ProtocolConfig())
+
+    assert result["num_faces"] == 9
+    assert result["global_edges"] == 151
+    assert result["max_edges_per_face"] == 47
+    assert result["reject_reason"] == "too_few_faces"
+
+
+def test_invalid_field_has_priority_but_other_measurements_are_retained():
+    data = {
+        "surf_ncs": object(),
+        "edge_ncs": [None] * 12,
+        "faceEdge_adj": [[0], [0, 1, 2]],
+    }
+
+    result = inspect_cad_record(data, ProtocolConfig())
+
+    assert result["num_faces"] is None
+    assert result["global_edges"] == 12
+    assert result["max_edges_per_face"] == 3
+    assert result["reject_reason"] == "invalid_surf_ncs"
 
 
 def test_parent_split_is_deterministic_balanced_and_never_fragments_parent():
@@ -262,3 +297,74 @@ def test_protocol_summary_fails_when_no_eligible_records_exist(tmp_path):
     assert split == {"train": [], "val": [], "test": []}
     assert summary["status"] == "FAILED"
     assert summary["failure_reasons"] == ["no_eligible_records"]
+
+
+def test_cap_overshoot_uses_only_one_indivisible_parent_group(tmp_path):
+    archive = tmp_path / "abc_0000_parsed.zip"
+    with zipfile.ZipFile(archive, "w") as handle:
+        for part in range(2):
+            handle.writestr(source("a" * 24, part, part + 1), pickle.dumps(make_cad()))
+        for part in range(3):
+            handle.writestr(source("b" * 24, part, part + 3), pickle.dumps(make_cad()))
+
+    rows, _, summary = build_protocol(
+        archive_paths=[archive],
+        config=ProtocolConfig(seed=3),
+        output_dir=tmp_path / "out",
+        materialize_root=tmp_path / "materialized",
+        max_eligible_records=1,
+    )
+
+    selected = [row for row in rows if row["split"]]
+    assert len(selected) == 2
+    assert len({row["parent_id"] for row in selected}) == 1
+    assert summary["max_eligible_records"] == 1
+    assert summary["eligible_cap_overshoot_records"] == 1
+    assert summary["eligible_cap_overshoot_parent_id"] == "a" * 24
+
+
+def test_protocol_summary_fails_when_an_archive_member_cannot_be_loaded(tmp_path):
+    archive = tmp_path / "abc_0000_parsed.zip"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr(source("a" * 24, index=1), pickle.dumps(make_cad()))
+        handle.writestr(source("b" * 24, index=2), b"not a pickle")
+
+    _, _, summary = build_protocol(
+        archive_paths=[archive],
+        config=ProtocolConfig(seed=3),
+        output_dir=tmp_path / "out",
+        materialize_root=tmp_path / "materialized",
+    )
+
+    assert summary["status"] == "FAILED"
+    assert summary["archive_member_load_failures"] == 1
+    assert summary["failure_reasons"] == ["archive_member_load_failures"]
+
+
+def test_cli_returns_nonzero_for_failed_protocol(tmp_path):
+    archive_root = tmp_path / "archives"
+    archive_root.mkdir()
+    archive = archive_root / "abc_0000_parsed.zip"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr(source("a" * 24), pickle.dumps(make_cad(faces=9)))
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(REPO_ROOT / "tools" / "build_cad_protocol.py"),
+            "--archive-root",
+            str(archive_root),
+            "--chunks",
+            "0",
+            "--output-dir",
+            str(tmp_path / "out"),
+            "--materialize-root",
+            str(tmp_path / "materialized"),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert completed.returncode == 1
+    assert json.loads(completed.stdout)["failure_reasons"] == ["no_eligible_records"]

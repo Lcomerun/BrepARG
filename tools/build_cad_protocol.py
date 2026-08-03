@@ -1,4 +1,10 @@
-"""Build Protocol V2 manifests and parent-isolated splits from parsed ZIPs."""
+"""Build Protocol V2 manifests and parent-isolated splits from parsed ZIPs.
+
+Use a Python environment able to import every class stored in the parsed
+pickles. ABC archives normally contain NumPy arrays, so NumPy is a runtime
+dependency for archive scanning even though ``cad_protocol`` has no
+third-party imports.
+"""
 
 from __future__ import annotations
 

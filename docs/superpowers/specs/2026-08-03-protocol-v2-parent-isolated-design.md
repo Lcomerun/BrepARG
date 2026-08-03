@@ -22,7 +22,7 @@
 
 第二种备选是直接强化历史 `prepare_breparg_same_data_inputs.py::valid_record`。它会无意改变旧 same-data fallback 和相关测试的语义，也会触及为上游对照准备数据的路径，因此不采用。
 
-第三种方案是在 `breparg_improvements/cad_protocol.py` 建立 V13 自己的、仅依赖 Python 标准库的协议核心，并由 CLI、训练入口和审计共同使用。这是本轮采用的方案。标准库边界使协议审计在没有 PyTorch、CUDA 或 OpenCascade 的机器上仍可运行。
+第三种方案是在 `breparg_improvements/cad_protocol.py` 建立 V13 自己的、仅主动依赖 Python 标准库的协议核心，并由 CLI、训练入口和审计共同使用。这是本轮采用的方案。核心逻辑不需要 PyTorch、CUDA 或 OpenCascade；但是 ABC parsed pickle 内部通常序列化了 NumPy ndarray，因此读取真实 archive 时仍必须使用包含 NumPy 的数据环境（本机为 `brepgen_env`）。纯 Python fixtures 和 manifest 操作仍可在轻量环境运行。
 
 当前健康数据不是解包目录，而是 `ABC/processed/abc_parsed_full_archives` 下的 100 个 ZIP。旧 split 中约 68 万条路径指向已不存在的解包位置。因此 CLI 同时支持普通 parsed 目录和 ZIP archive root；archive 模式直接流式读取成员，不解压约 604.8 GiB 的完整内容。协议清单中的 `source_path` 使用稳定的 `archive-file.zip!/abc_XXXX/member.pkl` 身份，只有 smoke 或训练实际选中的 eligible rows 才物化到外部实验目录。
 

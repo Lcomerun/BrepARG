@@ -38,6 +38,9 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 - Observation: The only complete healthy parsed source is an archive root, not the unpacked paths referenced by historical splits.
   Evidence: `D:\luolin\V13\ABC\processed\abc_parsed_full_archives` contains 100 ZIP files with 681,406 parsed pickle members and 174,374,900,417 compressed bytes; the unpacked `abc_parsed_full` directory is empty. The first archive alone contains 5,943 records.
 
+- Observation: The protocol module has no third-party imports, but real parsed pickle deserialization requires NumPy because the arrays were serialized with NumPy's pickle reducers.
+  Evidence: A `python -S` archive probe failed with `load_failed:ModuleNotFoundError` on the first real member; `brepgen_env` loaded the same data successfully. The CLI therefore documents a data-environment prerequisite instead of falsely claiming a dependency-free end-to-end scan.
+
 ## Decision Log
 
 - Decision: Implement data protocol repair before AR training changes.
@@ -185,7 +188,7 @@ In `breparg_improvements/cad_protocol.py`, define a frozen `ProtocolConfig` with
     def build_protocol(paths: Sequence[Path], config: ProtocolConfig, max_eligible_records: int = 0) -> tuple[list[dict[str, Any]], dict[str, list[str]], dict[str, Any]]
     def write_protocol_outputs(output_dir: Path, rows: Sequence[Mapping[str, Any]], split: Mapping[str, Sequence[str]], summary: Mapping[str, Any]) -> dict[str, Path]
 
-The module may use `dataclasses`, `hashlib`, `json`, `numbers`, `pickle`, `random`, `re`, `statistics`, `tempfile`, `zipfile` and `pathlib`. It must not require NumPy, PyTorch or BrepARG.
+The module may use `dataclasses`, `hashlib`, `json`, `numbers`, `pickle`, `random`, `re`, `statistics`, `tempfile`, `zipfile` and `pathlib`. It must not import NumPy, PyTorch or BrepARG; real ABC pickle input nevertheless requires an interpreter with NumPy installed for pickle deserialization.
 
 In `breparg_improvements/vqvae_sampling.py`, define canonical hashing and deduplication interfaces that retain `record_id`, `source_path`, `parent_id`, `kind`, array shape, duplicate count and source provenance. Training integration may use NumPy because this module already does.
 
@@ -196,3 +199,5 @@ In `breparg_improvements/vqvae_metrics.py`, define bucket labeling and aggregate
 Revision note 2026-08-03: Created after repository inspection, baseline execution, and design selection. It intentionally limits the first implementation and experiment to data protocol, VQ isolation, deduplication and FSQ observability; AR and generation changes remain a later dependent milestone.
 
 Revision note 2026-08-03 21:05 +08:00: Added direct ZIP archive scanning and selected-record materialization after discovering that all historical unpacked split paths are stale and the archive root is the only healthy full-data authority.
+
+Revision note 2026-08-03 21:20 +08:00: Clarified the distinction between a standard-library protocol core and the NumPy runtime needed to deserialize real ABC arrays, following the specification review.

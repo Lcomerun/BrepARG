@@ -1,12 +1,14 @@
 """Protocol V2 eligibility, parent grouping, and manifest construction.
 
-This module deliberately uses only the Python standard library so a dataset
-protocol can be audited before a CUDA or model environment is available.
+The module itself imports only the Python standard library. Scanning real ABC
+archives still requires an environment that can import every type stored in
+the pickle payload, normally NumPy arrays. It does not require CUDA, PyTorch,
+or OpenCascade.
 """
 
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import asdict, dataclass
 import hashlib
 import json
@@ -22,8 +24,24 @@ from typing import Any, Iterable, Mapping, Sequence
 
 SPLITS = ("train", "val", "test")
 PARENT_CAD_RE = re.compile(
-    r"^(?:\d+_)?(?P<cad>[0-9a-f]{24,32})_step_\d+\.pkl$",
+    r"(?:\d+_)?(?P<cad>[0-9a-f]{24,32})_step_\d{3}\.pkl",
     flags=re.IGNORECASE,
+)
+
+REJECTION_PRIORITY = (
+    "missing_surf_ncs",
+    "missing_edge_ncs",
+    "missing_faceEdge_adj",
+    "invalid_surf_ncs",
+    "invalid_edge_ncs",
+    "invalid_face_edge_adjacency",
+    "too_few_faces",
+    "too_many_faces",
+    "too_many_global_edges",
+    "face_edge_adjacency_length_mismatch",
+    "too_many_edges_per_face",
+    "non_integer_edge_index",
+    "edge_index_out_of_range",
 )
 
 
@@ -50,7 +68,7 @@ class ProtocolConfig:
 
 
 def _path_name(value: str) -> str:
-    normalized = str(value).replace("\\", "/").rstrip("/")
+    normalized = str(value).replace("\\", "/")
     return normalized.rsplit("/", 1)[-1]
 
 
@@ -61,7 +79,7 @@ def canonical_source_key(value: str) -> str:
 
 def parent_cad_id(value: str) -> str | None:
     """Extract a reliable ABC parent UUID, returning ``None`` if unresolved."""
-    match = PARENT_CAD_RE.match(_path_name(value))
+    match = PARENT_CAD_RE.fullmatch(_path_name(value))
     return match.group("cad").casefold() if match else None
 
 
@@ -81,64 +99,67 @@ def inspect_cad_record(data: Mapping[str, Any], config: ProtocolConfig) -> dict[
         "protocol_eligible": False,
         "reject_reason": None,
     }
-    for field in ("surf_ncs", "edge_ncs", "faceEdge_adj"):
-        if field not in data or data.get(field) is None:
-            result["reject_reason"] = f"missing_{field}"
-            return result
-
-    num_faces = _safe_len(data["surf_ncs"])
-    global_edges = _safe_len(data["edge_ncs"])
-    face_edge_adj = data["faceEdge_adj"]
+    missing = [
+        f"missing_{field}"
+        for field in ("surf_ncs", "edge_ncs", "faceEdge_adj")
+        if field not in data or data.get(field) is None
+    ]
+    num_faces = _safe_len(data.get("surf_ncs"))
+    global_edges = _safe_len(data.get("edge_ncs"))
+    face_edge_adj = data.get("faceEdge_adj")
     adjacency_faces = _safe_len(face_edge_adj)
     result["num_faces"] = num_faces
     result["global_edges"] = global_edges
-    if num_faces is None:
-        result["reject_reason"] = "invalid_surf_ncs"
-        return result
-    if global_edges is None:
-        result["reject_reason"] = "invalid_edge_ncs"
-        return result
-    if num_faces < config.min_faces:
-        result["reject_reason"] = "too_few_faces"
-        return result
-    if num_faces > config.max_faces:
-        result["reject_reason"] = "too_many_faces"
-        return result
-    if global_edges > config.max_global_edges:
-        result["reject_reason"] = "too_many_global_edges"
-        return result
-    if adjacency_faces != num_faces:
-        result["reject_reason"] = "face_edge_adjacency_length_mismatch"
-        return result
+    reasons = list(missing)
+    if "missing_surf_ncs" not in reasons and num_faces is None:
+        reasons.append("invalid_surf_ncs")
+    if "missing_edge_ncs" not in reasons and global_edges is None:
+        reasons.append("invalid_edge_ncs")
+    if "missing_faceEdge_adj" not in reasons and adjacency_faces is None:
+        reasons.append("invalid_face_edge_adjacency")
+    if num_faces is not None and num_faces < config.min_faces:
+        reasons.append("too_few_faces")
+    if num_faces is not None and num_faces > config.max_faces:
+        reasons.append("too_many_faces")
+    if global_edges is not None and global_edges > config.max_global_edges:
+        reasons.append("too_many_global_edges")
+    if adjacency_faces is not None and num_faces is not None and adjacency_faces != num_faces:
+        reasons.append("face_edge_adjacency_length_mismatch")
 
+    saw_non_integer = False
+    saw_out_of_range = False
     max_edges = 0
-    for indices in face_edge_adj:
-        count = _safe_len(indices)
-        if count is None:
-            result["reject_reason"] = "invalid_face_edge_adjacency"
-            return result
-        max_edges = max(max_edges, count)
-        if count > config.max_edges_per_face:
-            result["max_edges_per_face"] = max_edges
-            result["reject_reason"] = "too_many_edges_per_face"
-            return result
-        for index in indices:
-            if isinstance(index, bool) or not isinstance(index, numbers.Integral):
-                result["max_edges_per_face"] = max_edges
-                result["reject_reason"] = "non_integer_edge_index"
-                return result
-            if int(index) < 0 or int(index) >= global_edges:
-                result["max_edges_per_face"] = max_edges
-                result["reject_reason"] = "edge_index_out_of_range"
-                return result
+    if adjacency_faces is not None:
+        for indices in face_edge_adj:
+            count = _safe_len(indices)
+            if count is None:
+                reasons.append("invalid_face_edge_adjacency")
+                continue
+            max_edges = max(max_edges, count)
+            try:
+                iterator = iter(indices)
+            except TypeError:
+                reasons.append("invalid_face_edge_adjacency")
+                continue
+            for index in iterator:
+                if isinstance(index, bool) or not isinstance(index, numbers.Integral):
+                    saw_non_integer = True
+                elif global_edges is not None and (int(index) < 0 or int(index) >= global_edges):
+                    saw_out_of_range = True
+        result["max_edges_per_face"] = max_edges
+        if max_edges > config.max_edges_per_face:
+            reasons.append("too_many_edges_per_face")
+    if saw_non_integer:
+        reasons.append("non_integer_edge_index")
+    if saw_out_of_range:
+        reasons.append("edge_index_out_of_range")
 
-    result.update(
-        {
-            "max_edges_per_face": max_edges,
-            "protocol_eligible": True,
-            "reject_reason": None,
-        }
+    reason_set = set(reasons)
+    result["reject_reason"] = next(
+        (reason for reason in REJECTION_PRIORITY if reason in reason_set),
+        None,
     )
+    result["protocol_eligible"] = result["reject_reason"] is None
     return result
 
 
@@ -164,13 +185,13 @@ def build_manifest_row(
     if load_error:
         base["reject_reason"] = f"load_failed:{load_error}"
         return base
-    if parent_id is None:
-        base["reject_reason"] = "unknown_parent_id"
-        return base
-    if not isinstance(data, Mapping):
+    if isinstance(data, Mapping):
+        base.update(inspect_cad_record(data, config))
+    else:
         base["reject_reason"] = "invalid_record"
-        return base
-    base.update(inspect_cad_record(data, config))
+    if parent_id is None and base["reject_reason"] is None:
+        base["protocol_eligible"] = False
+        base["reject_reason"] = "unknown_parent_id"
     return base
 
 
@@ -225,17 +246,27 @@ def _select_parent_groups(
     )
     if max_eligible_records <= 0:
         return set(eligible_parents)
-    ordered = sorted(eligible_parents, key=lambda parent: (_parent_tie_break(parent, seed), parent))
+    ordered = sorted(
+        eligible_parents,
+        key=lambda parent: (eligible_parents[parent], _parent_tie_break(parent, seed), parent),
+    )
     selected: set[str] = set()
     selected_records = 0
     for parent in ordered:
         group_size = eligible_parents[parent]
-        if selected and selected_records + group_size > max_eligible_records:
+        if selected_records + group_size > max_eligible_records:
             continue
         selected.add(parent)
         selected_records += group_size
-        if selected_records >= max_eligible_records:
+        if selected_records == max_eligible_records:
             break
+    if not selected:
+        smallest_size = min(eligible_parents.values(), default=0)
+        candidates = [
+            parent for parent in ordered if eligible_parents[parent] == smallest_size
+        ]
+        if candidates:
+            selected.add(candidates[0])
     return selected
 
 
@@ -284,6 +315,14 @@ def _write_outputs(
     )
     _atomic_write_bytes(output_dir / "split.pkl", pickle.dumps(dict(split), protocol=pickle.HIGHEST_PROTOCOL))
 
+    integrity = _summarize_split_integrity(split)
+    _atomic_write_bytes(
+        output_dir / "split_integrity.json",
+        (json.dumps(integrity, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"),
+    )
+def _summarize_split_integrity(
+    split: Mapping[str, Sequence[str]],
+) -> dict[str, Any]:
     parent_sets = {
         name: {parent_cad_id(path) for path in split.get(name, []) if parent_cad_id(path)}
         for name in SPLITS
@@ -295,7 +334,7 @@ def _write_outputs(
             "parent_cad_overlap": len(shared),
             "example_shared_parent_cads": sorted(shared)[:20],
         }
-    integrity = {
+    return {
         "status": "NO_PARENT_CAD_OVERLAP_DETECTED"
         if not any(item["parent_cad_overlap"] for item in pairwise.values())
         else "LEAKAGE_DETECTED",
@@ -305,10 +344,6 @@ def _write_outputs(
             for name in SPLITS
         },
     }
-    _atomic_write_bytes(
-        output_dir / "split_integrity.json",
-        (json.dumps(integrity, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"),
-    )
 
 
 def _iter_archive_records(
@@ -388,6 +423,7 @@ def build_protocol(
 
     selected_rows = [row for row in rows if row.get("split") in SPLITS]
     split = _materialize_selected(selected_rows, archive_locations, Path(materialize_root))
+    split_integrity = _summarize_split_integrity(split)
     reject_reasons = Counter(
         str(row["reject_reason"]) for row in rows if row.get("reject_reason")
     )
@@ -397,8 +433,24 @@ def build_protocol(
         for name in SPLITS
     }
     eligible_count = sum(bool(row.get("protocol_eligible")) for row in rows)
+    selected_count = len(selected_rows)
+    selected_parent_ids = sorted({str(row["parent_id"]) for row in selected_rows})
+    cap_overshoot = max(0, selected_count - max_eligible_records) if max_eligible_records > 0 else 0
+    load_failures = sum(
+        str(row.get("reject_reason") or "").startswith("load_failed:") for row in rows
+    )
+    failure_reasons = []
+    if eligible_count == 0:
+        failure_reasons.append("no_eligible_records")
+    elif selected_count == 0:
+        failure_reasons.append("no_selected_records")
+    if load_failures:
+        failure_reasons.append("archive_member_load_failures")
+    if split_integrity["status"] == "LEAKAGE_DETECTED":
+        failure_reasons.append("parent_overlap")
     summary: dict[str, Any] = {
-        "status": "VERIFIED",
+        "status": "FAILED" if failure_reasons else "VERIFIED",
+        "failure_reasons": failure_reasons,
         "experiment_scale": "smoke"
         if max_scan_records > 0 or max_eligible_records > 0
         else "full",
@@ -407,8 +459,18 @@ def build_protocol(
         "archives_scanned": len({str(path) for path in archive_paths}),
         "records_scanned": len(rows),
         "records_eligible": eligible_count,
-        "records_selected": len(selected_rows),
+        "records_selected": selected_count,
         "records_rejected": len(rows) - eligible_count,
+        "archive_member_load_failures": load_failures,
+        "max_eligible_records": max(0, int(max_eligible_records)),
+        "eligible_cap_overshoot_records": cap_overshoot,
+        "eligible_cap_overshoot_parent_id": selected_parent_ids[0]
+        if cap_overshoot and len(selected_parent_ids) == 1
+        else None,
+        "parent_overlap_counts": {
+            pair: int(item["parent_cad_overlap"])
+            for pair, item in split_integrity["pairwise"].items()
+        },
         "reject_reasons": dict(sorted(reject_reasons.items())),
         "split_records": split_counts,
         "split_parents": split_parents,
