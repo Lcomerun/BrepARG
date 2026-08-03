@@ -91,7 +91,7 @@ def _safe_len(value: Any) -> int | None:
 
 
 def inspect_cad_record(data: Mapping[str, Any], config: ProtocolConfig) -> dict[str, Any]:
-    """Inspect parsed topology and return measurements plus the first rejection."""
+    """Inspect all available topology and apply the stable rejection priority."""
     result: dict[str, Any] = {
         "num_faces": None,
         "global_edges": None,
