@@ -120,6 +120,10 @@ Desktop.ini
 *.pid
 events.out.tfevents.*
 
+# Curated TensorBoard logs copied into the lightweight reports tree
+!/reports/tensorboard/
+!/reports/tensorboard/**
+
 # Generated CAD, meshes, and previews
 *.step
 *.stp

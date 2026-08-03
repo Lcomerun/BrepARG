@@ -13,3 +13,13 @@ Start with these repository documents:
 `experiment_index.json` provides machine-readable navigation to those summaries. An entry with `artifacts_external: true` means that its datasets, model weights, generated STEP files, and raw logs remain outside Git by design. Artifact identity and provenance should be represented by catalog entries and hashes rather than by committing binary payloads.
 
 When adding a new experiment, commit its aggregate metrics and conclusion only when they are small, stable, and interpretable without the raw run directory. Put raw outputs under an ignored run directory and add or update an index entry here.
+
+## TensorBoard logs
+
+`reports/tensorboard/` contains the currently available lightweight TensorBoard event files copied from ignored local runs. The directory preserves each run's relative path below `local_runs/`, so logs with identical filenames from different experiments do not overwrite one another. These files total less than 0.1 MiB and are stored directly in Git; Git LFS is not required.
+
+From the repository root, inspect them on another machine with:
+
+    tensorboard --logdir reports/tensorboard
+
+These are selected historical logs, not a guarantee that every experiment produced or retained TensorBoard events. The raw run directories, checkpoints, and training datasets remain excluded.
