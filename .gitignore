@@ -171,6 +171,7 @@ events.out.tfevents.*
 *.ps
 
 # Temporary, recovery, and staging directories
+/.worktrees/
 /tmp/
 /temp/
 /.cache/
