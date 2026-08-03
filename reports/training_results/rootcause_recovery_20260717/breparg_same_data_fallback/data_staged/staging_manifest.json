@@ -1,0 +1,12 @@
+{
+  "source_data": "E:\\V13_rootcause_20260715\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data",
+  "staged_data": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged",
+  "split": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\same_data_split.pkl",
+  "counts": {
+    "train": 10000,
+    "val": 1000,
+    "test": 1000
+  },
+  "deduplicated_surface_source": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\deduplicated_surface_source.pkl",
+  "deduplicated_edge_source": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\deduplicated_edge_source.pkl"
+}

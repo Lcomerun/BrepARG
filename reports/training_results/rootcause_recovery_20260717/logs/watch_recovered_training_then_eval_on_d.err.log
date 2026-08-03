@@ -1,0 +1,13 @@
+  File "<string>", line 12
+    raise SystemExit(fnonfinite
+                               ^
+SyntaxError: unexpected EOF while parsing
+DFS best checkpoint failed finite/load check: D:\V13_rootcause_recovery_20260717\ar_train_outputs\ar_dfs_matched_202607
+15\ar_best.pt
+ËùÔÚÎ»ÖÃ D:\luolin\V13\tools\watch_recovered_training_then_eval_on_d.ps1:71 ×Ö·û: 3
++   throw "DFS best checkpoint failed finite/load check: $DfsBest"
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (DFS best checkp...0715\ar_best.pt:String) [], RuntimeException
+    + FullyQualifiedErrorId : DFS best checkpoint failed finite/load check: D:\V13_rootcause_recovery_20260717\ar_trai 
+   n_outputs\ar_dfs_matched_20260715\ar_best.pt
+ 

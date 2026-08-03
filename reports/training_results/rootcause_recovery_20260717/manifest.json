@@ -1,0 +1,772 @@
+﻿{
+    "schema_version":  1,
+    "source_label":  "D:\\V13_rootcause_recovery_20260717",
+    "copied_on":  "2026-08-03",
+    "selection":  {
+                      "tensorboard_events":  "all",
+                      "text_extensions":  [
+                                              ".json",
+                                              ".jsonl",
+                                              ".md",
+                                              ".csv",
+                                              ".txt",
+                                              ".log"
+                                          ],
+                      "max_text_size_bytes":  5242880,
+                      "excluded":  [
+                                       "*.pt",
+                                       "*.pth",
+                                       "*.ckpt",
+                                       "*.pkl",
+                                       "*.pickle",
+                                       "*.safetensors",
+                                       "*.err",
+                                       "*.step",
+                                       "*.stl",
+                                       "images and other binary outputs"
+                                   ]
+                  },
+    "summary":  {
+                    "files":  147,
+                    "tensorboard_events":  4,
+                    "text_results":  143,
+                    "total_bytes":  9134472
+                },
+    "files":  [
+                  {
+                      "path":  "ar_complex_curved_eval/checkpoint_finite_check.json",
+                      "size_bytes":  798,
+                      "sha256":  "d39f35cee48e8d28ecf0896a35422838de15bd0affecba423dbf9833e96001df"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/ar_teacher_forcing.json",
+                      "size_bytes":  3609,
+                      "sha256":  "81d4b77fd9676ad7f3cb2b420444ec11399276bcf05b38c08d70110226bdb6f4"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/ar_teacher_forcing.jsonl",
+                      "size_bytes":  18927,
+                      "sha256":  "8d4f2a65534a44867ac1365a4b92aa89226c59f586fbc4c9dea4ebddcb94676c"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/bucket_summary.json",
+                      "size_bytes":  8759,
+                      "sha256":  "1ba9d13f425ce48acc342d891da33c542939ecac77db65bba131144405301d4a"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/complex_curved_diagnostics_report.json",
+                      "size_bytes":  24029,
+                      "sha256":  "e3e1b01f73bbc71da39c9ca82711e20b81291f246421da80381c636d2cfab43f"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/complex_curved_diagnostics_report.md",
+                      "size_bytes":  1376,
+                      "sha256":  "74f05d8203ee44b83bd09903a54bcc9c42df125f716e204d5d39321aedebb001"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/fsq_patch_metrics.json",
+                      "size_bytes":  7128,
+                      "sha256":  "bfa805c81b0935821401074fd19c08e4a18670e5ff93b148fc6bb1198a31b940"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/fsq_patch_metrics.jsonl",
+                      "size_bytes":  1392837,
+                      "sha256":  "264ae96d94eaf3a318c77b9fbaaf14f95e46d2d408603a8ef4c87dbf2cbbaff8"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/selected_subset.jsonl",
+                      "size_bytes":  255231,
+                      "sha256":  "3fe38b66753cc07761b124978a57eb0815a9440fd5c37b4d60df4789fec4e975"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/teacher_reconstruction_manifest.jsonl",
+                      "size_bytes":  0,
+                      "sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing/teacher_reconstruction_report.json",
+                      "size_bytes":  617,
+                      "sha256":  "1cf8a5576c07eaa46467f4ffa64462118f2f0e324626ab55c498e236cf886c06"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/ar_teacher_forcing.json",
+                      "size_bytes":  1731,
+                      "sha256":  "46ee5f36be546b006e8f09aa64f2cb723af691340c8f3c1a17ceed45f8997a58"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/ar_teacher_forcing.jsonl",
+                      "size_bytes":  1138,
+                      "sha256":  "530ed1f7894d731dad9f807ed0d724e258d1d44b710e011c64a289bdcc576688"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/bucket_summary.json",
+                      "size_bytes":  3688,
+                      "sha256":  "2a1c9965e9f0a6e314a4b117346d8dca3207d6cf7a681de152f1f6ec86ca4992"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/complex_curved_diagnostics_report.json",
+                      "size_bytes":  13145,
+                      "sha256":  "484e614908ce68874dbc1c31dd4dd3f9c3124591d9c0fdb623bd861cb202ac64"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/complex_curved_diagnostics_report.md",
+                      "size_bytes":  1369,
+                      "sha256":  "a786c55be80d66a6c8433cbd5c427326ce14168d381373094d5ea0e26729ebc1"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/fsq_patch_metrics.json",
+                      "size_bytes":  3939,
+                      "sha256":  "97fc0b5641d5a391658d2ca7dfc7908113ca2c9cc52bfdbcd202a4081c9bc483"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/fsq_patch_metrics.jsonl",
+                      "size_bytes":  45548,
+                      "sha256":  "d38cb5c32960cd708652bc6ac8284e6f1ff21eb97f235cd43c155a7c4bb7bcd6"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/selected_subset.jsonl",
+                      "size_bytes":  9352,
+                      "sha256":  "74f622833d99a871cd86d6eaf5f4d08ef0d2c84bede0e6cd5eb04a422fd1cc7c"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/teacher_reconstruction_manifest.jsonl",
+                      "size_bytes":  0,
+                      "sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_teacher_forcing_retry/teacher_reconstruction_report.json",
+                      "size_bytes":  617,
+                      "sha256":  "1cf8a5576c07eaa46467f4ffa64462118f2f0e324626ab55c498e236cf886c06"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/dfs_vs_rcm_teacher_forcing_summary.md",
+                      "size_bytes":  1707,
+                      "sha256":  "b2ad95852fcffdc465225d673c011944b868ed6d7c8e9f95a69091f4ca52765d"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/ar_teacher_forcing.json",
+                      "size_bytes":  3610,
+                      "sha256":  "2278e8006d8255c8a3fb571c8ce4a2e221d3252b427c919a84fb60dc74a537c9"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/ar_teacher_forcing.jsonl",
+                      "size_bytes":  18933,
+                      "sha256":  "361db6aacc841d654bc6d61ddcf9d6fe746096022f84b09138558f0455539794"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/bucket_summary.json",
+                      "size_bytes":  8761,
+                      "sha256":  "de5dad00962a4a4cec81c0b610f815942cd3195264195a0d1b5bd65c97970bec"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/complex_curved_diagnostics_report.json",
+                      "size_bytes":  24032,
+                      "sha256":  "31c4647d8b4f692f983be725a297f67008ae4485ecb1b61c38b2c228d563ead0"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/complex_curved_diagnostics_report.md",
+                      "size_bytes":  1377,
+                      "sha256":  "06f1e36d54e8e1006ed5cc0e693fd80cdb017729043cd130a885e42884cdd59f"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/fsq_patch_metrics.json",
+                      "size_bytes":  7128,
+                      "sha256":  "bfa805c81b0935821401074fd19c08e4a18670e5ff93b148fc6bb1198a31b940"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/fsq_patch_metrics.jsonl",
+                      "size_bytes":  1392837,
+                      "sha256":  "264ae96d94eaf3a318c77b9fbaaf14f95e46d2d408603a8ef4c87dbf2cbbaff8"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/selected_subset.jsonl",
+                      "size_bytes":  255261,
+                      "sha256":  "a9b6a6f118afa96bb5011a9e5c4e27fdc25655f916faf4525dd172e529bf5bfc"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/teacher_reconstruction_manifest.jsonl",
+                      "size_bytes":  0,
+                      "sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  {
+                      "path":  "ar_complex_curved_eval/rcm_teacher_forcing/teacher_reconstruction_report.json",
+                      "size_bytes":  617,
+                      "sha256":  "1cf8a5576c07eaa46467f4ffa64462118f2f0e324626ab55c498e236cf886c06"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/ar_3060_safe_len1536_bs4_20260717_d/same_data_abc/abc_ar_vqvae_best_model_hf/config.json",
+                      "size_bytes":  820,
+                      "sha256":  "4281ec5d3ac44d3ccf2529a732a2549337a635647547565d3e1b4a0586832a94"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/ar_3060_safe_len1536_bs4_20260717_d/same_data_abc/abc_ar_vqvae_best_model_hf/generation_config.json",
+                      "size_bytes":  143,
+                      "sha256":  "f2cbb4b062eedf4819ba84fe163b8b7308cca9f65ee7dc143b22d0c775eb0717"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/ar_3060_safe_len1536_bs4_20260717_d/tensorboard/events.out.tfevents.1784446148.DESKTOP-VDBMPQG.48836.0",
+                      "size_bytes":  16808,
+                      "sha256":  "546f80147dad6484fe2a4f041bd0c91a102e1173273c91c7c21b5554650e6d22"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/ar_3060_safe_len1536_bs4_20260717_d/train_ar.log",
+                      "size_bytes":  44819,
+                      "sha256":  "27a21324394081a87cbe3d32db91aeb850f6fc6575c4384307686d9048c06836"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/breparg_same_data_quality_manifest.jsonl",
+                      "size_bytes":  156753,
+                      "sha256":  "b6cea7dffb4ee7fe155a275baa54575bc00862bcc2e44bc8f878e069843deb5b"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/breparg_same_data_quality_manifest_3060_safe_len1536_bs4_20260717_d.jsonl",
+                      "size_bytes":  156753,
+                      "sha256":  "b6cea7dffb4ee7fe155a275baa54575bc00862bcc2e44bc8f878e069843deb5b"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/breparg_same_data_quality_summary.json",
+                      "size_bytes":  200907,
+                      "sha256":  "82a30197f761a022e2802c5f1954497420a87d189110c8c678f34f23599ba85b"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/breparg_same_data_quality_summary.md",
+                      "size_bytes":  1820,
+                      "sha256":  "3973f18387035a6edc66ea2b295eff923d64c79d7a08fb5c43a013706833220d"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/breparg_same_data_quality_summary_3060_safe_len1536_bs4_20260717_d.json",
+                      "size_bytes":  200907,
+                      "sha256":  "82a30197f761a022e2802c5f1954497420a87d189110c8c678f34f23599ba85b"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/breparg_same_data_quality_summary_3060_safe_len1536_bs4_20260717_d.md",
+                      "size_bytes":  1820,
+                      "sha256":  "3973f18387035a6edc66ea2b295eff923d64c79d7a08fb5c43a013706833220d"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/data_staged/same_data_input_summary.source.json",
+                      "size_bytes":  1479,
+                      "sha256":  "674cd4c1c380eccba739e5bcd0031fe33578624d9e904dab9ff376d0fa7ca772"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/data_staged/staging_manifest.json",
+                      "size_bytes":  731,
+                      "sha256":  "ef4fdd672dd74db72dbbcdc13b74a9e10345b765b9a4a7cc1e6eef39f2bd65f9"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/generated_3060_safe_len1536_bs4_20260717_d/generate_serial_fixed.err.log",
+                      "size_bytes":  155617,
+                      "sha256":  "f9209750c03fb19ecca2190a3fe75c3f7d73838f19c9c1bf2ef410dbdb46d502"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/generated_3060_safe_len1536_bs4_20260717_d/generate_serial_fixed.out.log",
+                      "size_bytes":  110869,
+                      "sha256":  "c264b6cf529738e16af1c9329628471031c496ee8274c0b1a3d5114b1caf58a1"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/generated_3060_safe_len1536_bs4_20260717_d/quality_check/step_quality_manifest.jsonl",
+                      "size_bytes":  74442,
+                      "sha256":  "9b2f087f983d47152166c54c15bdfd01ad84f4c3905c57fb1afd70b0e5fd1a14"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/generated_3060_safe_len1536_bs4_20260717_d/quality_check/step_quality_summary.json",
+                      "size_bytes":  367,
+                      "sha256":  "6cb898a5c4fbe53aaf0e7eff7a413a25dea5007492093331bb861a16797bc04e"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/generated_smoke_serial_3060_safe_len1536_bs4_20260717_d/generate_smoke.err.log",
+                      "size_bytes":  2735,
+                      "sha256":  "42a761d3d18d756f5cc382ffc78dc11d874591536a504970317d5894aadfb895"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/generated_smoke_serial_3060_safe_len1536_bs4_20260717_d/generate_smoke.out.log",
+                      "size_bytes":  2177,
+                      "sha256":  "009e8057c88b8f03d2e3a20724cc41e6412ee4a2700632b4a7271740de6cd042"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/same_data_breparg_fallback_3060_safe_len1536_bs4_20260717_d_manifest.json",
+                      "size_bytes":  1861,
+                      "sha256":  "c0fdc2b5e38720b3d4160db84bc47d9990d53a0ae0f0f4661acc3b0131231642"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/same_data_breparg_fallback_manifest.json",
+                      "size_bytes":  1861,
+                      "sha256":  "c0fdc2b5e38720b3d4160db84bc47d9990d53a0ae0f0f4661acc3b0131231642"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/sequence_3060_safe_len1536_bs4_20260717_d/build_sequence.log",
+                      "size_bytes":  222,
+                      "sha256":  "0999bd8d657837c1b6df19fd9d20a8941f01bd1e9c7bb2cc3ba2f42f6559c5ec"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/vqvae_3060_safe_len1536_bs4_20260717_d/tensorboard/events.out.tfevents.1784363313.DESKTOP-VDBMPQG.14760.0",
+                      "size_bytes":  46808,
+                      "sha256":  "a47ee4d55047e913438564308b4f656a7c1ae184cb5c5ce2d0c6177c34b2b2a7"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback/vqvae_3060_safe_len1536_bs4_20260717_d/train_vqvae.log",
+                      "size_bytes":  37215,
+                      "sha256":  "ee62aa61ae0c00a7300de349f598d144793a79b4026e8b5933685e017dcd7c84"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/ar_3060_long_vq400_ar300_save20_20260720/same_data_abc/abc_ar_vqvae_best_model_hf/config.json",
+                      "size_bytes":  820,
+                      "sha256":  "4281ec5d3ac44d3ccf2529a732a2549337a635647547565d3e1b4a0586832a94"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/ar_3060_long_vq400_ar300_save20_20260720/same_data_abc/abc_ar_vqvae_best_model_hf/generation_config.json",
+                      "size_bytes":  143,
+                      "sha256":  "f2cbb4b062eedf4819ba84fe163b8b7308cca9f65ee7dc143b22d0c775eb0717"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/ar_3060_long_vq400_ar300_save20_20260720/tensorboard/events.out.tfevents.1784783807.DESKTOP-VDBMPQG.38936.0",
+                      "size_bytes":  26631,
+                      "sha256":  "8e5b7be718487daad138c5f5c99facfd7cceef49b7edd0b001b2456b8abef4bb"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/ar_3060_long_vq400_ar300_save20_20260720/train_ar_long.log",
+                      "size_bytes":  53723,
+                      "sha256":  "c2029f6bc828ddd99089ddfd28ff60201e68b83831c9ad292068f71ffc1dc2e8"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/breparg_same_data_resume_best_partial8_quality_manifest_20260726.jsonl",
+                      "size_bytes":  13173,
+                      "sha256":  "9aa429cba9e2ae15901694836194f5a02bace1fb297174847374800fb24733f8"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/breparg_same_data_resume_best_partial8_quality_summary_20260726.json",
+                      "size_bytes":  18416,
+                      "sha256":  "baa34a3f062f1f27788cf493a7d039d2c8f2daf8b77b880004b72aa3b5000025"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/breparg_same_data_resume_best_partial8_quality_summary_20260726.md",
+                      "size_bytes":  1733,
+                      "sha256":  "0aff81399b343551c2b175b182767246e695a1a3e0c2ef5322b6316a7eb3914a"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/breparg_same_data_resume_best_quality_manifest_20260726.jsonl",
+                      "size_bytes":  167369,
+                      "sha256":  "72daedf3ec355ef3fad7ebdd12130ecb9c4efb3ae6dbb397e1cf54c26b12a098"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/breparg_same_data_resume_best_quality_summary_20260726.json",
+                      "size_bytes":  214800,
+                      "sha256":  "fd0bf3e558c7452f3a0c3b646c8e6c4f712564b664747cf90e200c0c3dd1d430"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/breparg_same_data_resume_best_quality_summary_20260726.md",
+                      "size_bytes":  1695,
+                      "sha256":  "e3ba9bfd3775a64eef4105e6bfa0b4bdb2c888a332cdc4b7ccfc1909ee394231"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/audit.log",
+                      "size_bytes":  526,
+                      "sha256":  "dc07407d21fceac6b0ee3349751567cf2d5ffa3c60c5ee3848be6f53c12f83fc"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_generation_state.json",
+                      "size_bytes":  46301,
+                      "sha256":  "3729e3a1901cd0279c2799236b289bb9c1b45788c58c9774daa5b724444b4ba8"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_000_seed_43.stderr.log",
+                      "size_bytes":  4505,
+                      "sha256":  "48342d49a34a5d19fa1f2bb3f6f5a3bfbd1fcc0645eeb6dde7f7e1f454fa1963"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_000_seed_43.stdout.log",
+                      "size_bytes":  3346,
+                      "sha256":  "461417b5b9c7e077f03b9caf61d2de80fd9fd116ad2698c8fd0a7b911d66223a"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_001_seed_44.stderr.log",
+                      "size_bytes":  7388,
+                      "sha256":  "bbf9ab705460ce8b53f52cdbe5c7b2077726ee6812cf63507118f4e6b53a6c5c"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_001_seed_44.stdout.log",
+                      "size_bytes":  3878,
+                      "sha256":  "8f6b9f06eb794dbeb17b9d9e168d5fd6fa17b3deb548b0b66c5e8fc3edbf8dcf"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_002_seed_45.stderr.log",
+                      "size_bytes":  4505,
+                      "sha256":  "895182bd98db33f16d8c62bfaf839ba487978c537b04dd5b3379921ad8e29064"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_002_seed_45.stdout.log",
+                      "size_bytes":  3284,
+                      "sha256":  "c419e5ccfc0a9a6a681df66fa3cd2fccef7a4c376aa517d1943335ff32151282"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_003_seed_46.stderr.log",
+                      "size_bytes":  4530,
+                      "sha256":  "4714a462d6af75068fb6589e16c499ee41ebb2eff685e336c4f416af0840c568"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_003_seed_46.stdout.log",
+                      "size_bytes":  3285,
+                      "sha256":  "8e5ae3a964127cfe38ce3ecdb3107c3056beb71390acb14d4e2ba6e1aef8b16a"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_004_seed_47.stderr.log",
+                      "size_bytes":  7314,
+                      "sha256":  "091f0db4c977615dc0ada67a8e48ec45fbe8e6b733451d0f07068ddde200a595"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_004_seed_47.stdout.log",
+                      "size_bytes":  4087,
+                      "sha256":  "73a677e3e414327b60fad9ddc1c0306bc78e82278cde2334d7121ad019e7cb0c"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_005_seed_48.stderr.log",
+                      "size_bytes":  4556,
+                      "sha256":  "440f97349bad56c53f8d69d7e4cff87f80eb944871e8c15551080316a2a7e335"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_005_seed_48.stdout.log",
+                      "size_bytes":  3511,
+                      "sha256":  "ad02198f6259801f4c762236825d96bbd2ec744b32ccd291f2162c8a7979dd1a"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_006_seed_49.stderr.log",
+                      "size_bytes":  3815,
+                      "sha256":  "86cc4d3981069549c17c1685c9075d0a3052e7873e54e7331d8ed7ea8887f181"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_006_seed_49.stdout.log",
+                      "size_bytes":  3201,
+                      "sha256":  "1c2fd27627d079ed7653f980225558753732a5f8bc02ede1515d838c60fb03dd"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_007_seed_50.stderr.log",
+                      "size_bytes":  3147,
+                      "sha256":  "3d50bf92d63bb9e8e80a1f4a88ca9f134f2c8352ef1b04896ecf0b88e9b9b3e8"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_007_seed_50.stdout.log",
+                      "size_bytes":  3131,
+                      "sha256":  "7de9d0235390b199b8f9022ac3a624e047a548936dd1cd47de217c2962fbac8d"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_008_seed_51.stderr.log",
+                      "size_bytes":  3808,
+                      "sha256":  "f13fd1735f7316ceab89ecea2d8e15a838af23ca2ab2bb45016bdbc0c12de9d3"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_008_seed_51.stdout.log",
+                      "size_bytes":  3155,
+                      "sha256":  "9641b261de8d4966dd99d6a2fbba923e7500029c2095445d6913f38aa5a511f5"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_009_seed_52.stderr.log",
+                      "size_bytes":  1737,
+                      "sha256":  "48ecdfbe735dd33bb2d41850f4e7df2397480b4257489da168ff98c43f4ae3d3"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_009_seed_52.stdout.log",
+                      "size_bytes":  2844,
+                      "sha256":  "455e1699ab1c560790cd5f41ec8058d2a86b9498d691c3ad3897d9789f414180"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_010_seed_53.stderr.log",
+                      "size_bytes":  7414,
+                      "sha256":  "374c336d5bbb29f513a9d157e00c3b6b9c1f92d53c42c69f73b809b36f8a18c2"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_010_seed_53.stdout.log",
+                      "size_bytes":  3836,
+                      "sha256":  "eb05614d6ccdefe7b717f075db4c516afc198f3d3fb8c23c314e17c7d17f6d44"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_011_seed_54.stderr.log",
+                      "size_bytes":  3834,
+                      "sha256":  "41a230cff49a1a5bdc5b4af89d4eb42ea07d79a3ded78a824cec8868db960094"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_011_seed_54.stdout.log",
+                      "size_bytes":  3232,
+                      "sha256":  "55aff11c786cb08da006234f8270a6f58cd271358d8818e7cfe786bc18bc4563"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_012_seed_55.stderr.log",
+                      "size_bytes":  3151,
+                      "sha256":  "3077d48b8cefae2a83a0b70482055949babe016d8720ebc73c803326d7737700"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_012_seed_55.stdout.log",
+                      "size_bytes":  3443,
+                      "sha256":  "fc0663dd37df77ad2acb133894dcb20f5f1d95c7413b5118e7ce4d8e77bba046"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_013_seed_56.stderr.log",
+                      "size_bytes":  4664,
+                      "sha256":  "a87213ad472cd51ab629592b84c9117d36bb423383ef4aabc3610851de3a272f"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_013_seed_56.stdout.log",
+                      "size_bytes":  3399,
+                      "sha256":  "aa96c96d0e6839d7052865982aa03879a745ec7da1255e328e021635d26dbd4a"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_014_seed_57.stderr.log",
+                      "size_bytes":  5260,
+                      "sha256":  "8f16c880747f54d05a68dd82dcfb90646486b45c6367a80f5a36be8c4b8eec87"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_014_seed_57.stdout.log",
+                      "size_bytes":  3685,
+                      "sha256":  "460891ea0db2b6ab2451a1f53fa8986d4ee3b9a2716fc0fcccfc47faf440f0e3"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_015_seed_58.stderr.log",
+                      "size_bytes":  1737,
+                      "sha256":  "77f81d5fe8ff4db36503e5decdfe70690f8bff5854bb255c111a86a661442ecf"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_015_seed_58.stdout.log",
+                      "size_bytes":  2965,
+                      "sha256":  "c657f9f464600dd4d7ec6f8c9bdc63d99b78d9ad16c0c5dfb801f9b73c565c7d"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_016_seed_59.stderr.log",
+                      "size_bytes":  4491,
+                      "sha256":  "62b4f7adfd5124e6a55efafab4604a13755498a8237c33181409a03660106ba2"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_016_seed_59.stdout.log",
+                      "size_bytes":  3342,
+                      "sha256":  "7b5a8c6450089a268d2bd81f409b597968b04f84732bbaa381d9e98542655b59"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_017_seed_60.stderr.log",
+                      "size_bytes":  5331,
+                      "sha256":  "f5e181b213787821694189faee4ba88a70a53bf0ea5493a25b9eef5c60e1b83e"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_017_seed_60.stdout.log",
+                      "size_bytes":  4331,
+                      "sha256":  "d2b0cd43c1d80a45b9144a9849bcb9f01b455b424e5c815f77c3005e53f00738"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_018_seed_61.stderr.log",
+                      "size_bytes":  972,
+                      "sha256":  "d4a3f2c9cd68c839c091b7469e1a756e19e162fb19ae428d62ca67395254b402"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_018_seed_61.stdout.log",
+                      "size_bytes":  1707,
+                      "sha256":  "3fada06130eba6078e38720b32f9180042622a1338331f3dbd28c135978f24f7"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_019_seed_62.stderr.log",
+                      "size_bytes":  2108,
+                      "sha256":  "10b7d3a355a4d38363da719a8d14bf767cab74d4a93abbfad8dc14c1e3df01ed"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_019_seed_62.stdout.log",
+                      "size_bytes":  2863,
+                      "sha256":  "36863a15f5bc6a4be75321a3a8a234527573a293b520d636031dc4c56342ada1"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_020_seed_63.stderr.log",
+                      "size_bytes":  2445,
+                      "sha256":  "f0034e4c88d326acae954d6da0e6181a1ebbfb9af45ca625715fab56f226e55f"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_020_seed_63.stdout.log",
+                      "size_bytes":  2913,
+                      "sha256":  "c0bfa7f9211d550ab2f38dc1528a929c31fef34be1e4301805b2c8830f9bd581"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_021_seed_64.stderr.log",
+                      "size_bytes":  5218,
+                      "sha256":  "fc1af6d45c1a867859d9939cd8084260beab06d9786ae7a125dd30b6e2113a2b"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_021_seed_64.stdout.log",
+                      "size_bytes":  3458,
+                      "sha256":  "8db558736dc98a10f8b5e4c97953d144fbc196ff6765e3be70411c9d58813d5c"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_022_seed_65.stderr.log",
+                      "size_bytes":  1737,
+                      "sha256":  "d79fea849024ac57d5f1491e4c8039a87ca0d0ed5351b3a9bf1ac4f4d5b38cb8"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_022_seed_65.stdout.log",
+                      "size_bytes":  2845,
+                      "sha256":  "2b9887fc83276f7e66feb8dc74a563da867535f2b3fe0438f9b3649f94b07a78"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_023_seed_66.stderr.log",
+                      "size_bytes":  2449,
+                      "sha256":  "10b80007dafa99bbd31be0635cd4eed549a9876431200cf6468453132bb38f9a"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/batch_logs/batch_023_seed_66.stdout.log",
+                      "size_bytes":  2912,
+                      "sha256":  "25ed0240085d50b4dbecfe574ee5197523ebc3bc456f46b0a56b90e157e45193"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/generate.log",
+                      "size_bytes":  1745,
+                      "sha256":  "9a566c577d75fe7876adbe5e21425996b7415046b1a5e9f718b65891e37a82b3"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/generation_manifest.json",
+                      "size_bytes":  777,
+                      "sha256":  "9abd34a7eb90e988d8966b6541c6c36cec16b2315500efc387fc69bde00ccd2a"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/logs/pipeline.stderr.log",
+                      "size_bytes":  0,
+                      "sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/logs/pipeline.stdout.log",
+                      "size_bytes":  768,
+                      "sha256":  "6751b943ade2d5603c5814c0fd07f53cbf612a9989278b209c18612521500c4e"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/quality_check/step_quality_manifest.jsonl",
+                      "size_bytes":  95793,
+                      "sha256":  "a385571b30a8ffb7062b5549c84eef7c7b782bb8cde8c108bfbf85ac43b05a71"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/quality_check/step_quality_summary.json",
+                      "size_bytes":  393,
+                      "sha256":  "473f0eb6c56802d6b166b59a16d33726de1d248b6ddfa242d4ff9192fd881735"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/generated_3060_long_breparg_resume_best_20260726/validate_generated.log",
+                      "size_bytes":  13616,
+                      "sha256":  "59195c345a73769da7014de626589448a55806555339b7522ec1b0f9c8f84f74"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/pipeline_logs/pipeline_stderr.log",
+                      "size_bytes":  0,
+                      "sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/pipeline_logs/pipeline_stdout.log",
+                      "size_bytes":  3870,
+                      "sha256":  "1f2215aaed7f5e3f03246b89027a93e63945c9669f1763fd55a1c37af5341e27"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/sequence_3060_long_vq400_ar300_save20_20260720/build_sequence.log",
+                      "size_bytes":  241,
+                      "sha256":  "5fd9d1b9127132244c1423650bb953e8600a402c48b76429b8eefe9475fc5740"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/vqvae_3060_long_vq400_ar300_save20_20260720/tensorboard/events.out.tfevents.1784547631.DESKTOP-VDBMPQG.27412.0",
+                      "size_bytes":  214564,
+                      "sha256":  "ba85e6e64d4279a0fa43b63af92d0a814764d6250412ad5a0847d6579640dbbd"
+                  },
+                  {
+                      "path":  "breparg_same_data_fallback_long_20260720/vqvae_3060_long_vq400_ar300_save20_20260720/train_vqvae_long.log",
+                      "size_bytes":  125262,
+                      "sha256":  "08c4ca8ba8f39ee0c3e268443df130f6f88cd9a21f1184b34ec174da68d27b6c"
+                  },
+                  {
+                      "path":  "logs/eval_recovered_dfs_rcm_ar_on_d.log",
+                      "size_bytes":  2898,
+                      "sha256":  "34dd5c08e68764a7cd3978307a47316ad8b22272de4a346dbc9e00fa2c5a15db"
+                  },
+                  {
+                      "path":  "logs/eval_recovered_dfs_rcm_ar_on_d.out.log",
+                      "size_bytes":  3056,
+                      "sha256":  "2f996a0f13dbe7579725d0f34f66f9b677461d6eccbdd42f026ee4c200936456"
+                  },
+                  {
+                      "path":  "logs/native_logged_probe.out.log",
+                      "size_bytes":  0,
+                      "sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  {
+                      "path":  "logs/native_logged_probe2.out.log",
+                      "size_bytes":  14,
+                      "sha256":  "61504d0a3d2ae1859d00205c021c9620e0b4f739fdabaf312b831c77fbec8273"
+                  },
+                  {
+                      "path":  "logs/resume_matched_dfs_rcm_ar_on_d.log",
+                      "size_bytes":  2056,
+                      "sha256":  "d70ee14a371a77ebb0897dacce90666a2021c63a8910aaf2bb4f513ec9683fd4"
+                  },
+                  {
+                      "path":  "logs/resume_wrapper.err.log",
+                      "size_bytes":  374,
+                      "sha256":  "0cd2d5a657203119495a89f3303ed1b5e8a22c69fcfc5dc09d8f919bd7493448"
+                  },
+                  {
+                      "path":  "logs/resume_wrapper.out.log",
+                      "size_bytes":  202832,
+                      "sha256":  "c14e0e16d1724491a3c3a83580fbeeafc5510030b679911671453cbac3aa4a1a"
+                  },
+                  {
+                      "path":  "logs/run_breparg_same_data_fallback_on_d.restart_20260718_162641.err.log",
+                      "size_bytes":  1559,
+                      "sha256":  "6d92b914a2d14255830859bff4f70f7b1d91cbc78b06a2cdba685c1cdff94faa"
+                  },
+                  {
+                      "path":  "logs/run_breparg_same_data_fallback_on_d.restart_20260718_162641.out.log",
+                      "size_bytes":  3799,
+                      "sha256":  "3aa8affa8866374a17aa473b881ad58360419d6b8a915500626154fa357155b9"
+                  },
+                  {
+                      "path":  "logs/run_breparg_same_data_fallback_on_d.restart_20260718_162826.err.log",
+                      "size_bytes":  2333,
+                      "sha256":  "26e818676519aa32716863f06661dca52fe3f283330f96a85f9e0a1070e91fb4"
+                  },
+                  {
+                      "path":  "logs/run_breparg_same_data_fallback_on_d.restart_20260718_162826.out.log",
+                      "size_bytes":  19418,
+                      "sha256":  "541898ca3622f2916bb91af0ef41192ab3a7f9631f9538236cc5362f6e9b750d"
+                  },
+                  {
+                      "path":  "logs/run_breparg_same_data_fallback_on_d.resume_after_disk_cleanup_20260719_151543.err.log",
+                      "size_bytes":  0,
+                      "sha256":  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+                  },
+                  {
+                      "path":  "logs/run_breparg_same_data_fallback_on_d.resume_after_disk_cleanup_20260719_151543.out.log",
+                      "size_bytes":  6230,
+                      "sha256":  "f640d4d7d645c28445b80ab1c1bbbae39add53a6a51e0c9262009a5d14662b06"
+                  },
+                  {
+                      "path":  "logs/watch_recovered_training_then_eval_on_d.err.log",
+                      "size_bytes":  781,
+                      "sha256":  "b9b86353627d214b96593cfc31f66dafab09a559a6a2a641ba30aedc56baab45"
+                  },
+                  {
+                      "path":  "logs/watch_recovered_training_then_eval_on_d.log",
+                      "size_bytes":  110120,
+                      "sha256":  "2448d25b85af087ded8f5d362df232b0bf85a9e8302d399fc7d3d6824eadcb9f"
+                  },
+                  {
+                      "path":  "logs/watch_recovered_training_then_eval_on_d.out.log",
+                      "size_bytes":  54799,
+                      "sha256":  "0500d0f6b51994231034e40924083bea2f56d0ca9d363ed0ed38ff8277a1db12"
+                  },
+                  {
+                      "path":  "logs/watch_then_start_breparg_same_data_on_d.err.log",
+                      "size_bytes":  403,
+                      "sha256":  "bbd46648a67a8a3eb708d8fd2a18d8e6ff2f0ee0607a8fd59221c0fbdb9cbb5c"
+                  },
+                  {
+                      "path":  "logs/watch_then_start_breparg_same_data_on_d.log",
+                      "size_bytes":  85600,
+                      "sha256":  "eab5ca6f4a09f571032234651b5f8fe5835dc241eb5883276ce00eb7479d04bf"
+                  },
+                  {
+                      "path":  "logs/watch_then_start_breparg_same_data_on_d.out.log",
+                      "size_bytes":  2730427,
+                      "sha256":  "9145ca07f0600ddafe3cbab135c0221fba117ba661bb7ff166713c119f918d10"
+                  },
+                  {
+                      "path":  "safe_copy_plan_20260717.md",
+                      "size_bytes":  4610,
+                      "sha256":  "0413414fde968f8d88724bd116b60ec4c522b7a0afcc3290c8482e67e05f656e"
+                  }
+              ]
+}

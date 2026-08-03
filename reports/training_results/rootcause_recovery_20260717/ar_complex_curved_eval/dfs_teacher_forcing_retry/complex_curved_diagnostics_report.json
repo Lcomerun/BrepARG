@@ -1,0 +1,446 @@
+{
+  "status": "VERIFIED",
+  "created": "2026-07-18 15:56:07",
+  "elapsed_min": 0.261,
+  "sequence": "D:\\V13_rootcause_recovery_20260717\\ar_train_outputs\\ar_dfs_matched_20260715\\sequences_fsq_rcm.pkl",
+  "vqvae_checkpoint": "D:\\luolin\\V13\\ABC\\processed\\train_outputs\\ubuntu\\fsq_vqvae_best.pt",
+  "ar_checkpoint": "D:\\V13_rootcause_recovery_20260717\\ar_train_outputs\\ar_dfs_matched_20260715\\ar_best.pt",
+  "archive_root": "D:\\luolin\\V13\\ABC\\processed\\abc_parsed_full_archives",
+  "output_dir": "D:\\V13_rootcause_recovery_20260717\\ar_complex_curved_eval\\dfs_teacher_forcing_retry",
+  "selected_count": 3,
+  "selection_summary": {
+    "split": "val",
+    "requested": 3,
+    "selected": 3,
+    "max_scan": 500,
+    "scanned": 500,
+    "grammar_ok": 494,
+    "complex_candidates": 348,
+    "parsed_loaded": 348,
+    "parsed_failed": 0,
+    "curved_threshold": 0.02,
+    "complex_min_faces": 12,
+    "complex_min_edges": 20,
+    "max_source_faces": 50,
+    "max_source_edges": 150,
+    "curvature_rank_key": "p95",
+    "failures": {
+      "not_complex": 146,
+      "not_curved": 21,
+      "too_long": 6
+    }
+  },
+  "fsq_patch_metrics": {
+    "patch_count": 107,
+    "shape_count": 3,
+    "checkpoint": "D:\\luolin\\V13\\ABC\\processed\\train_outputs\\ubuntu\\fsq_vqvae_best.pt",
+    "device": "cuda",
+    "chamfer_point_stride": 2,
+    "mse": {
+      "count": 107,
+      "mean": 0.0005380724702214376,
+      "median": 4.243061084707733e-06,
+      "p90": 0.0002653682662639772,
+      "p95": 0.000777316855965179,
+      "max": 0.018787628039717674
+    },
+    "chamfer": {
+      "count": 107,
+      "mean": 0.018820279395364434,
+      "median": 0.004731810186058283,
+      "p90": 0.04363505840301515,
+      "p95": 0.06632428169250479,
+      "max": 0.23955625295639038
+    },
+    "by_kind": {
+      "edge": {
+        "count": 75,
+        "mse": {
+          "count": 75,
+          "mean": 0.00048016106266762413,
+          "median": 2.1305786503944546e-06,
+          "p90": 9.937317809090025e-05,
+          "p95": 0.0005575186049100011,
+          "max": 0.018787628039717674
+        },
+        "chamfer": {
+          "count": 75,
+          "mean": 0.012695485645284256,
+          "median": 0.0034374960232526064,
+          "p90": 0.024697002768516566,
+          "p95": 0.058073634654283515,
+          "max": 0.18214936554431915
+        }
+      },
+      "surface": {
+        "count": 32,
+        "mse": {
+          "count": 32,
+          "mean": 0.000673802331675688,
+          "median": 3.85648527299054e-05,
+          "p90": 0.0005027841194532816,
+          "p95": 0.0021833700593560925,
+          "max": 0.014809057116508484
+        },
+        "chamfer": {
+          "count": 32,
+          "mean": 0.03317526474711485,
+          "median": 0.015513968653976917,
+          "p90": 0.06666940823197369,
+          "p95": 0.10595641918480396,
+          "max": 0.23955625295639038
+        }
+      }
+    },
+    "by_face_bucket": {
+      "faces_00_11": {
+        "count": 64,
+        "mse": {
+          "count": 64,
+          "mean": 0.000872083508928867,
+          "median": 4.7112093852774706e-06,
+          "p90": 0.0005679424095433206,
+          "p95": 0.002805582946166387,
+          "max": 0.018787628039717674
+        },
+        "chamfer": {
+          "count": 64,
+          "mean": 0.023751111064484576,
+          "median": 0.004865329479798675,
+          "p90": 0.05905140712857247,
+          "p95": 0.10812988169491289,
+          "max": 0.23955625295639038
+        }
+      },
+      "faces_12_19": {
+        "count": 43,
+        "mse": {
+          "count": 43,
+          "mean": 4.093976144758926e-05,
+          "median": 3.2928614928096067e-06,
+          "p90": 0.00012142489140387634,
+          "p95": 0.00014236878778319805,
+          "max": 0.0005232900730334222
+        },
+        "chamfer": {
+          "count": 43,
+          "mean": 0.011481367143650735,
+          "median": 0.004428711719810963,
+          "p90": 0.02831718102097514,
+          "p95": 0.037311951816082,
+          "max": 0.06868762522935867
+        }
+      }
+    },
+    "by_edge_bucket": {
+      "edges_20_39": {
+        "count": 107,
+        "mse": {
+          "count": 107,
+          "mean": 0.0005380724702214376,
+          "median": 4.243061084707733e-06,
+          "p90": 0.0002653682662639772,
+          "p95": 0.000777316855965179,
+          "max": 0.018787628039717674
+        },
+        "chamfer": {
+          "count": 107,
+          "mean": 0.018820279395364434,
+          "median": 0.004731810186058283,
+          "p90": 0.04363505840301515,
+          "p95": 0.06632428169250479,
+          "max": 0.23955625295639038
+        }
+      }
+    },
+    "by_length_bucket": {
+      "len_0000_0512": {
+        "count": 107,
+        "mse": {
+          "count": 107,
+          "mean": 0.0005380724702214376,
+          "median": 4.243061084707733e-06,
+          "p90": 0.0002653682662639772,
+          "p95": 0.000777316855965179,
+          "max": 0.018787628039717674
+        },
+        "chamfer": {
+          "count": 107,
+          "mean": 0.018820279395364434,
+          "median": 0.004731810186058283,
+          "p90": 0.04363505840301515,
+          "p95": 0.06632428169250479,
+          "max": 0.23955625295639038
+        }
+      }
+    }
+  },
+  "ar_teacher_forcing": {
+    "checkpoint": "D:\\V13_rootcause_recovery_20260717\\ar_train_outputs\\ar_dfs_matched_20260715\\ar_best.pt",
+    "device": "cuda",
+    "sample_count": 3,
+    "token_count": 1258,
+    "token_weighted_ce": 0.65511443997794,
+    "teacher_ce": {
+      "count": 3,
+      "mean": 0.6680232658982277,
+      "median": 0.74051833152771,
+      "p90": 1.0885015964508056,
+      "p95": 1.1319995045661926,
+      "max": 1.1754974126815796
+    },
+    "by_face_bucket": {
+      "faces_00_11": {
+        "count": 2,
+        "teacher_ce": {
+          "count": 2,
+          "mean": 0.6317757330834866,
+          "median": 0.6317757330834866,
+          "p90": 1.066753076761961,
+          "p95": 1.1211252447217703,
+          "max": 1.1754974126815796
+        },
+        "tokens": 753
+      },
+      "faces_12_19": {
+        "count": 1,
+        "teacher_ce": {
+          "count": 1,
+          "mean": 0.74051833152771,
+          "median": 0.74051833152771,
+          "p90": 0.74051833152771,
+          "p95": 0.74051833152771,
+          "max": 0.74051833152771
+        },
+        "tokens": 505
+      }
+    },
+    "by_edge_bucket": {
+      "edges_20_39": {
+        "count": 3,
+        "teacher_ce": {
+          "count": 3,
+          "mean": 0.6680232658982277,
+          "median": 0.74051833152771,
+          "p90": 1.0885015964508056,
+          "p95": 1.1319995045661926,
+          "max": 1.1754974126815796
+        },
+        "tokens": 1258
+      }
+    },
+    "by_length_bucket": {
+      "len_0000_0512": {
+        "count": 3,
+        "teacher_ce": {
+          "count": 3,
+          "mean": 0.6680232658982277,
+          "median": 0.74051833152771,
+          "p90": 1.0885015964508056,
+          "p95": 1.1319995045661926,
+          "max": 1.1754974126815796
+        },
+        "tokens": 1258
+      }
+    }
+  },
+  "teacher_reconstruction": {
+    "skipped": true,
+    "stage": "teacher_reconstruction",
+    "reason": "skipped by --skip-reconstruction",
+    "sample_count": 0,
+    "token_count": 0,
+    "token_weighted_ce": null,
+    "teacher_ce": {
+      "count": 0,
+      "mean": null,
+      "median": null,
+      "p90": null,
+      "p95": null,
+      "max": null
+    },
+    "by_face_bucket": {},
+    "by_edge_bucket": {},
+    "by_length_bucket": {},
+    "attempted": 0,
+    "grammar_valid": 0,
+    "reconstruct_success": 0,
+    "step_saved": 0,
+    "stl_saved": 0,
+    "brep_valid": 0,
+    "errors": 0,
+    "write_step": false,
+    "write_stl": false,
+    "validate_step": false
+  },
+  "bucket_summary": {
+    "fsq_by_face_bucket": {
+      "faces_00_11": {
+        "count": 64,
+        "mse": {
+          "count": 64,
+          "mean": 0.000872083508928867,
+          "median": 4.7112093852774706e-06,
+          "p90": 0.0005679424095433206,
+          "p95": 0.002805582946166387,
+          "max": 0.018787628039717674
+        },
+        "chamfer": {
+          "count": 64,
+          "mean": 0.023751111064484576,
+          "median": 0.004865329479798675,
+          "p90": 0.05905140712857247,
+          "p95": 0.10812988169491289,
+          "max": 0.23955625295639038
+        }
+      },
+      "faces_12_19": {
+        "count": 43,
+        "mse": {
+          "count": 43,
+          "mean": 4.093976144758926e-05,
+          "median": 3.2928614928096067e-06,
+          "p90": 0.00012142489140387634,
+          "p95": 0.00014236878778319805,
+          "max": 0.0005232900730334222
+        },
+        "chamfer": {
+          "count": 43,
+          "mean": 0.011481367143650735,
+          "median": 0.004428711719810963,
+          "p90": 0.02831718102097514,
+          "p95": 0.037311951816082,
+          "max": 0.06868762522935867
+        }
+      }
+    },
+    "fsq_by_edge_bucket": {
+      "edges_20_39": {
+        "count": 107,
+        "mse": {
+          "count": 107,
+          "mean": 0.0005380724702214376,
+          "median": 4.243061084707733e-06,
+          "p90": 0.0002653682662639772,
+          "p95": 0.000777316855965179,
+          "max": 0.018787628039717674
+        },
+        "chamfer": {
+          "count": 107,
+          "mean": 0.018820279395364434,
+          "median": 0.004731810186058283,
+          "p90": 0.04363505840301515,
+          "p95": 0.06632428169250479,
+          "max": 0.23955625295639038
+        }
+      }
+    },
+    "fsq_by_length_bucket": {
+      "len_0000_0512": {
+        "count": 107,
+        "mse": {
+          "count": 107,
+          "mean": 0.0005380724702214376,
+          "median": 4.243061084707733e-06,
+          "p90": 0.0002653682662639772,
+          "p95": 0.000777316855965179,
+          "max": 0.018787628039717674
+        },
+        "chamfer": {
+          "count": 107,
+          "mean": 0.018820279395364434,
+          "median": 0.004731810186058283,
+          "p90": 0.04363505840301515,
+          "p95": 0.06632428169250479,
+          "max": 0.23955625295639038
+        }
+      }
+    },
+    "ar_by_face_bucket": {
+      "faces_00_11": {
+        "count": 2,
+        "teacher_ce": {
+          "count": 2,
+          "mean": 0.6317757330834866,
+          "median": 0.6317757330834866,
+          "p90": 1.066753076761961,
+          "p95": 1.1211252447217703,
+          "max": 1.1754974126815796
+        },
+        "tokens": 753
+      },
+      "faces_12_19": {
+        "count": 1,
+        "teacher_ce": {
+          "count": 1,
+          "mean": 0.74051833152771,
+          "median": 0.74051833152771,
+          "p90": 0.74051833152771,
+          "p95": 0.74051833152771,
+          "max": 0.74051833152771
+        },
+        "tokens": 505
+      }
+    },
+    "ar_by_edge_bucket": {
+      "edges_20_39": {
+        "count": 3,
+        "teacher_ce": {
+          "count": 3,
+          "mean": 0.6680232658982277,
+          "median": 0.74051833152771,
+          "p90": 1.0885015964508056,
+          "p95": 1.1319995045661926,
+          "max": 1.1754974126815796
+        },
+        "tokens": 1258
+      }
+    },
+    "ar_by_length_bucket": {
+      "len_0000_0512": {
+        "count": 3,
+        "teacher_ce": {
+          "count": 3,
+          "mean": 0.6680232658982277,
+          "median": 0.74051833152771,
+          "p90": 1.0885015964508056,
+          "p95": 1.1319995045661926,
+          "max": 1.1754974126815796
+        },
+        "tokens": 1258
+      }
+    },
+    "reconstruction_by_face_bucket": {},
+    "reconstruction_by_edge_bucket": {},
+    "reconstruction_by_length_bucket": {}
+  },
+  "config": {
+    "sequence": "D:\\V13_rootcause_recovery_20260717\\ar_train_outputs\\ar_dfs_matched_20260715\\sequences_fsq_rcm.pkl",
+    "vqvae_checkpoint": "D:\\luolin\\V13\\ABC\\processed\\train_outputs\\ubuntu\\fsq_vqvae_best.pt",
+    "ar_checkpoint": "D:\\V13_rootcause_recovery_20260717\\ar_train_outputs\\ar_dfs_matched_20260715\\ar_best.pt",
+    "archive_root": "D:\\luolin\\V13\\ABC\\processed\\abc_parsed_full_archives",
+    "output_dir": "D:\\V13_rootcause_recovery_20260717\\ar_complex_curved_eval\\dfs_teacher_forcing_retry",
+    "split": "val",
+    "max_samples": 3,
+    "max_scan": 500,
+    "max_seq_len": 2048,
+    "complex_min_faces": 12,
+    "complex_min_edges": 20,
+    "curved_threshold": 0.02,
+    "curvature_rank_key": "p95",
+    "max_source_faces": 50,
+    "max_source_edges": 150,
+    "batch_size": 16,
+    "ar_batch_size": 4,
+    "chamfer_point_stride": 2,
+    "chamfer_chunk_size": 4,
+    "device": "auto",
+    "seed": 20260715,
+    "skip_ar": false,
+    "skip_reconstruction": true,
+    "write_step": false,
+    "write_stl": false,
+    "validate_step": false,
+    "scale_factor": 1.0
+  }
+}

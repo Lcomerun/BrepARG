@@ -1,0 +1,1529 @@
+C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\torch\nn\modules\module.py:1150: UserWarning: expandable_segments not supported on this platform (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\builder\windows\pytorch\c10/cuda/CUDAAllocatorConfig.h:30.)
+  return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
+C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\diffusers\models\attention_processor.py:1279: UserWarning: 1Torch was not compiled with flash attention. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\builder\windows\pytorch\aten\src\ATen\native\transformers\cuda\sdp_utils.cpp:263.)
+  hidden_states = F.scaled_dot_product_attention(
+Generating BREP files:   0%|          | 0/100 [00:00<?, ?item/s]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:0, attempts:1):   0%|          | 0/100 [00:05<?, ?item/s]Generating BREP files (saved:0, attempts:1):   1%|          | 1/100 [00:06<10:39,  6.46s/item]Generating BREP files (saved:1, attempts:2):   1%|          | 1/100 [00:06<10:39,  6.46s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:1, attempts:3):   1%|          | 1/100 [00:21<10:39,  6.46s/item]Generating BREP files (saved:1, attempts:3):   2%|▏         | 2/100 [00:23<20:30, 12.56s/item]Generating BREP files (saved:2, attempts:4):   2%|▏         | 2/100 [00:23<20:30, 12.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1336, in joint_optimize
+    min_point, max_point = get_bbox_minmax(edges_perface_flat)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1216, in get_bbox_minmax
+    min_x = np.min(point_cloud[:, 0])
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 2953, in min
+    return _wrapreduction(a, np.minimum, 'min', axis, None, out,
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 88, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+ValueError: zero-size array to reduction operation minimum which has no identity
+Generating BREP files (saved:2, attempts:5):   2%|▏         | 2/100 [00:29<20:30, 12.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:2, attempts:6):   2%|▏         | 2/100 [00:35<20:30, 12.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:2, attempts:7):   2%|▏         | 2/100 [00:37<20:30, 12.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:2, attempts:8):   2%|▏         | 2/100 [00:44<20:30, 12.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1285, in joint_optimize
+    edge_ncs_se = edge_ncs[:,[0,-1]]
+IndexError: too many indices for array: array is 1-dimensional, but 2 were indexed
+Generating BREP files (saved:2, attempts:9):   2%|▏         | 2/100 [00:50<20:30, 12.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:2, attempts:10):   2%|▏         | 2/100 [00:52<20:30, 12.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:2, attempts:11):   2%|▏         | 2/100 [00:58<20:30, 12.56s/item]Generating BREP files (saved:2, attempts:11):   3%|▎         | 3/100 [01:00<38:50, 24.03s/item]Generating BREP files (saved:3, attempts:12):   3%|▎         | 3/100 [01:00<38:50, 24.03s/item]Generating BREP files (saved:3, attempts:12):   4%|▍         | 4/100 [01:04<25:23, 15.87s/item]Generating BREP files (saved:4, attempts:13):   4%|▍         | 4/100 [01:04<25:23, 15.87s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:4, attempts:14):   4%|▍         | 4/100 [01:09<25:23, 15.87s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:4, attempts:15):   4%|▍         | 4/100 [01:11<25:23, 15.87s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:4, attempts:16):   4%|▍         | 4/100 [01:19<25:23, 15.87s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:4, attempts:17):   4%|▍         | 4/100 [01:25<25:23, 15.87s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:4, attempts:18):   4%|▍         | 4/100 [01:32<25:23, 15.87s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:4, attempts:19):   4%|▍         | 4/100 [01:36<25:23, 15.87s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:4, attempts:20):   4%|▍         | 4/100 [01:42<25:23, 15.87s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:4, attempts:21):   4%|▍         | 4/100 [01:44<25:23, 15.87s/item]Generating BREP files (saved:4, attempts:21):   5%|▌         | 5/100 [01:46<40:14, 25.42s/item]Generating BREP files (saved:5, attempts:22):   5%|▌         | 5/100 [01:46<40:14, 25.42s/item]Generating BREP files (saved:5, attempts:22):   6%|▌         | 6/100 [01:48<27:30, 17.56s/item]Generating BREP files (saved:6, attempts:23):   6%|▌         | 6/100 [01:48<27:30, 17.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:6, attempts:24):   6%|▌         | 6/100 [01:53<27:30, 17.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:6, attempts:25):   6%|▌         | 6/100 [01:56<27:30, 17.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:6, attempts:26):   6%|▌         | 6/100 [02:03<27:30, 17.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:6, attempts:27):   6%|▌         | 6/100 [02:06<27:30, 17.56s/item]Generating BREP files (saved:6, attempts:27):   7%|▋         | 7/100 [02:08<28:11, 18.19s/item]Generating BREP files (saved:7, attempts:28):   7%|▋         | 7/100 [02:08<28:11, 18.19s/item]Generating BREP files (saved:7, attempts:28):   8%|▊         | 8/100 [02:09<19:28, 12.71s/item]Generating BREP files (saved:8, attempts:29):   8%|▊         | 8/100 [02:09<19:28, 12.71s/item]Generating BREP files (saved:8, attempts:29):   9%|▉         | 9/100 [02:11<14:21,  9.47s/item]Generating BREP files (saved:9, attempts:30):   9%|▉         | 9/100 [02:11<14:21,  9.47s/item]Generating BREP files (saved:9, attempts:30):  10%|█         | 10/100 [02:15<11:22,  7.59s/item]Generating BREP files (saved:10, attempts:31):  10%|█         | 10/100 [02:15<11:22,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:10, attempts:32):  10%|█         | 10/100 [02:22<11:22,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:10, attempts:33):  10%|█         | 10/100 [02:37<11:22,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:10, attempts:34):  10%|█         | 10/100 [02:41<11:22,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:10, attempts:35):  10%|█         | 10/100 [02:45<11:22,  7.59s/item]Generating BREP files (saved:10, attempts:35):  11%|█         | 11/100 [02:47<22:41, 15.30s/item]Generating BREP files (saved:11, attempts:36):  11%|█         | 11/100 [02:47<22:41, 15.30s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:11, attempts:37):  11%|█         | 11/100 [02:52<22:41, 15.30s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:11, attempts:38):  11%|█         | 11/100 [02:54<22:41, 15.30s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1513, in construct_brep
+    out_idx = np.argmax(np.array(bbox_spans))
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 1229, in argmax
+    return _wrapfunc(a, 'argmax', axis=axis, out=out, **kwds)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 59, in _wrapfunc
+    return bound(*args, **kwds)
+ValueError: attempt to get argmax of an empty sequence
+Generating BREP files (saved:11, attempts:39):  11%|█         | 11/100 [02:56<22:41, 15.30s/item]Generating BREP files (saved:11, attempts:39):  12%|█▏        | 12/100 [02:57<19:49, 13.51s/item]Generating BREP files (saved:12, attempts:40):  12%|█▏        | 12/100 [02:57<19:49, 13.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:12, attempts:41):  12%|█▏        | 12/100 [03:00<19:49, 13.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:12, attempts:42):  12%|█▏        | 12/100 [03:04<19:49, 13.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:12, attempts:43):  12%|█▏        | 12/100 [03:18<19:49, 13.51s/item]Generating BREP files (saved:12, attempts:43):  13%|█▎        | 13/100 [03:20<23:51, 16.45s/item]Generating BREP files (saved:13, attempts:44):  13%|█▎        | 13/100 [03:20<23:51, 16.45s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:13, attempts:45):  13%|█▎        | 13/100 [03:22<23:51, 16.45s/item]Generating BREP files (saved:13, attempts:45):  14%|█▍        | 14/100 [03:25<18:23, 12.83s/item]Generating BREP files (saved:14, attempts:46):  14%|█▍        | 14/100 [03:25<18:23, 12.83s/item]Generating BREP files (saved:14, attempts:46):  15%|█▌        | 15/100 [03:27<13:42,  9.68s/item]Generating BREP files (saved:15, attempts:47):  15%|█▌        | 15/100 [03:27<13:42,  9.68s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:15, attempts:48):  15%|█▌        | 15/100 [03:33<13:42,  9.68s/item]Generating BREP files (saved:15, attempts:48):  16%|█▌        | 16/100 [03:36<13:25,  9.58s/item]Generating BREP files (saved:16, attempts:49):  16%|█▌        | 16/100 [03:36<13:25,  9.58s/item]Generating BREP files (saved:16, attempts:49):  17%|█▋        | 17/100 [03:41<11:06,  8.03s/item]Generating BREP files (saved:17, attempts:50):  17%|█▋        | 17/100 [03:41<11:06,  8.03s/item]Generating BREP files (saved:17, attempts:50):  18%|█▊        | 18/100 [03:45<09:24,  6.88s/item]Generating BREP files (saved:18, attempts:51):  18%|█▊        | 18/100 [03:45<09:24,  6.88s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:18, attempts:52):  18%|█▊        | 18/100 [03:49<09:24,  6.88s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:18, attempts:53):  18%|█▊        | 18/100 [03:56<09:24,  6.88s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:18, attempts:54):  18%|█▊        | 18/100 [03:59<09:24,  6.88s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:18, attempts:55):  18%|█▊        | 18/100 [04:01<09:24,  6.88s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:18, attempts:56):  18%|█▊        | 18/100 [04:04<09:24,  6.88s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:18, attempts:57):  18%|█▊        | 18/100 [04:10<09:24,  6.88s/item]Generating BREP files (saved:18, attempts:57):  19%|█▉        | 19/100 [04:12<17:34, 13.02s/item]Generating BREP files (saved:19, attempts:58):  19%|█▉        | 19/100 [04:12<17:34, 13.02s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:19, attempts:59):  19%|█▉        | 19/100 [04:16<17:34, 13.02s/item]Generating BREP files (saved:19, attempts:59):  20%|██        | 20/100 [04:19<14:54, 11.19s/item]Generating BREP files (saved:20, attempts:60):  20%|██        | 20/100 [04:19<14:54, 11.19s/item]Generating BREP files (saved:20, attempts:60):  21%|██        | 21/100 [04:21<11:12,  8.51s/item]Generating BREP files (saved:21, attempts:61):  21%|██        | 21/100 [04:21<11:12,  8.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:21, attempts:62):  21%|██        | 21/100 [04:27<11:12,  8.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:21, attempts:63):  21%|██        | 21/100 [04:41<11:12,  8.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:21, attempts:64):  21%|██        | 21/100 [04:43<11:12,  8.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:21, attempts:65):  21%|██        | 21/100 [04:45<11:12,  8.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:21, attempts:66):  21%|██        | 21/100 [04:50<11:12,  8.51s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:21, attempts:67):  21%|██        | 21/100 [04:58<11:12,  8.51s/item]Generating BREP files (saved:21, attempts:67):  22%|██▏       | 22/100 [05:01<23:00, 17.70s/item]Generating BREP files (saved:22, attempts:68):  22%|██▏       | 22/100 [05:01<23:00, 17.70s/item]Generating BREP files (saved:22, attempts:68):  23%|██▎       | 23/100 [05:03<16:46, 13.07s/item]Generating BREP files (saved:23, attempts:69):  23%|██▎       | 23/100 [05:03<16:46, 13.07s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:23, attempts:70):  23%|██▎       | 23/100 [05:05<16:46, 13.07s/item]Generating BREP files (saved:23, attempts:70):  24%|██▍       | 24/100 [05:07<13:14, 10.46s/item]Generating BREP files (saved:24, attempts:71):  24%|██▍       | 24/100 [05:07<13:14, 10.46s/item]Generating BREP files (saved:24, attempts:71):  25%|██▌       | 25/100 [05:10<10:02,  8.03s/item]Generating BREP files (saved:25, attempts:72):  25%|██▌       | 25/100 [05:10<10:02,  8.03s/item]Generating BREP files (saved:25, attempts:72):  26%|██▌       | 26/100 [05:12<07:46,  6.31s/item]Generating BREP files (saved:26, attempts:73):  26%|██▌       | 26/100 [05:12<07:46,  6.31s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:26, attempts:74):  26%|██▌       | 26/100 [05:16<07:46,  6.31s/item]Generating BREP files (saved:26, attempts:74):  27%|██▋       | 27/100 [05:18<07:43,  6.35s/item]Generating BREP files (saved:27, attempts:75):  27%|██▋       | 27/100 [05:18<07:43,  6.35s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:27, attempts:76):  27%|██▋       | 27/100 [05:26<07:43,  6.35s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:27, attempts:77):  27%|██▋       | 27/100 [05:31<07:43,  6.35s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:27, attempts:78):  27%|██▋       | 27/100 [05:42<07:43,  6.35s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1454, in construct_brep
+    approx_edge = GeomAPI_PointsToBSpline(u_points_array, 0, 8, GeomAbs_C2, 5e-3).Curve()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\GeomAPI.py", line 1491, in __init__
+    _GeomAPI.GeomAPI_PointsToBSpline_swiginit(self, _GeomAPI.new_GeomAPI_PointsToBSpline(*args))
+RuntimeError: StdFail_NotDone raised from method GeomAPI_PointsToBSpline of class GeomAPI_PointsToBSpline
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1458, in construct_brep
+    approx_edge = GeomAPI_PointsToBSpline(u_points_array, 0, 8, GeomAbs_C2, 8e-3).Curve()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\GeomAPI.py", line 1491, in __init__
+    _GeomAPI.GeomAPI_PointsToBSpline_swiginit(self, _GeomAPI.new_GeomAPI_PointsToBSpline(*args))
+RuntimeError: StdFail_NotDone raised from method GeomAPI_PointsToBSpline of class GeomAPI_PointsToBSpline
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1461, in construct_brep
+    approx_edge = GeomAPI_PointsToBSpline(u_points_array, 0, 8, GeomAbs_C2, 5e-2).Curve()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\GeomAPI.py", line 1491, in __init__
+    _GeomAPI.GeomAPI_PointsToBSpline_swiginit(self, _GeomAPI.new_GeomAPI_PointsToBSpline(*args))
+RuntimeError: StdFail_NotDone raised from method GeomAPI_PointsToBSpline of class GeomAPI_PointsToBSpline
+Generating BREP files (saved:27, attempts:79):  27%|██▋       | 27/100 [05:45<07:43,  6.35s/item]Generating BREP files (saved:27, attempts:79):  28%|██▊       | 28/100 [05:48<15:58, 13.31s/item]Generating BREP files (saved:28, attempts:80):  28%|██▊       | 28/100 [05:48<15:58, 13.31s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:28, attempts:81):  28%|██▊       | 28/100 [05:52<15:58, 13.31s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:28, attempts:82):  28%|██▊       | 28/100 [06:07<15:58, 13.31s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:28, attempts:83):  28%|██▊       | 28/100 [06:10<15:58, 13.31s/item]Generating BREP files (saved:28, attempts:83):  29%|██▉       | 29/100 [06:13<19:59, 16.90s/item]Generating BREP files (saved:29, attempts:84):  29%|██▉       | 29/100 [06:13<19:59, 16.90s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:29, attempts:85):  29%|██▉       | 29/100 [06:24<19:59, 16.90s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:29, attempts:86):  29%|██▉       | 29/100 [06:29<19:59, 16.90s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:29, attempts:87):  29%|██▉       | 29/100 [06:34<19:59, 16.90s/item]Generating BREP files (saved:29, attempts:87):  30%|███       | 30/100 [06:36<21:42, 18.60s/item]Generating BREP files (saved:30, attempts:88):  30%|███       | 30/100 [06:36<21:42, 18.60s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:30, attempts:89):  30%|███       | 30/100 [06:37<21:42, 18.60s/item]Generating BREP files (saved:30, attempts:89):  31%|███       | 31/100 [06:40<16:35, 14.43s/item]Generating BREP files (saved:31, attempts:90):  31%|███       | 31/100 [06:40<16:35, 14.43s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:31, attempts:91):  31%|███       | 31/100 [06:45<16:35, 14.43s/item]Generating BREP files (saved:31, attempts:91):  32%|███▏      | 32/100 [06:47<13:37, 12.02s/item]Generating BREP files (saved:32, attempts:92):  32%|███▏      | 32/100 [06:47<13:37, 12.02s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:32, attempts:93):  32%|███▏      | 32/100 [06:53<13:37, 12.02s/item]Generating BREP files (saved:32, attempts:93):  33%|███▎      | 33/100 [06:55<12:11, 10.91s/item]Generating BREP files (saved:33, attempts:94):  33%|███▎      | 33/100 [06:55<12:11, 10.91s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:33, attempts:95):  33%|███▎      | 33/100 [07:07<12:11, 10.91s/item]Generating BREP files (saved:33, attempts:95):  34%|███▍      | 34/100 [07:10<13:15, 12.05s/item]Generating BREP files (saved:34, attempts:96):  34%|███▍      | 34/100 [07:10<13:15, 12.05s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:34, attempts:97):  34%|███▍      | 34/100 [07:17<13:15, 12.05s/item]Generating BREP files (saved:34, attempts:98):  34%|███▍      | 34/100 [07:17<13:15, 12.05s/item]Generating BREP files (saved:34, attempts:98):  35%|███▌      | 35/100 [07:22<12:56, 11.95s/item]Generating BREP files (saved:35, attempts:99):  35%|███▌      | 35/100 [07:22<12:56, 11.95s/item]Generating BREP files (saved:35, attempts:99):  36%|███▌      | 36/100 [07:23<09:20,  8.75s/item]Generating BREP files (saved:36, attempts:100):  36%|███▌      | 36/100 [07:23<09:20,  8.75s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1336, in joint_optimize
+    min_point, max_point = get_bbox_minmax(edges_perface_flat)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1216, in get_bbox_minmax
+    min_x = np.min(point_cloud[:, 0])
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 2953, in min
+    return _wrapreduction(a, np.minimum, 'min', axis, None, out,
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 88, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+ValueError: zero-size array to reduction operation minimum which has no identity
+Generating BREP files (saved:36, attempts:101):  36%|███▌      | 36/100 [07:27<09:20,  8.75s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:36, attempts:102):  36%|███▌      | 36/100 [07:29<09:20,  8.75s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:36, attempts:103):  36%|███▌      | 36/100 [07:30<09:20,  8.75s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:36, attempts:104):  36%|███▌      | 36/100 [07:32<09:20,  8.75s/item]Generating BREP files (saved:36, attempts:104):  37%|███▋      | 37/100 [07:35<10:09,  9.67s/item]Generating BREP files (saved:37, attempts:105):  37%|███▋      | 37/100 [07:35<10:09,  9.67s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:37, attempts:106):  37%|███▋      | 37/100 [07:42<10:09,  9.67s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:37, attempts:107):  37%|███▋      | 37/100 [07:49<10:09,  9.67s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:37, attempts:108):  37%|███▋      | 37/100 [07:51<10:09,  9.67s/item]Generating BREP files (saved:37, attempts:108):  38%|███▊      | 38/100 [07:55<13:12, 12.79s/item]Generating BREP files (saved:38, attempts:109):  38%|███▊      | 38/100 [07:55<13:12, 12.79s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:38, attempts:110):  38%|███▊      | 38/100 [07:58<13:12, 12.79s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:38, attempts:111):  38%|███▊      | 38/100 [08:01<13:12, 12.79s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:38, attempts:112):  38%|███▊      | 38/100 [08:07<13:12, 12.79s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:38, attempts:113):  38%|███▊      | 38/100 [08:20<13:12, 12.79s/item]Generating BREP files (saved:38, attempts:113):  39%|███▉      | 39/100 [08:22<17:31, 17.24s/item]Generating BREP files (saved:39, attempts:114):  39%|███▉      | 39/100 [08:22<17:31, 17.24s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:39, attempts:115):  39%|███▉      | 39/100 [08:25<17:31, 17.24s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:39, attempts:116):  39%|███▉      | 39/100 [08:35<17:31, 17.24s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:39, attempts:117):  39%|███▉      | 39/100 [08:39<17:31, 17.24s/item]Generating BREP files (saved:39, attempts:117):  40%|████      | 40/100 [08:41<17:48, 17.81s/item]Generating BREP files (saved:40, attempts:118):  40%|████      | 40/100 [08:41<17:48, 17.81s/item]Generating BREP files (saved:40, attempts:118):  41%|████      | 41/100 [08:44<12:56, 13.17s/item]Generating BREP files (saved:41, attempts:119):  41%|████      | 41/100 [08:44<12:56, 13.17s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:41, attempts:120):  41%|████      | 41/100 [08:51<12:56, 13.17s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:41, attempts:121):  41%|████      | 41/100 [08:53<12:56, 13.17s/item]Generating BREP files (saved:41, attempts:121):  42%|████▏     | 42/100 [08:55<12:14, 12.66s/item]Generating BREP files (saved:42, attempts:122):  42%|████▏     | 42/100 [08:55<12:14, 12.66s/item]Generating BREP files (saved:42, attempts:122):  43%|████▎     | 43/100 [09:00<09:39, 10.17s/item]Generating BREP files (saved:43, attempts:123):  43%|████▎     | 43/100 [09:00<09:39, 10.17s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1336, in joint_optimize
+    min_point, max_point = get_bbox_minmax(edges_perface_flat)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1216, in get_bbox_minmax
+    min_x = np.min(point_cloud[:, 0])
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 2953, in min
+    return _wrapreduction(a, np.minimum, 'min', axis, None, out,
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 88, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+ValueError: zero-size array to reduction operation minimum which has no identity
+Generating BREP files (saved:43, attempts:124):  43%|████▎     | 43/100 [09:04<09:39, 10.17s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1285, in joint_optimize
+    edge_ncs_se = edge_ncs[:,[0,-1]]
+IndexError: too many indices for array: array is 1-dimensional, but 2 were indexed
+Generating BREP files (saved:43, attempts:125):  43%|████▎     | 43/100 [09:04<09:39, 10.17s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:43, attempts:126):  43%|████▎     | 43/100 [09:07<09:39, 10.17s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:43, attempts:127):  43%|████▎     | 43/100 [09:09<09:39, 10.17s/item]Generating BREP files (saved:43, attempts:127):  44%|████▍     | 44/100 [09:11<09:48, 10.52s/item]Generating BREP files (saved:44, attempts:128):  44%|████▍     | 44/100 [09:11<09:48, 10.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:44, attempts:129):  44%|████▍     | 44/100 [09:15<09:48, 10.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:44, attempts:130):  44%|████▍     | 44/100 [09:23<09:48, 10.52s/item]Generating BREP files (saved:44, attempts:130):  45%|████▌     | 45/100 [09:25<10:37, 11.60s/item]Generating BREP files (saved:45, attempts:131):  45%|████▌     | 45/100 [09:25<10:37, 11.60s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:45, attempts:132):  45%|████▌     | 45/100 [09:29<10:37, 11.60s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:45, attempts:133):  45%|████▌     | 45/100 [09:36<10:37, 11.60s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1513, in construct_brep
+    out_idx = np.argmax(np.array(bbox_spans))
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 1229, in argmax
+    return _wrapfunc(a, 'argmax', axis=axis, out=out, **kwds)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 59, in _wrapfunc
+    return bound(*args, **kwds)
+ValueError: attempt to get argmax of an empty sequence
+Generating BREP files (saved:45, attempts:134):  45%|████▌     | 45/100 [09:43<10:37, 11.60s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:45, attempts:135):  45%|████▌     | 45/100 [09:48<10:37, 11.60s/item]Generating BREP files (saved:45, attempts:135):  46%|████▌     | 46/100 [09:49<13:42, 15.23s/item]Generating BREP files (saved:46, attempts:136):  46%|████▌     | 46/100 [09:49<13:42, 15.23s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:46, attempts:137):  46%|████▌     | 46/100 [09:57<13:42, 15.23s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:46, attempts:138):  46%|████▌     | 46/100 [10:01<13:42, 15.23s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1336, in joint_optimize
+    min_point, max_point = get_bbox_minmax(edges_perface_flat)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1216, in get_bbox_minmax
+    min_x = np.min(point_cloud[:, 0])
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 2953, in min
+    return _wrapreduction(a, np.minimum, 'min', axis, None, out,
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 88, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+ValueError: zero-size array to reduction operation minimum which has no identity
+Generating BREP files (saved:46, attempts:139):  46%|████▌     | 46/100 [10:02<13:42, 15.23s/item]Generating BREP files (saved:46, attempts:140):  46%|████▌     | 46/100 [10:08<13:42, 15.23s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:46, attempts:141):  46%|████▌     | 46/100 [10:11<13:42, 15.23s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:46, attempts:142):  46%|████▌     | 46/100 [10:14<13:42, 15.23s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:46, attempts:143):  46%|████▌     | 46/100 [10:16<13:42, 15.23s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:46, attempts:144):  46%|████▌     | 46/100 [10:20<13:42, 15.23s/item]Generating BREP files (saved:46, attempts:144):  47%|████▋     | 47/100 [10:21<18:02, 20.42s/item]Generating BREP files (saved:47, attempts:145):  47%|████▋     | 47/100 [10:21<18:02, 20.42s/item]Generating BREP files (saved:47, attempts:145):  48%|████▊     | 48/100 [10:23<12:42, 14.67s/item]Generating BREP files (saved:48, attempts:146):  48%|████▊     | 48/100 [10:23<12:42, 14.67s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:48, attempts:147):  48%|████▊     | 48/100 [10:25<12:42, 14.67s/item]Generating BREP files (saved:48, attempts:147):  49%|████▉     | 49/100 [10:26<09:35, 11.28s/item]Generating BREP files (saved:49, attempts:148):  49%|████▉     | 49/100 [10:26<09:35, 11.28s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:49, attempts:149):  49%|████▉     | 49/100 [10:28<09:35, 11.28s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:49, attempts:150):  49%|████▉     | 49/100 [10:30<09:35, 11.28s/item]Generating BREP files (saved:49, attempts:150):  50%|█████     | 50/100 [10:32<08:00,  9.62s/item]Generating BREP files (saved:50, attempts:151):  50%|█████     | 50/100 [10:32<08:00,  9.62s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:50, attempts:152):  50%|█████     | 50/100 [10:36<08:00,  9.62s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:50, attempts:153):  50%|█████     | 50/100 [10:38<08:00,  9.62s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:50, attempts:154):  50%|█████     | 50/100 [10:41<08:00,  9.62s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:50, attempts:155):  50%|█████     | 50/100 [10:44<08:00,  9.62s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:50, attempts:156):  50%|█████     | 50/100 [10:50<08:00,  9.62s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:50, attempts:157):  50%|█████     | 50/100 [10:53<08:00,  9.62s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:50, attempts:158):  50%|█████     | 50/100 [11:00<08:00,  9.62s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:50, attempts:159):  50%|█████     | 50/100 [11:11<08:00,  9.62s/item]Generating BREP files (saved:50, attempts:159):  51%|█████     | 51/100 [11:13<15:36, 19.11s/item]Generating BREP files (saved:51, attempts:160):  51%|█████     | 51/100 [11:13<15:36, 19.11s/item]Generating BREP files (saved:51, attempts:160):  52%|█████▏    | 52/100 [11:14<10:59, 13.75s/item]Generating BREP files (saved:52, attempts:161):  52%|█████▏    | 52/100 [11:14<10:59, 13.75s/item]Generating BREP files (saved:52, attempts:161):  53%|█████▎    | 53/100 [11:16<08:04, 10.31s/item]Generating BREP files (saved:53, attempts:162):  53%|█████▎    | 53/100 [11:16<08:04, 10.31s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:53, attempts:163):  53%|█████▎    | 53/100 [11:23<08:04, 10.31s/item]Generating BREP files (saved:53, attempts:163):  54%|█████▍    | 54/100 [11:27<07:53, 10.29s/item]Generating BREP files (saved:54, attempts:164):  54%|█████▍    | 54/100 [11:27<07:53, 10.29s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:54, attempts:165):  54%|█████▍    | 54/100 [11:29<07:53, 10.29s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:54, attempts:166):  54%|█████▍    | 54/100 [11:31<07:53, 10.29s/item]Generating BREP files (saved:54, attempts:166):  55%|█████▌    | 55/100 [11:33<06:54,  9.22s/item]Generating BREP files (saved:55, attempts:167):  55%|█████▌    | 55/100 [11:33<06:54,  9.22s/item]Generating BREP files (saved:55, attempts:167):  56%|█████▌    | 56/100 [11:36<05:16,  7.18s/item]Generating BREP files (saved:56, attempts:168):  56%|█████▌    | 56/100 [11:36<05:16,  7.18s/item]Generating BREP files (saved:56, attempts:168):  57%|█████▋    | 57/100 [11:38<04:04,  5.70s/item]Generating BREP files (saved:57, attempts:169):  57%|█████▋    | 57/100 [11:38<04:04,  5.70s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:57, attempts:170):  57%|█████▋    | 57/100 [11:42<04:04,  5.70s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:57, attempts:171):  57%|█████▋    | 57/100 [11:44<04:04,  5.70s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:57, attempts:172):  57%|█████▋    | 57/100 [11:48<04:04,  5.70s/item]Generating BREP files (saved:57, attempts:172):  58%|█████▊    | 58/100 [11:52<05:44,  8.21s/item]Generating BREP files (saved:58, attempts:173):  58%|█████▊    | 58/100 [11:52<05:44,  8.21s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:58, attempts:174):  58%|█████▊    | 58/100 [12:00<05:44,  8.21s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:58, attempts:175):  58%|█████▊    | 58/100 [12:04<05:44,  8.21s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:58, attempts:176):  58%|█████▊    | 58/100 [12:18<05:44,  8.21s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1285, in joint_optimize
+    edge_ncs_se = edge_ncs[:,[0,-1]]
+IndexError: too many indices for array: array is 1-dimensional, but 2 were indexed
+Generating BREP files (saved:58, attempts:177):  58%|█████▊    | 58/100 [12:25<05:44,  8.21s/item]Generating BREP files (saved:58, attempts:177):  59%|█████▉    | 59/100 [12:28<11:17, 16.53s/item]Generating BREP files (saved:59, attempts:178):  59%|█████▉    | 59/100 [12:28<11:17, 16.53s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1513, in construct_brep
+    out_idx = np.argmax(np.array(bbox_spans))
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 1229, in argmax
+    return _wrapfunc(a, 'argmax', axis=axis, out=out, **kwds)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 59, in _wrapfunc
+    return bound(*args, **kwds)
+ValueError: attempt to get argmax of an empty sequence
+Generating BREP files (saved:59, attempts:179):  59%|█████▉    | 59/100 [12:31<11:17, 16.53s/item]Generating BREP files (saved:59, attempts:179):  60%|██████    | 60/100 [12:34<08:58, 13.47s/item]Generating BREP files (saved:60, attempts:180):  60%|██████    | 60/100 [12:34<08:58, 13.47s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:60, attempts:181):  60%|██████    | 60/100 [12:38<08:58, 13.47s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:60, attempts:182):  60%|██████    | 60/100 [12:49<08:58, 13.47s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:60, attempts:183):  60%|██████    | 60/100 [12:57<08:58, 13.47s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:60, attempts:184):  60%|██████    | 60/100 [12:58<08:58, 13.47s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:60, attempts:185):  60%|██████    | 60/100 [13:00<08:58, 13.47s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:60, attempts:186):  60%|██████    | 60/100 [13:02<08:58, 13.47s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:60, attempts:187):  60%|██████    | 60/100 [13:13<08:58, 13.47s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:60, attempts:188):  60%|██████    | 60/100 [13:16<08:58, 13.47s/item]Generating BREP files (saved:60, attempts:188):  61%|██████    | 61/100 [13:18<14:36, 22.47s/item]Generating BREP files (saved:61, attempts:189):  61%|██████    | 61/100 [13:18<14:36, 22.47s/item]Generating BREP files (saved:61, attempts:189):  62%|██████▏   | 62/100 [13:20<10:23, 16.41s/item]Generating BREP files (saved:62, attempts:190):  62%|██████▏   | 62/100 [13:20<10:23, 16.41s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1336, in joint_optimize
+    min_point, max_point = get_bbox_minmax(edges_perface_flat)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1216, in get_bbox_minmax
+    min_x = np.min(point_cloud[:, 0])
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 2953, in min
+    return _wrapreduction(a, np.minimum, 'min', axis, None, out,
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 88, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+ValueError: zero-size array to reduction operation minimum which has no identity
+Generating BREP files (saved:62, attempts:191):  62%|██████▏   | 62/100 [13:22<10:23, 16.41s/item]Generating BREP files (saved:62, attempts:191):  63%|██████▎   | 63/100 [13:23<07:40, 12.45s/item]Generating BREP files (saved:63, attempts:192):  63%|██████▎   | 63/100 [13:23<07:40, 12.45s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:63, attempts:193):  63%|██████▎   | 63/100 [13:29<07:40, 12.45s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:63, attempts:194):  63%|██████▎   | 63/100 [13:36<07:40, 12.45s/item]Generating BREP files (saved:63, attempts:194):  64%|██████▍   | 64/100 [13:38<07:51, 13.10s/item]Generating BREP files (saved:64, attempts:195):  64%|██████▍   | 64/100 [13:38<07:51, 13.10s/item]Generating BREP files (saved:64, attempts:195):  65%|██████▌   | 65/100 [13:40<05:45,  9.86s/item]Generating BREP files (saved:65, attempts:196):  65%|██████▌   | 65/100 [13:40<05:45,  9.86s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:65, attempts:197):  65%|██████▌   | 65/100 [13:42<05:45,  9.86s/item]Generating BREP files (saved:65, attempts:197):  66%|██████▌   | 66/100 [13:44<04:32,  8.03s/item]Generating BREP files (saved:66, attempts:198):  66%|██████▌   | 66/100 [13:44<04:32,  8.03s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:66, attempts:199):  66%|██████▌   | 66/100 [13:48<04:32,  8.03s/item]Generating BREP files (saved:66, attempts:199):  67%|██████▋   | 67/100 [13:51<04:10,  7.59s/item]Generating BREP files (saved:67, attempts:200):  67%|██████▋   | 67/100 [13:51<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:201):  67%|██████▋   | 67/100 [13:57<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:202):  67%|██████▋   | 67/100 [14:08<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:203):  67%|██████▋   | 67/100 [14:12<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:204):  67%|██████▋   | 67/100 [14:16<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:205):  67%|██████▋   | 67/100 [14:19<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:206):  67%|██████▋   | 67/100 [14:20<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:207):  67%|██████▋   | 67/100 [14:24<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:208):  67%|██████▋   | 67/100 [14:26<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:209):  67%|██████▋   | 67/100 [14:30<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:67, attempts:210):  67%|██████▋   | 67/100 [14:40<04:10,  7.59s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:67, attempts:211):  67%|██████▋   | 67/100 [14:44<04:10,  7.59s/item]Generating BREP files (saved:67, attempts:211):  68%|██████▊   | 68/100 [14:46<11:40, 21.88s/item]Generating BREP files (saved:68, attempts:212):  68%|██████▊   | 68/100 [14:46<11:40, 21.88s/item]Generating BREP files (saved:68, attempts:212):  69%|██████▉   | 69/100 [14:48<08:15, 15.98s/item]Generating BREP files (saved:69, attempts:213):  69%|██████▉   | 69/100 [14:48<08:15, 15.98s/item]Generating BREP files (saved:69, attempts:213):  70%|███████   | 70/100 [15:40<13:21, 26.71s/item]Generating BREP files (saved:70, attempts:214):  70%|███████   | 70/100 [15:40<13:21, 26.71s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:70, attempts:215):  70%|███████   | 70/100 [15:44<13:21, 26.71s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:70, attempts:216):  70%|███████   | 70/100 [15:46<13:21, 26.71s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:70, attempts:217):  70%|███████   | 70/100 [15:51<13:21, 26.71s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:70, attempts:218):  70%|███████   | 70/100 [15:53<13:21, 26.71s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:70, attempts:219):  70%|███████   | 70/100 [15:56<13:21, 26.71s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:70, attempts:220):  70%|███████   | 70/100 [16:00<13:21, 26.71s/item]Generating BREP files (saved:70, attempts:220):  71%|███████   | 71/100 [16:03<12:21, 25.56s/item]Generating BREP files (saved:71, attempts:221):  71%|███████   | 71/100 [16:03<12:21, 25.56s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:71, attempts:222):  71%|███████   | 71/100 [16:06<12:21, 25.56s/item]Generating BREP files (saved:71, attempts:222):  72%|███████▏  | 72/100 [16:08<09:05, 19.50s/item]Generating BREP files (saved:72, attempts:223):  72%|███████▏  | 72/100 [16:08<09:05, 19.50s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:72, attempts:224):  72%|███████▏  | 72/100 [16:12<09:05, 19.50s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:72, attempts:225):  72%|███████▏  | 72/100 [16:23<09:05, 19.50s/item]Generating BREP files (saved:72, attempts:225):  73%|███████▎  | 73/100 [16:24<08:20, 18.52s/item]Generating BREP files (saved:73, attempts:226):  73%|███████▎  | 73/100 [16:24<08:20, 18.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:73, attempts:227):  73%|███████▎  | 73/100 [16:25<08:20, 18.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:73, attempts:228):  73%|███████▎  | 73/100 [16:29<08:20, 18.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1513, in construct_brep
+    out_idx = np.argmax(np.array(bbox_spans))
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 1229, in argmax
+    return _wrapfunc(a, 'argmax', axis=axis, out=out, **kwds)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 59, in _wrapfunc
+    return bound(*args, **kwds)
+ValueError: attempt to get argmax of an empty sequence
+Generating BREP files (saved:73, attempts:229):  73%|███████▎  | 73/100 [16:34<08:20, 18.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:73, attempts:230):  73%|███████▎  | 73/100 [16:41<08:20, 18.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1336, in joint_optimize
+    min_point, max_point = get_bbox_minmax(edges_perface_flat)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1216, in get_bbox_minmax
+    min_x = np.min(point_cloud[:, 0])
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 2953, in min
+    return _wrapreduction(a, np.minimum, 'min', axis, None, out,
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 88, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+ValueError: zero-size array to reduction operation minimum which has no identity
+Generating BREP files (saved:73, attempts:231):  73%|███████▎  | 73/100 [16:42<08:20, 18.52s/item]Generating BREP files (saved:73, attempts:231):  74%|███████▍  | 74/100 [16:45<08:21, 19.31s/item]Generating BREP files (saved:74, attempts:232):  74%|███████▍  | 74/100 [16:45<08:21, 19.31s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:74, attempts:233):  74%|███████▍  | 74/100 [16:51<08:21, 19.31s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1513, in construct_brep
+    out_idx = np.argmax(np.array(bbox_spans))
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 1229, in argmax
+    return _wrapfunc(a, 'argmax', axis=axis, out=out, **kwds)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\numpy\core\fromnumeric.py", line 59, in _wrapfunc
+    return bound(*args, **kwds)
+ValueError: attempt to get argmax of an empty sequence
+Generating BREP files (saved:74, attempts:234):  74%|███████▍  | 74/100 [16:54<08:21, 19.31s/item]Generating BREP files (saved:74, attempts:234):  75%|███████▌  | 75/100 [16:56<06:58, 16.73s/item]Generating BREP files (saved:75, attempts:235):  75%|███████▌  | 75/100 [16:56<06:58, 16.73s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:75, attempts:236):  75%|███████▌  | 75/100 [17:00<06:58, 16.73s/item]Generating BREP files (saved:75, attempts:236):  76%|███████▌  | 76/100 [17:03<05:27, 13.65s/item]Generating BREP files (saved:76, attempts:237):  76%|███████▌  | 76/100 [17:03<05:27, 13.65s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1072, in reconstruct_cad_from_sequence
+    surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
+  File "D:\luolin\V13\BrepARG\utils.py", line 1285, in joint_optimize
+    edge_ncs_se = edge_ncs[:,[0,-1]]
+IndexError: too many indices for array: array is 1-dimensional, but 2 were indexed
+Generating BREP files (saved:76, attempts:238):  76%|███████▌  | 76/100 [17:09<05:27, 13.65s/item]Generating BREP files (saved:76, attempts:238):  77%|███████▋  | 77/100 [17:11<04:38, 12.10s/item]Generating BREP files (saved:77, attempts:239):  77%|███████▋  | 77/100 [17:11<04:38, 12.10s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:77, attempts:240):  77%|███████▋  | 77/100 [17:26<04:38, 12.10s/item]Generating BREP files (saved:77, attempts:241):  77%|███████▋  | 77/100 [17:26<04:38, 12.10s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:77, attempts:242):  77%|███████▋  | 77/100 [17:29<04:38, 12.10s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:77, attempts:243):  77%|███████▋  | 77/100 [17:37<04:38, 12.10s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:77, attempts:244):  77%|███████▋  | 77/100 [17:45<04:38, 12.10s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:77, attempts:245):  77%|███████▋  | 77/100 [17:49<04:38, 12.10s/item]Generating BREP files (saved:77, attempts:245):  78%|███████▊  | 78/100 [17:50<07:26, 20.29s/item]Generating BREP files (saved:78, attempts:246):  78%|███████▊  | 78/100 [17:50<07:26, 20.29s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:78, attempts:247):  78%|███████▊  | 78/100 [17:53<07:26, 20.29s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:78, attempts:248):  78%|███████▊  | 78/100 [18:02<07:26, 20.29s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:78, attempts:249):  78%|███████▊  | 78/100 [18:10<07:26, 20.29s/item]Generating BREP files (saved:78, attempts:249):  79%|███████▉  | 79/100 [18:11<07:07, 20.35s/item]Generating BREP files (saved:79, attempts:250):  79%|███████▉  | 79/100 [18:11<07:07, 20.35s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:79, attempts:251):  79%|███████▉  | 79/100 [18:16<07:07, 20.35s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:79, attempts:252):  79%|███████▉  | 79/100 [18:29<07:07, 20.35s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:79, attempts:253):  79%|███████▉  | 79/100 [18:33<07:07, 20.35s/item]Generating BREP files (saved:79, attempts:253):  80%|████████  | 80/100 [18:35<07:10, 21.52s/item]Generating BREP files (saved:80, attempts:254):  80%|████████  | 80/100 [18:35<07:10, 21.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:80, attempts:255):  80%|████████  | 80/100 [18:38<07:10, 21.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:80, attempts:256):  80%|████████  | 80/100 [18:46<07:10, 21.52s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:80, attempts:257):  80%|████████  | 80/100 [18:50<07:10, 21.52s/item]Generating BREP files (saved:80, attempts:257):  81%|████████  | 81/100 [18:53<06:29, 20.51s/item]Generating BREP files (saved:81, attempts:258):  81%|████████  | 81/100 [18:53<06:29, 20.51s/item]Generating BREP files (saved:81, attempts:258):  82%|████████▏ | 82/100 [18:56<04:31, 15.06s/item]Generating BREP files (saved:82, attempts:259):  82%|████████▏ | 82/100 [18:56<04:31, 15.06s/item]Generating BREP files (saved:82, attempts:259):  83%|████████▎ | 83/100 [18:58<03:10, 11.22s/item]Generating BREP files (saved:83, attempts:260):  83%|████████▎ | 83/100 [18:58<03:10, 11.22s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1528, in construct_brep
+    inner_wires.append(wire_builder.Wire())
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:83, attempts:261):  83%|████████▎ | 83/100 [19:10<03:10, 11.22s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:83, attempts:262):  83%|████████▎ | 83/100 [19:13<03:10, 11.22s/item]Generating BREP files (saved:83, attempts:262):  84%|████████▍ | 84/100 [19:14<03:23, 12.75s/item]Generating BREP files (saved:84, attempts:263):  84%|████████▍ | 84/100 [19:14<03:23, 12.75s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:84, attempts:264):  84%|████████▍ | 84/100 [19:27<03:23, 12.75s/item]Generating BREP files (saved:84, attempts:264):  85%|████████▌ | 85/100 [19:30<03:25, 13.69s/item]Generating BREP files (saved:85, attempts:265):  85%|████████▌ | 85/100 [19:30<03:25, 13.69s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:85, attempts:266):  85%|████████▌ | 85/100 [19:36<03:25, 13.69s/item]Generating BREP files (saved:85, attempts:266):  86%|████████▌ | 86/100 [19:38<02:47, 11.96s/item]Generating BREP files (saved:86, attempts:267):  86%|████████▌ | 86/100 [19:38<02:47, 11.96s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:86, attempts:268):  86%|████████▌ | 86/100 [19:40<02:47, 11.96s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:86, attempts:269):  86%|████████▌ | 86/100 [19:47<02:47, 11.96s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:86, attempts:270):  86%|████████▌ | 86/100 [19:49<02:47, 11.96s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:86, attempts:271):  86%|████████▌ | 86/100 [19:53<02:47, 11.96s/item]Generating BREP files (saved:86, attempts:271):  87%|████████▋ | 87/100 [19:55<02:55, 13.47s/item]Generating BREP files (saved:87, attempts:272):  87%|████████▋ | 87/100 [19:55<02:55, 13.47s/item]Generating BREP files (saved:87, attempts:272):  88%|████████▊ | 88/100 [19:57<02:01, 10.14s/item]Generating BREP files (saved:88, attempts:273):  88%|████████▊ | 88/100 [19:57<02:01, 10.14s/item]Generating BREP files (saved:88, attempts:273):  89%|████████▉ | 89/100 [19:59<01:24,  7.64s/item]Generating BREP files (saved:89, attempts:274):  89%|████████▉ | 89/100 [19:59<01:24,  7.64s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:89, attempts:275):  89%|████████▉ | 89/100 [20:01<01:24,  7.64s/item]Generating BREP files (saved:89, attempts:275):  90%|█████████ | 90/100 [20:02<01:01,  6.17s/item]Generating BREP files (saved:90, attempts:276):  90%|█████████ | 90/100 [20:02<01:01,  6.17s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1553, in construct_brep
+    maker.Add(sewn_shell)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4003, in Add
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeSolid_Add(self, *args)
+TypeError: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Generating BREP files (saved:90, attempts:277):  90%|█████████ | 90/100 [20:08<01:01,  6.17s/item]Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\utils.py", line 1078, in reconstruct_cad_from_sequence
+    solid = construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj)
+  File "D:\luolin\V13\BrepARG\utils.py", line 1520, in construct_brep
+    outer_wire = wire_builder.Wire()
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\OCC\Core\BRepBuilderAPI.py", line 4253, in Wire
+    return _BRepBuilderAPI.BRepBuilderAPI_MakeWire_Wire(self, *args)
+RuntimeError: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Generating BREP files (saved:90, attempts:278):  90%|█████████ | 90/100 [20:16<01:01,  6.17s/item]Generating BREP files (saved:90, attempts:278):  91%|█████████ | 91/100 [20:20<01:26,  9.60s/item]Generating BREP files (saved:91, attempts:279):  91%|█████████ | 91/100 [20:20<01:26,  9.60s/item]Generating BREP files (saved:91, attempts:279):  92%|█████████▏| 92/100 [20:23<01:01,  7.68s/item]Generating BREP files (saved:92, attempts:280):  92%|█████████▏| 92/100 [20:23<01:01,  7.68s/item]

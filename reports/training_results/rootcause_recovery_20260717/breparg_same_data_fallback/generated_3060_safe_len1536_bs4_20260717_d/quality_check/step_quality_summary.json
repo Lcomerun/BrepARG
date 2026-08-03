@@ -1,0 +1,13 @@
+{
+  "created": "2026-07-20 14:26:23",
+  "run_dir": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\generated_3060_safe_len1536_bs4_20260717_d",
+  "step_files": 92,
+  "rows": 92,
+  "step_read_ok": 91,
+  "brep_valid": 75,
+  "solid_closed_no_open_shell": 91,
+  "stl_saved": 91,
+  "png_saved": 91,
+  "timeouts": 1,
+  "elapsed_min": 5.296
+}

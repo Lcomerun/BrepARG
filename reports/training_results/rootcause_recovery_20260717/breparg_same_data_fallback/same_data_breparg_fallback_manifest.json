@@ -1,0 +1,20 @@
+﻿{
+    "dedup_edges":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\deduplicated_edge_source.pkl",
+    "vqvae_weight":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\vqvae_3060_safe_len1536_bs4_20260717_d\\same_data_abc\\abc_se_vqvae_best.pt",
+    "output_root":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback",
+    "staged_data":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged",
+    "split":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\same_data_split.pkl",
+    "sequence":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\sequence_3060_safe_len1536_bs4_20260717_d\\breparg_same_data_sequences.pkl",
+    "generated":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\generated_3060_safe_len1536_bs4_20260717_d",
+    "vqvae_batch_size":  "128",
+    "source_root":  "E:\\V13_rootcause_20260715\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback",
+    "vqvae_epochs":  "160",
+    "ar_max_seq_len":  "1536",
+    "note":  "D-drive local RTX 3060-safe same-data BrepARG fallback baseline; use because official ABC weights are incompatible with the current protocol.",
+    "ar_weight":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\ar_3060_safe_len1536_bs4_20260717_d\\same_data_abc\\abc_ar_vqvae_best_model.pt",
+    "run_tag":  "3060_safe_len1536_bs4_20260717_d",
+    "dedup_surfaces":  "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\deduplicated_surface_source.pkl",
+    "source_data":  "E:\\V13_rootcause_20260715\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data",
+    "ar_batch_size":  "4",
+    "ar_epochs":  "80"
+}

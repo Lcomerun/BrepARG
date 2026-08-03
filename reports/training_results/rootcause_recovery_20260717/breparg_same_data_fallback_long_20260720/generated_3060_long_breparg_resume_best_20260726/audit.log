@@ -1,0 +1,19 @@
+{
+  "step_files": 100,
+  "png_files": 0,
+  "stl_files": 100,
+  "quality_manifest_rows": 100,
+  "entries": 100,
+  "step_read_ok": 100,
+  "brep_valid": 86,
+  "files_solid_closed_no_open_shell": 100,
+  "files_with_nonplanar_surfaces": 100,
+  "complex_by_step_entities_12faces_or_20edges": 13,
+  "complex_and_closed": 13,
+  "complex_and_brep_valid": 13,
+  "complex_and_brep_valid_closed": 13,
+  "strict_quality_accepted": 6,
+  "simple_or_rejected": 94,
+  "accepted_fraction": 0.06,
+  "complex_fraction": 0.13
+}

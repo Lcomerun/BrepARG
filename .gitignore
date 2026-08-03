@@ -125,6 +125,8 @@ events.out.tfevents.*
 !/reports/tensorboard/**
 !/reports/training_results/
 !/reports/training_results/**
+!/reports/training_results/
+!/reports/training_results/**
 
 # Generated CAD, meshes, and previews
 *.step

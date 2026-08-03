@@ -1,0 +1,72 @@
+Staging same-data BrepARG inputs to D: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Windows 的可靠文件复制                              
+-------------------------------------------------------------------------------
+
+  开始时间: 2026年7月19日 15:17:25
+        源 = E:\V13_rootcause_20260715\complex_curved_rootcause_suite_20260715\experiments\03b_breparg_same_data_training_fallback\data\parsed_pool\
+      目标 : D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\parsed_pool\
+
+      文件: *.*
+	    
+      选项: *.* /FFT /S /E /DCOPY:DA /COPY:DAT /J /NP /MT:16 /R:2 /W:2 
+
+------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------
+
+                  总数        复制        跳过       不匹配        失败        其他
+       目录:        19        19        19         0         0         0
+       文件:     12000         0     12000         0         0         0
+       字节:   5.270 g         0   5.270 g         0         0         0
+       时间:   0:00:01   0:00:00                       0:00:00   0:00:01
+   已结束: 2026年7月19日 15:17:26
+
+{
+  "source_data": "E:\\V13_rootcause_20260715\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data",
+  "staged_data": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged",
+  "split": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\same_data_split.pkl",
+  "counts": {
+    "train": 10000,
+    "val": 1000,
+    "test": 1000
+  },
+  "deduplicated_surface_source": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\deduplicated_surface_source.pkl",
+  "deduplicated_edge_source": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\deduplicated_edge_source.pkl"
+}
+Using existing BrepARG VQ-VAE weight: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d\same_data_abc\abc_se_vqvae_best.pt
+Building BrepARG same-data sequences: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\sequence_3060_safe_len1536_bs4_20260717_d\breparg_same_data_sequences.pkl
+Running: C:\Users\YU\.conda\envs\brepgen_env\python.exe BrepARG\2sequence.py --data_list D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\same_data_split.pkl --output_file D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\sequence_3060_safe_len1536_bs4_20260717_d\breparg_same_data_sequences.pkl --vqvae_se_weight D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d\same_data_abc\abc_se_vqvae_best.pt --dataset_type abc --max_face 50 --max_edge 150 --scale 1.0 --aug true --gpu 0
+  stdout: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\sequence_3060_safe_len1536_bs4_20260717_d\build_sequence.log
+  stderr: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\sequence_3060_safe_len1536_bs4_20260717_d\build_sequence.log.err
+Training BrepARG AR from scratch on D: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\ar_3060_safe_len1536_bs4_20260717_d
+Running: C:\Users\YU\.conda\envs\brepgen_env\python.exe BrepARG\train_ar.py --sequence_file D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\sequence_3060_safe_len1536_bs4_20260717_d\breparg_same_data_sequences.pkl --dataset_type abc --batch_size 4 --train_epoch 80 --test_epoch 1 --save_epoch 5 --max_face 50 --max_edge 150 --max_seq_len 1536 --learning_rate 5e-5 --d_model 256 --nhead 8 --num_layers 8 --dim_feedforward 1024 --dir_name D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\ar_3060_safe_len1536_bs4_20260717_d --env same_data_abc --loss_dir D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\ar_3060_safe_len1536_bs4_20260717_d --tb_log_dir D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\ar_3060_safe_len1536_bs4_20260717_d\tensorboard
+  stdout: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\ar_3060_safe_len1536_bs4_20260717_d\train_ar.log
+  stderr: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\ar_3060_safe_len1536_bs4_20260717_d\train_ar.log.err
+Running: C:\Users\YU\.conda\envs\brepgen_env\python.exe BrepARG\generate_brep.py --dataset_type abc --config BrepARG\config.json --ar_model D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\ar_3060_safe_len1536_bs4_20260717_d\same_data_abc\abc_ar_vqvae_best_model.pt --se_vqvae D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d\same_data_abc\abc_se_vqvae_best.pt --num_samples 100 --max_attempts 5000 --mode batch --max_length 1536 --temperature 1.0 --top_p 0.9 --output_dir D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\generated_3060_safe_len1536_bs4_20260717_d --filename_prefix breparg_same_data_3060_safe_len1536_bs4_20260717_d --device cuda --gpu 0
+  stdout: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\generated_3060_safe_len1536_bs4_20260717_d\generate.log
+  stderr: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\generated_3060_safe_len1536_bs4_20260717_d\generate.log.err
+{
+  "step_files": 0,
+  "png_files": 0,
+  "stl_files": 0,
+  "quality_manifest_rows": 0,
+  "entries": 0,
+  "step_read_ok": 0,
+  "brep_valid": 0,
+  "files_solid_closed_no_open_shell": 0,
+  "files_with_nonplanar_surfaces": 0,
+  "complex_by_step_entities_12faces_or_20edges": 0,
+  "complex_and_closed": 0,
+  "complex_and_brep_valid": 0,
+  "complex_and_brep_valid_closed": 0,
+  "strict_quality_accepted": 0,
+  "simple_or_rejected": 0,
+  "accepted_fraction": null,
+  "complex_fraction": null
+}
+BrepARG same-data fallback complete:
+  manifest: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\same_data_breparg_fallback_3060_safe_len1536_bs4_20260717_d_manifest.json
+  generated: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\generated_3060_safe_len1536_bs4_20260717_d

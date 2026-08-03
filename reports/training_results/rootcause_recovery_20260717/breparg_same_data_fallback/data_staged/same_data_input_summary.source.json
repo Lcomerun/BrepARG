@@ -1,0 +1,37 @@
+{
+  "status": "VERIFIED",
+  "created": "2026-07-15 08:40:31",
+  "sequence_path": "ABC\\processed\\train_outputs\\ubuntu\\sequences_fsq_rcm.pkl",
+  "archive_root": "ABC\\processed\\abc_parsed_full_archives",
+  "output_dir": "local_runs\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data",
+  "split_path": "local_runs\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data\\same_data_split.pkl",
+  "surface_list": "local_runs\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data\\deduplicated_surface_source.pkl",
+  "edge_list": "local_runs\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data\\deduplicated_edge_source.pkl",
+  "manifest": "local_runs\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data\\same_data_input_manifest.jsonl",
+  "limits": {
+    "train": 10000,
+    "val": 1000,
+    "test": 1000,
+    "surface_patch_limit": 300000,
+    "edge_patch_limit": 500000,
+    "max_faces": 50,
+    "max_edges": 150
+  },
+  "splits": {
+    "train": {
+      "seen": 10000,
+      "written": 10000
+    },
+    "val": {
+      "seen": 1000,
+      "written": 1000
+    },
+    "test": {
+      "seen": 1000,
+      "written": 1000
+    }
+  },
+  "surface_patches": 176605,
+  "edge_patches": 429555,
+  "skipped": {}
+}

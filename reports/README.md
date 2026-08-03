@@ -24,4 +24,10 @@ From the repository root, inspect them on another machine with:
 
 These are selected historical logs, not a guarantee that every experiment produced or retained TensorBoard events. The raw run directories, checkpoints, and training datasets remain excluded.
 
+## Recovery training results
+
+`reports/training_results/rootcause_recovery_20260717/` mirrors lightweight training evidence from the external recovery workspace. It includes all available TensorBoard events plus result-oriented JSON, JSONL, Markdown, CSV, TXT, and LOG files no larger than 5 MiB. Relative paths are preserved so that short VQ-VAE/AR training, long VQ400/AR300 training, generation audits, and recovery records remain attributable to their original runs.
+
+The mirror deliberately excludes checkpoints, pickle datasets and token sequences, model binaries, `.err` streams, generated STEP/STL files, images, and other binary run products. The external recovery directory remains the authoritative source for those large artifacts.
+
 `reports/training_results/` contains richer packages for selected later runs. Each package combines the original event file with a CSV scalar export and concise JSON/Markdown summaries, allowing results to be inspected even when TensorBoard is unavailable.

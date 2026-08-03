@@ -1,0 +1,7 @@
+powershell : python.exe : 
+ËùÔÚÎ»ÖÃ D:\luolin\V13\tools\watch_then_start_breparg_same_data_on_d.ps1:89 ×Ö·û: 1
++ powershell -NoProfile -ExecutionPolicy Bypass -File $BrepScript 2>&1  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (python.exe : :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

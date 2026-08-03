@@ -1,0 +1,13 @@
+{
+  "created": "2026-07-26 17:27:07",
+  "run_dir": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback_long_20260720\\generated_3060_long_breparg_resume_best_20260726",
+  "step_files": 100,
+  "rows": 100,
+  "step_read_ok": 100,
+  "brep_valid": 86,
+  "solid_closed_no_open_shell": 100,
+  "stl_saved": 100,
+  "png_saved": 100,
+  "timeouts": 0,
+  "elapsed_min": 4.667
+}

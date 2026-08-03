@@ -1,0 +1,60 @@
+Using GPU: cuda:0
+=== Initializing CAD generation pipeline ===
+1. Loading configuration...
+   Using config file: BrepARG\config.json
+2. Loading model configuration...
+Successfully loaded and calculated model config for dataset type: abc
+Vocab size: 10294
+Special tokens: START=10290, SEP=10291, END=10292, PAD=10293
+3. Loading autoregressive model...
+Successfully loaded checkpoint: D:\luolin\V13\local_runs\breparg_long_ar_resume_best_20260724\ar_epoch127_best_to300\same_data_abc\abc_ar_vqvae_best_model.pt
+Initialized ARModel with vocab_size=10294, d_model=256, layers=8, heads=8, max_seq_len=1536
+Model weights loaded successfully
+4. Loading SE VQ-VAE model...
+Detected SE tokens per element: 4
+Initialization complete
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1785056652024249_38940.step(2740 ents)  Write  Done
+Warning: 2 faces have been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1785056661817579_38940.step(526 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1785056664064469_38940.step(640 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1785056667246010_38940.step(969 ents)  Write  Done
+
+=== Generation Summary ===
+total_attempts : 8
+saved_count    : 4 (both STL and STEP saved successfully)

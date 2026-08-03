@@ -1,0 +1,16 @@
+Command failed with exit code 1: C:\Users\YU\.conda\envs\brepgen_env\python.exe BrepARG\2sequence.py --data_list D:\V13
+_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\same_data_split.pkl --output_file D:\V13_rootcause_
+recovery_20260717\breparg_same_data_fallback\sequence_3060_safe_len1536_bs4_20260717_d\breparg_same_data_sequences.pkl 
+--vqvae_se_weight D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d\
+train_vqvae.log --dataset_type abc --max_face 50 --max_edge 150 --scale 1.0 --aug true --gpu 0
+ËùÔÚÎ»ÖÃ D:\luolin\V13\tools\run_breparg_same_data_fallback_on_d.ps1:92 ×Ö·û: 5
++     throw "Command failed with exit code $($proc.ExitCode): $FilePath ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Command failed ...ug true --gpu 0:String) [], RuntimeException
+    + FullyQualifiedErrorId : Command failed with exit code 1: C:\Users\YU\.conda\envs\brepgen_env\python.exe BrepARG\ 
+   2sequence.py --data_list D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\same_data_split  
+  .pkl --output_file D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\sequence_3060_safe_len1536_bs4_20   
+ 260717_d\breparg_same_data_sequences.pkl --vqvae_se_weight D:\V13_rootcause_recovery_20260717\breparg_same_data_fa    
+llback\vqvae_3060_safe_len1536_bs4_20260717_d\train_vqvae.log --dataset_type abc --max_face 50 --max_edge 150 --sc    a
+le 1.0 --aug true --gpu 0
+ 

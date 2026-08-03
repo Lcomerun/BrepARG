@@ -1,0 +1,28 @@
+[
+  {
+    "label": "dfs",
+    "path": "D:\\V13_rootcause_recovery_20260717\\ar_train_outputs\\ar_dfs_matched_20260715\\ar_best.pt",
+    "exists": true,
+    "load_ok": true,
+    "epoch": 58,
+    "train_ce": 0.39340789863199005,
+    "val_ce": 0.5013600627430143,
+    "best_val_ce": 0.5013600627430143,
+    "finite_model": true,
+    "float_tensors": 101,
+    "first_bad_tensor": null
+  },
+  {
+    "label": "rcm",
+    "path": "D:\\V13_rootcause_recovery_20260717\\ar_train_outputs\\ar_rcm_matched_20260715\\ar_best.pt",
+    "exists": true,
+    "load_ok": true,
+    "epoch": 60,
+    "train_ce": 0.4066030449035996,
+    "val_ce": 0.5260249616847815,
+    "best_val_ce": 0.5260249616847815,
+    "finite_model": true,
+    "float_tensors": 101,
+    "first_bad_tensor": null
+  }
+]

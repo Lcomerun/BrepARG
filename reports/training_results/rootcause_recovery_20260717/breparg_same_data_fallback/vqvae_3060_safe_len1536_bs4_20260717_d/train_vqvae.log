@@ -1,0 +1,519 @@
+============================================================
+Single-GPU training mode
+Batch size per GPU: 128
+============================================================
+Loading combined surface and edge data...
+Combined dataset size: 606160 (surfaces: 176605, edges: 429555)
+Loading combined surface and edge data...
+Combined dataset size: 59922 (surfaces: 17370, edges: 42552)
+Single GPU training mode
+  Device: cuda
+Training from scratch
+Starting training from epoch: 1
+Target epoch: 160
+============================================================
+Epoch [1/160] Time: 628.83s
+  Loss - Recon: 0.01418819 | VQ: 0.03926487 | Total: 0.05345307
+  Metrics - Usage: 0.03 | Perplexity: 179.28
+Validation loss: Total 0.003052 = Reconstruction 0.002499 + VQ 0.000553 | Codebook activity: 0.749756 | Perplexity: 140.07
+New best model! Validation loss: 0.002499
+Best model filename: abc_se_vqvae_epoch_1.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_1.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [2/160] Time: 635.46s
+  Loss - Recon: 0.00187439 | VQ: 0.03507044 | Total: 0.03694483
+  Metrics - Usage: 0.04 | Perplexity: 196.92
+Validation loss: Total 0.001894 = Reconstruction 0.001468 + VQ 0.000426 | Codebook activity: 0.813354 | Perplexity: 145.12
+New best model! Validation loss: 0.001468
+Best model filename: abc_se_vqvae_epoch_2.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_2.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [3/160] Time: 640.42s
+  Loss - Recon: 0.00124675 | VQ: 0.03019010 | Total: 0.03143686
+  Metrics - Usage: 0.04 | Perplexity: 198.43
+Validation loss: Total 0.001628 = Reconstruction 0.001235 + VQ 0.000393 | Codebook activity: 0.842896 | Perplexity: 147.15
+New best model! Validation loss: 0.001235
+Best model filename: abc_se_vqvae_epoch_3.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_3.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [4/160] Time: 636.34s
+  Loss - Recon: 0.00097217 | VQ: 0.02781289 | Total: 0.02878506
+  Metrics - Usage: 0.04 | Perplexity: 198.12
+Validation loss: Total 0.001424 = Reconstruction 0.001054 + VQ 0.000370 | Codebook activity: 0.840088 | Perplexity: 147.90
+New best model! Validation loss: 0.001054
+Best model filename: abc_se_vqvae_epoch_4.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_4.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [5/160] Time: 638.36s
+  Loss - Recon: 0.00081803 | VQ: 0.02695751 | Total: 0.02777554
+  Metrics - Usage: 0.04 | Perplexity: 198.13
+Validation loss: Total 0.001117 = Reconstruction 0.000800 + VQ 0.000317 | Codebook activity: 0.853149 | Perplexity: 146.77
+New best model! Validation loss: 0.000800
+Best model filename: abc_se_vqvae_epoch_5.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_5.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [6/160] Time: 635.44s
+  Loss - Recon: 0.00070499 | VQ: 0.02590353 | Total: 0.02660852
+  Metrics - Usage: 0.04 | Perplexity: 198.23
+Validation loss: Total 0.001115 = Reconstruction 0.000774 + VQ 0.000341 | Codebook activity: 0.859375 | Perplexity: 148.47
+New best model! Validation loss: 0.000774
+Best model filename: abc_se_vqvae_epoch_6.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_6.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [7/160] Time: 634.11s
+  Loss - Recon: 0.00062881 | VQ: 0.02370908 | Total: 0.02433788
+  Metrics - Usage: 0.04 | Perplexity: 197.71
+Validation loss: Total 0.001164 = Reconstruction 0.000794 + VQ 0.000370 | Codebook activity: 0.832275 | Perplexity: 148.13
+Current best validation loss: 0.000774
+Current best model filename: abc_se_vqvae_epoch_6.pt
+Epoch [8/160] Time: 640.57s
+  Loss - Recon: 0.00058348 | VQ: 0.02011099 | Total: 0.02069447
+  Metrics - Usage: 0.04 | Perplexity: 195.31
+Validation loss: Total 0.001135 = Reconstruction 0.000685 + VQ 0.000450 | Codebook activity: 0.796753 | Perplexity: 147.48
+New best model! Validation loss: 0.000685
+Best model filename: abc_se_vqvae_epoch_8.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_8.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [9/160] Time: 633.98s
+  Loss - Recon: 0.00055661 | VQ: 0.01271799 | Total: 0.01327460
+  Metrics - Usage: 0.04 | Perplexity: 191.50
+Validation loss: Total 0.001043 = Reconstruction 0.000595 + VQ 0.000448 | Codebook activity: 0.784912 | Perplexity: 145.82
+New best model! Validation loss: 0.000595
+Best model filename: abc_se_vqvae_epoch_9.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_9.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [10/160] Time: 637.36s
+  Loss - Recon: 0.00050822 | VQ: 0.00515455 | Total: 0.00566277
+  Metrics - Usage: 0.04 | Perplexity: 189.12
+Validation loss: Total 0.000948 = Reconstruction 0.000562 + VQ 0.000386 | Codebook activity: 0.814941 | Perplexity: 149.10
+New best model! Validation loss: 0.000562
+Best model filename: abc_se_vqvae_epoch_10.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_10.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_10.pt
+Epoch [11/160] Time: 634.94s
+  Loss - Recon: 0.00047365 | VQ: 0.00208601 | Total: 0.00255966
+  Metrics - Usage: 0.04 | Perplexity: 188.88
+Validation loss: Total 0.000905 = Reconstruction 0.000523 + VQ 0.000382 | Codebook activity: 0.836792 | Perplexity: 147.93
+New best model! Validation loss: 0.000523
+Best model filename: abc_se_vqvae_epoch_11.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_11.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [12/160] Time: 633.37s
+  Loss - Recon: 0.00042905 | VQ: 0.00116982 | Total: 0.00159886
+  Metrics - Usage: 0.04 | Perplexity: 187.37
+Validation loss: Total 0.000861 = Reconstruction 0.000482 + VQ 0.000379 | Codebook activity: 0.856323 | Perplexity: 148.59
+New best model! Validation loss: 0.000482
+Best model filename: abc_se_vqvae_epoch_12.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_12.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [13/160] Time: 640.43s
+  Loss - Recon: 0.00039282 | VQ: 0.00081724 | Total: 0.00121006
+  Metrics - Usage: 0.04 | Perplexity: 186.07
+Validation loss: Total 0.001074 = Reconstruction 0.000648 + VQ 0.000426 | Codebook activity: 0.862061 | Perplexity: 151.41
+Current best validation loss: 0.000482
+Current best model filename: abc_se_vqvae_epoch_12.pt
+Epoch [14/160] Time: 632.39s
+  Loss - Recon: 0.00037846 | VQ: 0.00068881 | Total: 0.00106727
+  Metrics - Usage: 0.04 | Perplexity: 186.08
+Validation loss: Total 0.000895 = Reconstruction 0.000527 + VQ 0.000367 | Codebook activity: 0.867798 | Perplexity: 149.71
+Current best validation loss: 0.000482
+Current best model filename: abc_se_vqvae_epoch_12.pt
+Epoch [15/160] Time: 634.41s
+  Loss - Recon: 0.00035339 | VQ: 0.00059216 | Total: 0.00094555
+  Metrics - Usage: 0.04 | Perplexity: 185.39
+Validation loss: Total 0.000776 = Reconstruction 0.000439 + VQ 0.000337 | Codebook activity: 0.864624 | Perplexity: 146.25
+New best model! Validation loss: 0.000439
+Best model filename: abc_se_vqvae_epoch_15.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_15.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [16/160] Time: 636.41s
+  Loss - Recon: 0.00033780 | VQ: 0.00054071 | Total: 0.00087851
+  Metrics - Usage: 0.04 | Perplexity: 184.30
+Validation loss: Total 0.000795 = Reconstruction 0.000462 + VQ 0.000334 | Codebook activity: 0.874390 | Perplexity: 149.98
+Current best validation loss: 0.000439
+Current best model filename: abc_se_vqvae_epoch_15.pt
+Epoch [17/160] Time: 637.59s
+  Loss - Recon: 0.00032077 | VQ: 0.00049411 | Total: 0.00081488
+  Metrics - Usage: 0.04 | Perplexity: 183.74
+Validation loss: Total 0.000722 = Reconstruction 0.000415 + VQ 0.000307 | Codebook activity: 0.882446 | Perplexity: 151.99
+New best model! Validation loss: 0.000415
+Best model filename: abc_se_vqvae_epoch_17.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_17.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [18/160] Time: 632.23s
+  Loss - Recon: 0.00030954 | VQ: 0.00045475 | Total: 0.00076429
+  Metrics - Usage: 0.03 | Perplexity: 182.23
+Validation loss: Total 0.000657 = Reconstruction 0.000394 + VQ 0.000263 | Codebook activity: 0.878906 | Perplexity: 150.79
+New best model! Validation loss: 0.000394
+Best model filename: abc_se_vqvae_epoch_18.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_18.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [19/160] Time: 640.37s
+  Loss - Recon: 0.00029610 | VQ: 0.00042403 | Total: 0.00072013
+  Metrics - Usage: 0.03 | Perplexity: 180.67
+Validation loss: Total 0.000700 = Reconstruction 0.000418 + VQ 0.000282 | Codebook activity: 0.881348 | Perplexity: 149.73
+Current best validation loss: 0.000394
+Current best model filename: abc_se_vqvae_epoch_18.pt
+Epoch [20/160] Time: 632.22s
+  Loss - Recon: 0.00028393 | VQ: 0.00039875 | Total: 0.00068268
+  Metrics - Usage: 0.03 | Perplexity: 179.13
+Validation loss: Total 0.000737 = Reconstruction 0.000447 + VQ 0.000289 | Codebook activity: 0.885376 | Perplexity: 150.45
+Current best validation loss: 0.000394
+Current best model filename: abc_se_vqvae_epoch_18.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_20.pt
+Epoch [21/160] Time: 635.90s
+  Loss - Recon: 0.00027565 | VQ: 0.00037529 | Total: 0.00065093
+  Metrics - Usage: 0.03 | Perplexity: 178.97
+Validation loss: Total 0.000657 = Reconstruction 0.000393 + VQ 0.000264 | Codebook activity: 0.893799 | Perplexity: 151.00
+New best model! Validation loss: 0.000393
+Best model filename: abc_se_vqvae_epoch_21.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_21.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [22/160] Time: 632.80s
+  Loss - Recon: 0.00026612 | VQ: 0.00036147 | Total: 0.00062759
+  Metrics - Usage: 0.03 | Perplexity: 178.11
+Validation loss: Total 0.000627 = Reconstruction 0.000379 + VQ 0.000248 | Codebook activity: 0.897583 | Perplexity: 152.10
+New best model! Validation loss: 0.000379
+Best model filename: abc_se_vqvae_epoch_22.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_22.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [23/160] Time: 636.10s
+  Loss - Recon: 0.00025418 | VQ: 0.00034138 | Total: 0.00059556
+  Metrics - Usage: 0.03 | Perplexity: 177.12
+Validation loss: Total 0.000596 = Reconstruction 0.000362 + VQ 0.000234 | Codebook activity: 0.892456 | Perplexity: 149.14
+New best model! Validation loss: 0.000362
+Best model filename: abc_se_vqvae_epoch_23.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_23.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [24/160] Time: 636.94s
+  Loss - Recon: 0.00025002 | VQ: 0.00033414 | Total: 0.00058416
+  Metrics - Usage: 0.03 | Perplexity: 175.21
+Validation loss: Total 0.000550 = Reconstruction 0.000339 + VQ 0.000211 | Codebook activity: 0.893555 | Perplexity: 146.04
+New best model! Validation loss: 0.000339
+Best model filename: abc_se_vqvae_epoch_24.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_24.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [25/160] Time: 638.25s
+  Loss - Recon: 0.00024081 | VQ: 0.00031278 | Total: 0.00055359
+  Metrics - Usage: 0.03 | Perplexity: 173.78
+Validation loss: Total 0.000583 = Reconstruction 0.000357 + VQ 0.000226 | Codebook activity: 0.896851 | Perplexity: 152.75
+Current best validation loss: 0.000339
+Current best model filename: abc_se_vqvae_epoch_24.pt
+Epoch [26/160] Time: 640.53s
+  Loss - Recon: 0.00023178 | VQ: 0.00029690 | Total: 0.00052868
+  Metrics - Usage: 0.03 | Perplexity: 172.78
+Validation loss: Total 0.000610 = Reconstruction 0.000363 + VQ 0.000247 | Codebook activity: 0.887085 | Perplexity: 150.29
+Current best validation loss: 0.000339
+Current best model filename: abc_se_vqvae_epoch_24.pt
+Epoch [27/160] Time: 639.99s
+  Loss - Recon: 0.00022818 | VQ: 0.00028733 | Total: 0.00051551
+  Metrics - Usage: 0.03 | Perplexity: 170.94
+Validation loss: Total 0.000554 = Reconstruction 0.000355 + VQ 0.000199 | Codebook activity: 0.902710 | Perplexity: 149.23
+Current best validation loss: 0.000339
+Current best model filename: abc_se_vqvae_epoch_24.pt
+Epoch [28/160] Time: 635.34s
+  Loss - Recon: 0.00022662 | VQ: 0.00028355 | Total: 0.00051016
+  Metrics - Usage: 0.03 | Perplexity: 171.29
+Validation loss: Total 0.000561 = Reconstruction 0.000354 + VQ 0.000207 | Codebook activity: 0.897949 | Perplexity: 153.92
+Current best validation loss: 0.000339
+Current best model filename: abc_se_vqvae_epoch_24.pt
+Epoch [29/160] Time: 634.72s
+  Loss - Recon: 0.00022547 | VQ: 0.00027848 | Total: 0.00050395
+  Metrics - Usage: 0.03 | Perplexity: 171.32
+Validation loss: Total 0.000784 = Reconstruction 0.000487 + VQ 0.000297 | Codebook activity: 0.899414 | Perplexity: 151.88
+Current best validation loss: 0.000339
+Current best model filename: abc_se_vqvae_epoch_24.pt
+Epoch [30/160] Time: 632.70s
+  Loss - Recon: 0.00022412 | VQ: 0.00027383 | Total: 0.00049795
+  Metrics - Usage: 0.03 | Perplexity: 171.65
+Validation loss: Total 0.000519 = Reconstruction 0.000317 + VQ 0.000202 | Codebook activity: 0.902588 | Perplexity: 150.56
+New best model! Validation loss: 0.000317
+Best model filename: abc_se_vqvae_epoch_30.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_30.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_30.pt
+Epoch [31/160] Time: 639.53s
+  Loss - Recon: 0.00021414 | VQ: 0.00025742 | Total: 0.00047156
+  Metrics - Usage: 0.03 | Perplexity: 170.90
+Validation loss: Total 0.000582 = Reconstruction 0.000378 + VQ 0.000204 | Codebook activity: 0.903076 | Perplexity: 153.79
+Current best validation loss: 0.000317
+Current best model filename: abc_se_vqvae_epoch_30.pt
+Epoch [32/160] Time: 640.33s
+  Loss - Recon: 0.00020658 | VQ: 0.00024973 | Total: 0.00045631
+  Metrics - Usage: 0.03 | Perplexity: 169.51
+Validation loss: Total 0.000505 = Reconstruction 0.000331 + VQ 0.000174 | Codebook activity: 0.904907 | Perplexity: 150.06
+Current best validation loss: 0.000317
+Current best model filename: abc_se_vqvae_epoch_30.pt
+Epoch [33/160] Time: 635.27s
+  Loss - Recon: 0.00019618 | VQ: 0.00023594 | Total: 0.00043212
+  Metrics - Usage: 0.03 | Perplexity: 168.85
+Validation loss: Total 0.000500 = Reconstruction 0.000325 + VQ 0.000175 | Codebook activity: 0.902954 | Perplexity: 150.94
+Current best validation loss: 0.000317
+Current best model filename: abc_se_vqvae_epoch_30.pt
+Epoch [34/160] Time: 634.36s
+  Loss - Recon: 0.00019729 | VQ: 0.00023649 | Total: 0.00043379
+  Metrics - Usage: 0.03 | Perplexity: 171.16
+Validation loss: Total 0.000594 = Reconstruction 0.000389 + VQ 0.000204 | Codebook activity: 0.906494 | Perplexity: 151.73
+Current best validation loss: 0.000317
+Current best model filename: abc_se_vqvae_epoch_30.pt
+Epoch [35/160] Time: 634.41s
+  Loss - Recon: 0.00019462 | VQ: 0.00023404 | Total: 0.00042866
+  Metrics - Usage: 0.03 | Perplexity: 171.99
+Validation loss: Total 0.000616 = Reconstruction 0.000370 + VQ 0.000247 | Codebook activity: 0.910767 | Perplexity: 151.37
+Current best validation loss: 0.000317
+Current best model filename: abc_se_vqvae_epoch_30.pt
+Epoch [36/160] Time: 635.09s
+  Loss - Recon: 0.00020142 | VQ: 0.00024543 | Total: 0.00044685
+  Metrics - Usage: 0.03 | Perplexity: 172.97
+Validation loss: Total 0.000551 = Reconstruction 0.000356 + VQ 0.000195 | Codebook activity: 0.906982 | Perplexity: 153.38
+Current best validation loss: 0.000317
+Current best model filename: abc_se_vqvae_epoch_30.pt
+Epoch [37/160] Time: 639.52s
+  Loss - Recon: 0.00019067 | VQ: 0.00022855 | Total: 0.00041922
+  Metrics - Usage: 0.03 | Perplexity: 175.92
+Validation loss: Total 0.000469 = Reconstruction 0.000314 + VQ 0.000155 | Codebook activity: 0.915771 | Perplexity: 153.07
+New best model! Validation loss: 0.000314
+Best model filename: abc_se_vqvae_epoch_37.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_37.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [38/160] Time: 635.98s
+  Loss - Recon: 0.00019258 | VQ: 0.00022625 | Total: 0.00041882
+  Metrics - Usage: 0.03 | Perplexity: 175.66
+Validation loss: Total 0.000587 = Reconstruction 0.000370 + VQ 0.000217 | Codebook activity: 0.921265 | Perplexity: 151.26
+Current best validation loss: 0.000314
+Current best model filename: abc_se_vqvae_epoch_37.pt
+Epoch [39/160] Time: 646.30s
+  Loss - Recon: 0.00019244 | VQ: 0.00021889 | Total: 0.00041134
+  Metrics - Usage: 0.03 | Perplexity: 175.94
+Validation loss: Total 0.000453 = Reconstruction 0.000306 + VQ 0.000147 | Codebook activity: 0.916138 | Perplexity: 148.64
+New best model! Validation loss: 0.000306
+Best model filename: abc_se_vqvae_epoch_39.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_39.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [40/160] Time: 640.15s
+  Loss - Recon: 0.00017811 | VQ: 0.00020879 | Total: 0.00038690
+  Metrics - Usage: 0.03 | Perplexity: 172.85
+Validation loss: Total 0.000447 = Reconstruction 0.000309 + VQ 0.000138 | Codebook activity: 0.917480 | Perplexity: 151.25
+Current best validation loss: 0.000306
+Current best model filename: abc_se_vqvae_epoch_39.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_40.pt
+Epoch [41/160] Time: 638.53s
+  Loss - Recon: 0.00016831 | VQ: 0.00019579 | Total: 0.00036410
+  Metrics - Usage: 0.03 | Perplexity: 168.77
+Validation loss: Total 0.000479 = Reconstruction 0.000321 + VQ 0.000159 | Codebook activity: 0.917480 | Perplexity: 154.32
+Current best validation loss: 0.000306
+Current best model filename: abc_se_vqvae_epoch_39.pt
+Epoch [42/160] Time: 636.11s
+  Loss - Recon: 0.00016987 | VQ: 0.00019277 | Total: 0.00036264
+  Metrics - Usage: 0.03 | Perplexity: 170.48
+Validation loss: Total 0.000438 = Reconstruction 0.000306 + VQ 0.000133 | Codebook activity: 0.926025 | Perplexity: 153.31
+New best model! Validation loss: 0.000306
+Best model filename: abc_se_vqvae_epoch_42.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_42.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [43/160] Time: 643.55s
+  Loss - Recon: 0.00017281 | VQ: 0.00019673 | Total: 0.00036954
+  Metrics - Usage: 0.03 | Perplexity: 175.44
+Validation loss: Total 0.000498 = Reconstruction 0.000345 + VQ 0.000153 | Codebook activity: 0.924194 | Perplexity: 154.36
+Current best validation loss: 0.000306
+Current best model filename: abc_se_vqvae_epoch_42.pt
+Epoch [44/160] Time: 637.80s
+  Loss - Recon: 0.00016553 | VQ: 0.00018683 | Total: 0.00035236
+  Metrics - Usage: 0.03 | Perplexity: 173.44
+Validation loss: Total 0.000458 = Reconstruction 0.000317 + VQ 0.000141 | Codebook activity: 0.920410 | Perplexity: 149.04
+Current best validation loss: 0.000306
+Current best model filename: abc_se_vqvae_epoch_42.pt
+Epoch [45/160] Time: 637.44s
+  Loss - Recon: 0.00016338 | VQ: 0.00018434 | Total: 0.00034772
+  Metrics - Usage: 0.03 | Perplexity: 174.20
+Validation loss: Total 0.000429 = Reconstruction 0.000294 + VQ 0.000135 | Codebook activity: 0.924072 | Perplexity: 153.00
+New best model! Validation loss: 0.000294
+Best model filename: abc_se_vqvae_epoch_45.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_45.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [46/160] Time: 639.11s
+  Loss - Recon: 0.00016937 | VQ: 0.00018595 | Total: 0.00035533
+  Metrics - Usage: 0.03 | Perplexity: 175.99
+Validation loss: Total 0.000475 = Reconstruction 0.000325 + VQ 0.000150 | Codebook activity: 0.929810 | Perplexity: 151.66
+Current best validation loss: 0.000294
+Current best model filename: abc_se_vqvae_epoch_45.pt
+Epoch [47/160] Time: 638.20s
+  Loss - Recon: 0.00016317 | VQ: 0.00017902 | Total: 0.00034219
+  Metrics - Usage: 0.03 | Perplexity: 174.22
+Validation loss: Total 0.000452 = Reconstruction 0.000314 + VQ 0.000138 | Codebook activity: 0.930420 | Perplexity: 153.96
+Current best validation loss: 0.000294
+Current best model filename: abc_se_vqvae_epoch_45.pt
+Epoch [48/160] Time: 640.41s
+  Loss - Recon: 0.00015064 | VQ: 0.00016724 | Total: 0.00031789
+  Metrics - Usage: 0.03 | Perplexity: 173.29
+Validation loss: Total 0.000480 = Reconstruction 0.000333 + VQ 0.000147 | Codebook activity: 0.927856 | Perplexity: 151.12
+Current best validation loss: 0.000294
+Current best model filename: abc_se_vqvae_epoch_45.pt
+Epoch [49/160] Time: 638.94s
+  Loss - Recon: 0.00015681 | VQ: 0.00016996 | Total: 0.00032676
+  Metrics - Usage: 0.03 | Perplexity: 174.07
+Validation loss: Total 0.000488 = Reconstruction 0.000353 + VQ 0.000135 | Codebook activity: 0.933594 | Perplexity: 153.55
+Current best validation loss: 0.000294
+Current best model filename: abc_se_vqvae_epoch_45.pt
+Epoch [50/160] Time: 641.40s
+  Loss - Recon: 0.00015446 | VQ: 0.00016516 | Total: 0.00031962
+  Metrics - Usage: 0.03 | Perplexity: 174.27
+Validation loss: Total 0.000486 = Reconstruction 0.000332 + VQ 0.000154 | Codebook activity: 0.931519 | Perplexity: 153.56
+Current best validation loss: 0.000294
+Current best model filename: abc_se_vqvae_epoch_45.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_50.pt
+Epoch [51/160] Time: 641.22s
+  Loss - Recon: 0.00015021 | VQ: 0.00016396 | Total: 0.00031417
+  Metrics - Usage: 0.03 | Perplexity: 174.89
+Validation loss: Total 0.000431 = Reconstruction 0.000300 + VQ 0.000131 | Codebook activity: 0.940063 | Perplexity: 151.10
+Current best validation loss: 0.000294
+Current best model filename: abc_se_vqvae_epoch_45.pt
+Epoch [52/160] Time: 641.18s
+  Loss - Recon: 0.00015024 | VQ: 0.00016669 | Total: 0.00031693
+  Metrics - Usage: 0.03 | Perplexity: 176.63
+Validation loss: Total 0.000402 = Reconstruction 0.000290 + VQ 0.000112 | Codebook activity: 0.934570 | Perplexity: 151.46
+New best model! Validation loss: 0.000290
+Best model filename: abc_se_vqvae_epoch_52.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_52.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [53/160] Time: 639.72s
+  Loss - Recon: 0.00014696 | VQ: 0.00016494 | Total: 0.00031190
+  Metrics - Usage: 0.03 | Perplexity: 177.83
+Validation loss: Total 0.000434 = Reconstruction 0.000303 + VQ 0.000131 | Codebook activity: 0.935303 | Perplexity: 155.03
+Current best validation loss: 0.000290
+Current best model filename: abc_se_vqvae_epoch_52.pt
+Epoch [54/160] Time: 640.06s
+  Loss - Recon: 0.00013774 | VQ: 0.00020666 | Total: 0.00034440
+  Metrics - Usage: 0.03 | Perplexity: 178.16
+Validation loss: Total 0.000479 = Reconstruction 0.000324 + VQ 0.000155 | Codebook activity: 0.935303 | Perplexity: 153.95
+Current best validation loss: 0.000290
+Current best model filename: abc_se_vqvae_epoch_52.pt
+Epoch [55/160] Time: 645.17s
+  Loss - Recon: 0.00013148 | VQ: 0.00018879 | Total: 0.00032028
+  Metrics - Usage: 0.03 | Perplexity: 174.94
+Validation loss: Total 0.000374 = Reconstruction 0.000271 + VQ 0.000104 | Codebook activity: 0.928101 | Perplexity: 155.87
+New best model! Validation loss: 0.000271
+Best model filename: abc_se_vqvae_epoch_55.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_55.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [56/160] Time: 642.26s
+  Loss - Recon: 0.00012396 | VQ: 0.00018182 | Total: 0.00030577
+  Metrics - Usage: 0.03 | Perplexity: 172.84
+Validation loss: Total 0.000376 = Reconstruction 0.000281 + VQ 0.000095 | Codebook activity: 0.933838 | Perplexity: 151.59
+Current best validation loss: 0.000271
+Current best model filename: abc_se_vqvae_epoch_55.pt
+Epoch [57/160] Time: 639.55s
+  Loss - Recon: 0.00012729 | VQ: 0.00015833 | Total: 0.00028562
+  Metrics - Usage: 0.03 | Perplexity: 174.19
+Validation loss: Total 0.000489 = Reconstruction 0.000359 + VQ 0.000130 | Codebook activity: 0.927490 | Perplexity: 155.04
+Current best validation loss: 0.000271
+Current best model filename: abc_se_vqvae_epoch_55.pt
+Epoch [58/160] Time: 641.09s
+  Loss - Recon: 0.00014212 | VQ: 0.00012784 | Total: 0.00026995
+  Metrics - Usage: 0.04 | Perplexity: 179.74
+Validation loss: Total 0.000389 = Reconstruction 0.000294 + VQ 0.000096 | Codebook activity: 0.932251 | Perplexity: 150.70
+Current best validation loss: 0.000271
+Current best model filename: abc_se_vqvae_epoch_55.pt
+Epoch [59/160] Time: 642.08s
+  Loss - Recon: 0.00013386 | VQ: 0.00011481 | Total: 0.00024867
+  Metrics - Usage: 0.04 | Perplexity: 179.28
+Validation loss: Total 0.000347 = Reconstruction 0.000270 + VQ 0.000077 | Codebook activity: 0.934082 | Perplexity: 151.94
+New best model! Validation loss: 0.000270
+Best model filename: abc_se_vqvae_epoch_59.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_59.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [60/160] Time: 644.54s
+  Loss - Recon: 0.00012474 | VQ: 0.00010690 | Total: 0.00023163
+  Metrics - Usage: 0.03 | Perplexity: 179.02
+Validation loss: Total 0.000346 = Reconstruction 0.000277 + VQ 0.000069 | Codebook activity: 0.935059 | Perplexity: 156.37
+Current best validation loss: 0.000270
+Current best model filename: abc_se_vqvae_epoch_59.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_60.pt
+Epoch [61/160] Time: 640.17s
+  Loss - Recon: 0.00014174 | VQ: 0.00010775 | Total: 0.00024949
+  Metrics - Usage: 0.03 | Perplexity: 178.11
+Validation loss: Total 0.000334 = Reconstruction 0.000259 + VQ 0.000075 | Codebook activity: 0.923706 | Perplexity: 155.02
+New best model! Validation loss: 0.000259
+Best model filename: abc_se_vqvae_epoch_61.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_61.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [62/160] Time: 643.60s
+  Loss - Recon: 0.00011708 | VQ: 0.00009560 | Total: 0.00021267
+  Metrics - Usage: 0.03 | Perplexity: 175.65
+Validation loss: Total 0.000327 = Reconstruction 0.000260 + VQ 0.000067 | Codebook activity: 0.924316 | Perplexity: 154.95
+Current best validation loss: 0.000259
+Current best model filename: abc_se_vqvae_epoch_61.pt
+Epoch [63/160] Time: 640.26s
+  Loss - Recon: 0.00011051 | VQ: 0.00008940 | Total: 0.00019990
+  Metrics - Usage: 0.03 | Perplexity: 172.74
+Validation loss: Total 0.000314 = Reconstruction 0.000256 + VQ 0.000057 | Codebook activity: 0.925293 | Perplexity: 153.91
+New best model! Validation loss: 0.000256
+Best model filename: abc_se_vqvae_epoch_63.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_63.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [64/160] Time: 639.14s
+  Loss - Recon: 0.00010411 | VQ: 0.00008230 | Total: 0.00018641
+  Metrics - Usage: 0.03 | Perplexity: 170.24
+Validation loss: Total 0.000323 = Reconstruction 0.000267 + VQ 0.000056 | Codebook activity: 0.927246 | Perplexity: 156.70
+Current best validation loss: 0.000256
+Current best model filename: abc_se_vqvae_epoch_63.pt
+Epoch [65/160] Time: 642.45s
+  Loss - Recon: 0.00010434 | VQ: 0.00008197 | Total: 0.00018630
+  Metrics - Usage: 0.03 | Perplexity: 171.19
+Validation loss: Total 0.000298 = Reconstruction 0.000248 + VQ 0.000050 | Codebook activity: 0.926025 | Perplexity: 154.45
+New best model! Validation loss: 0.000248
+Best model filename: abc_se_vqvae_epoch_65.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_65.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [66/160] Time: 636.19s
+  Loss - Recon: 0.00010845 | VQ: 0.00008090 | Total: 0.00018935
+  Metrics - Usage: 0.03 | Perplexity: 173.36
+Validation loss: Total 0.000356 = Reconstruction 0.000284 + VQ 0.000072 | Codebook activity: 0.926270 | Perplexity: 154.00
+Current best validation loss: 0.000248
+Current best model filename: abc_se_vqvae_epoch_65.pt
+Epoch [67/160] Time: 640.57s
+  Loss - Recon: 0.00009815 | VQ: 0.00007559 | Total: 0.00017374
+  Metrics - Usage: 0.03 | Perplexity: 170.69
+Validation loss: Total 0.000326 = Reconstruction 0.000268 + VQ 0.000058 | Codebook activity: 0.929077 | Perplexity: 153.45
+Current best validation loss: 0.000248
+Current best model filename: abc_se_vqvae_epoch_65.pt
+Epoch [68/160] Time: 634.91s
+  Loss - Recon: 0.00010614 | VQ: 0.00007843 | Total: 0.00018457
+  Metrics - Usage: 0.03 | Perplexity: 171.81
+Validation loss: Total 0.000315 = Reconstruction 0.000262 + VQ 0.000052 | Codebook activity: 0.925293 | Perplexity: 155.26
+Current best validation loss: 0.000248
+Current best model filename: abc_se_vqvae_epoch_65.pt
+Epoch [69/160] Time: 641.80s
+  Loss - Recon: 0.00009742 | VQ: 0.00007308 | Total: 0.00017050
+  Metrics - Usage: 0.03 | Perplexity: 171.08
+Validation loss: Total 0.000301 = Reconstruction 0.000256 + VQ 0.000044 | Codebook activity: 0.936279 | Perplexity: 154.96
+Current best validation loss: 0.000248
+Current best model filename: abc_se_vqvae_epoch_65.pt
+Epoch [70/160] Time: 635.71s
+  Loss - Recon: 0.00009762 | VQ: 0.00007233 | Total: 0.00016995
+  Metrics - Usage: 0.03 | Perplexity: 171.61
+Validation loss: Total 0.000282 = Reconstruction 0.000240 + VQ 0.000042 | Codebook activity: 0.932739 | Perplexity: 152.56
+New best model! Validation loss: 0.000240
+Best model filename: abc_se_vqvae_epoch_70.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_70.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_70.pt
+Epoch [71/160] Time: 642.65s
+  Loss - Recon: 0.00009205 | VQ: 0.00006799 | Total: 0.00016004
+  Metrics - Usage: 0.03 | Perplexity: 171.60
+Validation loss: Total 0.000291 = Reconstruction 0.000245 + VQ 0.000046 | Codebook activity: 0.932373 | Perplexity: 156.03
+Current best validation loss: 0.000240
+Current best model filename: abc_se_vqvae_epoch_70.pt
+Epoch [72/160] Time: 636.13s
+  Loss - Recon: 0.00009271 | VQ: 0.00006557 | Total: 0.00015828
+  Metrics - Usage: 0.03 | Perplexity: 170.41
+Validation loss: Total 0.000290 = Reconstruction 0.000249 + VQ 0.000042 | Codebook activity: 0.926392 | Perplexity: 154.82
+Current best validation loss: 0.000240
+Current best model filename: abc_se_vqvae_epoch_70.pt
+Epoch [73/160] Time: 637.81s
+  Loss - Recon: 0.00010430 | VQ: 0.00007125 | Total: 0.00017555
+  Metrics - Usage: 0.03 | Perplexity: 179.43
+Validation loss: Total 0.000285 = Reconstruction 0.000238 + VQ 0.000046 | Codebook activity: 0.927734 | Perplexity: 156.12
+New best model! Validation loss: 0.000238
+Best model filename: abc_se_vqvae_epoch_73.pt

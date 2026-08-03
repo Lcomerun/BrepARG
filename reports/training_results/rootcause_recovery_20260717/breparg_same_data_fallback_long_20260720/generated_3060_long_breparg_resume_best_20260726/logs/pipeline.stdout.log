@@ -1,0 +1,9 @@
+=== BrepARG generation-only baseline ===
+VQ-VAE: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\vqvae_3060_long_vq400_ar300_save20_20260720\same_data_abc\abc_se_vqvae_best.pt
+AR best: D:\luolin\V13\local_runs\breparg_long_ar_resume_best_20260724\ar_epoch127_best_to300\same_data_abc\abc_ar_vqvae_best_model.pt
+Output: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\generated_3060_long_breparg_resume_best_20260726
+Started: 2026-07-26T17:03:38.4380000+08:00
+=== Validate STEP and render PNG ===
+=== Audit baseline quality ===
+GENERATION PIPELINE DONE
+Manifest: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\generated_3060_long_breparg_resume_best_20260726\generation_manifest.json

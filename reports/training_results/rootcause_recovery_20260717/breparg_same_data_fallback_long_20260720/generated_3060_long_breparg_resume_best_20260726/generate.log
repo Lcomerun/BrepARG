@@ -1,0 +1,25 @@
+batch=0 seed=43 requested=4 new=4 total=12/100 timeout=0 rc=0
+batch=1 seed=44 requested=4 new=4 total=16/100 timeout=0 rc=0
+batch=2 seed=45 requested=4 new=4 total=20/100 timeout=0 rc=0
+batch=3 seed=46 requested=4 new=4 total=24/100 timeout=0 rc=0
+batch=4 seed=47 requested=4 new=4 total=28/100 timeout=0 rc=0
+batch=5 seed=48 requested=4 new=4 total=32/100 timeout=0 rc=0
+batch=6 seed=49 requested=4 new=4 total=36/100 timeout=0 rc=0
+batch=7 seed=50 requested=4 new=4 total=40/100 timeout=0 rc=0
+batch=8 seed=51 requested=4 new=4 total=44/100 timeout=0 rc=0
+batch=9 seed=52 requested=4 new=4 total=48/100 timeout=0 rc=0
+batch=10 seed=53 requested=4 new=4 total=52/100 timeout=0 rc=0
+batch=11 seed=54 requested=4 new=4 total=56/100 timeout=0 rc=0
+batch=12 seed=55 requested=4 new=4 total=60/100 timeout=0 rc=0
+batch=13 seed=56 requested=4 new=4 total=64/100 timeout=0 rc=0
+batch=14 seed=57 requested=4 new=4 total=68/100 timeout=0 rc=0
+batch=15 seed=58 requested=4 new=4 total=72/100 timeout=0 rc=0
+batch=16 seed=59 requested=4 new=4 total=76/100 timeout=0 rc=0
+batch=17 seed=60 requested=4 new=4 total=80/100 timeout=0 rc=0
+batch=18 seed=61 requested=4 new=1 total=81/100 timeout=1 rc=None
+batch=19 seed=62 requested=4 new=3 total=84/100 timeout=1 rc=None
+batch=20 seed=63 requested=4 new=4 total=88/100 timeout=0 rc=0
+batch=21 seed=64 requested=4 new=4 total=92/100 timeout=0 rc=0
+batch=22 seed=65 requested=4 new=4 total=96/100 timeout=0 rc=0
+batch=23 seed=66 requested=4 new=4 total=100/100 timeout=0 rc=0
+{"status": "COMPLETE", "step_count": 100, "state": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback_long_20260720\\generated_3060_long_breparg_resume_best_20260726\\batch_generation_state.json"}

@@ -1,0 +1,204 @@
+Staging same-data BrepARG inputs to D: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged
+
+-------------------------------------------------------------------------------
+   ROBOCOPY     ::     Windows 的可靠文件复制                              
+-------------------------------------------------------------------------------
+
+  开始时间: 2026年7月18日 16:28:27
+        源 = E:\V13_rootcause_20260715\complex_curved_rootcause_suite_20260715\experiments\03b_breparg_same_data_training_fallback\data\parsed_pool\
+      目标 : D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\parsed_pool\
+
+      文件: *.*
+	    
+      选项: *.* /FFT /S /E /DCOPY:DA /COPY:DAT /J /NP /MT:16 /R:2 /W:2 
+
+------------------------------------------------------------------------------
+
+
+------------------------------------------------------------------------------
+
+                  总数        复制        跳过       不匹配        失败        其他
+       目录:        19        19        19         0         0         0
+       文件:     12000         0     12000         0         0         0
+       字节:   5.270 g         0   5.270 g         0         0         0
+       时间:   0:00:00   0:00:00                       0:00:00   0:00:00
+   已结束: 2026年7月18日 16:28:27
+
+{
+  "source_data": "E:\\V13_rootcause_20260715\\complex_curved_rootcause_suite_20260715\\experiments\\03b_breparg_same_data_training_fallback\\data",
+  "staged_data": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged",
+  "split": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\same_data_split.pkl",
+  "counts": {
+    "train": 10000,
+    "val": 1000,
+    "test": 1000
+  },
+  "deduplicated_surface_source": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\deduplicated_surface_source.pkl",
+  "deduplicated_edge_source": "D:\\V13_rootcause_recovery_20260717\\breparg_same_data_fallback\\data_staged\\deduplicated_edge_source.pkl"
+}
+Training BrepARG SE VQ-VAE from scratch on D: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d
+Running: C:\Users\YU\.conda\envs\brepgen_env\python.exe BrepARG\train_vqvae.py --data_list D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\same_data_split.pkl --surface_list D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\deduplicated_surface_source.pkl --edge_list D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\deduplicated_edge_source.pkl --dataset_type abc --batch_size 128 --train_epoch 160 --test_epoch 1 --save_epoch 10 --max_face 50 --max_edge 150 --dir_name D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d --env same_data_abc --loss_dir D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d --tb_log_dir D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d\tensorboard --no_aug --gpu 0
+  stdout: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d\train_vqvae.log
+  stderr: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d\train_vqvae.log.err
+Command failed with exit code 1. Recent stdout:
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [62/160] Time: 643.60s
+  Loss - Recon: 0.00011708 | VQ: 0.00009560 | Total: 0.00021267
+  Metrics - Usage: 0.03 | Perplexity: 175.65
+Validation loss: Total 0.000327 = Reconstruction 0.000260 + VQ 0.000067 | Codebook activity: 0.924316 | Perplexity: 154.95
+Current best validation loss: 0.000259
+Current best model filename: abc_se_vqvae_epoch_61.pt
+Epoch [63/160] Time: 640.26s
+  Loss - Recon: 0.00011051 | VQ: 0.00008940 | Total: 0.00019990
+  Metrics - Usage: 0.03 | Perplexity: 172.74
+Validation loss: Total 0.000314 = Reconstruction 0.000256 + VQ 0.000057 | Codebook activity: 0.925293 | Perplexity: 153.91
+New best model! Validation loss: 0.000256
+Best model filename: abc_se_vqvae_epoch_63.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_63.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [64/160] Time: 639.14s
+  Loss - Recon: 0.00010411 | VQ: 0.00008230 | Total: 0.00018641
+  Metrics - Usage: 0.03 | Perplexity: 170.24
+Validation loss: Total 0.000323 = Reconstruction 0.000267 + VQ 0.000056 | Codebook activity: 0.927246 | Perplexity: 156.70
+Current best validation loss: 0.000256
+Current best model filename: abc_se_vqvae_epoch_63.pt
+Epoch [65/160] Time: 642.45s
+  Loss - Recon: 0.00010434 | VQ: 0.00008197 | Total: 0.00018630
+  Metrics - Usage: 0.03 | Perplexity: 171.19
+Validation loss: Total 0.000298 = Reconstruction 0.000248 + VQ 0.000050 | Codebook activity: 0.926025 | Perplexity: 154.45
+New best model! Validation loss: 0.000248
+Best model filename: abc_se_vqvae_epoch_65.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_65.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Epoch [66/160] Time: 636.19s
+  Loss - Recon: 0.00010845 | VQ: 0.00008090 | Total: 0.00018935
+  Metrics - Usage: 0.03 | Perplexity: 173.36
+Validation loss: Total 0.000356 = Reconstruction 0.000284 + VQ 0.000072 | Codebook activity: 0.926270 | Perplexity: 154.00
+Current best validation loss: 0.000248
+Current best model filename: abc_se_vqvae_epoch_65.pt
+Epoch [67/160] Time: 640.57s
+  Loss - Recon: 0.00009815 | VQ: 0.00007559 | Total: 0.00017374
+  Metrics - Usage: 0.03 | Perplexity: 170.69
+Validation loss: Total 0.000326 = Reconstruction 0.000268 + VQ 0.000058 | Codebook activity: 0.929077 | Perplexity: 153.45
+Current best validation loss: 0.000248
+Current best model filename: abc_se_vqvae_epoch_65.pt
+Epoch [68/160] Time: 634.91s
+  Loss - Recon: 0.00010614 | VQ: 0.00007843 | Total: 0.00018457
+  Metrics - Usage: 0.03 | Perplexity: 171.81
+Validation loss: Total 0.000315 = Reconstruction 0.000262 + VQ 0.000052 | Codebook activity: 0.925293 | Perplexity: 155.26
+Current best validation loss: 0.000248
+Current best model filename: abc_se_vqvae_epoch_65.pt
+Epoch [69/160] Time: 641.80s
+  Loss - Recon: 0.00009742 | VQ: 0.00007308 | Total: 0.00017050
+  Metrics - Usage: 0.03 | Perplexity: 171.08
+Validation loss: Total 0.000301 = Reconstruction 0.000256 + VQ 0.000044 | Codebook activity: 0.936279 | Perplexity: 154.96
+Current best validation loss: 0.000248
+Current best model filename: abc_se_vqvae_epoch_65.pt
+Epoch [70/160] Time: 635.71s
+  Loss - Recon: 0.00009762 | VQ: 0.00007233 | Total: 0.00016995
+  Metrics - Usage: 0.03 | Perplexity: 171.61
+Validation loss: Total 0.000282 = Reconstruction 0.000240 + VQ 0.000042 | Codebook activity: 0.932739 | Perplexity: 152.56
+New best model! Validation loss: 0.000240
+Best model filename: abc_se_vqvae_epoch_70.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_70.pt
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_best.pt
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d/same_data_abc\abc_se_vqvae_epoch_70.pt
+Epoch [71/160] Time: 642.65s
+  Loss - Recon: 0.00009205 | VQ: 0.00006799 | Total: 0.00016004
+  Metrics - Usage: 0.03 | Perplexity: 171.60
+Validation loss: Total 0.000291 = Reconstruction 0.000245 + VQ 0.000046 | Codebook activity: 0.932373 | Perplexity: 156.03
+Current best validation loss: 0.000240
+Current best model filename: abc_se_vqvae_epoch_70.pt
+Epoch [72/160] Time: 636.13s
+  Loss - Recon: 0.00009271 | VQ: 0.00006557 | Total: 0.00015828
+  Metrics - Usage: 0.03 | Perplexity: 170.41
+Validation loss: Total 0.000290 = Reconstruction 0.000249 + VQ 0.000042 | Codebook activity: 0.926392 | Perplexity: 154.82
+Current best validation loss: 0.000240
+Current best model filename: abc_se_vqvae_epoch_70.pt
+Epoch [73/160] Time: 637.81s
+  Loss - Recon: 0.00010430 | VQ: 0.00007125 | Total: 0.00017555
+  Metrics - Usage: 0.03 | Perplexity: 179.43
+Validation loss: Total 0.000285 = Reconstruction 0.000238 + VQ 0.000046 | Codebook activity: 0.927734 | Perplexity: 156.12
+New best model! Validation loss: 0.000238
+Best model filename: abc_se_vqvae_epoch_73.pt
+Recent stderr:
+Epoch 73:  99%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4708/4735 [10:33<00:03,  7.55it/s, loss=0.00017590, recon=0.00010459, vq=0.00007131, usage=0.03, perp=179.47]
+Epoch 73:  99%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4708/4735 [10:33<00:03,  7.55it/s, loss=0.00017589, recon=0.00010458, vq=0.00007131, usage=0.03, perp=179.47]
+Epoch 73:  99%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4709/4735 [10:33<00:03,  7.56it/s, loss=0.00017589, recon=0.00010458, vq=0.00007131, usage=0.03, perp=179.47]
+Epoch 73:  99%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4709/4735 [10:33<00:03,  7.56it/s, loss=0.00017587, recon=0.00010457, vq=0.00007130, usage=0.03, perp=179.49]
+Epoch 73:  99%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4710/4735 [10:33<00:03,  7.59it/s, loss=0.00017587, recon=0.00010457, vq=0.00007130, usage=0.03, perp=179.49]
+Epoch 73:  99%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4710/4735 [10:33<00:03,  7.59it/s, loss=0.00017586, recon=0.00010456, vq=0.00007130, usage=0.03, perp=179.49]
+Epoch 73:  99%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4711/4735 [10:34<00:03,  7.60it/s, loss=0.00017586, recon=0.00010456, vq=0.00007130, usage=0.03, perp=179.49]
+Epoch 73:  99%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4711/4735 [10:34<00:03,  7.60it/s, loss=0.00017585, recon=0.00010455, vq=0.00007130, usage=0.03, perp=179.49]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4712/4735 [10:34<00:03,  7.56it/s, loss=0.00017585, recon=0.00010455, vq=0.00007130, usage=0.03, perp=179.49]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4712/4735 [10:34<00:03,  7.56it/s, loss=0.00017584, recon=0.00010454, vq=0.00007130, usage=0.03, perp=179.49]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4713/4735 [10:34<00:02,  7.56it/s, loss=0.00017584, recon=0.00010454, vq=0.00007130, usage=0.03, perp=179.49]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4713/4735 [10:34<00:02,  7.56it/s, loss=0.00017584, recon=0.00010454, vq=0.00007130, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4714/4735 [10:34<00:02,  7.61it/s, loss=0.00017584, recon=0.00010454, vq=0.00007130, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4714/4735 [10:34<00:02,  7.61it/s, loss=0.00017583, recon=0.00010453, vq=0.00007130, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4715/4735 [10:34<00:02,  7.63it/s, loss=0.00017583, recon=0.00010453, vq=0.00007130, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4715/4735 [10:34<00:02,  7.63it/s, loss=0.00017581, recon=0.00010452, vq=0.00007129, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4716/4735 [10:34<00:02,  7.53it/s, loss=0.00017581, recon=0.00010452, vq=0.00007129, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4716/4735 [10:34<00:02,  7.53it/s, loss=0.00017581, recon=0.00010451, vq=0.00007129, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4717/4735 [10:34<00:02,  7.54it/s, loss=0.00017581, recon=0.00010451, vq=0.00007129, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4717/4735 [10:34<00:02,  7.54it/s, loss=0.00017579, recon=0.00010450, vq=0.00007129, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4718/4735 [10:34<00:02,  7.55it/s, loss=0.00017579, recon=0.00010450, vq=0.00007129, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4718/4735 [10:34<00:02,  7.55it/s, loss=0.00017578, recon=0.00010449, vq=0.00007129, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4719/4735 [10:35<00:02,  7.38it/s, loss=0.00017578, recon=0.00010449, vq=0.00007129, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4719/4735 [10:35<00:02,  7.38it/s, loss=0.00017578, recon=0.00010449, vq=0.00007129, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4720/4735 [10:35<00:02,  7.46it/s, loss=0.00017578, recon=0.00010449, vq=0.00007129, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4720/4735 [10:35<00:02,  7.46it/s, loss=0.00017579, recon=0.00010449, vq=0.00007130, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4721/4735 [10:35<00:01,  7.51it/s, loss=0.00017579, recon=0.00010449, vq=0.00007130, usage=0.03, perp=179.48]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4721/4735 [10:35<00:01,  7.51it/s, loss=0.00017578, recon=0.00010448, vq=0.00007130, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4722/4735 [10:35<00:01,  7.39it/s, loss=0.00017578, recon=0.00010448, vq=0.00007130, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4722/4735 [10:35<00:01,  7.39it/s, loss=0.00017576, recon=0.00010447, vq=0.00007129, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4723/4735 [10:35<00:01,  7.49it/s, loss=0.00017576, recon=0.00010447, vq=0.00007129, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4723/4735 [10:35<00:01,  7.49it/s, loss=0.00017573, recon=0.00010445, vq=0.00007128, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4724/4735 [10:35<00:01,  7.54it/s, loss=0.00017573, recon=0.00010445, vq=0.00007128, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4724/4735 [10:35<00:01,  7.54it/s, loss=0.00017571, recon=0.00010444, vq=0.00007128, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4725/4735 [10:35<00:01,  7.49it/s, loss=0.00017571, recon=0.00010444, vq=0.00007128, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4725/4735 [10:35<00:01,  7.49it/s, loss=0.00017570, recon=0.00010442, vq=0.00007127, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4726/4735 [10:36<00:01,  7.53it/s, loss=0.00017570, recon=0.00010442, vq=0.00007127, usage=0.03, perp=179.47]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4726/4735 [10:36<00:01,  7.53it/s, loss=0.00017568, recon=0.00010441, vq=0.00007127, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4727/4735 [10:36<00:01,  7.55it/s, loss=0.00017568, recon=0.00010441, vq=0.00007127, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4727/4735 [10:36<00:01,  7.55it/s, loss=0.00017567, recon=0.00010440, vq=0.00007127, usage=0.03, perp=179.45]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4728/4735 [10:36<00:00,  7.36it/s, loss=0.00017567, recon=0.00010440, vq=0.00007127, usage=0.03, perp=179.45]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4728/4735 [10:36<00:00,  7.36it/s, loss=0.00017565, recon=0.00010439, vq=0.00007127, usage=0.03, perp=179.45]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4729/4735 [10:36<00:00,  7.24it/s, loss=0.00017565, recon=0.00010439, vq=0.00007127, usage=0.03, perp=179.45]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4729/4735 [10:36<00:00,  7.24it/s, loss=0.00017563, recon=0.00010437, vq=0.00007126, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4730/4735 [10:36<00:00,  7.37it/s, loss=0.00017563, recon=0.00010437, vq=0.00007126, usage=0.03, perp=179.46]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4730/4735 [10:36<00:00,  7.37it/s, loss=0.00017562, recon=0.00010436, vq=0.00007126, usage=0.03, perp=179.45]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4731/4735 [10:36<00:00,  7.46it/s, loss=0.00017562, recon=0.00010436, vq=0.00007126, usage=0.03, perp=179.45]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4731/4735 [10:36<00:00,  7.46it/s, loss=0.00017561, recon=0.00010435, vq=0.00007126, usage=0.03, perp=179.45]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4732/4735 [10:36<00:00,  7.53it/s, loss=0.00017561, recon=0.00010435, vq=0.00007126, usage=0.03, perp=179.45]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4732/4735 [10:36<00:00,  7.53it/s, loss=0.00017559, recon=0.00010433, vq=0.00007126, usage=0.03, perp=179.44]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4733/4735 [10:36<00:00,  7.53it/s, loss=0.00017559, recon=0.00010433, vq=0.00007126, usage=0.03, perp=179.44]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4733/4735 [10:36<00:00,  7.53it/s, loss=0.00017558, recon=0.00010432, vq=0.00007126, usage=0.03, perp=179.44]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4734/4735 [10:37<00:00,  7.56it/s, loss=0.00017558, recon=0.00010432, vq=0.00007126, usage=0.03, perp=179.44]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枆| 4734/4735 [10:37<00:00,  7.56it/s, loss=0.00017556, recon=0.00010431, vq=0.00007125, usage=0.03, perp=179.44]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枅| 4735/4735 [10:37<00:00,  7.56it/s, loss=0.00017556, recon=0.00010431, vq=0.00007125, usage=0.03, perp=179.44]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枅| 4735/4735 [10:37<00:00,  7.56it/s, loss=0.00017555, recon=0.00010430, vq=0.00007125, usage=0.03, perp=179.43]
+Epoch 73: 100%|鈻堚枅鈻堚枅鈻堚枅鈻堚枅鈻堚枅| 4735/4735 [10:37<00:00,  7.42it/s, loss=0.00017555, recon=0.00010430, vq=0.00007125, usage=0.03, perp=179.43]
+Traceback (most recent call last):
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\torch\serialization.py", line 629, in save
+    _save(obj, opened_zipfile, pickle_module, pickle_protocol, _disable_byteorder_record)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\torch\serialization.py", line 863, in _save
+    zip_file.write_record(name, storage.data_ptr(), num_bytes)
+RuntimeError: [enforce fail at inline_container.cc:769] . PytorchStreamWriter failed writing file data/792: file write failed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\luolin\V13\BrepARG\train_vqvae.py", line 87, in <module>
+    run(args)
+  File "D:\luolin\V13\BrepARG\train_vqvae.py", line 67, in run
+    vae.test_val()
+  File "D:\luolin\V13\BrepARG\trainer.py", line 435, in test_val
+    self.save_model(is_best=True, save_epoch=val_epoch)
+  File "D:\luolin\V13\BrepARG\trainer.py", line 472, in save_model
+    torch.save(checkpoint, save_path)
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\torch\serialization.py", line 630, in save
+    return
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\site-packages\torch\serialization.py", line 476, in __exit__
+    self.file_like.write_end_of_file()
+RuntimeError: [enforce fail at inline_container.cc:595] . unexpected pos 608730112 vs 608730004

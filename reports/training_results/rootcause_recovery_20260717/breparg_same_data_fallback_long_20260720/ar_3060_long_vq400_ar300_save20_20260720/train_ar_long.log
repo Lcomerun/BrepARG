@@ -1,0 +1,739 @@
+
+[Mode] Single-GPU Training
+Using device: cuda:0 (NVIDIA GeForce RTX 3060)
+Loading grouped AR sequences from 'D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\sequence_3060_long_vq400_ar300_save20_20260720\breparg_same_data_sequences.pkl' (split=train)...
+Filtered groups by length (>1536): 10000 -> 9129 (871 removed)
+Loading grouped AR sequences from 'D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\sequence_3060_long_vq400_ar300_save20_20260720\breparg_same_data_sequences.pkl' (split=val)...
+Filtered groups by length (>1536): 1000 -> 912 (88 removed)
+Initialized ARModel with vocab_size=10294, d_model=256, layers=8, heads=8, max_seq_len=1536
+Model initialized - d_model: 256, layers: 8, heads: 8
+  Parameter count: 9,347,072 total, 9,347,072 trainable
+  Model memory: 35.7MB
+Optimizer configuration:
+  Learning rate: 5e-05
+  Weight decay: 0.01
+  Dropout: 0.1
+  Label smoothing: 0.0
+Training configuration: will train for 300 complete epochs
+Starting training - from epoch 1 to epoch 300
+Dataset: 9129 training samples, 912 validation samples
+
+=== Epoch 1/300 ===
+Validation - CE Loss: 4.944082, Perplexity: 140.34
+New best model! Validation loss: 4.944082
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 2/300 ===
+Validation - CE Loss: 3.844207, Perplexity: 46.72
+New best model! Validation loss: 3.844207
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 3/300 ===
+Validation - CE Loss: 3.190567, Perplexity: 24.30
+New best model! Validation loss: 3.190567
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 4/300 ===
+Validation - CE Loss: 2.782014, Perplexity: 16.15
+New best model! Validation loss: 2.782014
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 5/300 ===
+Validation - CE Loss: 2.528963, Perplexity: 12.54
+New best model! Validation loss: 2.528963
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 6/300 ===
+Validation - CE Loss: 2.367346, Perplexity: 10.67
+New best model! Validation loss: 2.367346
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 7/300 ===
+Validation - CE Loss: 2.234591, Perplexity: 9.34
+New best model! Validation loss: 2.234591
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 8/300 ===
+Validation - CE Loss: 2.133977, Perplexity: 8.45
+New best model! Validation loss: 2.133977
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 9/300 ===
+Validation - CE Loss: 2.048602, Perplexity: 7.76
+New best model! Validation loss: 2.048602
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 10/300 ===
+Validation - CE Loss: 1.977756, Perplexity: 7.23
+New best model! Validation loss: 1.977756
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 11/300 ===
+Validation - CE Loss: 1.930205, Perplexity: 6.89
+New best model! Validation loss: 1.930205
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 12/300 ===
+Validation - CE Loss: 1.878719, Perplexity: 6.55
+New best model! Validation loss: 1.878719
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 13/300 ===
+Validation - CE Loss: 1.818822, Perplexity: 6.16
+New best model! Validation loss: 1.818822
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 14/300 ===
+Validation - CE Loss: 1.781376, Perplexity: 5.94
+New best model! Validation loss: 1.781376
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 15/300 ===
+Validation - CE Loss: 1.734737, Perplexity: 5.67
+New best model! Validation loss: 1.734737
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 16/300 ===
+Validation - CE Loss: 1.693619, Perplexity: 5.44
+New best model! Validation loss: 1.693619
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 17/300 ===
+Validation - CE Loss: 1.654250, Perplexity: 5.23
+New best model! Validation loss: 1.654250
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 18/300 ===
+Validation - CE Loss: 1.619360, Perplexity: 5.05
+New best model! Validation loss: 1.619360
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 19/300 ===
+Validation - CE Loss: 1.575008, Perplexity: 4.83
+New best model! Validation loss: 1.575008
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 20/300 ===
+Validation - CE Loss: 1.547954, Perplexity: 4.70
+New best model! Validation loss: 1.547954
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\epoch_20.pt
+
+=== Epoch 21/300 ===
+Validation - CE Loss: 1.527862, Perplexity: 4.61
+New best model! Validation loss: 1.527862
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 22/300 ===
+Validation - CE Loss: 1.490284, Perplexity: 4.44
+New best model! Validation loss: 1.490284
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 23/300 ===
+Validation - CE Loss: 1.465225, Perplexity: 4.33
+New best model! Validation loss: 1.465225
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 24/300 ===
+Validation - CE Loss: 1.441949, Perplexity: 4.23
+New best model! Validation loss: 1.441949
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 25/300 ===
+Validation - CE Loss: 1.404397, Perplexity: 4.07
+New best model! Validation loss: 1.404397
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 26/300 ===
+Validation - CE Loss: 1.390520, Perplexity: 4.02
+New best model! Validation loss: 1.390520
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 27/300 ===
+Validation - CE Loss: 1.361152, Perplexity: 3.90
+New best model! Validation loss: 1.361152
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 28/300 ===
+Validation - CE Loss: 1.331120, Perplexity: 3.79
+New best model! Validation loss: 1.331120
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 29/300 ===
+Validation - CE Loss: 1.308972, Perplexity: 3.70
+New best model! Validation loss: 1.308972
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 30/300 ===
+Validation - CE Loss: 1.297241, Perplexity: 3.66
+New best model! Validation loss: 1.297241
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 31/300 ===
+Validation - CE Loss: 1.271617, Perplexity: 3.57
+New best model! Validation loss: 1.271617
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 32/300 ===
+Validation - CE Loss: 1.257815, Perplexity: 3.52
+New best model! Validation loss: 1.257815
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 33/300 ===
+Validation - CE Loss: 1.241508, Perplexity: 3.46
+New best model! Validation loss: 1.241508
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 34/300 ===
+Validation - CE Loss: 1.237035, Perplexity: 3.45
+New best model! Validation loss: 1.237035
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 35/300 ===
+Validation - CE Loss: 1.209300, Perplexity: 3.35
+New best model! Validation loss: 1.209300
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 36/300 ===
+Validation - CE Loss: 1.195648, Perplexity: 3.31
+New best model! Validation loss: 1.195648
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 37/300 ===
+Validation - CE Loss: 1.174672, Perplexity: 3.24
+New best model! Validation loss: 1.174672
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 38/300 ===
+Validation - CE Loss: 1.164414, Perplexity: 3.20
+New best model! Validation loss: 1.164414
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 39/300 ===
+Validation - CE Loss: 1.152792, Perplexity: 3.17
+New best model! Validation loss: 1.152792
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 40/300 ===
+Validation - CE Loss: 1.145804, Perplexity: 3.14
+New best model! Validation loss: 1.145804
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\epoch_40.pt
+
+=== Epoch 41/300 ===
+Validation - CE Loss: 1.128458, Perplexity: 3.09
+New best model! Validation loss: 1.128458
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 42/300 ===
+Validation - CE Loss: 1.123123, Perplexity: 3.07
+New best model! Validation loss: 1.123123
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 43/300 ===
+Validation - CE Loss: 1.112755, Perplexity: 3.04
+New best model! Validation loss: 1.112755
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 44/300 ===
+Validation - CE Loss: 1.096940, Perplexity: 2.99
+New best model! Validation loss: 1.096940
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 45/300 ===
+Validation - CE Loss: 1.091041, Perplexity: 2.98
+New best model! Validation loss: 1.091041
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 46/300 ===
+Validation - CE Loss: 1.082588, Perplexity: 2.95
+New best model! Validation loss: 1.082588
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 47/300 ===
+Validation - CE Loss: 1.073648, Perplexity: 2.93
+New best model! Validation loss: 1.073648
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 48/300 ===
+Validation - CE Loss: 1.062928, Perplexity: 2.89
+New best model! Validation loss: 1.062928
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 49/300 ===
+Validation - CE Loss: 1.055542, Perplexity: 2.87
+New best model! Validation loss: 1.055542
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 50/300 ===
+Validation - CE Loss: 1.053631, Perplexity: 2.87
+New best model! Validation loss: 1.053631
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 51/300 ===
+Validation - CE Loss: 1.040738, Perplexity: 2.83
+New best model! Validation loss: 1.040738
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 52/300 ===
+Validation - CE Loss: 1.033302, Perplexity: 2.81
+New best model! Validation loss: 1.033302
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 53/300 ===
+Validation - CE Loss: 1.026355, Perplexity: 2.79
+New best model! Validation loss: 1.026355
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 54/300 ===
+Validation - CE Loss: 1.022138, Perplexity: 2.78
+New best model! Validation loss: 1.022138
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 55/300 ===
+Validation - CE Loss: 1.019107, Perplexity: 2.77
+New best model! Validation loss: 1.019107
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 56/300 ===
+Validation - CE Loss: 1.010688, Perplexity: 2.75
+New best model! Validation loss: 1.010688
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 57/300 ===
+Validation - CE Loss: 1.011091, Perplexity: 2.75
+Validation loss: 1.011091
+
+=== Epoch 58/300 ===
+Validation - CE Loss: 0.999639, Perplexity: 2.72
+New best model! Validation loss: 0.999639
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 59/300 ===
+Validation - CE Loss: 1.001128, Perplexity: 2.72
+Validation loss: 1.001128
+
+=== Epoch 60/300 ===
+Validation - CE Loss: 0.996765, Perplexity: 2.71
+New best model! Validation loss: 0.996765
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\epoch_60.pt
+
+=== Epoch 61/300 ===
+Validation - CE Loss: 0.987097, Perplexity: 2.68
+New best model! Validation loss: 0.987097
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 62/300 ===
+Validation - CE Loss: 0.983731, Perplexity: 2.67
+New best model! Validation loss: 0.983731
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 63/300 ===
+Validation - CE Loss: 0.978766, Perplexity: 2.66
+New best model! Validation loss: 0.978766
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 64/300 ===
+Validation - CE Loss: 0.971168, Perplexity: 2.64
+New best model! Validation loss: 0.971168
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 65/300 ===
+Validation - CE Loss: 0.966463, Perplexity: 2.63
+New best model! Validation loss: 0.966463
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 66/300 ===
+Validation - CE Loss: 0.971312, Perplexity: 2.64
+Validation loss: 0.971312
+
+=== Epoch 67/300 ===
+Validation - CE Loss: 0.963782, Perplexity: 2.62
+New best model! Validation loss: 0.963782
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 68/300 ===
+Validation - CE Loss: 0.958816, Perplexity: 2.61
+New best model! Validation loss: 0.958816
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 69/300 ===
+Validation - CE Loss: 0.952259, Perplexity: 2.59
+New best model! Validation loss: 0.952259
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 70/300 ===
+Validation - CE Loss: 0.948718, Perplexity: 2.58
+New best model! Validation loss: 0.948718
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 71/300 ===
+Validation - CE Loss: 0.945396, Perplexity: 2.57
+New best model! Validation loss: 0.945396
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 72/300 ===
+Validation - CE Loss: 0.944283, Perplexity: 2.57
+New best model! Validation loss: 0.944283
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 73/300 ===
+Validation - CE Loss: 0.937645, Perplexity: 2.55
+New best model! Validation loss: 0.937645
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 74/300 ===
+Validation - CE Loss: 0.939317, Perplexity: 2.56
+Validation loss: 0.939317
+
+=== Epoch 75/300 ===
+Validation - CE Loss: 0.938306, Perplexity: 2.56
+Validation loss: 0.938306
+
+=== Epoch 76/300 ===
+Validation - CE Loss: 0.930945, Perplexity: 2.54
+New best model! Validation loss: 0.930945
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 77/300 ===
+Validation - CE Loss: 0.931114, Perplexity: 2.54
+Validation loss: 0.931114
+
+=== Epoch 78/300 ===
+Validation - CE Loss: 0.929527, Perplexity: 2.53
+New best model! Validation loss: 0.929527
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 79/300 ===
+Validation - CE Loss: 0.926743, Perplexity: 2.53
+New best model! Validation loss: 0.926743
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 80/300 ===
+Validation - CE Loss: 0.920976, Perplexity: 2.51
+New best model! Validation loss: 0.920976
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\epoch_80.pt
+
+=== Epoch 81/300 ===
+Validation - CE Loss: 0.919064, Perplexity: 2.51
+New best model! Validation loss: 0.919064
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 82/300 ===
+Validation - CE Loss: 0.918391, Perplexity: 2.51
+New best model! Validation loss: 0.918391
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 83/300 ===
+Validation - CE Loss: 0.918870, Perplexity: 2.51
+Validation loss: 0.918870
+
+=== Epoch 84/300 ===
+Validation - CE Loss: 0.908494, Perplexity: 2.48
+New best model! Validation loss: 0.908494
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 85/300 ===
+Validation - CE Loss: 0.907908, Perplexity: 2.48
+New best model! Validation loss: 0.907908
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 86/300 ===
+Validation - CE Loss: 0.905521, Perplexity: 2.47
+New best model! Validation loss: 0.905521
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 87/300 ===
+Validation - CE Loss: 0.899703, Perplexity: 2.46
+New best model! Validation loss: 0.899703
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 88/300 ===
+Validation - CE Loss: 0.889803, Perplexity: 2.43
+New best model! Validation loss: 0.889803
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 89/300 ===
+Validation - CE Loss: 0.891856, Perplexity: 2.44
+Validation loss: 0.891856
+
+=== Epoch 90/300 ===
+Validation - CE Loss: 0.882246, Perplexity: 2.42
+New best model! Validation loss: 0.882246
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 91/300 ===
+Validation - CE Loss: 0.877543, Perplexity: 2.40
+New best model! Validation loss: 0.877543
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 92/300 ===
+Validation - CE Loss: 0.879309, Perplexity: 2.41
+Validation loss: 0.879309
+
+=== Epoch 93/300 ===
+Validation - CE Loss: 0.879335, Perplexity: 2.41
+Validation loss: 0.879335
+
+=== Epoch 94/300 ===
+Validation - CE Loss: 0.876357, Perplexity: 2.40
+New best model! Validation loss: 0.876357
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 95/300 ===
+Validation - CE Loss: 0.873030, Perplexity: 2.39
+New best model! Validation loss: 0.873030
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 96/300 ===
+Validation - CE Loss: 0.875777, Perplexity: 2.40
+Validation loss: 0.875777
+
+=== Epoch 97/300 ===
+Validation - CE Loss: 0.867519, Perplexity: 2.38
+New best model! Validation loss: 0.867519
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 98/300 ===
+Validation - CE Loss: 0.862840, Perplexity: 2.37
+New best model! Validation loss: 0.862840
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 99/300 ===
+Validation - CE Loss: 0.861213, Perplexity: 2.37
+New best model! Validation loss: 0.861213
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 100/300 ===
+Validation - CE Loss: 0.863793, Perplexity: 2.37
+Validation loss: 0.863793
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\epoch_100.pt
+
+=== Epoch 101/300 ===
+Validation - CE Loss: 0.857543, Perplexity: 2.36
+New best model! Validation loss: 0.857543
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 102/300 ===
+Validation - CE Loss: 0.854377, Perplexity: 2.35
+New best model! Validation loss: 0.854377
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 103/300 ===
+Validation - CE Loss: 0.852606, Perplexity: 2.35
+New best model! Validation loss: 0.852606
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 104/300 ===
+Validation - CE Loss: 0.849697, Perplexity: 2.34
+New best model! Validation loss: 0.849697
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 105/300 ===
+Validation - CE Loss: 0.845065, Perplexity: 2.33
+New best model! Validation loss: 0.845065
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 106/300 ===
+Validation - CE Loss: 0.841341, Perplexity: 2.32
+New best model! Validation loss: 0.841341
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 107/300 ===
+Validation - CE Loss: 0.844141, Perplexity: 2.33
+Validation loss: 0.844141
+
+=== Epoch 108/300 ===
+Validation - CE Loss: 0.846231, Perplexity: 2.33
+Validation loss: 0.846231
+
+=== Epoch 109/300 ===
+Validation - CE Loss: 0.838279, Perplexity: 2.31
+New best model! Validation loss: 0.838279
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 110/300 ===
+Validation - CE Loss: 0.845400, Perplexity: 2.33
+Validation loss: 0.845400
+
+=== Epoch 111/300 ===
+Validation - CE Loss: 0.834096, Perplexity: 2.30
+New best model! Validation loss: 0.834096
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 112/300 ===
+Validation - CE Loss: 0.832046, Perplexity: 2.30
+New best model! Validation loss: 0.832046
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 113/300 ===
+Validation - CE Loss: 0.841090, Perplexity: 2.32
+Validation loss: 0.841090
+
+=== Epoch 114/300 ===
+Validation - CE Loss: 0.832249, Perplexity: 2.30
+Validation loss: 0.832249
+
+=== Epoch 115/300 ===
+Validation - CE Loss: 0.836822, Perplexity: 2.31
+Validation loss: 0.836822
+
+=== Epoch 116/300 ===
+Validation - CE Loss: 0.833150, Perplexity: 2.30
+Validation loss: 0.833150
+
+=== Epoch 117/300 ===
+Validation - CE Loss: 0.832350, Perplexity: 2.30
+Validation loss: 0.832350
+
+=== Epoch 118/300 ===
+Validation - CE Loss: 0.832578, Perplexity: 2.30
+Validation loss: 0.832578
+
+=== Epoch 119/300 ===
+Validation - CE Loss: 0.827854, Perplexity: 2.29
+New best model! Validation loss: 0.827854
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 120/300 ===
+Validation - CE Loss: 0.835755, Perplexity: 2.31
+Validation loss: 0.835755
+Model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\epoch_120.pt
+
+=== Epoch 121/300 ===
+Validation - CE Loss: 0.826226, Perplexity: 2.28
+New best model! Validation loss: 0.826226
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 122/300 ===
+Validation - CE Loss: 0.821204, Perplexity: 2.27
+New best model! Validation loss: 0.821204
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 123/300 ===
+Validation - CE Loss: 0.828705, Perplexity: 2.29
+Validation loss: 0.828705
+
+=== Epoch 124/300 ===
+Validation - CE Loss: 0.823320, Perplexity: 2.28
+Validation loss: 0.823320
+
+=== Epoch 125/300 ===
+Validation - CE Loss: 0.820678, Perplexity: 2.27
+New best model! Validation loss: 0.820678
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 126/300 ===
+Validation - CE Loss: 0.823159, Perplexity: 2.28
+Validation loss: 0.823159
+
+=== Epoch 127/300 ===
+Validation - CE Loss: 0.819258, Perplexity: 2.27
+New best model! Validation loss: 0.819258
+Best model saved to: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model.pt
+Saved HuggingFace model: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback_long_20260720\ar_3060_long_vq400_ar300_save20_20260720/same_data_abc\abc_ar_vqvae_best_model_hf
+
+=== Epoch 128/300 ===

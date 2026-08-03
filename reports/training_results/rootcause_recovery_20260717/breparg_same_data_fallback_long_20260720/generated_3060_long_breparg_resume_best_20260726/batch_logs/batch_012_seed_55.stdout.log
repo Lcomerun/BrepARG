@@ -1,0 +1,63 @@
+Using GPU: cuda:0
+=== Initializing CAD generation pipeline ===
+1. Loading configuration...
+   Using config file: BrepARG\config.json
+2. Loading model configuration...
+Successfully loaded and calculated model config for dataset type: abc
+Vocab size: 10294
+Special tokens: START=10290, SEP=10291, END=10292, PAD=10293
+3. Loading autoregressive model...
+Successfully loaded checkpoint: D:\luolin\V13\local_runs\breparg_long_ar_resume_best_20260724\ar_epoch127_best_to300\same_data_abc\abc_ar_vqvae_best_model.pt
+Initialized ARModel with vocab_size=10294, d_model=256, layers=8, heads=8, max_seq_len=1536
+Model weights loaded successfully
+4. Loading SE VQ-VAE model...
+Detected SE tokens per element: 4
+Initialization complete
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1785057103383476_37092.step(673 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1785057105655837_37092.step(640 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Expected face index token at position 31, but found 589
+Warning: Face 29 bbox token count mismatch, expected 6, got 0
+Warning: Face 29 feature token count mismatch, expected 4, got 1
+Warning: Derived unique face ID count (6) does not match actual decoded face count (5).
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1785057110190090_37092.step(547 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1785057112481206_37092.step(492 ents)  Write  Done
+
+=== Generation Summary ===
+total_attempts : 6
+saved_count    : 4 (both STL and STEP saved successfully)

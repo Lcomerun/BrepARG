@@ -1,0 +1,29 @@
+{
+  "skipped": true,
+  "stage": "teacher_reconstruction",
+  "reason": "skipped by --skip-reconstruction",
+  "sample_count": 0,
+  "token_count": 0,
+  "token_weighted_ce": null,
+  "teacher_ce": {
+    "count": 0,
+    "mean": null,
+    "median": null,
+    "p90": null,
+    "p95": null,
+    "max": null
+  },
+  "by_face_bucket": {},
+  "by_edge_bucket": {},
+  "by_length_bucket": {},
+  "attempted": 0,
+  "grammar_valid": 0,
+  "reconstruct_success": 0,
+  "step_saved": 0,
+  "stl_saved": 0,
+  "brep_valid": 0,
+  "errors": 0,
+  "write_step": false,
+  "write_stl": false,
+  "validate_step": false
+}

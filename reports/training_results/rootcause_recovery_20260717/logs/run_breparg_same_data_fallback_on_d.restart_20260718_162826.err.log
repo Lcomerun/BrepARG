@@ -1,0 +1,22 @@
+Command failed with exit code 1: C:\Users\YU\.conda\envs\brepgen_env\python.exe BrepARG\train_vqvae.py --data_list D:\V
+13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\same_data_split.pkl --surface_list D:\V13_rootcau
+se_recovery_20260717\breparg_same_data_fallback\data_staged\deduplicated_surface_source.pkl --edge_list D:\V13_rootcaus
+e_recovery_20260717\breparg_same_data_fallback\data_staged\deduplicated_edge_source.pkl --dataset_type abc --batch_size
+ 128 --train_epoch 160 --test_epoch 1 --save_epoch 10 --max_face 50 --max_edge 150 --dir_name D:\V13_rootcause_recovery
+_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d --env same_data_abc --loss_dir D:\V13_rootc
+ause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d --tb_log_dir D:\V13_rootcause_
+recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs4_20260717_d\tensorboard --no_aug --gpu 0
+ËùÔÚÎ»ÖÃ D:\luolin\V13\tools\run_breparg_same_data_fallback_on_d.ps1:92 ×Ö·û: 5
++     throw "Command failed with exit code $($proc.ExitCode): $FilePath ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Command failed ...-no_aug --gpu 0:String) [], RuntimeException
+    + FullyQualifiedErrorId : Command failed with exit code 1: C:\Users\YU\.conda\envs\brepgen_env\python.exe BrepARG\ 
+   train_vqvae.py --data_list D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\same_data_spl  
+  it.pkl --surface_list D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\deduplicated_surfa   
+ ce_source.pkl --edge_list D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\data_staged\deduplicated_e    
+dge_source.pkl --dataset_type abc --batch_size 128 --train_epoch 160 --test_epoch 1 --save_epoch 10 --max_face 50     -
+-max_edge 150 --dir_name D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_3060_safe_len1536_bs    4_
+20260717_d --env same_data_abc --loss_dir D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_30    60_
+safe_len1536_bs4_20260717_d --tb_log_dir D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\vqvae_30    60_s
+afe_len1536_bs4_20260717_d\tensorboard --no_aug --gpu 0
+ 

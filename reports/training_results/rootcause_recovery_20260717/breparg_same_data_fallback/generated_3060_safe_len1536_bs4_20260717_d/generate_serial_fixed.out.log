@@ -1,0 +1,1665 @@
+Using GPU: cuda:0
+=== Initializing CAD generation pipeline ===
+1. Loading configuration...
+   Using config file: BrepARG\config.json
+2. Loading model configuration...
+Successfully loaded and calculated model config for dataset type: abc
+Vocab size: 10294
+Special tokens: START=10290, SEP=10291, END=10292, PAD=10293
+3. Loading autoregressive model...
+Successfully loaded checkpoint: D:\V13_rootcause_recovery_20260717\breparg_same_data_fallback\ar_3060_safe_len1536_bs4_20260717_d\same_data_abc\abc_ar_vqvae_best_model.pt
+Initialized ARModel with vocab_size=10294, d_model=256, layers=8, heads=8, max_seq_len=1536
+Model weights loaded successfully
+4. Loading SE VQ-VAE model...
+Detected SE tokens per element: 4
+Initialization complete
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526509458675_20816.step(492 ents)  Write  Done
+Warning: Derived unique face ID count (36) does not match actual decoded face count (35).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526526296650_20816.step(322 ents)  Write  Done
+Warning: Derived unique face ID count (34) does not match actual decoded face count (36).
+Joint optimization failed: zero-size array to reduction operation minimum which has no identity
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Expected face index token at position 477, but found 10291
+Warning: Face 13 bbox token count mismatch, expected 6, got 0
+Warning: Face 13 feature token count mismatch, expected 4, got 0
+Warning: Face 14 bbox token count mismatch, expected 6, got 0
+Warning: Face 14 feature token count mismatch, expected 4, got 0
+Warning: Face 15 bbox token count mismatch, expected 6, got 0
+Warning: Face 15 feature token count mismatch, expected 4, got 0
+Warning: Face 16 bbox token count mismatch, expected 6, got 0
+Warning: Face 16 feature token count mismatch, expected 4, got 0
+Warning: Face 16 bbox token count mismatch, expected 6, got 0
+Warning: Face 16 feature token count mismatch, expected 4, got 0
+Warning: Face 16 bbox token count mismatch, expected 6, got 0
+Warning: Face 16 feature token count mismatch, expected 4, got 0
+Warning: Face 15 bbox token count mismatch, expected 6, got 0
+Warning: Face 15 feature token count mismatch, expected 4, got 0
+Warning: Face 17 bbox token count mismatch, expected 6, got 0
+Warning: Face 17 feature token count mismatch, expected 4, got 0
+Warning: Face 18 bbox token count mismatch, expected 6, got 0
+Warning: Face 18 feature token count mismatch, expected 4, got 0
+Warning: Face 18 bbox token count mismatch, expected 6, got 0
+Warning: Face 18 feature token count mismatch, expected 4, got 0
+Warning: Face 18 bbox token count mismatch, expected 6, got 0
+Warning: Face 18 feature token count mismatch, expected 4, got 0
+Warning: Face 18 bbox token count mismatch, expected 6, got 0
+Warning: Face 18 feature token count mismatch, expected 4, got 0
+Warning: Face 19 bbox token count mismatch, expected 6, got 0
+Warning: Face 19 feature token count mismatch, expected 4, got 0
+Warning: Face 19 bbox token count mismatch, expected 6, got 0
+Warning: Face 19 feature token count mismatch, expected 4, got 0
+Warning: Face 20 bbox token count mismatch, expected 6, got 0
+Warning: Face 20 feature token count mismatch, expected 4, got 0
+Warning: Face 20 bbox token count mismatch, expected 6, got 0
+Warning: Face 20 feature token count mismatch, expected 4, got 0
+Warning: Face 20 bbox token count mismatch, expected 6, got 0
+Warning: Face 20 feature token count mismatch, expected 4, got 0
+Warning: Face 20 bbox token count mismatch, expected 6, got 0
+Warning: Face 20 feature token count mismatch, expected 4, got 0
+Warning: Face 21 bbox token count mismatch, expected 6, got 0
+Warning: Face 21 feature token count mismatch, expected 4, got 0
+Warning: Face 21 bbox token count mismatch, expected 6, got 0
+Warning: Face 21 feature token count mismatch, expected 4, got 0
+Warning: Face 22 bbox token count mismatch, expected 6, got 0
+Warning: Face 22 feature token count mismatch, expected 4, got 0
+Warning: Face 22 bbox token count mismatch, expected 6, got 0
+Warning: Face 22 feature token count mismatch, expected 4, got 0
+Warning: Face 22 bbox token count mismatch, expected 6, got 0
+Warning: Face 22 feature token count mismatch, expected 4, got 0
+Warning: Face 22 bbox token count mismatch, expected 6, got 0
+Warning: Face 22 feature token count mismatch, expected 4, got 0
+Warning: Face 23 bbox token count mismatch, expected 6, got 0
+Warning: Face 23 feature token count mismatch, expected 4, got 0
+Warning: Face 23 bbox token count mismatch, expected 6, got 0
+Warning: Face 23 feature token count mismatch, expected 4, got 0
+Warning: Face 24 bbox token count mismatch, expected 6, got 0
+Warning: Face 24 feature token count mismatch, expected 4, got 0
+Warning: Face 24 bbox token count mismatch, expected 6, got 0
+Warning: Face 24 feature token count mismatch, expected 4, got 0
+Warning: Face 24 bbox token count mismatch, expected 6, got 0
+Warning: Face 24 feature token count mismatch, expected 4, got 0
+Warning: Face 25 bbox token count mismatch, expected 6, got 0
+Warning: Face 25 feature token count mismatch, expected 4, got 0
+Warning: Face 25 bbox token count mismatch, expected 6, got 0
+Warning: Face 25 feature token count mismatch, expected 4, got 0
+Warning: Face 25 bbox token count mismatch, expected 6, got 0
+Warning: Face 25 feature token count mismatch, expected 4, got 0
+Warning: Face 26 bbox token count mismatch, expected 6, got 0
+Warning: Face 26 feature token count mismatch, expected 4, got 0
+Warning: Face 26 bbox token count mismatch, expected 6, got 0
+Warning: Face 26 feature token count mismatch, expected 4, got 0
+Warning: Face 26 bbox token count mismatch, expected 6, got 0
+Warning: Face 26 feature token count mismatch, expected 4, got 0
+Warning: Face 27 bbox token count mismatch, expected 6, got 0
+Warning: Face 27 feature token count mismatch, expected 4, got 0
+Warning: Face 27 bbox token count mismatch, expected 6, got 0
+Warning: Face 27 feature token count mismatch, expected 4, got 0
+Warning: Face 27 bbox token count mismatch, expected 6, got 0
+Warning: Face 27 feature token count mismatch, expected 4, got 0
+Warning: Face 28 bbox token count mismatch, expected 6, got 0
+Warning: Face 28 feature token count mismatch, expected 4, got 0
+Warning: Face 28 bbox token count mismatch, expected 6, got 0
+Warning: Face 28 feature token count mismatch, expected 4, got 0
+Warning: Face 28 bbox token count mismatch, expected 6, got 0
+Warning: Face 28 feature token count mismatch, expected 4, got 0
+Warning: Face 29 bbox token count mismatch, expected 6, got 0
+Warning: Face 29 feature token count mismatch, expected 4, got 0
+Warning: Face 29 bbox token count mismatch, expected 6, got 0
+Warning: Face 29 feature token count mismatch, expected 4, got 0
+Warning: Face 30 bbox token count mismatch, expected 6, got 0
+Warning: Face 30 feature token count mismatch, expected 4, got 0
+Warning: Face 30 bbox token count mismatch, expected 6, got 0
+Warning: Face 30 feature token count mismatch, expected 4, got 0
+Warning: Face 30 bbox token count mismatch, expected 6, got 0
+Warning: Face 30 feature token count mismatch, expected 4, got 0
+Warning: Face 31 bbox token count mismatch, expected 6, got 0
+Warning: Face 31 feature token count mismatch, expected 4, got 0
+Warning: Face 31 bbox token count mismatch, expected 6, got 0
+Warning: Face 31 feature token count mismatch, expected 4, got 0
+Warning: Face 30 bbox token count mismatch, expected 6, got 0
+Warning: Face 30 feature token count mismatch, expected 4, got 0
+Warning: Face 32 bbox token count mismatch, expected 6, got 0
+Warning: Face 32 feature token count mismatch, expected 4, got 0
+Warning: Face 32 bbox token count mismatch, expected 6, got 0
+Warning: Face 32 feature token count mismatch, expected 4, got 0
+Warning: Face 32 bbox token count mismatch, expected 6, got 0
+Warning: Face 32 feature token count mismatch, expected 4, got 0
+Warning: Face 33 bbox token count mismatch, expected 6, got 0
+Warning: Face 33 feature token count mismatch, expected 4, got 0
+Warning: Face 33 bbox token count mismatch, expected 6, got 0
+Warning: Face 33 feature token count mismatch, expected 4, got 0
+Warning: Face 33 bbox token count mismatch, expected 6, got 0
+Warning: Face 33 feature token count mismatch, expected 4, got 0
+Warning: Face 35 bbox token count mismatch, expected 6, got 0
+Warning: Face 35 feature token count mismatch, expected 4, got 0
+Warning: Face 35 bbox token count mismatch, expected 6, got 0
+Warning: Face 35 feature token count mismatch, expected 4, got 0
+Warning: Face 34 bbox token count mismatch, expected 6, got 0
+Warning: Face 34 feature token count mismatch, expected 4, got 0
+Warning: Face 36 bbox token count mismatch, expected 6, got 0
+Warning: Face 36 feature token count mismatch, expected 4, got 0
+Warning: Face 36 bbox token count mismatch, expected 6, got 0
+Warning: Face 36 feature token count mismatch, expected 4, got 0
+Warning: Face 35 bbox token count mismatch, expected 6, got 0
+Warning: Face 35 feature token count mismatch, expected 4, got 0
+Warning: Face 37 bbox token count mismatch, expected 6, got 0
+Warning: Face 37 feature token count mismatch, expected 4, got 0
+Warning: Face 37 bbox token count mismatch, expected 6, got 0
+Warning: Face 37 feature token count mismatch, expected 4, got 0
+Warning: Face 37 bbox token count mismatch, expected 6, got 0
+Warning: Face 37 feature token count mismatch, expected 4, got 0
+Warning: Face 39 bbox token count mismatch, expected 6, got 0
+Warning: Face 39 feature token count mismatch, expected 4, got 0
+Warning: Face 39 bbox token count mismatch, expected 6, got 0
+Warning: Face 39 feature token count mismatch, expected 4, got 0
+Warning: Face 39 bbox token count mismatch, expected 6, got 0
+Warning: Face 39 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 41 bbox token count mismatch, expected 6, got 0
+Warning: Face 41 feature token count mismatch, expected 4, got 0
+Warning: Face 41 bbox token count mismatch, expected 6, got 0
+Warning: Face 41 feature token count mismatch, expected 4, got 0
+Warning: Face 41 bbox token count mismatch, expected 6, got 0
+Warning: Face 41 feature token count mismatch, expected 4, got 0
+Warning: Face 42 bbox token count mismatch, expected 6, got 0
+Warning: Face 42 feature token count mismatch, expected 4, got 0
+Warning: Face 42 bbox token count mismatch, expected 6, got 0
+Warning: Face 42 feature token count mismatch, expected 4, got 0
+Warning: Face 41 bbox token count mismatch, expected 6, got 0
+Warning: Face 41 feature token count mismatch, expected 4, got 0
+Warning: Face 43 bbox token count mismatch, expected 6, got 0
+Warning: Face 43 feature token count mismatch, expected 4, got 0
+Warning: Face 43 bbox token count mismatch, expected 6, got 0
+Warning: Face 43 feature token count mismatch, expected 4, got 0
+Warning: Face 44 bbox token count mismatch, expected 6, got 0
+Warning: Face 44 feature token count mismatch, expected 4, got 0
+Warning: Face 45 bbox token count mismatch, expected 6, got 0
+Warning: Face 45 feature token count mismatch, expected 4, got 0
+Warning: Face 45 bbox token count mismatch, expected 6, got 0
+Warning: Face 45 feature token count mismatch, expected 4, got 0
+Warning: Face 45 bbox token count mismatch, expected 6, got 0
+Warning: Face 45 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 47 bbox token count mismatch, expected 6, got 0
+Warning: Face 47 feature token count mismatch, expected 4, got 0
+Warning: Face 47 bbox token count mismatch, expected 6, got 0
+Warning: Face 47 feature token count mismatch, expected 4, got 0
+Warning: Face 47 bbox token count mismatch, expected 6, got 0
+Warning: Face 47 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 47 bbox token count mismatch, expected 6, got 0
+Warning: Face 47 feature token count mismatch, expected 4, got 0
+Warning: Derived unique face ID count (0) does not match actual decoded face count (131).
+Joint optimization failed: too many indices for array: array is 1-dimensional, but 2 were indexed
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526563969759_20816.step(636 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526567298077_20816.step(950 ents)  Write  Done
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (28) does not match actual decoded face count (24).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Warning: Derived unique face ID count (16) does not match actual decoded face count (15).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526609650929_20816.step(857 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526611970240_20816.step(696 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (9) does not match actual decoded face count (8).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526631462779_20816.step(622 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526632440809_20816.step(308 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526634769031_20816.step(733 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526638138984_20816.step(988 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (45) does not match actual decoded face count (39).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526670933887_20816.step(741 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (6) does not match actual decoded face count (5).
+Error during reconstruction: attempt to get argmax of an empty sequence
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526680376258_20816.step(346 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (33) does not match actual decoded face count (32).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526703576980_20816.step(675 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526708050809_20816.step(835 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526710398223_20816.step(553 ents)  Write  Done
+Warning: 3 faces have been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526719786619_20816.step(841 ents)  Write  Done
+Warning: 2 faces have been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526724181797_20816.step(1140 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526728405825_20816.step(951 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Expected face index token at position 29, but found 10288
+Warning: Face 29 bbox token count mismatch, expected 6, got 3
+Warning: Face 29 feature token count mismatch, expected 4, got 0
+Warning: Expected face index token at position 40, but found 9266
+Warning: Face 30 bbox token count mismatch, expected 6, got 3
+Warning: Face 30 feature token count mismatch, expected 4, got 0
+Warning: Derived unique face ID count (12) does not match actual decoded face count (10).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (18) does not match actual decoded face count (16).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526755712756_20816.step(876 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526762581812_20816.step(1132 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526764894313_20816.step(579 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (30) does not match actual decoded face count (29).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Warning: Derived unique face ID count (21) does not match actual decoded face count (20).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526804027521_20816.step(826 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526806303936_20816.step(658 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526810673400_20816.step(514 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526813007609_20816.step(608 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526815306112_20816.step(722 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526821769410_20816.step(621 ents)  Write  Done
+Warning: Derived unique face ID count (21) does not match actual decoded face count (20).
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+high precision failed, trying mid precision...
+mid precision failed, trying low precision...
+Error during reconstruction: StdFail_NotDone raised from method GeomAPI_PointsToBSpline of class GeomAPI_PointsToBSpline
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526851318237_20816.step(877 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (36) does not match actual decoded face count (35).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (8) does not match actual decoded face count (7).
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526876585025_20816.step(917 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526899169214_20816.step(438 ents)  Write  Done
+Warning: Derived unique face ID count (6) does not match actual decoded face count (5).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526903838877_20816.step(966 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526910254087_20816.step(479 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526918594327_20816.step(739 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526933281674_20816.step(550 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Edge 2 feature token count mismatch, expected 4, got 2
+Edge bbox count (3) does not match NCS data count (2). Cannot continue.
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526944955929_20816.step(1407 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526946297608_20816.step(342 ents)  Write  Done
+Warning: Derived unique face ID count (21) does not match actual decoded face count (22).
+Joint optimization failed: zero-size array to reduction operation minimum which has no identity
+high precision failed, trying mid precision...
+mid precision failed, trying low precision...
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526958101329_20816.step(764 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784526978122140_20816.step(652 ents)  Write  Done
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (34) does not match actual decoded face count (33).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527005818645_20816.step(581 ents)  Write  Done
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527024960466_20816.step(736 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527027280289_20816.step(621 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527038738333_20816.step(882 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527043086986_20816.step(1407 ents)  Write  Done
+Warning: 2 faces have been skipped due to null triangulation
+Warning: Derived unique face ID count (24) does not match actual decoded face count (25).
+Joint optimization failed: zero-size array to reduction operation minimum which has no identity
+Warning: Expected face index token at position 35, but found 10291
+Warning: Face 19 bbox token count mismatch, expected 6, got 0
+Warning: Face 19 feature token count mismatch, expected 4, got 0
+Warning: Face 20 bbox token count mismatch, expected 6, got 0
+Warning: Face 20 feature token count mismatch, expected 4, got 0
+Warning: Face 21 bbox token count mismatch, expected 6, got 0
+Warning: Face 21 feature token count mismatch, expected 4, got 0
+Warning: Face 21 bbox token count mismatch, expected 6, got 0
+Warning: Face 21 feature token count mismatch, expected 4, got 0
+Warning: Expected face index token at position 72, but found 10292
+Warning: Derived unique face ID count (0) does not match actual decoded face count (5).
+Joint optimization failed: too many indices for array: array is 1-dimensional, but 2 were indexed
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527054436592_20816.step(714 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527068545874_20816.step(625 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (21) does not match actual decoded face count (19).
+Error during reconstruction: attempt to get argmax of an empty sequence
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527092297184_20816.step(364 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (9) does not match actual decoded face count (10).
+Joint optimization failed: zero-size array to reduction operation minimum which has no identity
+Warning: Edge 95 feature token count mismatch, expected 4, got 1
+Edge bbox count (96) does not match NCS data count (95). Cannot continue.
+Warning: Expected face index token at position 106, but found 9354
+Warning: Face 31 bbox token count mismatch, expected 6, got 0
+Warning: Face 31 feature token count mismatch, expected 4, got 3
+Warning: Derived unique face ID count (10) does not match actual decoded face count (9).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527124828721_20816.step(317 ents)  Write  Done
+Warning: 3 faces have been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527126054006_20816.step(400 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527129416655_20816.step(445 ents)  Write  Done
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527135183020_20816.step(363 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (11) does not match actual decoded face count (10).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527176401047_20816.step(423 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527177667277_20816.step(386 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527179949169_20816.step(801 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527190187453_20816.step(1037 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527196875550_20816.step(738 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527199314962_20816.step(644 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527201573397_20816.step(601 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527215631857_20816.step(1148 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+high precision failed, trying mid precision...
+high precision failed, trying mid precision...
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Expected face index token at position 480, but found 9491
+Warning: Expected face index token at position 487, but found 10289
+Warning: Expected face index token at position 494, but found 9439
+Warning: Expected face index token at position 501, but found 9491
+Warning: Expected face index token at position 508, but found 10289
+Warning: Expected face index token at position 515, but found 9439
+Warning: Expected face index token at position 522, but found 9491
+Warning: Expected face index token at position 529, but found 9491
+Warning: Expected face index token at position 536, but found 9040
+Warning: Expected face index token at position 543, but found 9491
+Warning: Expected face index token at position 550, but found 9491
+Warning: Expected face index token at position 557, but found 9491
+Warning: Expected face index token at position 564, but found 9491
+Warning: Expected face index token at position 571, but found 9491
+Warning: Expected face index token at position 578, but found 9491
+Warning: Expected face index token at position 585, but found 9491
+Warning: Expected face index token at position 592, but found 9491
+Warning: Expected face index token at position 599, but found 9491
+Warning: Expected face index token at position 606, but found 9491
+Warning: Expected face index token at position 613, but found 9491
+Warning: Expected face index token at position 620, but found 9040
+Warning: Expected face index token at position 627, but found 9491
+Warning: Expected face index token at position 634, but found 9491
+Warning: Expected face index token at position 641, but found 9491
+Warning: Expected face index token at position 648, but found 9491
+Warning: Expected face index token at position 655, but found 9491
+Warning: Expected face index token at position 662, but found 9491
+Warning: Expected face index token at position 669, but found 9491
+Warning: Expected face index token at position 676, but found 9491
+Warning: Expected face index token at position 683, but found 9491
+Warning: Expected face index token at position 690, but found 9491
+Warning: Expected face index token at position 697, but found 9491
+Warning: Expected face index token at position 704, but found 9491
+Warning: Expected face index token at position 711, but found 9491
+Warning: Expected face index token at position 718, but found 9491
+Warning: Expected face index token at position 725, but found 9491
+Warning: Expected face index token at position 732, but found 9491
+Warning: Expected face index token at position 739, but found 9491
+Warning: Expected face index token at position 746, but found 9491
+Warning: Expected face index token at position 753, but found 9491
+Warning: Expected face index token at position 760, but found 9491
+Warning: Expected face index token at position 767, but found 9491
+Warning: Expected face index token at position 774, but found 9491
+Warning: Expected face index token at position 781, but found 9491
+Warning: Expected face index token at position 788, but found 9491
+Warning: Expected face index token at position 795, but found 9491
+Warning: Expected face index token at position 802, but found 9491
+Warning: Expected face index token at position 809, but found 9491
+Warning: Expected face index token at position 816, but found 9491
+Warning: Expected face index token at position 823, but found 9491
+Warning: Expected face index token at position 830, but found 9491
+Warning: Expected face index token at position 837, but found 9491
+Warning: Expected face index token at position 844, but found 9491
+Warning: Expected face index token at position 851, but found 9491
+Warning: Expected face index token at position 858, but found 9491
+Warning: Expected face index token at position 865, but found 9491
+Warning: Expected face index token at position 872, but found 9491
+Warning: Expected face index token at position 879, but found 9491
+Warning: Expected face index token at position 886, but found 9491
+Warning: Expected face index token at position 893, but found 9491
+Warning: Expected face index token at position 900, but found 9491
+Warning: Expected face index token at position 907, but found 9491
+Warning: Expected face index token at position 914, but found 9491
+Warning: Expected face index token at position 921, but found 9491
+Warning: Expected face index token at position 928, but found 9491
+Warning: Expected face index token at position 935, but found 9491
+Warning: Expected face index token at position 942, but found 9491
+Warning: Expected face index token at position 949, but found 9491
+Warning: Expected face index token at position 956, but found 9491
+Warning: Expected face index token at position 963, but found 9491
+Warning: Expected face index token at position 970, but found 9491
+Warning: Expected face index token at position 977, but found 9491
+Warning: Expected face index token at position 984, but found 9491
+Warning: Expected face index token at position 991, but found 9491
+Warning: Expected face index token at position 998, but found 9491
+Warning: Expected face index token at position 1005, but found 9491
+Warning: Expected face index token at position 1012, but found 9491
+Warning: Expected face index token at position 1019, but found 9491
+Warning: Expected face index token at position 1026, but found 9491
+Warning: Expected face index token at position 1033, but found 9491
+Warning: Expected face index token at position 1040, but found 9491
+Warning: Expected face index token at position 1047, but found 9491
+Warning: Expected face index token at position 1054, but found 9491
+Warning: Expected face index token at position 1061, but found 9491
+Warning: Expected face index token at position 1068, but found 9491
+Warning: Expected face index token at position 1075, but found 9491
+Warning: Expected face index token at position 1082, but found 9491
+Warning: Expected face index token at position 1089, but found 9491
+Warning: Expected face index token at position 1096, but found 9491
+Warning: Expected face index token at position 1103, but found 9491
+Warning: Expected face index token at position 1110, but found 9491
+Warning: Expected face index token at position 1117, but found 9491
+Warning: Expected face index token at position 1124, but found 9491
+Warning: Expected face index token at position 1131, but found 9491
+Warning: Expected face index token at position 1138, but found 9491
+Warning: Expected face index token at position 1145, but found 9491
+Warning: Expected face index token at position 1152, but found 9491
+Warning: Expected face index token at position 1159, but found 9491
+Warning: Expected face index token at position 1166, but found 9491
+Warning: Expected face index token at position 1173, but found 9491
+Warning: Expected face index token at position 1180, but found 9491
+Warning: Expected face index token at position 1187, but found 9491
+Warning: Expected face index token at position 1194, but found 9491
+Warning: Expected face index token at position 1201, but found 9491
+Warning: Expected face index token at position 1208, but found 9491
+Warning: Expected face index token at position 1215, but found 9491
+Warning: Expected face index token at position 1222, but found 9491
+Warning: Expected face index token at position 1229, but found 9491
+Warning: Expected face index token at position 1236, but found 9491
+Warning: Expected face index token at position 1243, but found 9491
+Warning: Expected face index token at position 1250, but found 9491
+Warning: Expected face index token at position 1257, but found 9491
+Warning: Expected face index token at position 1264, but found 9491
+Warning: Expected face index token at position 1271, but found 9491
+Warning: Expected face index token at position 1278, but found 9491
+Warning: Expected face index token at position 1285, but found 9491
+Warning: Expected face index token at position 1292, but found 9491
+Warning: Expected face index token at position 1299, but found 9491
+Warning: Expected face index token at position 1306, but found 9491
+Warning: Expected face index token at position 1313, but found 9491
+Warning: Expected face index token at position 1320, but found 9491
+Warning: Expected face index token at position 1327, but found 9491
+Warning: Expected face index token at position 1334, but found 9491
+Warning: Expected face index token at position 1341, but found 9491
+Warning: Expected face index token at position 1348, but found 9491
+Warning: Expected face index token at position 1355, but found 9491
+Warning: Expected face index token at position 1362, but found 9491
+Warning: Expected face index token at position 1369, but found 9491
+Warning: Expected face index token at position 1376, but found 9491
+Warning: Expected face index token at position 1383, but found 9491
+Warning: Expected face index token at position 1390, but found 9491
+Warning: Expected face index token at position 1397, but found 9491
+Warning: Expected face index token at position 1404, but found 9491
+Warning: Expected face index token at position 1411, but found 9491
+Warning: Expected face index token at position 1418, but found 9491
+Warning: Expected face index token at position 1425, but found 9491
+Warning: Expected face index token at position 1432, but found 9491
+Warning: Expected face index token at position 1439, but found 9491
+Warning: Expected face index token at position 1446, but found 9491
+Warning: Expected face index token at position 1453, but found 9491
+Warning: Expected face index token at position 1460, but found 9491
+Warning: Expected face index token at position 1467, but found 9491
+Warning: Expected face index token at position 1474, but found 9491
+Warning: Expected face index token at position 1481, but found 9491
+Warning: Expected face index token at position 1488, but found 9491
+Warning: Expected face index token at position 1495, but found 9491
+Warning: Expected face index token at position 1502, but found 9491
+Warning: Expected face index token at position 1509, but found 9491
+Warning: Expected face index token at position 1516, but found 9491
+Warning: Expected face index token at position 1523, but found 9491
+Warning: Expected face index token at position 1530, but found 9491
+Warning: Derived unique face ID count (0) does not match actual decoded face count (43).
+Joint optimization failed: too many indices for array: array is 1-dimensional, but 2 were indexed
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527251540758_20816.step(1022 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Warning: Expected face index token at position 40, but found 10073
+Warning: Face 49 bbox token count mismatch, expected 6, got 0
+Warning: Face 49 feature token count mismatch, expected 4, got 3
+Warning: Derived unique face ID count (9) does not match actual decoded face count (8).
+Error during reconstruction: attempt to get argmax of an empty sequence
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527257901482_20816.step(897 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (27) does not match actual decoded face count (26).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (21) does not match actual decoded face count (20).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527301391748_20816.step(594 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527303655754_20816.step(693 ents)  Write  Done
+Warning: Derived unique face ID count (11) does not match actual decoded face count (12).
+Joint optimization failed: zero-size array to reduction operation minimum which has no identity
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527306882989_20816.step(355 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (19) does not match actual decoded face count (18).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527321493520_20816.step(643 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527323784224_20816.step(747 ents)  Write  Done
+high precision failed, trying mid precision...
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527327519707_20816.step(730 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527334081692_20816.step(624 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (24) does not match actual decoded face count (23).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (13) does not match actual decoded face count (11).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527389326566_20816.step(463 ents)  Write  Done
+Warning: 2 faces have been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527391547274_20816.step(606 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527394914075_20816.step(1104 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527466146804_20816.step(604 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527471528186_20816.step(654 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527487755896_20816.step(348 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: attempt to get argmax of an empty sequence
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (9) does not match actual decoded face count (10).
+Joint optimization failed: zero-size array to reduction operation minimum which has no identity
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527508862956_20816.step(1061 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (10) does not match actual decoded face count (9).
+Error during reconstruction: attempt to get argmax of an empty sequence
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527519593687_20816.step(616 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527526044879_20816.step(680 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Warning: Expected face index token at position 62, but found 10076
+Warning: Face 45 bbox token count mismatch, expected 6, got 3
+Warning: Face 45 feature token count mismatch, expected 4, got 0
+Warning: Expected face index token at position 480, but found 9200
+Warning: Expected face index token at position 487, but found 9793
+Warning: Expected face index token at position 494, but found 9661
+Warning: Expected face index token at position 501, but found 9331
+Warning: Expected face index token at position 508, but found 9661
+Warning: Expected face index token at position 515, but found 9661
+Warning: Expected face index token at position 519, but found 10291
+Warning: Face 41 bbox token count mismatch, expected 6, got 0
+Warning: Face 41 feature token count mismatch, expected 4, got 0
+Warning: Face 42 bbox token count mismatch, expected 6, got 0
+Warning: Face 42 feature token count mismatch, expected 4, got 0
+Warning: Face 43 bbox token count mismatch, expected 6, got 0
+Warning: Face 43 feature token count mismatch, expected 4, got 0
+Warning: Face 43 bbox token count mismatch, expected 6, got 0
+Warning: Face 43 feature token count mismatch, expected 4, got 0
+Warning: Face 43 bbox token count mismatch, expected 6, got 0
+Warning: Face 43 feature token count mismatch, expected 4, got 0
+Warning: Face 43 bbox token count mismatch, expected 6, got 0
+Warning: Face 43 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 45 bbox token count mismatch, expected 6, got 0
+Warning: Face 45 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 47 bbox token count mismatch, expected 6, got 0
+Warning: Face 47 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 47 bbox token count mismatch, expected 6, got 0
+Warning: Face 47 feature token count mismatch, expected 4, got 0
+Warning: Face 49 bbox token count mismatch, expected 6, got 0
+Warning: Face 49 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 0 bbox token count mismatch, expected 6, got 0
+Warning: Face 0 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 49 bbox token count mismatch, expected 6, got 0
+Warning: Face 49 feature token count mismatch, expected 4, got 0
+Warning: Face 1 bbox token count mismatch, expected 6, got 0
+Warning: Face 1 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 0 bbox token count mismatch, expected 6, got 0
+Warning: Face 0 feature token count mismatch, expected 4, got 0
+Warning: Face 2 bbox token count mismatch, expected 6, got 0
+Warning: Face 2 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 2 bbox token count mismatch, expected 6, got 0
+Warning: Face 2 feature token count mismatch, expected 4, got 0
+Warning: Face 3 bbox token count mismatch, expected 6, got 0
+Warning: Face 3 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 2 bbox token count mismatch, expected 6, got 0
+Warning: Face 2 feature token count mismatch, expected 4, got 0
+Warning: Face 4 bbox token count mismatch, expected 6, got 0
+Warning: Face 4 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 4 bbox token count mismatch, expected 6, got 0
+Warning: Face 4 feature token count mismatch, expected 4, got 0
+Warning: Face 5 bbox token count mismatch, expected 6, got 0
+Warning: Face 5 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 5 bbox token count mismatch, expected 6, got 0
+Warning: Face 5 feature token count mismatch, expected 4, got 0
+Warning: Face 6 bbox token count mismatch, expected 6, got 0
+Warning: Face 6 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 5 bbox token count mismatch, expected 6, got 0
+Warning: Face 5 feature token count mismatch, expected 4, got 0
+Warning: Face 7 bbox token count mismatch, expected 6, got 0
+Warning: Face 7 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 6 bbox token count mismatch, expected 6, got 0
+Warning: Face 6 feature token count mismatch, expected 4, got 0
+Warning: Face 8 bbox token count mismatch, expected 6, got 0
+Warning: Face 8 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 8 bbox token count mismatch, expected 6, got 0
+Warning: Face 8 feature token count mismatch, expected 4, got 0
+Warning: Face 9 bbox token count mismatch, expected 6, got 0
+Warning: Face 9 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 9 bbox token count mismatch, expected 6, got 0
+Warning: Face 9 feature token count mismatch, expected 4, got 0
+Warning: Face 10 bbox token count mismatch, expected 6, got 0
+Warning: Face 10 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 10 bbox token count mismatch, expected 6, got 0
+Warning: Face 10 feature token count mismatch, expected 4, got 0
+Warning: Face 11 bbox token count mismatch, expected 6, got 0
+Warning: Face 11 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 11 bbox token count mismatch, expected 6, got 0
+Warning: Face 11 feature token count mismatch, expected 4, got 0
+Warning: Face 12 bbox token count mismatch, expected 6, got 0
+Warning: Face 12 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 12 bbox token count mismatch, expected 6, got 0
+Warning: Face 12 feature token count mismatch, expected 4, got 0
+Warning: Face 13 bbox token count mismatch, expected 6, got 0
+Warning: Face 13 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 13 bbox token count mismatch, expected 6, got 0
+Warning: Face 13 feature token count mismatch, expected 4, got 0
+Warning: Face 14 bbox token count mismatch, expected 6, got 0
+Warning: Face 14 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 13 bbox token count mismatch, expected 6, got 0
+Warning: Face 13 feature token count mismatch, expected 4, got 0
+Warning: Face 15 bbox token count mismatch, expected 6, got 0
+Warning: Face 15 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 15 bbox token count mismatch, expected 6, got 0
+Warning: Face 15 feature token count mismatch, expected 4, got 0
+Warning: Face 16 bbox token count mismatch, expected 6, got 0
+Warning: Face 16 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 15 bbox token count mismatch, expected 6, got 0
+Warning: Face 15 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 46 bbox token count mismatch, expected 6, got 0
+Warning: Face 46 feature token count mismatch, expected 4, got 0
+Warning: Face 16 bbox token count mismatch, expected 6, got 0
+Warning: Face 16 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 17 bbox token count mismatch, expected 6, got 0
+Warning: Face 17 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 19 bbox token count mismatch, expected 6, got 0
+Warning: Face 19 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 48 bbox token count mismatch, expected 6, got 0
+Warning: Face 48 feature token count mismatch, expected 4, got 0
+Warning: Face 19 bbox token count mismatch, expected 6, got 0
+Warning: Face 19 feature token count mismatch, expected 4, got 0
+Warning: Face 40 bbox token count mismatch, expected 6, got 0
+Warning: Face 40 feature token count mismatch, expected 4, got 0
+Warning: Face 2 bbox token count mismatch, expected 6, got 0
+Warning: Face 2 feature token count mismatch, expected 4, got 0
+Warning: Face 20 bbox token count mismatch, expected 6, got 0
+Warning: Face 20 feature token count mismatch, expected 4, got 0
+Warning: Expected face index token at position 1528, but found 10292
+Warning: Derived unique face ID count (0) does not match actual decoded face count (125).
+Joint optimization failed: too many indices for array: array is 1-dimensional, but 2 were indexed
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527534570598_20816.step(657 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Edge 5 feature token count mismatch, expected 4, got 1
+Warning: Expected source/target face index, but found token 9552 at position 137
+Warning: Expected source/target face index, but found token 8889 at position 138
+Warning: Expected source/target face index, but found token 10286 at position 139
+Warning: Expected source/target face index, but found token 9809 at position 140
+Warning: Expected source/target face index, but found token 8889 at position 141
+Warning: Expected source/target face index, but found token 2129 at position 142
+Warning: Expected source/target face index, but found token 7821 at position 143
+Warning: Expected source/target face index, but found token 2266 at position 144
+Warning: Expected source/target face index, but found token 1802 at position 145
+Edge bbox count (9) does not match NCS data count (8). Cannot continue.
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (19) does not match actual decoded face count (18).
+high precision failed, trying mid precision...
+mid precision failed, trying low precision...
+high precision failed, trying mid precision...
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527573958528_20816.step(423 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (27) does not match actual decoded face count (26).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527594461917_20816.step(334 ents)  Write  Done
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Warning: Derived unique face ID count (31) does not match actual decoded face count (30).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527618688674_20816.step(574 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (23) does not match actual decoded face count (22).
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527636852583_20816.step(859 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527639173292_20816.step(758 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527641432518_20816.step(681 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527657775309_20816.step(327 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Warning: Derived unique face ID count (8) does not match actual decoded face count (7).
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527673662847_20816.step(741 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527681561980_20816.step(708 ents)  Write  Done
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527698573362_20816.step(669 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527700924955_20816.step(570 ents)  Write  Done
+Warning: 3 faces have been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527702724575_20816.step(456 ents)  Write  Done
+Warning: 1 face has been skipped due to null triangulation
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527705465026_20816.step(322 ents)  Write  Done
+Error during reconstruction: in method 'BRepBuilderAPI_MakeSolid_Add', argument 2 of type 'TopoDS_Shell const &'
+Error during reconstruction: StdFail_NotDoneBRep_API: command not done raised from method Wire of class BRepBuilderAPI_MakeWire
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527723084626_20816.step(890 ents)  Write  Done
+Warning: 3 faces have been skipped due to null triangulation
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527726274541_20816.step(862 ents)  Write  Done
+
+*******************************************************************
+******        Statistics on Transfer (Write)                 ******
+
+*******************************************************************
+******        Transfer Mode = 0  I.E.  As Is       ******
+******        Transferring Shape, ShapeType = 2                      ******
+** WorkSession : Sending all data
+ Step File Name : C:\Users\YU\AppData\Local\Temp\brep_step_1784527731488298_20816.step(1348 ents)  Write  Done
