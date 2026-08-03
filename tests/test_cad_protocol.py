@@ -49,6 +49,9 @@ def eligible_row(parent: str, parts: int = 1) -> list[dict]:
         (f"C:\\parsed\\{source('c' * 24)}", "c" * 24),
         (f"archive.zip!/{source('d' * 24)}", "d" * 24),
         (f"abc_0000/{'e' * 24}_step_001.pkl", "e" * 24),
+        (f"abc_0000/{'f' * 24}_step_1.pkl", None),
+        (f"abc_0000/{'0' * 24}_step_0001.pkl", None),
+        (f"abc_0000/{'1' * 24}_step_001.pkl\n", None),
         ("abc_0000/train_a.pkl", None),
     ],
 )
@@ -112,6 +115,24 @@ def test_protocol_rejects_unknown_parent_and_load_errors():
 
     assert unknown["reject_reason"] == "unknown_parent_id"
     assert failed["reject_reason"] == "load_failed:UnpicklingError"
+
+
+def test_rejection_reason_is_record_level_and_has_stable_priority():
+    config = ProtocolConfig()
+    missing_and_unknown = build_manifest_row("abc_0000/train_a.pkl", {}, config)
+    mixed = make_cad(
+        face_edges=[["0"]] + [list(range(31))] + [[0]] * 8,
+        edges=31,
+    )
+
+    assert missing_and_unknown["reject_reason"] == "unknown_parent_id"
+    assert build_manifest_row(source("a" * 24), mixed, config)["reject_reason"] == "too_many_edges_per_face"
+
+    mixed_order = make_cad(
+        face_edges=[list(range(31))] + [["0"]] + [[0]] * 8,
+        edges=31,
+    )
+    assert build_manifest_row(source("b" * 24), mixed_order, config)["reject_reason"] == "too_many_edges_per_face"
 
 
 def test_parent_split_is_deterministic_balanced_and_never_fragments_parent():
@@ -222,5 +243,22 @@ def test_scan_limit_is_labeled_smoke_and_eligible_cap_preserves_whole_parents(tm
     assert summary["records_scanned"] == 3
     assert len(selected_parents) == 1
     selected_parent = next(iter(selected_parents))
-    assert sum(row["parent_id"] == selected_parent for row in selected_rows) in {1, 2}
+    assert sum(row["parent_id"] == selected_parent for row in selected_rows) == 1
     assert sum(map(len, split.values())) == len(selected_rows)
+
+
+def test_protocol_summary_fails_when_no_eligible_records_exist(tmp_path):
+    archive = tmp_path / "abc_0000_parsed.zip"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr(source("a" * 24), pickle.dumps(make_cad(faces=9)))
+
+    _, split, summary = build_protocol(
+        archive_paths=[archive],
+        config=ProtocolConfig(seed=3),
+        output_dir=tmp_path / "out",
+        materialize_root=tmp_path / "materialized",
+    )
+
+    assert split == {"train": [], "val": [], "test": []}
+    assert summary["status"] == "FAILED"
+    assert summary["failure_reasons"] == ["no_eligible_records"]
