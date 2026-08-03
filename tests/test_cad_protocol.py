@@ -170,6 +170,14 @@ def test_invalid_field_has_priority_but_other_measurements_are_retained():
     assert result["reject_reason"] == "invalid_surf_ncs"
 
 
+def test_unknown_parent_does_not_hide_record_validation_failure():
+    row = build_manifest_row("abc_0000/not-a-parent.pkl", make_cad(faces=9), ProtocolConfig())
+
+    assert row["num_faces"] == 9
+    assert row["protocol_eligible"] is False
+    assert row["reject_reason"] == "too_few_faces"
+
+
 def test_parent_split_is_deterministic_balanced_and_never_fragments_parent():
     rows = (
         eligible_row("a" * 24, 4)
