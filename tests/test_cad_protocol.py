@@ -264,6 +264,34 @@ def test_build_protocol_scans_zip_writes_rejects_and_has_zero_parent_overlap(tmp
     assert all(Path(path).exists() for paths in split.values() for path in paths)
 
 
+def test_build_protocol_preserves_archive_identity_for_duplicate_member_names(tmp_path):
+    member = source("a" * 24, part=0, index=1)
+    archives = [
+        tmp_path / "abc_0000_parsed.zip",
+        tmp_path / "abc_0001_parsed.zip",
+    ]
+    for index, archive in enumerate(archives):
+        with zipfile.ZipFile(archive, "w") as handle:
+            handle.writestr(member, pickle.dumps(make_cad(edges=12 + index)))
+
+    _, split, summary = build_protocol(
+        archive_paths=archives,
+        config=ProtocolConfig(seed=7),
+        output_dir=tmp_path / "out",
+        materialize_root=tmp_path / "materialized",
+    )
+
+    materialized = [Path(path) for paths in split.values() for path in paths]
+    assert summary["records_selected"] == 2
+    assert len(materialized) == 2
+    assert len({path.resolve() for path in materialized}) == 2
+    assert {path.relative_to(tmp_path / "materialized").parts[1] for path in materialized} == {
+        "abc_0000_parsed",
+        "abc_0001_parsed",
+    }
+    assert all(path.exists() for path in materialized)
+
+
 def test_scan_limit_is_labeled_smoke_and_eligible_cap_preserves_whole_parents(tmp_path):
     archive = tmp_path / "abc_0000_parsed.zip"
     records = [

@@ -382,16 +382,21 @@ def _materialize_selected(
 ) -> dict[str, list[str]]:
     split: dict[str, list[str]] = {name: [] for name in SPLITS}
     open_archives: dict[Path, zipfile.ZipFile] = {}
+    materialized_targets: set[Path] = set()
     try:
         for row in sorted(selected_rows, key=lambda item: str(item["source_key"])):
             source_key = str(row["source_key"])
             archive_path, member = archive_locations[source_key]
             split_name = str(row["split"])
-            target = materialize_root / split_name / Path(member)
+            target = materialize_root / split_name / archive_path.stem / Path(member)
+            resolved_target = target.resolve()
+            if resolved_target in materialized_targets:
+                raise RuntimeError(f"duplicate materialization target: {resolved_target}")
+            materialized_targets.add(resolved_target)
             target.parent.mkdir(parents=True, exist_ok=True)
             archive = open_archives.setdefault(archive_path, zipfile.ZipFile(archive_path, "r"))
             _atomic_write_bytes(target, archive.read(member))
-            split[split_name].append(str(target.resolve()))
+            split[split_name].append(str(resolved_target))
     finally:
         for archive in open_archives.values():
             archive.close()

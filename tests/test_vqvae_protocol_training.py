@@ -690,9 +690,11 @@ def test_formal_vq_stage_rejects_dirty_manifest_before_sampling(
         getattr(train_module, stage_name)()
 
 
-def promotion_metrics(perplexity=900.0, curved_parent_mse=4e-5, nonfinite=0):
+def promotion_metrics(
+    perplexity=900.0, curved_parent_mse=4e-5, nonfinite=0, coverage=0.25
+):
     return {
-        "code_usage": {"entropy_perplexity": perplexity},
+        "code_usage": {"entropy_perplexity": perplexity, "coverage": coverage},
         "parent_cluster_reconstruction_mse": {
             "surface_curved_proxy": {"mse": curved_parent_mse}
         },
@@ -749,6 +751,68 @@ def test_vq_promotion_accepts_all_finite_metrics_at_thresholds(train_module):
 
     assert promotion["eligible"] is True
     assert promotion["reasons"] == []
+
+
+@pytest.mark.parametrize(
+    "metrics, perplexity_history, coverage_history, best_curved, expected, reason",
+    [
+        (promotion_metrics(perplexity=900.0, curved_parent_mse=4e-5), [1000.0], [0.25], 5e-5, True, None),
+        (promotion_metrics(perplexity=899.0, curved_parent_mse=4e-5), [1000.0], [0.25], 5e-5, False, "perplexity is below"),
+        (promotion_metrics(perplexity=900.0, curved_parent_mse=4e-5, coverage=0.224), [1000.0], [0.25], 5e-5, False, "coverage is below"),
+        (promotion_metrics(perplexity=900.0, curved_parent_mse=5e-5), [1000.0], [0.25], 5e-5, False, "curved parent-cluster MSE"),
+        (promotion_metrics(perplexity=900.0, curved_parent_mse=4e-5, nonfinite=1), [1000.0], [0.25], 5e-5, False, "nonfinite"),
+    ],
+)
+def test_vq_checkpoint_selector_requires_curved_improvement_and_stable_usage(
+    train_module,
+    metrics,
+    perplexity_history,
+    coverage_history,
+    best_curved,
+    expected,
+    reason,
+):
+    decision = train_module.evaluate_vq_checkpoint_candidate(
+        metrics,
+        prior_perplexities=perplexity_history,
+        prior_coverages=coverage_history,
+        best_curved_parent_mse=best_curved,
+    )
+
+    assert decision["selected"] is expected
+    if reason is not None:
+        assert any(reason in item for item in decision["reasons"])
+
+
+def test_vq_sweep_summary_does_not_promote_mse_leader_when_all_arms_fail(train_module):
+    results = [
+        {"name": "low-mse", "best_val_recon": 0.01, "promotion": {"eligible": False}},
+        {"name": "higher-mse", "best_val_recon": 0.02, "promotion": {"eligible": False}},
+    ]
+
+    summary = train_module.summarize_vq_sweep(results)
+
+    assert [item["name"] for item in summary["mse_ranking"]] == ["low-mse", "higher-mse"]
+    assert summary["promotion_eligible_candidates"] == []
+    assert summary["winner"] is None
+    assert summary["status"] == "NO_PROMOTED_ARM"
+
+
+def test_vq_sweep_summary_selects_lowest_mse_only_among_promoted_arms(train_module):
+    results = [
+        {"name": "failed-low", "best_val_recon": 0.01, "promotion": {"eligible": False}},
+        {"name": "eligible-high", "best_val_recon": 0.03, "promotion": {"eligible": True}},
+        {"name": "eligible-mid", "best_val_recon": 0.02, "promotion": {"eligible": True}},
+    ]
+
+    summary = train_module.summarize_vq_sweep(results)
+
+    assert [item["name"] for item in summary["promotion_eligible_candidates"]] == [
+        "eligible-mid",
+        "eligible-high",
+    ]
+    assert summary["winner"]["name"] == "eligible-mid"
+    assert summary["status"] == "PROMOTED_ARM_AVAILABLE"
 
 
 def test_downstream_vq_gate_blocks_unpromoted_model_by_default(
@@ -1435,6 +1499,86 @@ class ValidationDriftAutoencoder(TinyQuantizedAutoencoder):
         return torch.zeros_like(value)
 
 
+class GlobalImprovementAutoencoder(TinyQuantizedAutoencoder):
+    def __init__(self):
+        super().__init__()
+        self.validation_calls = 0
+
+    def decoder(self, value):
+        if self.training:
+            return value
+        self.validation_calls += 1
+        if self.validation_calls == 1:
+            return torch.zeros_like(value)
+        return value
+
+
+def test_train_vqvae_checkpoint_selector_rejects_global_mse_only_improvement(
+    tmp_path, monkeypatch, train_module
+):
+    checkpoint_path = tmp_path / "best.pt"
+    samples = np.ones((1, 3, 32, 32), dtype=np.float32)
+    summaries = [
+        promotion_metrics(perplexity=1000.0, curved_parent_mse=0.1),
+        promotion_metrics(perplexity=1000.0, curved_parent_mse=0.2),
+    ]
+    for summary in summaries:
+        summary["reconstruction_mse"] = {
+            "surface_planar_like": {"samples": 0, "nonfinite_samples": 0, "mse": None},
+            "surface_curved_proxy": {"samples": 1, "nonfinite_samples": 0, "mse": 0.1},
+            "edge": {"samples": 0, "nonfinite_samples": 0, "mse": None},
+        }
+        summary["parent_cluster_mse"] = {
+            "unique_patch_samples": 1,
+            "parent_patch_contributions": 1,
+            "parent_clusters": 1,
+            "nonfinite_samples": 0,
+            "nonfinite_parent_contributions": 0,
+            "nonfinite_parents": 0,
+            "mse": summary["parent_cluster_reconstruction_mse"]["surface_curved_proxy"]["mse"],
+        }
+
+    class FixedAccumulator:
+        instances = 0
+
+        def __init__(self, *_args, **_kwargs):
+            self.index = type(self).instances
+            type(self).instances += 1
+
+        def update(self, *_args, **_kwargs):
+            return None
+
+        def summary(self):
+            return summaries[self.index]
+
+    monkeypatch.setattr(train_module, "VQValidationAccumulator", FixedAccumulator)
+
+    history, best_val, meta = train_module._train_vqvae(
+        GlobalImprovementAutoencoder(),
+        samples,
+        samples,
+        epochs=2,
+        bs=1,
+        lr=0.0,
+        tag="representation-selector",
+        save_path=str(checkpoint_path),
+        amp_enabled=False,
+        val_buckets=["surface_curved_proxy"],
+        val_parent_ids=["parent-a"],
+        codebook_size=4,
+        fsq_levels=(2, 2),
+    )
+
+    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    assert history[0][1] == pytest.approx(1.0)
+    assert history[1][1] == pytest.approx(0.0)
+    assert best_val == pytest.approx(0.0)
+    assert meta["global_best_epoch"] == 1
+    assert meta["checkpoint_epoch"] == 0
+    assert checkpoint["checkpoint_epoch"] == 0
+    assert checkpoint["validation_metrics"] == summaries[0]
+
+
 def test_train_vqvae_binds_best_epoch_metrics_and_context_to_checkpoint(
     tmp_path, train_module
 ):
@@ -1469,7 +1613,7 @@ def test_train_vqvae_binds_best_epoch_metrics_and_context_to_checkpoint(
     assert meta["best_epoch"] == 0
     assert meta["best_val_metrics"]["reconstruction_mse"]["surface_curved_proxy"]["mse"] == 0.0
     assert meta["last_val_metrics"]["reconstruction_mse"]["surface_curved_proxy"]["mse"] == 1.0
-    assert checkpoint["checkpoint_epoch"] == meta["best_epoch"]
+    assert checkpoint["checkpoint_epoch"] == meta["checkpoint_epoch"]
     assert checkpoint["validation_metrics"] == meta["best_val_metrics"]
     assert checkpoint["checkpoint_context"] == context
     assert checkpoint["fsq_levels"] == [2, 2]

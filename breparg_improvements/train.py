@@ -259,6 +259,83 @@ def evaluate_vq_promotion(
     }
 
 
+def _finite_mean(values):
+    finite = [float(value) for value in values if safe_json_number(value) is not None]
+    return float(np.mean(finite)) if finite else None
+
+
+def evaluate_vq_checkpoint_candidate(
+        metrics,
+        prior_perplexities=(),
+        prior_coverages=(),
+        best_curved_parent_mse=float('inf'),
+        history_ratio=0.9):
+    """Select a representation checkpoint from curved quality and stable usage."""
+    code_usage = metrics.get('code_usage') or {}
+    bucket_metrics = metrics.get('parent_cluster_reconstruction_mse') or {}
+    curved_metrics = bucket_metrics.get('surface_curved_proxy') or {}
+    perplexity = safe_json_number(code_usage.get('entropy_perplexity'))
+    coverage = safe_json_number(code_usage.get('coverage'))
+    curved_parent_mse = safe_json_number(curved_metrics.get('mse'))
+    nonfinite = metrics.get('nonfinite_val_samples')
+    perplexity_mean = _finite_mean(prior_perplexities)
+    coverage_mean = _finite_mean(prior_coverages)
+    reasons = []
+    if curved_parent_mse is None or float(curved_parent_mse) >= float(best_curved_parent_mse):
+        reasons.append(
+            "curved parent-cluster MSE did not improve: "
+            f"{curved_parent_mse!r} >= {best_curved_parent_mse!r}"
+        )
+    if perplexity is None:
+        reasons.append("perplexity is nonfinite or missing")
+    elif perplexity_mean is not None and float(perplexity) < history_ratio * perplexity_mean:
+        reasons.append(
+            "perplexity is below 90% of historical mean: "
+            f"{perplexity!r} < {history_ratio * perplexity_mean!r}"
+        )
+    if coverage is None:
+        reasons.append("coverage is nonfinite or missing")
+    elif coverage_mean is not None and float(coverage) < history_ratio * coverage_mean:
+        reasons.append(
+            "coverage is below 90% of historical mean: "
+            f"{coverage!r} < {history_ratio * coverage_mean!r}"
+        )
+    if type(nonfinite) is not int or nonfinite != 0:
+        reasons.append(f"nonfinite validation samples must be 0, observed {nonfinite!r}")
+    return {
+        'selected': not reasons,
+        'reasons': reasons,
+        'observed': {
+            'curved_parent_mse': curved_parent_mse,
+            'perplexity': perplexity,
+            'coverage': coverage,
+        },
+        'historical_means': {
+            'perplexity': perplexity_mean,
+            'coverage': coverage_mean,
+        },
+        'history_ratio': float(history_ratio),
+    }
+
+
+def summarize_vq_sweep(results):
+    mse_ranking = sorted(results, key=lambda item: item['best_val_recon'])
+    eligible = sorted(
+        (item for item in results if (item.get('promotion') or {}).get('eligible') is True),
+        key=lambda item: (
+            item.get('checkpoint_val_recon')
+            if item.get('checkpoint_val_recon') is not None
+            else item['best_val_recon']
+        ),
+    )
+    return {
+        'mse_ranking': mse_ranking,
+        'promotion_eligible_candidates': eligible,
+        'winner': eligible[0] if eligible else None,
+        'status': 'PROMOTED_ARM_AVAILABLE' if eligible else 'NO_PROMOTED_ARM',
+    }
+
+
 def require_vq_promotion(stage_name):
     """Fail closed before VQ-dependent work unless a diagnostic override is explicit."""
     report = load_report()
@@ -965,6 +1042,9 @@ def _train_vqvae(
     initial_best = float(initial_best_val) if initial_best_val is not None else float('inf')
     stop_state = VQVAEStopState(best_val=initial_best, best_epoch=int(initial_best_epoch))
     best_val = stop_state.best_val; hist = []; history = list(history_prefix or [])
+    best_curved_parent_mse = float('inf')
+    prior_perplexities = []
+    prior_coverages = []
     meta = {
         'epochs_requested': epochs,
         'epochs_ran': 0,
@@ -980,6 +1060,9 @@ def _train_vqvae(
         'train_weight_max': float(torch.max(Wtr).item()) if Wtr is not None and len(Wtr) else None,
         'last_val_metrics': None,
         'best_val_metrics': None,
+        'global_best_epoch': int(initial_best_epoch),
+        'checkpoint_epoch': -1,
+        'checkpoint_val_recon': None,
     }
     writer = None
     if tb_log_dir:
@@ -1049,17 +1132,44 @@ def _train_vqvae(
         val_metrics = val_accumulator.summary() if val_accumulator is not None else None
         if val_metrics is not None:
             val_metrics['nonfinite_val_samples'] = nonfinite_val_samples
+            checkpoint_decision = evaluate_vq_checkpoint_candidate(
+                val_metrics,
+                prior_perplexities=prior_perplexities,
+                prior_coverages=prior_coverages,
+                best_curved_parent_mse=best_curved_parent_mse,
+            )
+        else:
+            checkpoint_decision = {
+                'selected': bool(improved),
+                'reasons': [] if improved else ['global validation MSE did not improve'],
+                'observed': {},
+                'historical_means': {},
+                'history_ratio': None,
+            }
         checkpoint_payload = {
             'model_state_dict': model.state_dict(),
             'fsq_levels': list(fsq_levels),
             'checkpoint_epoch': absolute_epoch,
             'validation_metrics': val_metrics,
             'checkpoint_context': checkpoint_context,
+            'validation_loss': metric_for_report(va),
+            'checkpoint_selection': checkpoint_decision,
         }
-        if improved:
+        if checkpoint_decision['selected']:
             meta['best_val_metrics'] = val_metrics
+            meta['checkpoint_epoch'] = absolute_epoch
+            meta['checkpoint_val_recon'] = metric_for_report(va)
+            curved_parent_mse = checkpoint_decision['observed'].get('curved_parent_mse')
+            if curved_parent_mse is not None:
+                best_curved_parent_mse = float(curved_parent_mse)
             if save_path:
                 torch.save(checkpoint_payload, save_path)
+        if val_metrics is not None:
+            code_usage = val_metrics.get('code_usage') or {}
+            if safe_json_number(code_usage.get('entropy_perplexity')) is not None:
+                prior_perplexities.append(float(code_usage['entropy_perplexity']))
+            if safe_json_number(code_usage.get('coverage')) is not None:
+                prior_coverages.append(float(code_usage['coverage']))
         if save_final_path:
             torch.save(checkpoint_payload, save_final_path)
         record = {
@@ -1069,6 +1179,8 @@ def _train_vqvae(
             'best_val': metric_for_report(best_val),
             'best_epoch': stop_state.best_epoch,
             'improved': improved,
+            'checkpoint_selected': checkpoint_decision['selected'],
+            'checkpoint_selection_reasons': checkpoint_decision['reasons'],
             'train_batches': train_batches,
             'finite_train_batches': nb,
             'skipped_train_batches': skipped_train_batches,
@@ -1093,6 +1205,8 @@ def _train_vqvae(
         meta.update({
             'epochs_ran': ep + 1,
             'best_epoch': stop_state.best_epoch,
+            'global_best_epoch': stop_state.best_epoch,
+            'checkpoint_epoch': meta['checkpoint_epoch'],
             'end_epoch': absolute_epoch,
             'stop_reason': stop_state.stop_reason,
             'last_val_metrics': val_metrics,
@@ -1204,6 +1318,8 @@ def stage_vqsweep():
             'tensorboard_dir': arm_tb,
             'final_val_metrics': final_metrics,
             'best_val_metrics': arm_meta.get('best_val_metrics'),
+            'checkpoint_epoch': arm_meta.get('checkpoint_epoch'),
+            'checkpoint_val_recon': arm_meta.get('checkpoint_val_recon'),
             'checkpoint_best': arm_checkpoint,
             'train_sampling': protocol_data['train_sampling'],
             'val_sampling': protocol_data['val_sampling'],
@@ -1212,18 +1328,35 @@ def stage_vqsweep():
             'promotion': promotion,
         })
         log(f"  -> {c['name']}: best_val_recon={bv:.5f}")
-    results.sort(key=lambda x: x['best_val_recon'])
+    sweep_summary = summarize_vq_sweep(results)
     json.dump(
-        {'run_manifest': run_manifest, 'sweep': results, 'winner': results[0]},
+        {
+            'run_manifest': run_manifest,
+            'sweep': sweep_summary['mse_ranking'],
+            **sweep_summary,
+        },
         open(SWEEP_JSON, 'w'),
         indent=2,
     )
     r = load_report(); r['stages']['vqsweep'] = {
         'run_manifest': run_manifest,
-        'results': results,
-        'winner': results[0]['name'],
+        'results': sweep_summary['mse_ranking'],
+        'mse_ranking': [item['name'] for item in sweep_summary['mse_ranking']],
+        'promotion_eligible_candidates': [
+            item['name'] for item in sweep_summary['promotion_eligible_candidates']
+        ],
+        'winner': (
+            sweep_summary['winner']['name'] if sweep_summary['winner'] is not None else None
+        ),
+        'status': sweep_summary['status'],
     }; save_report(r)
-    log(f"  WINNER: {results[0]['name']} (val_recon={results[0]['best_val_recon']})")
+    if sweep_summary['winner'] is None:
+        log("  NO PROMOTED ARM: MSE ranking is diagnostic only")
+    else:
+        log(
+            f"  PROMOTED WINNER: {sweep_summary['winner']['name']} "
+            f"(val_recon={sweep_summary['winner']['best_val_recon']})"
+        )
     return True
 
 

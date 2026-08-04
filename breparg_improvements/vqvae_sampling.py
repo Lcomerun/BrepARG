@@ -594,16 +594,15 @@ def balanced_round_robin_records(
     for record in candidates:
         by_parent[_canonical_parent_identity(record.get("parent_id"))].append(record)
 
+    natural_representative = {}
+    for record in full_order:
+        parent = _canonical_parent_identity(record.get("parent_id"))
+        natural_representative.setdefault(parent, record)
+
     selected = []
     selected_ids = set()
     for parent in parent_order[:target]:
-        record = min(
-            by_parent[parent],
-            key=lambda item: (
-                -float(item.get("curvature_score", 0.0)),
-                _record_sort_key(item),
-            ),
-        )
+        record = natural_representative[parent]
         selected.append(record)
         selected_ids.add(record.get("record_id"))
 
@@ -622,9 +621,36 @@ def balanced_round_robin_records(
             _record_sort_key(record),
         ),
     )
+    for index, record in enumerate(list(selected)):
+        if curved_selected >= curved_target:
+            break
+        if float(record.get("curvature_score", 0.0)) > 0.0:
+            continue
+        parent = _canonical_parent_identity(record.get("parent_id"))
+        replacements = [
+            candidate
+            for candidate in by_parent[parent]
+            if candidate.get("record_id") not in selected_ids
+            and float(candidate.get("curvature_score", 0.0)) > 0.0
+        ]
+        if not replacements:
+            continue
+        replacement = min(
+            replacements,
+            key=lambda item: (
+                -float(item.get("curvature_score", 0.0)),
+                _record_sort_key(item),
+            ),
+        )
+        selected_ids.remove(record.get("record_id"))
+        selected_ids.add(replacement.get("record_id"))
+        selected[index] = replacement
+        curved_selected += 1
     for record in curved_order:
         if len(selected) == target or curved_selected >= curved_target:
             break
+        if record.get("record_id") in selected_ids:
+            continue
         selected.append(record)
         selected_ids.add(record.get("record_id"))
         curved_selected += 1

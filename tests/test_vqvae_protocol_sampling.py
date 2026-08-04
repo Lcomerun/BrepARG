@@ -15,6 +15,7 @@ if str(IMPROVEMENTS_DIR) not in sys.path:
 
 
 from vqvae_sampling import (  # noqa: E402
+    _balanced_round_robin_order,
     audit_train_val_inventories,
     balanced_round_robin_records,
     canonical_patch_hash,
@@ -216,6 +217,40 @@ def test_balanced_round_robin_records_honors_curved_fraction_and_parent_coverage
     assert {item["parent_id"] for item in selected} == set(parents)
 
 
+def test_zero_curved_fraction_uses_seeded_round_robin_representatives():
+    parents = ("a" * 24, "b" * 24, "c" * 24, "d" * 24)
+    records = []
+    for index, parent in enumerate(parents):
+        records.extend(
+            [
+                {
+                    **record(f"curved-{index}", source(parent, index=1), parent),
+                    "curvature_score": 1.0,
+                },
+                {
+                    **record(f"flat-{index}", source(parent, index=2), parent),
+                    "curvature_score": 0.0,
+                },
+            ]
+        )
+    expected = []
+    seen_parents = set()
+    for candidate in _balanced_round_robin_order(records, seed=8):
+        if candidate["parent_id"] not in seen_parents:
+            expected.append(candidate["record_id"])
+            seen_parents.add(candidate["parent_id"])
+
+    selected = balanced_round_robin_records(
+        records,
+        target=4,
+        curved_fraction=0.0,
+        seed=8,
+    )
+
+    assert [item["record_id"] for item in selected] == expected
+    assert sum(item["curvature_score"] > 0 for item in selected) < len(selected)
+
+
 def test_balanced_sampling_prioritizes_parent_coverage_over_concentrated_curved_quota():
     parents = ("a" * 24, "b" * 24, "c" * 24, "d" * 24)
     records = [
@@ -242,6 +277,33 @@ def test_balanced_sampling_prioritizes_parent_coverage_over_concentrated_curved_
 
     assert {item["parent_id"] for item in selected} == set(parents)
     assert sum(item["curvature_score"] > 0 for item in selected) == 1
+
+
+def test_curved_replacement_never_duplicates_records_when_target_exceeds_parents():
+    parents = ("a" * 24, "b" * 24)
+    records = []
+    for parent_index, parent in enumerate(parents):
+        for patch_index in range(6):
+            records.append(
+                {
+                    **record(
+                        f"record-{parent_index}-{patch_index}",
+                        source(parent, index=patch_index + 1),
+                        parent,
+                    ),
+                    "curvature_score": 1.0 if patch_index >= 3 else 0.0,
+                }
+            )
+
+    selected = balanced_round_robin_records(
+        records,
+        target=8,
+        curved_fraction=0.75,
+        seed=1,
+    )
+
+    assert len(selected) == 8
+    assert len({item["record_id"] for item in selected}) == 8
 
 
 def test_parent_coverage_counts_direct_selected_parents_not_merged_provenance(tmp_path):

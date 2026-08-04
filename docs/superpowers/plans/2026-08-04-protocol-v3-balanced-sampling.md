@@ -23,6 +23,10 @@ The previous 10-epoch comparison was a valid pipeline smoke but sampled only 27/
 - [x] (2026-08-04) Verified the review repairs: `compileall` succeeds, the focused suite reports 139 passed, the full suite reports 381 passed and the unchanged 16 excluded-tree/legacy-fixture/Python-version baseline failures. The real Protocol V2 split passes the strict loader with 795/100/99 records.
 - [x] (2026-08-04) Bound promotion to the actual best checkpoint, its best-epoch validation metrics, FSQ levels, split/protocol hashes and clean Git commit; made artifact binding non-overridable in sequence/AR stages and embedded the binding in generated sequence packages.
 - [x] (2026-08-04) Re-verified the completed source: 159 focused tests pass, `compileall` and diff checks succeed, the real 795/100/99 split is SHA-bound with zero overlap, and the full suite reports 401 passed with the same 16 documented baseline failures.
+- [x] (2026-08-04) Stopped the first clean seed-0 rerun before completion after final review proved that `curved_fraction=0` still selected each parent's highest-curvature representative; quarantined that partial local run from all evidence.
+- [x] (2026-08-04) Added red-green repairs for archive-qualified materialization, unbiased zero-curvature parent representatives, duplicate-safe explicit curved quota replacement, longitudinal curved/usage checkpoint selection, and promotion-aware sweep winner reporting.
+- [x] (2026-08-04) Re-ran the four-module focused suite with 170 passes and audited a real 1,200/463 collection: 795/100 sources scanned, zero failures/overlaps, 95.98%/100% final parent coverage, and a natural 63.8% curved share among selected surfaces rather than forced 100% curved representatives.
+- [x] (2026-08-04) Re-ran the complete suite before the immutable experiment commit: 412 tests pass and the remaining 16 failures are exactly the documented 11 excluded-`BrepARG/`, one legacy sequence-fixture, and four Python 3.10 `Path.write_text(newline=...)` baseline failures.
 - [ ] Commit source/tests/plan as the immutable experiment revision.
 - [ ] Re-run the two-seed, three-arm 15-epoch cohort from that clean commit and rebuild E029 plus six lightweight TensorBoard events.
 - [ ] Commit the corrected evidence, push the branch, verify the remote SHA and audit the uploaded tree for excluded data, weights, `BrepARG/`, `papers/` and files over 10 MiB.
@@ -51,6 +55,10 @@ The previous 10-epoch comparison was a valid pipeline smoke but sampled only 27/
   Evidence: direct `vqsweep`/`vqvae` stages loaded `split.pkl` without calling `stage_split`, and `--stage all` could proceed after finite global MSE without checking perplexity or curved parent-cluster MSE.
 - Observation: the first promotion implementation evaluated the last epoch while loading the best checkpoint, and helper-level binding tests did not prove that stage entry points used the binding.
   Evidence: `_train_vqvae` saved before constructing full validation metrics, while `stage_vqvae` and `stage_vqsweep` read `last_val_metrics`; new regressions distinguish best epoch zero from a worse final epoch and intercept every downstream stage before input loading.
+- Observation: archive-qualified source identities were collapsed again during materialization, and zero requested curved quota still biased every parent representative toward maximum curvature.
+  Evidence: two archives containing the same member produced two split rows pointing to one overwritten path, while four parents with one flat and one curved record each produced four curved selections at `curved_fraction=0`.
+- Observation: replacing flat parent representatives to satisfy an explicit curved quota can leave the replacement in a previously built curved candidate list.
+  Evidence: with two parents, twelve records, target eight, quota 0.75 and seed one, one curved `record_id` appeared twice before the append loop rechecked selected identities.
 
 ## Decision Log
 
@@ -99,6 +107,15 @@ The previous 10-epoch comparison was a valid pipeline smoke but sampled only 27/
 - Decision: save each sweep arm's ignored best checkpoint and derive its promotion observation from the metrics stored inside that checkpoint.
   Rationale: ranking or promotion based on final-epoch metrics can disagree with the model weights actually selected by best validation loss.
   Date/Author: 2026-08-04 / Codex.
+- Decision: preserve archive identity in materialized paths as `split/archive_stem/member` and fail closed if those qualified targets still collide.
+  Rationale: the manifest source key already distinguishes archives; the filesystem artifact must preserve the same identity before the protocol can safely expand across chunks.
+  Date/Author: 2026-08-04 / Codex.
+- Decision: use seeded round-robin representatives for parent coverage and invoke curvature ranking only for an explicit positive curved quota.
+  Rationale: a zero quota means natural deterministic sampling, not implicit per-parent curved oversampling.
+  Date/Author: 2026-08-04 / Codex.
+- Decision: distinguish global-MSE optimization from representation-checkpoint selection, and publish no sweep winner when no checkpoint passes the absolute representation gate.
+  Rationale: the saved checkpoint must improve curved parent-cluster MSE while keeping perplexity and coverage at least 90% of their prior finite means; a failed arm may remain in diagnostic MSE ranking but cannot be called promoted.
+  Date/Author: 2026-08-04 / Codex.
 
 ## Outcomes & Retrospective
 
@@ -107,6 +124,8 @@ Protocol V3 removes the prefix-file failure that made a small patch cap look ran
 Post-review hardening additionally expands every unique validation patch over all provenance parents for CAD-cluster metrics, verifies the SHA-bound split in every VQ/sequence consumer, makes representation promotion executable before sequence/AR work, protects parent coverage from curved quotas, and matches both shared network initialization and subsequent training RNG streams across FSQ arms.
 
 The final source hardening stores complete best-epoch validation metrics and immutable run context in every best checkpoint. Promotion is rebuilt from that payload, records the checkpoint SHA, and is verified against the current split, FSQ levels and clean Git commit before sequence or AR inputs are opened. Sequence packages carry the same binding, so stale packages fail closed even when the explicit weak-representation override is enabled.
+
+The final review found that the first clean rerun would still be scientifically confounded, so it was terminated and excluded before publication. Materialization now retains archive identity, zero curved quota follows seeded natural round-robin representatives, and representation checkpoints use a longitudinal curved-MSE plus stable-usage selector. Sweep JSON separately exposes global-MSE ranking and promotion-eligible candidates; if all arms fail the absolute gate, `winner` is null and status is `NO_PROMOTED_ARM`.
 
 The preliminary 15-epoch experiment is retained locally only as debugging evidence. It showed that the larger cohort and logging path run, but it cannot select an architecture: shared decoder initialization differed across arms, and its parent-cluster values assigned each deduplicated patch to only one representative CAD. The corrected cohort must be rerun from a clean commit before any arm ranking is published. Sequence regeneration and AR training remain blocked by executable promotion criteria, not merely by report prose.
 
@@ -136,7 +155,7 @@ Before that rerun, add regression tests and implementations for five review gate
 
 Run from `D:\\luolin\\V13\\.worktrees\\protocol-v3-balanced-sampling`:
 
-    C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe -m pytest -p no:cacheprovider --basetemp=local_runs/protocol_v3_pytest tests/test_vqvae_protocol_sampling.py tests/test_vqvae_protocol_training.py tests/test_vqvae_metrics.py -q
+    C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe -m pytest -p no:cacheprovider --basetemp=local_runs/protocol_v3_pytest tests/test_cad_protocol.py tests/test_vqvae_protocol_sampling.py tests/test_vqvae_protocol_training.py tests/test_vqvae_metrics.py -q
 
 The new tests must pass. Then run:
 
@@ -145,7 +164,7 @@ The new tests must pass. Then run:
 
 Acceptance for the real-data collection is: `scan_complete=true`, `failed_paths=0`, exact split overlap remains zero, `parent_coverage` is at least 0.90 for both train and validation, and the report states the effective parent counts. Acceptance for the larger experiment is finite history, no validation epoch with silent nonfinite samples, and a three-arm table that includes patch-level and parent-cluster metrics. It is not acceptable to promote AR from this experiment alone.
 
-The completed source checkpoint passes 159 focused tests. `compileall` and both staged and unstaged diff checks succeed. The complete suite reports 401 passed and the unchanged 16 known failures: eleven tests require the intentionally excluded `BrepARG/` tree, one old sequence-sharding fixture omits `ordering`, and four packaging tests use the Python 3.11 `Path.write_text(newline=...)` argument while this environment is Python 3.10. The strict real-data loader accepts 795/100/99 records with protocol SHA `43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f`, split SHA `df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357`, and all three actual parent-overlap counts equal to zero. The corrected six histories must contain 15 finite validation epochs, provenance-aware contribution counts, executable checkpoint-bound promotion records and matched-initialization metadata. Six TensorBoard events must match the rebuilt histories tag-for-tag and step-for-step. The inventory must again report exact caps, at least 90% parent coverage and zero source, parent and exact-hash overlap.
+The review-repaired source passes 170 tests with the exact four-file focused command above. The fresh complete-suite run reports 412 passed and the same 16 documented baseline failures: 11 require the intentionally excluded `BrepARG/` tree, one uses a legacy sequence fixture without `ordering`, and four call the Python 3.11 `Path.write_text(newline=...)` API under Python 3.10. No Protocol V3 test fails. The strict real-data loader accepts 795/100/99 records with protocol SHA `43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f`, split SHA `df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357`, and all three actual parent-overlap counts equal to zero. The corrected six histories must contain 15 finite validation epochs, provenance-aware contribution counts, explicit longitudinal checkpoint-selection records, checkpoint-bound promotion decisions and matched-initialization metadata. Six TensorBoard events must match the rebuilt histories tag-for-tag and step-for-step. The inventory must again report exact caps, at least 90% parent coverage and zero source, parent and exact-hash overlap.
 
 ## Idempotence and Recovery
 
@@ -188,3 +207,7 @@ Revision note 2026-08-04: completed the review-driven red-green repairs, added a
 Revision note 2026-08-04: recorded fresh post-review verification: 139 focused tests pass, `compileall` succeeds, the full suite has 381 passes and only the same 16 documented baseline failures, and the strict loader accepts the real 795/100/99 Protocol V2 split.
 
 Revision note 2026-08-04: completed the final checkpoint/promotion contract after an additional review. Best checkpoints now carry best-epoch metrics and clean run context, all downstream stages verify artifact binding independently of the representation override, sequence packages preserve that binding, and fresh verification reports 159 focused plus 401 full-suite passes with no new failure category.
+
+Revision note 2026-08-04: a final clean-commit review found archive materialization collisions, implicit curved oversampling at zero quota, and unconditional sweep winner reporting. The first seed-zero rerun was terminated and excluded. This revision records the red-green fixes, adds longitudinal curved/usage checkpoint selection, replaces the ambiguous focused count with its exact four-file command, and requires a new clean commit before any experiment resumes.
+
+Revision note 2026-08-04: recorded the final pre-commit complete-suite result of 412 passes and confirmed that all 16 remaining failures stay within the three previously documented baseline categories, with no Protocol V3 regression.
