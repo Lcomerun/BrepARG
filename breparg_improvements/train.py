@@ -65,6 +65,7 @@ from vqvae_sampling import (
     remove_train_exact_hash_overlap,
     records_to_chw_array,
     records_to_patch_weights,
+    validate_inventory_identities,
 )
 from vqvae_metrics import VQValidationAccumulator, patch_bucket
 from vqvae_sample_cache import load_vqvae_sample_cache, save_vqvae_sample_cache
@@ -290,6 +291,7 @@ def _collect_protocol_inventory(paths, cap, seed):
         max_source_faces=VQ_MAX_SOURCE_FACES,
         max_source_edges=VQ_MAX_SOURCE_EDGES,
         require_parent_id=True,
+        require_all_paths=True,
     )
     deduplicated, dedup_summary = deduplicate_patch_records(records)
     if not deduplicated:
@@ -310,6 +312,20 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
     val_records, val_sampling, val_dedup = _collect_protocol_inventory(
         split.get('val', []), val_cap, seed=1
     )
+    train_sources, train_parents = validate_inventory_identities(train_records, 'train')
+    val_sources, val_parents = validate_inventory_identities(val_records, 'val')
+    source_overlap = sorted(train_sources & val_sources)
+    parent_overlap = sorted(train_parents & val_parents)
+    identity_failures = []
+    if source_overlap:
+        identity_failures.append(f"source_key overlap: {source_overlap}")
+    if parent_overlap:
+        identity_failures.append(f"parent_id overlap: {parent_overlap}")
+    if identity_failures:
+        raise ValueError(
+            "train/val identity audit failed before exact filtering: "
+            + "; ".join(identity_failures)
+        )
     train_records, cross_split_exact = remove_train_exact_hash_overlap(
         train_records, val_records
     )
@@ -363,8 +379,19 @@ def stage_split():
         if summary.get('status') != 'VERIFIED':
             raise RuntimeError("Protocol V2 summary must have status VERIFIED")
         overlaps = summary.get('parent_overlap_counts', {})
-        if any(int(value) != 0 for value in overlaps.values()):
-            raise RuntimeError("Protocol V2 summary reports parent overlap")
+        required_overlaps = {'train__val', 'train__test', 'val__test'}
+        if set(overlaps) != required_overlaps:
+            raise RuntimeError(
+                "Protocol V2 parent_overlap_counts must contain exactly "
+                "train__val, train__test, and val__test"
+            )
+        if any(
+            type(overlaps[name]) is not int or overlaps[name] != 0
+            for name in required_overlaps
+        ):
+            raise RuntimeError(
+                "Protocol V2 parent overlap counts must each be JSON integer zero"
+            )
         with open(SPLIT, 'rb') as handle:
             split = pickle.load(handle)
         if not split.get('train') or not split.get('val'):
@@ -529,7 +556,8 @@ def _train_vqvae(
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             scaler.step(opt); scaler.update()
             tot += loss.item(); nb += 1
-        model.eval(); vtot = vnb = 0; val_batches = 0
+        model.eval(); vtot = vcount = vnb = 0; val_batches = 0
+        nonfinite_val_samples = nonfinite_val_batches = 0
         val_accumulator = (
             VQValidationAccumulator(int(codebook_size), val_buckets)
             if val_buckets else None
@@ -543,12 +571,25 @@ def _train_vqvae(
                     zq, _, quantizer_info = model.quantize(h)
                     recon = model.decoder(model.post_quant_conv(zq))
                     per_sample = (recon - xb).pow(2).flatten(1).mean(dim=1)
-                    v = per_sample.mean().item()
                 if val_accumulator is not None:
                     val_accumulator.update(per_sample, quantizer_info[2])
-                if np.isfinite(v):
-                    vtot += v; vnb += 1
-        tr = finite_average(tot, nb); va = finite_average(vtot, vnb)
+                finite_mask = torch.isfinite(per_sample)
+                finite_samples = int(finite_mask.sum().item())
+                nonfinite_samples = int(len(per_sample) - finite_samples)
+                if finite_samples:
+                    vtot += float(per_sample[finite_mask].sum().item())
+                    vcount += finite_samples
+                if nonfinite_samples:
+                    nonfinite_val_samples += nonfinite_samples
+                    nonfinite_val_batches += 1
+                else:
+                    vnb += 1
+        tr = finite_average(tot, nb)
+        va = (
+            finite_average(vtot, vcount)
+            if nonfinite_val_samples == 0
+            else float('inf')
+        )
         stop_state, improved, should_stop = update_vqvae_stop_state(absolute_epoch, va, stop_state, stop_config)
         best_val = stop_state.best_val
         hist.append((tr, va))
@@ -569,6 +610,9 @@ def _train_vqvae(
             'skipped_train_batches': skipped_train_batches,
             'val_batches': val_batches,
             'finite_val_batches': vnb,
+            'finite_val_samples': vcount,
+            'nonfinite_val_batches': nonfinite_val_batches,
+            'nonfinite_val_samples': nonfinite_val_samples,
             'consecutive_nonfinite_val_epochs': stop_state.consecutive_nonfinite_val_epochs,
             'epochs_without_improvement': stop_state.epochs_without_improvement,
         }
@@ -627,6 +671,10 @@ def _train_vqvae(
 
 
 def stage_vqsweep():
+    if not PROTOCOL_V2:
+        raise RuntimeError(
+            "VQ sweep requires Protocol V2; legacy patch-level validation is unsupported"
+        )
     log("VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)")
     split = pickle.load(open(SPLIT, 'rb'))
     protocol_data = collect_protocol_vq_data(split, train_cap=12000, val_cap=VQ_VAL_SAMPLES)
@@ -656,6 +704,10 @@ def stage_vqsweep():
 
 
 def stage_vqvae():
+    if not PROTOCOL_V2:
+        raise RuntimeError(
+            "VQ-VAE training requires Protocol V2; legacy patch-level validation is unsupported"
+        )
     log(f"VQVAE: 全量训练 FSQ-VQVAE (levels={FSQ_LEVELS}, codebook={SE_CODEBOOK})")
     split = pickle.load(open(SPLIT, 'rb'))
     protocol_data = collect_protocol_vq_data(split)

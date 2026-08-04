@@ -60,9 +60,9 @@ def edge_to_surface_patch(edge):
 
 def _canonical_patch_bytes(kind, array, decimals=None):
     kind_bytes = str(kind).encode("utf-8")
-    values = np.asarray(array)
+    values = np.ascontiguousarray(array, dtype="<f4")
     if decimals is not None:
-        values = np.round(values.astype(np.float64), decimals=decimals)
+        values = np.round(values, decimals=decimals)
     values = np.ascontiguousarray(values, dtype="<f4")
     shape = np.asarray(values.shape, dtype="<u8").tobytes()
     return (
@@ -138,12 +138,55 @@ def _record_sort_key(record):
 
 
 def _record_values(record, plural_key, singular_key, keep_missing=False):
+    plural_present = plural_key in record
     values = record.get(plural_key)
     if values is None:
-        values = [record.get(singular_key)]
+        values = [None] if plural_present else []
+    elif isinstance(values, (str, bytes, Path)):
+        values = [values]
+    else:
+        try:
+            values = list(values)
+        except TypeError:
+            values = [values]
+    if singular_key in record:
+        values.append(record.get(singular_key))
     if keep_missing:
         return list(values)
     return [value for value in values if value is not None and str(value)]
+
+
+def _source_path_values_with_missing_identity(record):
+    paths = _record_values(
+        record,
+        "provenance_source_paths",
+        "source_path",
+        keep_missing=True,
+    )
+    keys = _record_values(
+        record,
+        "provenance_source_keys",
+        "source_key",
+        keep_missing=True,
+    )
+    return paths if paths or keys else [None]
+
+
+def _parent_values_with_missing_identity(record):
+    values = _record_values(
+        record,
+        "provenance_parent_ids",
+        "parent_id",
+        keep_missing=True,
+    )
+    return values or [None]
+
+
+def _unique_sorted_values(values):
+    unique = {}
+    for value in values:
+        unique.setdefault(_stable_value_key(value), value)
+    return [unique[key] for key in sorted(unique)]
 
 
 def deduplicate_patch_records(records):
@@ -174,30 +217,29 @@ def deduplicate_patch_records(records):
         )
         representative["provenance_source_paths"] = sorted(
             {
-                str(value)
+                None if value is None else str(value)
                 for record in group
-                for value in _record_values(record, "provenance_source_paths", "source_path")
-            }
+                for value in _source_path_values_with_missing_identity(record)
+            },
+            key=lambda value: "" if value is None else value,
         )
         representative["provenance_source_keys"] = sorted(
             {
-                canonical_source_key(value)
-                for record in group
-                for value in _record_values(record, "provenance_source_keys", "source_key")
-            }
-        )
-        representative["provenance_parent_ids"] = sorted(
-            {
-                None if value is None else str(value)
+                None if value is None else canonical_source_key(value)
                 for record in group
                 for value in _record_values(
                     record,
-                    "provenance_parent_ids",
-                    "parent_id",
+                    "provenance_source_keys",
+                    "source_key",
                     keep_missing=True,
                 )
             },
             key=lambda value: "" if value is None else value,
+        )
+        representative["provenance_parent_ids"] = _unique_sorted_values(
+            value
+            for record in group
+            for value in _parent_values_with_missing_identity(record)
         )
         representative["duplicate_count"] = sum(
             int(record.get("duplicate_count", 0)) + 1 for record in group
@@ -216,14 +258,6 @@ def deduplicate_patch_records(records):
     return deduplicated, summary
 
 
-def _inventory_values(records, plural_key, singular_key):
-    return {
-        str(value)
-        for record in records
-        for value in _record_values(record, plural_key, singular_key)
-    }
-
-
 def _inventory_exact_hashes(records):
     return {
         canonical_patch_hash(record.get("kind"), record.get("array"))
@@ -231,7 +265,38 @@ def _inventory_exact_hashes(records):
     }
 
 
-def _inventory_parents(records):
+def _inventory_sources(records, split_name):
+    sources = set()
+    for record in records:
+        values = _record_values(
+            record,
+            "provenance_source_paths",
+            "source_path",
+            keep_missing=True,
+        )
+        values.extend(
+            _record_values(
+                record,
+                "provenance_source_keys",
+                "source_key",
+                keep_missing=True,
+            )
+        )
+        if not values or any(value is None or not str(value).strip() for value in values):
+            raise ValueError(f"invalid source identity in {split_name} inventory")
+        sources.update(canonical_source_key(value) for value in values)
+    return sources
+
+
+def _canonical_parent_identity(value):
+    if not isinstance(value, str) or value != value.casefold():
+        return None
+    if parent_cad_id(f"{value}_step_000.pkl") != value:
+        return None
+    return value
+
+
+def _inventory_parents(records, split_name):
     parents = set()
     unknown = False
     for record in records:
@@ -247,8 +312,20 @@ def _inventory_parents(records):
             if value is None or not str(value).strip():
                 unknown = True
             else:
-                parents.add(str(value).casefold())
+                parent = _canonical_parent_identity(value)
+                if parent is None:
+                    raise ValueError(f"invalid parent_id in {split_name} inventory: {value!r}")
+                parents.add(parent)
     return parents, unknown
+
+
+def validate_inventory_identities(records, split_name):
+    records = list(records)
+    sources = _inventory_sources(records, split_name)
+    parents, unknown = _inventory_parents(records, split_name)
+    if unknown:
+        raise ValueError(f"unknown parent_id in {split_name} inventory")
+    return sources, parents
 
 
 def remove_train_exact_hash_overlap(train_records, val_records):
@@ -278,31 +355,8 @@ def remove_train_exact_hash_overlap(train_records, val_records):
 def audit_train_val_inventories(train_records, val_records):
     train_records = list(train_records)
     val_records = list(val_records)
-    train_sources = {
-        canonical_source_key(value)
-        for value in _inventory_values(train_records, "provenance_source_paths", "source_path")
-    }
-    val_sources = {
-        canonical_source_key(value)
-        for value in _inventory_values(val_records, "provenance_source_paths", "source_path")
-    }
-    train_sources.update(
-        canonical_source_key(value)
-        for value in _inventory_values(train_records, "provenance_source_keys", "source_key")
-    )
-    val_sources.update(
-        canonical_source_key(value)
-        for value in _inventory_values(val_records, "provenance_source_keys", "source_key")
-    )
-    train_parents, train_unknown = _inventory_parents(train_records)
-    val_parents, val_unknown = _inventory_parents(val_records)
-    unknown_splits = []
-    if train_unknown:
-        unknown_splits.append("train")
-    if val_unknown:
-        unknown_splits.append("val")
-    if unknown_splits:
-        raise ValueError(f"unknown parent_id in {' and '.join(unknown_splits)} inventory")
+    train_sources, train_parents = validate_inventory_identities(train_records, "train")
+    val_sources, val_parents = validate_inventory_identities(val_records, "val")
 
     train_hashes = _inventory_exact_hashes(train_records)
     val_hashes = _inventory_exact_hashes(val_records)
@@ -450,6 +504,7 @@ def collect_vqvae_sample_records(
     max_source_edges=0,
     oversample_factor=1.2,
     require_parent_id=False,
+    require_all_paths=False,
 ):
     cap = max(0, int(cap))
     paths = [Path(path) for path in paths]
@@ -479,10 +534,14 @@ def collect_vqvae_sample_records(
                 complex_min_edges,
                 require_parent_id=require_parent_id,
             )
-        except Exception:
+        except Exception as exc:
             failed_paths += 1
+            if require_all_paths:
+                raise RuntimeError(f"failed to load required VQ source {path}: {exc}") from exc
             continue
         loaded_paths += 1
+        if require_all_paths and not records:
+            raise RuntimeError(f"required VQ source produced zero geometry patches: {path}")
         if max_source_faces > 0 or max_source_edges > 0:
             kept_records = []
             for record in records:
@@ -493,11 +552,19 @@ def collect_vqvae_sample_records(
                     continue
                 kept_records.append(record)
             records = kept_records
+        if require_all_paths and not records:
+            raise RuntimeError(
+                f"required VQ source produced zero usable geometry patches after source caps: {path}"
+            )
+        enough_all = len(all_records) >= scan_target
+        enough_complex = complex_target == 0 or len(complex_records) >= complex_scan_target
+        if require_all_paths and enough_all and enough_complex:
+            continue
         all_records.extend(records)
         complex_records.extend([record for record in records if record["is_complex_source"]])
         enough_all = len(all_records) >= scan_target
         enough_complex = complex_target == 0 or len(complex_records) >= complex_scan_target
-        if enough_all and enough_complex:
+        if enough_all and enough_complex and not require_all_paths:
             break
 
     complex_selected = select_patch_records(

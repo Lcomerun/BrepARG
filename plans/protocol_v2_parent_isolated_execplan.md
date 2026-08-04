@@ -14,12 +14,15 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 - [x] (2026-08-03 20:48 +08:00) Ran the focused baseline in `brepgen_env`; observed 122 passing tests and two unrelated existing failures.
 - [x] (2026-08-03 20:53 +08:00) Mapped the historical record-level split, patch-level validation leakage, and shard/cache provenance gap.
 - [x] (2026-08-03 21:00 +08:00) Wrote the approved design in `docs/superpowers/specs/2026-08-03-protocol-v2-parent-isolated-design.md`.
-- [ ] Add failing protocol eligibility and parent-group split tests.
-- [ ] Implement the standard-library Protocol V2 core and manifest CLI.
-- [ ] Add failing VQ CAD-level isolation and exact-deduplication tests.
-- [ ] Integrate isolated train/validation patch collection and FSQ validation metrics.
-- [ ] Run a real-data protocol smoke and a tiny FSQ training smoke.
-- [ ] Write aggregate experiment reports, run final reviews, and push the feature branch.
+- [x] (2026-08-03 21:55 +08:00) Added protocol eligibility, topology validation, fail-closed archive and parent-group split tests.
+- [x] (2026-08-03 22:35 +08:00) Implemented and reviewed the standard-library Protocol V2 core and archive CLI.
+- [x] (2026-08-03 23:20 +08:00) Added VQ provenance, exact/rounded hash, deterministic deduplication and overlap-gate tests.
+- [x] (2026-08-03 23:37 +08:00) Integrated separate train/validation CAD sampling, validation-authoritative exact-overlap filtering, aggregate FSQ metrics and TensorBoard output.
+- [x] (2026-08-03 23:44 +08:00) Ran the real-data protocol smoke plus matched 8192-code and 4096-code one-epoch CUDA engineering smokes.
+- [x] (2026-08-04 00:10 +08:00) Tightened Protocol V2 patch identity, provenance, requested-source, overlap-evidence and validation-aggregation gates after independent review.
+- [x] (2026-08-04 01:35 +08:00) Closed the final requested-source source-cap gap and added mixed/all-nonfinite checkpoint regression coverage; focused Protocol V2 VQ tests now report 68 passing tests.
+- [ ] Run a matched 10-epoch FSQ micro comparison with the repaired sample-weighted validation metric.
+- [ ] Write final conclusions, complete independent reviews and verification, and push the feature branch.
 
 ## Surprises & Discoveries
 
@@ -40,6 +43,27 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 
 - Observation: The protocol module has no third-party imports, but real parsed pickle deserialization requires NumPy because the arrays were serialized with NumPy's pickle reducers.
   Evidence: A `python -S` archive probe failed with `load_failed:ModuleNotFoundError` on the first real member; `brepgen_env` loaded the same data successfully. The CLI therefore documents a data-environment prerequisite instead of falsely claiming a dependency-free end-to-end scan.
+
+- Observation: The initial E-drive protocol materialization failed with `OSError: [Errno 22]` after leaving incomplete atomic temporary files; the paths were only about 115 characters long.
+  Evidence: Windows reported the E volume as `HealthStatus: Warning` and `OperationalStatus: Full Repair Needed`. The identical command completed under ignored D-drive local storage, so no protocol path rewrite was introduced.
+
+- Observation: Parent/source isolation alone did not eliminate repeated geometry content across CADs.
+  Evidence: Before training, 30 exact hashes overlapped between the 981 deduplicated train and 370 deduplicated validation patches; 27 were edges and 3 surfaces, spanning 25 train and 6 validation parents. Keeping validation fixed and removing those 30 train representatives reduced train to 951 and made source, parent and exact-hash overlap all zero.
+
+- Observation: One-epoch FSQ utilization is extremely low even though forward/backward and reconstruction metrics are finite.
+  Evidence: The 8192-code arm used 4 bins with entropy perplexity 4.0; the six-dimensional 4096-code arm used 5 bins with perplexity 4.50. This smoke validates monitoring but does not rank the architectures.
+
+- Observation: Independent review found that the tensorization gate could certify records with missing source identity, arbitrary non-empty parent text, or partial pre-aggregated provenance.
+  Evidence: `audit_train_val_inventories` filtered empty source values, treated every non-empty parent string as known, and `_record_values` selected plural provenance instead of merging it with the singular representative identity.
+
+- Observation: The first one-epoch report's global validation loss was a mean of batch means rather than a strict sample-weighted MSE.
+  Evidence: The validation cohort had batches of 128, 128 and 114 patches; recomputing from the three sample-counted buckets changed the 8192 result from `0.20549075` to `0.20548306` and the 4096 result from `0.20395194` to `0.20380871`.
+
+- Observation: Required-source validation originally happened before optional source face/edge caps and could be skipped after the sampling target was full.
+  Evidence: Independent review reproduced a required 60-face source being accepted with `max_source_faces=50`; the new two-order regression test failed twice before the fix and passes after filtering every required source before the completeness check.
+
+- Observation: The broad 2026-08-04 pre-experiment regression run exposed more environment/baseline failures than the earlier focused baseline, but none originate in Protocol V2 files.
+  Evidence: `344 passed, 16 failed`; 11 failures require the intentionally absent `BrepARG/` tree, one is the existing sequence `ordering` fixture, and four use Python 3.10-incompatible `Path.write_text(newline=...)` in the pre-existing reproducibility package builder. The Protocol V2 VQ focused command reported `68 passed`.
 
 ## Decision Log
 
@@ -67,9 +91,29 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
   Rationale: A directory name does not prove cohort identity. Split-specific versioned assets with protocol hashes are a separate future change.
   Date/Author: 2026-08-03 / Codex.
 
+- Decision: Preserve validation content and remove cross-split exact duplicates only from training after each split has been deduplicated internally.
+  Rationale: Exact primitive patches can recur across unrelated parents, so treating every overlap as parent leakage prevents real training. Keeping validation authoritative still prevents memorizing byte-identical validation targets, while rounded similarity remains audit-only.
+  Date/Author: 2026-08-03 / Codex.
+
+- Decision: Preserve explicitly requested legacy sampling defaults, but make the Protocol V2 consumer reject incomplete loads and validate every source and parent provenance value before tensorization.
+  Rationale: Historical diagnostics intentionally accept filenames without ABC parent UUIDs, while Protocol V2 makes an independent-validation claim and therefore cannot silently skip or certify unidentifiable records.
+  Date/Author: 2026-08-03 / Codex.
+
+- Decision: Reject `NS_PROTOCOL_V2=0` in VQ-VAE and VQ sweep stages instead of restoring the historical patch-level validation split.
+  Rationale: The historical 95/5 or 90/10 patch slicing is the leakage this branch removes. A nominally disabled protocol must not silently publish invalid VQ validation metrics; unrelated legacy stages can remain available while VQ gives an explicit error.
+  Date/Author: 2026-08-04 / Codex.
+
+- Decision: Re-run both FSQ level arms for 10 epochs after repairing validation aggregation.
+  Rationale: One epoch proved wiring only. Ten epochs on the same tiny cohort are affordable and show whether usage moves at all, while remaining explicitly too small to rank final architectures or estimate CAD validity.
+  Date/Author: 2026-08-04 / Codex.
+
+- Decision: Apply source face/edge caps to every required source before deciding whether the sampling target is already full.
+  Rationale: Protocol V2 completeness is a claim about usable post-filter patches, not merely successful deserialization. Sampling order must not change whether a requested CAD passes the gate.
+  Date/Author: 2026-08-04 / Codex, following independent code review.
+
 ## Outcomes & Retrospective
 
-Implementation is in progress. This section will record the exact accepted/rejected real-data counts, split balance, parent overlap, duplicate rates, FSQ smoke metrics, test totals, commit range and remote branch after validation.
+Protocol V2 and the VQ/FSQ observability path are implemented and exercised on real parsed CADs. The smoke scanned 2,000 records, found 1,063 eligible, selected 994 complete-parent records and produced 795/100/99 train/validation/test records with zero parent overlap. The one-epoch CUDA arms both completed all batches and emitted checkpoints, history and TensorBoard; their very low 4–5 bin utilization is now visible. Aggregate evidence is in `reports/protocol_v2/`. Final review, regression accounting and remote push remain.
 
 ## Context and Orientation
 
@@ -201,3 +245,9 @@ Revision note 2026-08-03: Created after repository inspection, baseline executio
 Revision note 2026-08-03 21:05 +08:00: Added direct ZIP archive scanning and selected-record materialization after discovering that all historical unpacked split paths are stale and the archive root is the only healthy full-data authority.
 
 Revision note 2026-08-03 21:20 +08:00: Clarified the distinction between a standard-library protocol core and the NumPy runtime needed to deserialize real ABC arrays, following the specification review.
+
+Revision note 2026-08-03 23:50 +08:00: Updated the living plan with completed protocol/VQ implementation, E-drive health discovery, validation-authoritative exact-overlap policy and real engineering-smoke outcomes.
+
+Revision note 2026-08-04 00:12 +08:00: Added independent-review fixes for identity and metric fail-closed behavior and introduced a matched 10-epoch micro comparison to replace batch-mean validation evidence with sample-weighted results.
+
+Revision note 2026-08-04 01:38 +08:00: Recorded the final required-source post-cap gate, nonfinite checkpoint tests, focused 68-test evidence and exact broad-regression baseline failures before starting the matched experiment.

@@ -1,3 +1,6 @@
+import hashlib
+import pickle
+import struct
 import sys
 from pathlib import Path
 
@@ -14,6 +17,7 @@ if str(IMPROVEMENTS_DIR) not in sys.path:
 from vqvae_sampling import (  # noqa: E402
     audit_train_val_inventories,
     canonical_patch_hash,
+    collect_vqvae_sample_records,
     deduplicate_patch_records,
     remove_train_exact_hash_overlap,
     patch_records_from_parsed,
@@ -87,6 +91,79 @@ def test_patch_records_keep_legacy_default_for_unknown_parent():
     assert {item["parent_id"] for item in records} == {None}
 
 
+def test_require_all_paths_validates_remaining_sources_without_retaining_patches(
+    tmp_path,
+):
+    paths = []
+    for index, parent in enumerate(("a" * 24, "b" * 24, "c" * 24), start=1):
+        path = tmp_path / source(parent, index=index)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("wb") as handle:
+            pickle.dump(parsed(), handle)
+        paths.append(path)
+
+    records, summary = collect_vqvae_sample_records(
+        paths,
+        cap=1,
+        oversample_factor=1.0,
+        require_parent_id=True,
+        require_all_paths=True,
+    )
+
+    assert len(records) == 1
+    assert summary["loaded_paths"] == 3
+    assert summary["failed_paths"] == 0
+    assert summary["source_records_available"] == 2
+
+
+def test_require_all_paths_rejects_a_requested_source_with_zero_patches(tmp_path):
+    valid_path = tmp_path / source("a" * 24)
+    empty_path = tmp_path / source("b" * 24, index=2)
+    valid_path.parent.mkdir(parents=True, exist_ok=True)
+    with valid_path.open("wb") as handle:
+        pickle.dump(parsed(), handle)
+    with empty_path.open("wb") as handle:
+        pickle.dump({"surf_ncs": [], "edge_ncs": []}, handle)
+
+    with pytest.raises(RuntimeError, match="zero geometry patches"):
+        collect_vqvae_sample_records(
+            [valid_path, empty_path],
+            cap=1,
+            oversample_factor=1.0,
+            require_parent_id=True,
+            require_all_paths=True,
+        )
+
+
+@pytest.mark.parametrize("filtered_position", [0, 1])
+def test_require_all_paths_rejects_source_fully_removed_by_source_caps(
+    tmp_path, filtered_position
+):
+    valid_path = tmp_path / source("a" * 24)
+    filtered_path = tmp_path / source("b" * 24, index=2)
+    valid_path.parent.mkdir(parents=True, exist_ok=True)
+    with valid_path.open("wb") as handle:
+        pickle.dump(parsed(), handle)
+    with filtered_path.open("wb") as handle:
+        filtered = parsed()
+        filtered["surf_ncs"] = np.zeros((60, 32, 32, 3), dtype=np.float32)
+        pickle.dump(filtered, handle)
+    paths = [valid_path, filtered_path]
+    if filtered_position == 0:
+        paths.reverse()
+
+    with pytest.raises(RuntimeError, match="zero usable geometry patches"):
+        collect_vqvae_sample_records(
+            paths,
+            cap=1,
+            seed=0,
+            oversample_factor=1.0,
+            max_source_faces=50,
+            require_parent_id=True,
+            require_all_paths=True,
+        )
+
+
 def test_canonical_hash_uses_kind_shape_and_little_endian_c_float32_bytes():
     values = np.arange(12, dtype=np.float32).reshape(2, 2, 3)
     fortran_big_endian = np.asfortranarray(values.astype(">f4"))
@@ -96,6 +173,41 @@ def test_canonical_hash_uses_kind_shape_and_little_endian_c_float32_bytes():
     assert canonical_patch_hash("surface", fortran_big_endian) == expected
     assert canonical_patch_hash("edge", values) != expected
     assert canonical_patch_hash("surface", values.reshape(1, 4, 3)) != expected
+
+
+def test_canonical_hash_matches_independent_framed_byte_contract():
+    kind = "曲面"
+    values = np.asfortranarray(
+        np.arange(24, dtype=np.float64).reshape(2, 4, 3).astype(">f8")
+    )
+    canonical = np.ascontiguousarray(values, dtype="<f4")
+    framed = b"".join(
+        [
+            struct.pack("<Q", len(kind.encode("utf-8"))),
+            kind.encode("utf-8"),
+            struct.pack("<Q", canonical.ndim),
+            *(struct.pack("<Q", dimension) for dimension in canonical.shape),
+            canonical.tobytes(order="C"),
+        ]
+    )
+
+    assert canonical_patch_hash(kind, values) == hashlib.sha256(framed).hexdigest()
+
+
+def test_float32_exact_hash_equivalence_implies_rounded_hash_equivalence():
+    below_rounding_boundary = np.asarray([0.00005 - 2e-13], dtype=np.float64)
+    above_rounding_boundary = np.asarray([0.00005 + 2e-13], dtype=np.float64)
+
+    np.testing.assert_array_equal(
+        below_rounding_boundary.astype(np.float32),
+        above_rounding_boundary.astype(np.float32),
+    )
+    assert canonical_patch_hash("edge", below_rounding_boundary) == canonical_patch_hash(
+        "edge", above_rounding_boundary
+    )
+    assert rounded_patch_hash("edge", below_rounding_boundary) == rounded_patch_hash(
+        "edge", above_rounding_boundary
+    )
 
 
 def test_rounded_hash_is_audit_only_and_does_not_drive_exact_deduplication():
@@ -161,6 +273,173 @@ def test_exact_duplicates_merge_without_losing_provenance_or_original_fields():
         "exact_duplicate_groups": 1,
         "rounded_only_duplicate_groups": 0,
     }
+
+
+def test_deduplication_merges_singular_and_existing_plural_provenance():
+    patch = np.zeros((32, 32, 3), dtype=np.float32)
+    representative_path = source("a" * 24)
+    historical_path = source("b" * 24, index=2)
+    records = [
+        record(
+            "representative",
+            representative_path,
+            "a" * 24,
+            patch,
+            provenance_record_ids=["historical"],
+            provenance_source_paths=[historical_path],
+            provenance_source_keys=[historical_path.casefold()],
+            provenance_parent_ids=["b" * 24],
+        )
+    ]
+
+    deduplicated, _ = deduplicate_patch_records(records)
+
+    assert deduplicated[0]["provenance_record_ids"] == ["historical", "representative"]
+    assert deduplicated[0]["provenance_source_paths"] == [
+        representative_path,
+        historical_path,
+    ]
+    assert deduplicated[0]["provenance_source_keys"] == [
+        representative_path.casefold(),
+        historical_path.casefold(),
+    ]
+    assert deduplicated[0]["provenance_parent_ids"] == ["a" * 24, "b" * 24]
+
+
+def test_deduplication_does_not_hide_blank_plural_source_provenance_from_audit():
+    patch = np.zeros((32, 32, 3), dtype=np.float32)
+    train, _ = deduplicate_patch_records(
+        [
+            record(
+                "train",
+                source("a" * 24),
+                "a" * 24,
+                patch,
+                provenance_source_paths=[""],
+            )
+        ]
+    )
+    val = [
+        record(
+            "val",
+            source("b" * 24),
+            "b" * 24,
+            np.ones((32, 32, 3), dtype=np.float32),
+        )
+    ]
+
+    with pytest.raises(ValueError, match="invalid source identity.*train"):
+        audit_train_val_inventories(train, val)
+
+
+def test_deduplication_does_not_hide_blank_source_from_exact_duplicate_member():
+    patch = np.zeros((32, 32, 3), dtype=np.float32)
+    train, _ = deduplicate_patch_records(
+        [
+            record("a-valid", source("a" * 24), "a" * 24, patch),
+            record("z-blank", "", "b" * 24, patch.copy()),
+        ]
+    )
+    val = [
+        record(
+            "val",
+            source("c" * 24),
+            "c" * 24,
+            np.ones((32, 32, 3), dtype=np.float32),
+        )
+    ]
+
+    with pytest.raises(ValueError, match="invalid source identity.*train"):
+        audit_train_val_inventories(train, val)
+
+
+def test_deduplication_does_not_hide_missing_source_from_exact_duplicate_member():
+    patch = np.zeros((32, 32, 3), dtype=np.float32)
+    missing_source = record(
+        "z-missing",
+        source("b" * 24),
+        "b" * 24,
+        patch.copy(),
+    )
+    missing_source.pop("source_path")
+    missing_source.pop("source_key")
+    train, _ = deduplicate_patch_records(
+        [
+            record("a-valid", source("a" * 24), "a" * 24, patch),
+            missing_source,
+        ]
+    )
+    val = [
+        record(
+            "val",
+            source("c" * 24),
+            "c" * 24,
+            np.ones((32, 32, 3), dtype=np.float32),
+        )
+    ]
+
+    with pytest.raises(ValueError, match="invalid source identity.*train"):
+        audit_train_val_inventories(train, val)
+
+
+def test_deduplication_does_not_hide_missing_parent_from_exact_duplicate_member():
+    patch = np.zeros((32, 32, 3), dtype=np.float32)
+    missing_parent = record(
+        "z-missing-parent",
+        source("b" * 24),
+        "b" * 24,
+        patch.copy(),
+    )
+    missing_parent.pop("parent_id")
+    train, _ = deduplicate_patch_records(
+        [
+            record("a-valid", source("a" * 24), "a" * 24, patch),
+            missing_parent,
+        ]
+    )
+    val = [
+        record(
+            "val",
+            source("c" * 24),
+            "c" * 24,
+            np.ones((32, 32, 3), dtype=np.float32),
+        )
+    ]
+
+    with pytest.raises(ValueError, match="unknown parent_id.*train"):
+        audit_train_val_inventories(train, val)
+
+
+def test_deduplication_preserves_non_string_parent_for_strict_validation():
+    patch = np.zeros((32, 32, 3), dtype=np.float32)
+
+    class HexLookingParent:
+        def __str__(self):
+            return "a" * 24
+
+    invalid = record(
+        "z-invalid-parent",
+        source("b" * 24),
+        HexLookingParent(),
+        patch.copy(),
+    )
+    train, _ = deduplicate_patch_records(
+        [
+            record("a-valid", source("a" * 24), "a" * 24, patch),
+            invalid,
+        ]
+    )
+    val = [
+        record(
+            "val",
+            source("c" * 24),
+            "c" * 24,
+            np.ones((32, 32, 3), dtype=np.float32),
+        )
+    ]
+
+    with pytest.raises(ValueError, match="invalid parent_id.*train"):
+        audit_train_val_inventories(train, val)
 
 
 def test_deduplication_representatives_output_and_summary_ignore_input_order():
@@ -317,6 +596,76 @@ def test_train_val_inventory_audit_fails_closed_on_unknown_parent():
     ]
 
     with pytest.raises(ValueError, match="unknown parent_id.*train"):
+        audit_train_val_inventories(train, val)
+
+
+@pytest.mark.parametrize(
+    "identity_fields",
+    [
+        {},
+        {"source_path": "", "source_key": ""},
+        {"source_path": " \t ", "source_key": " \n "},
+    ],
+)
+def test_train_val_inventory_audit_rejects_missing_or_blank_source_identity(
+    identity_fields,
+):
+    invalid = record("train", source("a" * 24), "a" * 24)
+    invalid.pop("source_path")
+    invalid.pop("source_key")
+    invalid.update(identity_fields)
+    train = [
+        record(
+            "valid-train",
+            source("c" * 24, index=3),
+            "c" * 24,
+            np.full((32, 32, 3), 2.0, dtype=np.float32),
+        ),
+        invalid,
+    ]
+    val = [
+        record(
+            "val",
+            source("b" * 24),
+            "b" * 24,
+            np.ones((32, 32, 3), dtype=np.float32),
+        )
+    ]
+
+    with pytest.raises(ValueError, match="invalid source identity.*train"):
+        audit_train_val_inventories(train, val)
+
+
+@pytest.mark.parametrize(
+    "parent_id",
+    [
+        "not-a-hex-parent",
+        " " + "a" * 24,
+        float("nan"),
+        "a" * 23,
+        "a" * 33,
+    ],
+)
+def test_train_val_inventory_audit_rejects_invalid_parent_identity(parent_id):
+    train = [
+        record(
+            "valid-train",
+            source("c" * 24, index=3),
+            "c" * 24,
+            np.full((32, 32, 3), 2.0, dtype=np.float32),
+        ),
+        record("invalid-train", source("a" * 24), parent_id),
+    ]
+    val = [
+        record(
+            "val",
+            source("b" * 24),
+            "b" * 24,
+            np.ones((32, 32, 3), dtype=np.float32),
+        )
+    ]
+
+    with pytest.raises(ValueError, match="invalid parent_id.*train"):
         audit_train_val_inventories(train, val)
 
 
