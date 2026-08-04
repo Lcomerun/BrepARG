@@ -20,7 +20,8 @@
     "tf32": true
   },
   "shared_controls": {
-    "only_changed_environment_variable": "NS_LEVELS",
+    "only_changed_scientific_hyperparameter": "FSQ levels configuration via NS_LEVELS",
+    "run_specific_bookkeeping_variables": ["NS_OUT", "NS_VQ_TB_LOG_DIR"],
     "causal_scope": "The comparison is between complete FSQ configurations; NS_LEVELS changes both codebook cardinality and FSQ latent dimensionality.",
     "seed": 0,
     "epochs": 10,
@@ -149,9 +150,11 @@
     "all_metrics_finite": true,
     "parent_source_and_exact_content_isolation_verified": true,
     "usage_increased_in_both_arms": true,
-    "healthy_usage_reference_perplexity_800_to_1500_met": false,
-    "curved_proxy_reference_mse_at_most_0.00005_met": false,
-    "advance_directly_to_long_training": false
+    "relative_micro_gate_curved_proxy_improved_and_usage_not_worse": true,
+    "advance_to_larger_approximately_100_epoch_controlled_vq_experiment": true,
+    "later_heuristic_usage_reference_perplexity_800_to_1500_met": false,
+    "later_heuristic_curved_proxy_reference_mse_at_most_0.00005_met": false,
+    "advance_to_ar_or_formal_full_training": false
   },
   "interpretation": {
     "supported": [
@@ -161,8 +164,8 @@
     "not_supported": [
       "Because NS_LEVELS changes both codebook cardinality and FSQ latent dimensionality, this experiment does not isolate codebook-size reduction from the benefit of a six-dimensional FSQ bottleneck.",
       "Ten epochs on 951 train and 370 validation patches do not establish final architecture superiority, CAD validity, or paper-comparable quality.",
-      "Neither arm meets the heuristic utilization or curved-reconstruction gate, so lower reconstruction loss alone does not justify a full long run."
+      "Neither arm yet meets the later heuristic utilization or curved-reconstruction health reference; this does not negate the relative micro gate, but it prevents promotion to AR or a formal full-data run."
     ],
-    "decision": "Retain the 4096-code six-dimensional arm as the next controlled candidate, but return to data distribution and representation diagnostics before increasing epochs or starting AR training."
+    "decision": "Advance the 4096-code six-dimensional arm to the planned larger-cohort, approximately 100-epoch controlled VQ experiment because curved-proxy reconstruction improved and usage did not worsen. Do not start AR or a formal full-data run until the later health references are evaluated."
   }
 }

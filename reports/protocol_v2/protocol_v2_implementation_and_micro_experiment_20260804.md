@@ -12,7 +12,7 @@ VQ/FSQ 侧不再从同一 patch 数组切 train/validation。训练 patch 只来
 
 两组实验均从 commit `a9a562ad3fe8cf28a5d0d3c508e9535faabdf413` 全新开始，使用同一 Protocol hash `43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f` 和同一 split hash `df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357`。两组最终都使用 951 个 train patch 和 370 个 validation patch；source、parent 和 exact hash overlap 均为 0。
 
-共同控制为 seed 0、10 epochs、batch 128、learning rate `3e-4`、AMP、无 resume、无曲面或复杂样本过采样、loss weight 均为 1。唯一改变的环境变量是 `NS_LEVELS`：
+共同控制为 seed 0、10 epochs、batch 128、learning rate `3e-4`、AMP、无 resume、无曲面或复杂样本过采样、loss weight 均为 1。唯一改变的科学超参数是由 `NS_LEVELS` 指定的 FSQ levels 配置；`NS_OUT` 与 `NS_VQ_TB_LOG_DIR` 只用于隔离两组输出：
 
 | 配置 | `NS_LEVELS` | FSQ 维度 | 理论 bins |
 | --- | --- | ---: | ---: |
@@ -40,8 +40,10 @@ VQ/FSQ 侧不再从同一 patch 数组切 train/validation。训练 patch 只来
 
 在这次单 seed、微型 cohort 的严格配对实验中，4096/6D 在全局重建、三个重建桶和最终 usage 上都优于 8192/4D，适合作为下一轮受控实验的优先候选。8192/4D 的 usage 在 epoch 4 达到 65 bins/perplexity 26.89 后回落到 29 bins/perplexity 13.45，说明只看曾经达到的峰值会高估稳定利用率。
 
-但两组都没有通过预先定义的晋级门：末轮 perplexity 只有 13.45 和 29.76，远低于 800–1500 的启发式健康参考；曲面代理 MSE 为 0.199 和 0.172，也远高于 `5e-5`。十轮 patch 重建实验不包含自由生成、STEP 装配或 OCC Valid，不能与论文 Valid 67.54 对比，也不能证明最终 CAD 可用。
+本次预先定义的相对晋级门是“曲面代理桶改善且 aggregate usage 不恶化”。4096/6D 的曲面代理 MSE 更低、unique bins 和 perplexity 更高，因此通过该门，支持进入更大 cohort、约 100 epoch 的受控 VQ 实验。末轮 perplexity 13.45/29.76 与曲面代理 MSE 0.199/0.172 距离 800–1500 和 `5e-5` 仍很远，但这两组绝对值是后续训练的启发式健康参考，不是本次微实验的验收条件。
+
+十轮 patch 重建实验不包含自由生成、STEP 装配或 OCC Valid，不能与论文 Valid 67.54 对比，也不能证明最终 CAD 可用。因此 E028 只晋级下一阶段 VQ 实验，不晋级 AR 或正式全量训练。
 
 ## 下一步措施
 
-暂不直接追加长 epoch，也不进入 AR。先在更大的 Protocol V2 cohort 上审计过滤后曲面类型与曲率分布，再对 4096/6D 做多 seed 复现和一次只改变一个因素的消融：固定 FSQ 维度比较 bins，或固定 bins 比较 FSQ 维度。之后再单独验证曲面定向采样与曲面 loss weight；只有 usage 与曲面桶同时通过门槛，才晋级全量 VQVAE。完整逐 epoch 数字、hash、控制变量和限制见 `fsq_micro_comparison_20260804.json`。
+不在当前 951/370 patch 微型 cohort 上简单续训，也不进入 AR。下一步按原计划在更大的 Protocol V2 cohort 上运行约 100 epoch 的 4096/6D 受控 VQ 实验，并继续逐 epoch 监控曲面桶与 aggregate usage；条件允许时增加配对 arm 或一次只改变一个因素的消融，以分离 bins 数和 FSQ 维度。只有下一阶段同时建立稳定 usage、曲面重建和多 seed 证据，才晋级正式全量 VQVAE 与后续 AR。完整逐 epoch数字、hash、控制变量和限制见 `fsq_micro_comparison_20260804.json`。

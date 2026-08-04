@@ -22,7 +22,7 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 - [x] (2026-08-04 00:10 +08:00) Tightened Protocol V2 patch identity, provenance, requested-source, overlap-evidence and validation-aggregation gates after independent review.
 - [x] (2026-08-04 01:35 +08:00) Closed the final requested-source source-cap gap and added mixed/all-nonfinite checkpoint regression coverage; focused Protocol V2 VQ tests now report 68 passing tests.
 - [x] (2026-08-04 12:26 +08:00) Ran matched 8192/4D and 4096/6D ten-epoch CUDA arms from clean commit `a9a562a`; both emitted ten finite history and TensorBoard steps.
-- [x] (2026-08-04 13:00 +08:00) Curated the complete per-epoch comparison as E028 and recorded the no-promotion decision because neither arm met the usage or curved-reconstruction gate.
+- [x] (2026-08-04 13:00 +08:00) Curated the complete per-epoch comparison as E028; 4096/6D passed the relative micro gate and advances to the planned larger-cohort controlled VQ experiment, while AR and formal full training remain deferred.
 - [ ] Complete final independent review and verification, commit the curated evidence, and push the feature branch.
 
 ## Surprises & Discoveries
@@ -115,13 +115,13 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
   Rationale: Protocol V2 completeness is a claim about usable post-filter patches, not merely successful deserialization. Sampling order must not change whether a requested CAD passes the gate.
   Date/Author: 2026-08-04 / Codex, following independent code review.
 
-- Decision: Retain 4096/6D as the next controlled FSQ candidate but do not promote either arm directly to a long run or AR training.
-  Rationale: The paired reconstruction and usage direction favors 4096/6D, while perplexity `29.76` is still far below the heuristic 800–1500 range and curved MSE `0.172` is far above `5e-5`. Because `NS_LEVELS` changes both cardinality and FSQ dimensionality, the next causal experiment must hold one of those factors fixed. More epochs on this tiny cohort would confound diagnosis rather than pass the planned gate.
+- Decision: Promote 4096/6D to the planned larger-cohort, approximately 100-epoch controlled VQ experiment, but not to AR or formal full-data training.
+  Rationale: The pre-run relative gate required curved-proxy reconstruction to improve without aggregate usage worsening; 4096/6D satisfies both. Perplexity `29.76` and curved MSE `0.172` remain far from later heuristic health references, so the next VQ stage must keep monitoring them. Because `NS_LEVELS` changes both cardinality and FSQ dimensionality, a later causal experiment should hold one factor fixed.
   Date/Author: 2026-08-04 / Codex.
 
 ## Outcomes & Retrospective
 
-Protocol V2 and the VQ/FSQ observability path are implemented and exercised on real parsed CADs. The smoke scanned 2,000 records, found 1,063 eligible, selected 994 complete-parent records and produced 795/100/99 train/validation/test records with zero parent overlap. The matched ten-epoch CUDA arms completed every batch and show a reproducible small-cohort direction in favor of 4096/6D, while also proving that absolute FSQ utilization remains too low for promotion. Aggregate evidence is in `reports/protocol_v2/`; raw histories and checkpoints remain ignored. Final verification and remote push remain.
+Protocol V2 and the VQ/FSQ observability path are implemented and exercised on real parsed CADs. The smoke scanned 2,000 records, found 1,063 eligible, selected 994 complete-parent records and produced 795/100/99 train/validation/test records with zero parent overlap. The matched ten-epoch CUDA arms completed every batch; 4096/6D passes the pre-run relative gate and advances to the next larger-cohort controlled VQ experiment, while its low absolute usage remains an explicit health risk to monitor before AR or formal full-data promotion. Aggregate evidence is in `reports/protocol_v2/`; raw histories and checkpoints remain ignored. Final verification and remote push remain.
 
 ## Context and Orientation
 
@@ -260,4 +260,6 @@ Revision note 2026-08-04 00:12 +08:00: Added independent-review fixes for identi
 
 Revision note 2026-08-04 01:38 +08:00: Recorded the final required-source post-cap gate, nonfinite checkpoint tests, focused 68-test evidence and exact broad-regression baseline failures before starting the matched experiment.
 
-Revision note 2026-08-04 13:00 +08:00: Recorded both matched ten-epoch CUDA runs, E028 per-epoch metrics, the 4096/6D candidate decision and the explicit no-promotion gate before final verification.
+Revision note 2026-08-04 13:00 +08:00: Recorded both matched ten-epoch CUDA runs, E028 per-epoch metrics and the 4096/6D promotion to the next controlled VQ stage while deferring AR and formal full training.
+
+Revision note 2026-08-04 14:10 +08:00: Corrected the evidence interpretation after independent review: 800–1500 perplexity and `5e-5` curved MSE are later health references, not the micro-run acceptance gate; also distinguished the changed scientific hyperparameter from run-specific output variables.
