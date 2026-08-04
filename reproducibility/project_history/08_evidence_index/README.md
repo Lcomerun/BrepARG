@@ -34,6 +34,7 @@
 | E026 | provenance | dirty outer source、clean commit、nested BrepARG | `provenance/*` | 当前源码不是 clean commit 本身 |
 | E027 | catalog/decision record | 推荐、诊断、阻塞与 historical failed 实验 | `experiments/*`, `PACKAGE_MANIFEST.json` | blocked 项没有伪造命令/结果 |
 | E028 | source audit / engineering micro experiment | Protocol V2 parent 隔离、VQ exact 去重、4096/8192 FSQ 十轮配对重建与 usage | `reports/protocol_v2/fsq_micro_comparison_20260804.json`, `reports/tensorboard/protocol_v2_fsq_micro_20260804/*` | 单 seed、951/370 patch、10 epoch；不含生成或 OCC Valid，不能判定最终架构 |
+| E029 | clean-commit engineering cohort | Protocol V3 全扫描/去重/parent 平衡、双 seed 三臂 15 epoch FSQ、checkpoint-bound promotion 与 TensorBoard 曲线 | `reports/protocol_v3/fsq_abc_15epoch_two_seed_20260804.json`, `reports/tensorboard/protocol_v3_fsq_abc_15epoch_two_seed_20260804/*` | 322/100 parent、仅双 seed/15 epoch；全部 arm 未晋级，不含生成或 OCC Valid，MSE 排名不是容量结论 |
 
 ## 结论追踪规则
 

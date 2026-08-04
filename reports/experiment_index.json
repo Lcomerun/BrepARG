@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-08-03",
+  "updated": "2026-08-04",
   "entries": [
     {
       "id": "current-scientific-conclusions",
@@ -56,6 +56,15 @@
       "category": "sequence-audit",
       "summary": "docs/audits/v13_ar_distribution_coverage_20260731.md",
       "metrics": "docs/audits/v13_ar_distribution_coverage_20260731.json",
+      "artifacts_external": true
+    },
+    {
+      "id": "protocol-v3-fsq-two-seed-20260804",
+      "status": "no-promoted-arm",
+      "category": "training-result",
+      "summary": "reports/protocol_v3/README.md",
+      "metrics": "reports/protocol_v3/fsq_abc_15epoch_two_seed_20260804.json",
+      "tensorboard": "reports/tensorboard/protocol_v3_fsq_abc_15epoch_two_seed_20260804",
       "artifacts_external": true
     },
     {

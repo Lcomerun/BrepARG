@@ -27,8 +27,9 @@ The previous 10-epoch comparison was a valid pipeline smoke but sampled only 27/
 - [x] (2026-08-04) Added red-green repairs for archive-qualified materialization, unbiased zero-curvature parent representatives, duplicate-safe explicit curved quota replacement, longitudinal curved/usage checkpoint selection, and promotion-aware sweep winner reporting.
 - [x] (2026-08-04) Re-ran the four-module focused suite with 170 passes and audited a real 1,200/463 collection: 795/100 sources scanned, zero failures/overlaps, 95.98%/100% final parent coverage, and a natural 63.8% curved share among selected surfaces rather than forced 100% curved representatives.
 - [x] (2026-08-04) Re-ran the complete suite before the immutable experiment commit: 412 tests pass and the remaining 16 failures are exactly the documented 11 excluded-`BrepARG/`, one legacy sequence-fixture, and four Python 3.10 `Path.write_text(newline=...)` baseline failures.
-- [ ] Commit source/tests/plan as the immutable experiment revision.
-- [ ] Re-run the two-seed, three-arm 15-epoch cohort from that clean commit and rebuild E029 plus six lightweight TensorBoard events.
+- [x] (2026-08-04) Committed source/tests/plan as immutable experiment revision `df194b1e481662c132d452da618e1d511d49ec3a` and verified the formal-run manifest records `dirty=false`.
+- [x] (2026-08-04) Ran the two-seed, three-arm 15-epoch cohort from `df194b1`; both sweeps report `NO_PROMOTED_ARM`, all six histories have 15 finite epochs, train/validation parent coverage is 95.98%/100%, and source/parent/exact overlap is zero.
+- [x] (2026-08-04) Rebuilt E029 and copied six lightweight TensorBoard events after verifying all 13 scalar tags and epoch 0-14 values against the saved histories.
 - [ ] Commit the corrected evidence, push the branch, verify the remote SHA and audit the uploaded tree for excluded data, weights, `BrepARG/`, `papers/` and files over 10 MiB.
 
 ## Surprises & Discoveries
@@ -127,9 +128,9 @@ The final source hardening stores complete best-epoch validation metrics and imm
 
 The final review found that the first clean rerun would still be scientifically confounded, so it was terminated and excluded before publication. Materialization now retains archive identity, zero curved quota follows seeded natural round-robin representatives, and representation checkpoints use a longitudinal curved-MSE plus stable-usage selector. Sweep JSON separately exposes global-MSE ranking and promotion-eligible candidates; if all arms fail the absolute gate, `winner` is null and status is `NO_PROMOTED_ARM`.
 
-The preliminary 15-epoch experiment is retained locally only as debugging evidence. It showed that the larger cohort and logging path run, but it cannot select an architecture: shared decoder initialization differed across arms, and its parent-cluster values assigned each deduplicated patch to only one representative CAD. The corrected cohort must be rerun from a clean commit before any arm ranking is published. Sequence regeneration and AR training remain blocked by executable promotion criteria, not merely by report prose.
+The preliminary 15-epoch experiment is retained locally only as debugging evidence. It showed that the larger cohort and logging path run, but it cannot select an architecture: shared decoder initialization differed across arms, and its parent-cluster values assigned each deduplicated patch to only one representative CAD. The corrected cohort was rerun from clean commit `df194b1` with seeds zero and one. The 4096/6D arm has the lowest 15-epoch checkpoint MSE in both seeds, but no arm passes the absolute promotion gate: checkpoint perplexity ranges from 171.10 to 548.04 and curved parent-cluster MSE remains 0.02087 to 0.06114. Sweep status is therefore `NO_PROMOTED_ARM`; sequence regeneration and AR training remain blocked by executable criteria, not merely by report prose.
 
-The final lightweight deliverables will be a rebuilt `reports/protocol_v3/fsq_abc_15epoch_two_seed_20260804.json`, `reports/protocol_v3/README.md` and six corrected TensorBoard event files under `reports/tensorboard/protocol_v3_fsq_abc_15epoch_two_seed_20260804/`. The currently generated versions must not be staged. Raw CADs, checkpoints, diagnostic runs and local sweep directories remain ignored. Formal experiments begin only after the exact source revision is committed.
+The final lightweight deliverables are `reports/protocol_v3/fsq_abc_15epoch_two_seed_20260804.json`, `reports/protocol_v3/README.md` and six corrected TensorBoard event files under `reports/tensorboard/protocol_v3_fsq_abc_15epoch_two_seed_20260804/`. E029 embeds all six compact 15-row histories and records the clean run commit, split/protocol hashes, checkpoint-bound promotion outcomes and event hashes. Raw CADs, checkpoints, diagnostic runs and local sweep directories remain ignored.
 
 ## Context and Orientation
 
@@ -211,3 +212,5 @@ Revision note 2026-08-04: completed the final checkpoint/promotion contract afte
 Revision note 2026-08-04: a final clean-commit review found archive materialization collisions, implicit curved oversampling at zero quota, and unconditional sweep winner reporting. The first seed-zero rerun was terminated and excluded. This revision records the red-green fixes, adds longitudinal curved/usage checkpoint selection, replaces the ambiguous focused count with its exact four-file command, and requires a new clean commit before any experiment resumes.
 
 Revision note 2026-08-04: recorded the final pre-commit complete-suite result of 412 passes and confirmed that all 16 remaining failures stay within the three previously documented baseline categories, with no Protocol V3 regression.
+
+Revision note 2026-08-04: completed the clean `df194b1` two-seed cohort, recorded `NO_PROMOTED_ARM`, rebuilt E029 plus six history-matched TensorBoard events, and kept the 4096/6D MSE lead explicitly diagnostic rather than an architecture promotion.
