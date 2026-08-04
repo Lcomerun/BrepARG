@@ -43,11 +43,11 @@ The previous 10-epoch comparison was a valid pipeline smoke but sampled only 27/
 - Observation: NumPy SVD and `eigvalsh` crash this Windows environment with process code `0xc06d007f` even for the required 3 by 3 covariance calculation.
   Evidence: the stable implementation uses a pure-Python Jacobi iteration and the focused test suite completes normally.
 - Observation: exact train/validation duplicates are more numerous when validation is fixed in full before train selection than in the early small audit.
-  Evidence: the formal cohort removed 277 candidate train records, comprising 153 surfaces and 124 edges, before rebalancing to exactly 12,000 train patches.
+  Evidence: the clean formal cohort removed 283 candidate train records, comprising 153 surfaces and 130 edges, before rebalancing to exactly 12,000 train patches.
 - Observation: one reconstructed materialized pool is incomplete, but the original Protocol V2 split paths required for the formal rerun remain intact.
   Evidence: a fresh audit found all 994/994 source paths in the 795/100/99 train/validation/test split, with status `VERIFIED`, zero parent overlaps and split SHA-256 `df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357`.
-- Observation: the earlier single-seed 4096/6D lead did not survive the larger two-seed cohort.
-  Evidence: final entropy perplexity ranges are 840.20-867.53 for 8192/4D, 58.14-152.04 for 4096/6D and 61.97-610.50 for 8192/6D. Only 8192/4D clears the 800 reference in both seeds.
+- Observation: the invalid preliminary cohort's usage ranking did not carry forward, while its 4096/6D MSE lead reappeared only as a non-promotable engineering observation.
+  Evidence: the corrected clean cohort's checkpoint perplexity ranges are 171.10-309.79 for 8192/4D, 310.25-548.04 for 4096/6D and 252.48-462.13 for 8192/6D. No arm clears 800 in either seed, even though 4096/6D has the lowest 15-epoch checkpoint MSE in both seeds.
 - Observation: the preliminary cohort did not share all non-quantizer initialization across arms.
   Evidence: constructing the legacy `VQModel` with 4096 versus 8192 embeddings consumes different RNG amounts before `post_quant_conv` and decoder initialization; a seed-17 comparison found 98 differing common non-quantizer tensors.
 - Observation: deduplicated validation records can represent exact patches from more than one original parent CAD.
@@ -214,3 +214,5 @@ Revision note 2026-08-04: a final clean-commit review found archive materializat
 Revision note 2026-08-04: recorded the final pre-commit complete-suite result of 412 passes and confirmed that all 16 remaining failures stay within the three previously documented baseline categories, with no Protocol V3 regression.
 
 Revision note 2026-08-04: completed the clean `df194b1` two-seed cohort, recorded `NO_PROMOTED_ARM`, rebuilt E029 plus six history-matched TensorBoard events, and kept the 4096/6D MSE lead explicitly diagnostic rather than an architecture promotion.
+
+Revision note 2026-08-04: corrected two retrospective observations that still quoted the quarantined preliminary cohort, replacing them with the clean cohort's 283 exact-overlap removals and checkpoint perplexity ranges.
