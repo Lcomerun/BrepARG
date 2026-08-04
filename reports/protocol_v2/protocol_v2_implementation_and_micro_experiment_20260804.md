@@ -10,7 +10,7 @@ VQ/FSQ 侧不再从同一 patch 数组切 train/validation。训练 patch 只来
 
 ## 数据与实验控制
 
-两组实验均从 commit `a9a562ad3fe8cf28a5d0d3c508e9535faabdf413` 全新开始，使用同一 Protocol hash `43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f` 和同一 split hash `df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357`。两组最终都使用 951 个 train patch 和 370 个 validation patch；source、parent 和 exact hash overlap 均为 0。
+两组实验均从 commit `a9a562ad3fe8cf28a5d0d3c508e9535faabdf413` 全新开始，使用同一 Protocol hash `43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f` 和同一 split hash `df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357`。两组最终都使用 951 个 train patch 和 370 个 validation patch；source、parent 和 exact hash overlap 均为 0。去重后的 patch 实际来自 30/7 个 train/validation source key、27/7 个 parent CAD；因此 370 个 validation patch 是 7 个 validation parent 内的聚类观测，不能解释成 370 个独立 CAD 样本。
 
 共同控制为 seed 0、10 epochs、batch 128、learning rate `3e-4`、AMP、无 resume、无曲面或复杂样本过采样、loss weight 均为 1。唯一改变的科学超参数是由 `NS_LEVELS` 指定的 FSQ levels 配置；`NS_OUT` 与 `NS_VQ_TB_LOG_DIR` 只用于隔离两组输出：
 
@@ -42,7 +42,7 @@ VQ/FSQ 侧不再从同一 patch 数组切 train/validation。训练 patch 只来
 
 本次预先定义的相对晋级门是“曲面代理桶改善且 aggregate usage 不恶化”。4096/6D 的曲面代理 MSE 更低、unique bins 和 perplexity 更高，因此通过该门，支持进入更大 cohort、约 100 epoch 的受控 VQ 实验。末轮 perplexity 13.45/29.76 与曲面代理 MSE 0.199/0.172 距离 800–1500 和 `5e-5` 仍很远，但这两组绝对值是后续训练的启发式健康参考，不是本次微实验的验收条件。
 
-十轮 patch 重建实验不包含自由生成、STEP 装配或 OCC Valid，不能与论文 Valid 67.54 对比，也不能证明最终 CAD 可用。因此 E028 只晋级下一阶段 VQ 实验，不晋级 AR 或正式全量训练。
+十轮 patch 重建实验不包含自由生成、STEP 装配或 OCC Valid，且 validation 只覆盖 7 个 parent CAD，因此 18.40% 的末轮差异需要在更大 parent cohort 上复现，不能与论文 Valid 67.54 对比，也不能证明最终 CAD 可用。因此 E028 只晋级下一阶段 VQ 实验，不晋级 AR 或正式全量训练。
 
 ## 下一步措施
 

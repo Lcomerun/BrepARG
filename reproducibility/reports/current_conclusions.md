@@ -19,7 +19,7 @@
 1. validation CE 长期低于 train CE 主要由 parent-CAD 泄露、训练态 dropout 和 batch 等权 CE 共同造成，而不是单一的数据难度差异。[E003, E004, E015]
 2. 当前 surface Chamfer heavy tail 和 true-token 装配失败说明仅提高 FSQ level 不足；decoder/assembly、loss 形态、曲面参数化与 shape-level 一致性都可能参与。[E006, E007, E016]
 3. 长序列 exposure bias 会放大 AR 错误，但长度不是唯一主因；所有 face/length 桶均有明显重建失败。[E006, E007, E008]
-4. 在单 seed、951/370 patch、10 epoch 的严格配对实验中，6 维 4096 FSQ 相对 4 维 8192 FSQ 的末轮全局 validation MSE 低 `18.40%`，曲面代理桶低 `13.72%`，末轮 perplexity 为 `29.76` 对 `13.45`。4096/6D 已满足“曲面桶改善且 usage 不恶化”的相对微实验门，支持进入更大 cohort、约 100 epoch 的受控 VQ 实验；绝对 usage/重建仍未达到后续健康参考。[E028]
+4. 在单 seed、951/370 patch、10 epoch 的严格配对实验中，6 维 4096 FSQ 相对 4 维 8192 FSQ 的末轮全局 validation MSE 低 `18.40%`，曲面代理桶低 `13.72%`，末轮 perplexity 为 `29.76` 对 `13.45`。这些 patch 只来自 27/7 个 train/validation parent CAD，故 370 个 validation patch 不是 370 个独立 CAD 观测。4096/6D 已满足“曲面桶改善且 usage 不恶化”的相对微实验门，支持进入更大 cohort、约 100 epoch 的受控 VQ 实验；绝对 usage/重建和跨 parent 复现仍待验证。[E028]
 
 ### 证据不足
 

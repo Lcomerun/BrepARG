@@ -69,6 +69,9 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 - Observation: The 4096/6D arm improved reconstruction and aggregate usage more consistently than the 8192/4D arm in the matched ten-epoch micro run, but absolute utilization remained collapsed.
   Evidence: 4096 finished at val MSE `0.16261402`, curved-proxy MSE `0.17206810`, 87 bins and perplexity `29.7591`; 8192 finished at `0.19929265`, `0.19944016`, 29 bins and `13.4513`, after peaking at 65 bins/perplexity `26.8928` on epoch 4 and then regressing.
 
+- Observation: The selected post-deduplication patches cover far fewer independent parent CADs than the protocol path counts suggest.
+  Evidence: Although all 795/100 train/validation paths were validated, the final 951/370 patches came from only 30/7 source keys and 27/7 parent CADs. Validation metrics therefore cluster 370 patches within seven parents.
+
 ## Decision Log
 
 - Decision: Implement data protocol repair before AR training changes.
@@ -263,3 +266,5 @@ Revision note 2026-08-04 01:38 +08:00: Recorded the final required-source post-c
 Revision note 2026-08-04 13:00 +08:00: Recorded both matched ten-epoch CUDA runs, E028 per-epoch metrics and the 4096/6D promotion to the next controlled VQ stage while deferring AR and formal full training.
 
 Revision note 2026-08-04 14:10 +08:00: Corrected the evidence interpretation after independent review: 800–1500 perplexity and `5e-5` curved MSE are later health references, not the micro-run acceptance gate; also distinguished the changed scientific hyperparameter from run-specific output variables.
+
+Revision note 2026-08-04 14:25 +08:00: Added the effective 27/7 train/validation parent cohort disclosure after evidence review so patch counts cannot be mistaken for independent CAD observations.

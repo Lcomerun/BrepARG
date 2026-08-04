@@ -38,6 +38,10 @@
     "cross_split_exact_hashes_removed_from_train": 30,
     "final_train_patches": 951,
     "final_val_patches": 370,
+    "train_source_keys_contributing_patches": 30,
+    "val_source_keys_contributing_patches": 7,
+    "train_parent_cads_contributing_patches": 27,
+    "val_parent_cads_contributing_patches": 7,
     "source_key_overlap": 0,
     "parent_id_overlap": 0,
     "exact_hash_overlap_after_filter": 0,
@@ -163,6 +167,7 @@
     ],
     "not_supported": [
       "Because NS_LEVELS changes both codebook cardinality and FSQ latent dimensionality, this experiment does not isolate codebook-size reduction from the benefit of a six-dimensional FSQ bottleneck.",
+      "The 951/370 post-deduplication patches come from only 27/7 parent CADs (30/7 source keys); the 370 validation patches are clustered observations from seven validation parents, not 370 independent CADs.",
       "Ten epochs on 951 train and 370 validation patches do not establish final architecture superiority, CAD validity, or paper-comparable quality.",
       "Neither arm yet meets the later heuristic utilization or curved-reconstruction health reference; this does not negate the relative micro gate, but it prevents promotion to AR or a formal full-data run."
     ],
