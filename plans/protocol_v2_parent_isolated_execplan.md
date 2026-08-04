@@ -21,8 +21,9 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 - [x] (2026-08-03 23:44 +08:00) Ran the real-data protocol smoke plus matched 8192-code and 4096-code one-epoch CUDA engineering smokes.
 - [x] (2026-08-04 00:10 +08:00) Tightened Protocol V2 patch identity, provenance, requested-source, overlap-evidence and validation-aggregation gates after independent review.
 - [x] (2026-08-04 01:35 +08:00) Closed the final requested-source source-cap gap and added mixed/all-nonfinite checkpoint regression coverage; focused Protocol V2 VQ tests now report 68 passing tests.
-- [ ] Run a matched 10-epoch FSQ micro comparison with the repaired sample-weighted validation metric.
-- [ ] Write final conclusions, complete independent reviews and verification, and push the feature branch.
+- [x] (2026-08-04 12:26 +08:00) Ran matched 8192/4D and 4096/6D ten-epoch CUDA arms from clean commit `a9a562a`; both emitted ten finite history and TensorBoard steps.
+- [x] (2026-08-04 13:00 +08:00) Curated the complete per-epoch comparison as E028 and recorded the no-promotion decision because neither arm met the usage or curved-reconstruction gate.
+- [ ] Complete final independent review and verification, commit the curated evidence, and push the feature branch.
 
 ## Surprises & Discoveries
 
@@ -64,6 +65,9 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 
 - Observation: The broad 2026-08-04 pre-experiment regression run exposed more environment/baseline failures than the earlier focused baseline, but none originate in Protocol V2 files.
   Evidence: `344 passed, 16 failed`; 11 failures require the intentionally absent `BrepARG/` tree, one is the existing sequence `ordering` fixture, and four use Python 3.10-incompatible `Path.write_text(newline=...)` in the pre-existing reproducibility package builder. The Protocol V2 VQ focused command reported `68 passed`.
+
+- Observation: The 4096/6D arm improved reconstruction and aggregate usage more consistently than the 8192/4D arm in the matched ten-epoch micro run, but absolute utilization remained collapsed.
+  Evidence: 4096 finished at val MSE `0.16261402`, curved-proxy MSE `0.17206810`, 87 bins and perplexity `29.7591`; 8192 finished at `0.19929265`, `0.19944016`, 29 bins and `13.4513`, after peaking at 65 bins/perplexity `26.8928` on epoch 4 and then regressing.
 
 ## Decision Log
 
@@ -111,9 +115,13 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
   Rationale: Protocol V2 completeness is a claim about usable post-filter patches, not merely successful deserialization. Sampling order must not change whether a requested CAD passes the gate.
   Date/Author: 2026-08-04 / Codex, following independent code review.
 
+- Decision: Retain 4096/6D as the next controlled FSQ candidate but do not promote either arm directly to a long run or AR training.
+  Rationale: The paired reconstruction and usage direction favors 4096/6D, while perplexity `29.76` is still far below the heuristic 800–1500 range and curved MSE `0.172` is far above `5e-5`. Because `NS_LEVELS` changes both cardinality and FSQ dimensionality, the next causal experiment must hold one of those factors fixed. More epochs on this tiny cohort would confound diagnosis rather than pass the planned gate.
+  Date/Author: 2026-08-04 / Codex.
+
 ## Outcomes & Retrospective
 
-Protocol V2 and the VQ/FSQ observability path are implemented and exercised on real parsed CADs. The smoke scanned 2,000 records, found 1,063 eligible, selected 994 complete-parent records and produced 795/100/99 train/validation/test records with zero parent overlap. The one-epoch CUDA arms both completed all batches and emitted checkpoints, history and TensorBoard; their very low 4–5 bin utilization is now visible. Aggregate evidence is in `reports/protocol_v2/`. Final review, regression accounting and remote push remain.
+Protocol V2 and the VQ/FSQ observability path are implemented and exercised on real parsed CADs. The smoke scanned 2,000 records, found 1,063 eligible, selected 994 complete-parent records and produced 795/100/99 train/validation/test records with zero parent overlap. The matched ten-epoch CUDA arms completed every batch and show a reproducible small-cohort direction in favor of 4096/6D, while also proving that absolute FSQ utilization remains too low for promotion. Aggregate evidence is in `reports/protocol_v2/`; raw histories and checkpoints remain ignored. Final verification and remote push remain.
 
 ## Context and Orientation
 
@@ -251,3 +259,5 @@ Revision note 2026-08-03 23:50 +08:00: Updated the living plan with completed pr
 Revision note 2026-08-04 00:12 +08:00: Added independent-review fixes for identity and metric fail-closed behavior and introduced a matched 10-epoch micro comparison to replace batch-mean validation evidence with sample-weighted results.
 
 Revision note 2026-08-04 01:38 +08:00: Recorded the final required-source post-cap gate, nonfinite checkpoint tests, focused 68-test evidence and exact broad-regression baseline failures before starting the matched experiment.
+
+Revision note 2026-08-04 13:00 +08:00: Recorded both matched ten-epoch CUDA runs, E028 per-epoch metrics, the 4096/6D candidate decision and the explicit no-promotion gate before final verification.

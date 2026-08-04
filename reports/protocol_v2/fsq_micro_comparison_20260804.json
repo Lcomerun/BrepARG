@@ -1,0 +1,168 @@
+{
+  "report_version": "v13.fsq-protocol-v2-micro.v1",
+  "evidence_id": "E028",
+  "status": "VERIFIED_ENGINEERING_MICRO_EXPERIMENT",
+  "date": "2026-08-04",
+  "git_commit_at_run": "a9a562ad3fe8cf28a5d0d3c508e9535faabdf413",
+  "protocol": {
+    "protocol_sha256": "43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f",
+    "protocol_summary_sha256": "f842f69cc6a988e6e56835cb98a4d50f625047b3d239c930a89079b568708c5c",
+    "split_pickle_sha256": "df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357",
+    "split_records": {"train": 795, "val": 100, "test": 99},
+    "split_parents": {"train": 323, "val": 100, "test": 99},
+    "parent_overlap_counts": {"train__val": 0, "train__test": 0, "val__test": 0}
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "memory_mib": 12288,
+    "torch": "2.2.2+cu118",
+    "amp": true,
+    "tf32": true
+  },
+  "shared_controls": {
+    "only_changed_environment_variable": "NS_LEVELS",
+    "causal_scope": "The comparison is between complete FSQ configurations; NS_LEVELS changes both codebook cardinality and FSQ latent dimensionality.",
+    "seed": 0,
+    "epochs": 10,
+    "batch_size": 128,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.000001,
+    "requested_train_patches": 2048,
+    "requested_val_patches": 512,
+    "train_cad_paths_loaded": 795,
+    "val_cad_paths_loaded": 100,
+    "failed_source_paths": 0,
+    "deduplicated_train_before_cross_split_filter": 981,
+    "deduplicated_val": 370,
+    "cross_split_exact_hashes_removed_from_train": 30,
+    "final_train_patches": 951,
+    "final_val_patches": 370,
+    "source_key_overlap": 0,
+    "parent_id_overlap": 0,
+    "exact_hash_overlap_after_filter": 0,
+    "complex_fraction": 0.0,
+    "curved_fraction": 0.0,
+    "complex_loss_weight": 1.0,
+    "curved_loss_weight": 1.0,
+    "curved_proxy_threshold": 0.02,
+    "early_stopping": false,
+    "resume_checkpoint": null,
+    "history_input": null
+  },
+  "runs": [
+    {
+      "id": "fsq_micro_8192_10epoch_weighted",
+      "levels": [8, 8, 8, 16],
+      "latent_fsq_dimensions": 4,
+      "codebook_size": 8192,
+      "history_sha256": "41c8c8d284587c2db5d131d7f1056f11cc11546319e8d13e9f8273d9bb207bef",
+      "tensorboard_event_sha256": "9e8506c128bd8fee3c8c557a4f818222748d7e93abd34ea817de3ab4f721b826",
+      "tensorboard_scalar_steps_per_tag": 10,
+      "epochs_ran": 10,
+      "best_epoch": 6,
+      "best_val_mse": 0.18834483,
+      "final_train_loss": 0.18002304,
+      "final_val_mse": 0.19929265,
+      "finite_train_batches": 80,
+      "skipped_train_batches": 0,
+      "finite_val_batches": 30,
+      "nonfinite_val_batches": 0,
+      "finite_val_samples": 3700,
+      "nonfinite_val_samples": 0,
+      "usage_increased_from_epoch_0": true,
+      "usage_monotonic": false,
+      "initial_usage": {"unique_bins": 4, "coverage": 0.00048828125, "entropy_perplexity": 4.0},
+      "peak_usage": {"epoch": 4, "unique_bins": 65, "coverage": 0.0079345703125, "entropy_perplexity": 26.892753662800292},
+      "final_usage": {"unique_bins": 29, "coverage": 0.0035400390625, "entropy_perplexity": 13.451334816039278},
+      "final_bucket_mse": {
+        "surface_planar_like": {"samples": 45, "mse": 0.15026900801393722},
+        "surface_curved_proxy": {"samples": 99, "mse": 0.19944015604377996},
+        "edge": {"samples": 226, "mse": 0.20898938099894904}
+      },
+      "epochs": [
+        {"epoch": 0, "train_loss": 0.23081576, "val_mse": 0.20548306, "planar_mse": 0.15521996832556195, "curved_mse": 0.20578491574887073, "edge_mse": 0.21535896737359267, "unique_bins": 4, "coverage": 0.00048828125, "entropy_perplexity": 4.0},
+        {"epoch": 1, "train_loss": 0.18211571, "val_mse": 0.200416, "planar_mse": 0.1500906045238177, "curved_mse": 0.2008309666104991, "edge_mse": 0.2102547644645767, "unique_bins": 6, "coverage": 0.000732421875, "entropy_perplexity": 4.912811045758365},
+        {"epoch": 2, "train_loss": 0.18050799, "val_mse": 0.19878937, "planar_mse": 0.15072131405274072, "curved_mse": 0.19870153746821664, "edge_mse": 0.208398915959143, "unique_bins": 7, "coverage": 0.0008544921875, "entropy_perplexity": 5.3073703277568605},
+        {"epoch": 3, "train_loss": 0.17941001, "val_mse": 0.19884976, "planar_mse": 0.14907839414146212, "curved_mse": 0.1986842223189094, "edge_mse": 0.20883250437610973, "unique_bins": 14, "coverage": 0.001708984375, "entropy_perplexity": 8.87441021406838},
+        {"epoch": 4, "train_loss": 0.17845924, "val_mse": 0.19785857, "planar_mse": 0.14824465678797827, "curved_mse": 0.19820474298915478, "edge_mse": 0.20758580693365197, "unique_bins": 65, "coverage": 0.0079345703125, "entropy_perplexity": 26.892753662800292},
+        {"epoch": 5, "train_loss": 0.17668247, "val_mse": 0.19059487, "planar_mse": 0.14617834041515987, "curved_mse": 0.19395756074274428, "edge_mse": 0.1979658260479965, "unique_bins": 64, "coverage": 0.0078125, "entropy_perplexity": 20.055125990030145},
+        {"epoch": 6, "train_loss": 0.15801015, "val_mse": 0.18834483, "planar_mse": 0.14482657197448942, "curved_mse": 0.20663309232755142, "edge_mse": 0.1889987349576127, "unique_bins": 38, "coverage": 0.004638671875, "entropy_perplexity": 14.453569720432528},
+        {"epoch": 7, "train_loss": 0.16596313, "val_mse": 0.20701865, "planar_mse": 0.1553876135084364, "curved_mse": 0.2072930610691658, "edge_mse": 0.217178961575295, "unique_bins": 33, "coverage": 0.0040283203125, "entropy_perplexity": 8.206489065286913},
+        {"epoch": 8, "train_loss": 0.18158836, "val_mse": 0.19985915, "planar_mse": 0.15346872955560684, "curved_mse": 0.2001898552131171, "edge_mse": 0.2089512999936015, "unique_bins": 17, "coverage": 0.0020751953125, "entropy_perplexity": 10.990168841914153},
+        {"epoch": 9, "train_loss": 0.18002304, "val_mse": 0.19929265, "planar_mse": 0.15026900801393722, "curved_mse": 0.19944015604377996, "edge_mse": 0.20898938099894904, "unique_bins": 29, "coverage": 0.0035400390625, "entropy_perplexity": 13.451334816039278}
+      ]
+    },
+    {
+      "id": "fsq_micro_4096_10epoch_weighted",
+      "levels": [4, 4, 4, 4, 4, 4],
+      "latent_fsq_dimensions": 6,
+      "codebook_size": 4096,
+      "history_sha256": "d9183c0dc2f6dbfac4931ab0c31ccf1635adc7bd49ef9c65cb651b8eff450a65",
+      "tensorboard_event_sha256": "dbeca002ab8c894fc61e7a86e791e3a9efe1381dba9ddc032c24607c577a0ff9",
+      "tensorboard_scalar_steps_per_tag": 10,
+      "epochs_ran": 10,
+      "best_epoch": 9,
+      "best_val_mse": 0.16261402,
+      "final_train_loss": 0.14744154,
+      "final_val_mse": 0.16261402,
+      "finite_train_batches": 80,
+      "skipped_train_batches": 0,
+      "finite_val_batches": 30,
+      "nonfinite_val_batches": 0,
+      "finite_val_samples": 3700,
+      "nonfinite_val_samples": 0,
+      "usage_increased_from_epoch_0": true,
+      "usage_monotonic": false,
+      "initial_usage": {"unique_bins": 5, "coverage": 0.001220703125, "entropy_perplexity": 4.502134277492281},
+      "peak_usage": {"epoch": 9, "unique_bins": 87, "coverage": 0.021240234375, "entropy_perplexity": 29.759094363923698},
+      "final_usage": {"unique_bins": 87, "coverage": 0.021240234375, "entropy_perplexity": 29.759094363923698},
+      "final_bucket_mse": {
+        "surface_planar_like": {"samples": 45, "mse": 0.11809766764442126},
+        "surface_curved_proxy": {"samples": 99, "mse": 0.17206810147623824},
+        "edge": {"samples": 226, "mse": 0.16733650818664944}
+      },
+      "epochs": [
+        {"epoch": 0, "train_loss": 0.2319883, "val_mse": 0.2038087, "planar_mse": 0.15366411407788594, "curved_mse": 0.20426952101365484, "edge_mse": 0.21359138586352358, "unique_bins": 5, "coverage": 0.001220703125, "entropy_perplexity": 4.502134277492281},
+        {"epoch": 1, "train_loss": 0.18194088, "val_mse": 0.19982676, "planar_mse": 0.15244807551304498, "curved_mse": 0.19997214751713205, "edge_mse": 0.20919689143785333, "unique_bins": 5, "coverage": 0.001220703125, "entropy_perplexity": 3.439229240809874},
+        {"epoch": 2, "train_loss": 0.1804425, "val_mse": 0.1984943, "planar_mse": 0.14794110308090846, "curved_mse": 0.1988943741478101, "edge_mse": 0.20838495492275838, "unique_bins": 25, "coverage": 0.006103515625, "entropy_perplexity": 15.815904547939166},
+        {"epoch": 3, "train_loss": 0.17814004, "val_mse": 0.18859538, "planar_mse": 0.14306841161515976, "curved_mse": 0.19186330165224846, "edge_mse": 0.19622896371030174, "unique_bins": 33, "coverage": 0.008056640625, "entropy_perplexity": 10.778583250032643},
+        {"epoch": 4, "train_loss": 0.15919901, "val_mse": 0.17949322, "planar_mse": 0.14858542846308814, "curved_mse": 0.1979599261675218, "edge_mse": 0.17755802404300303, "unique_bins": 29, "coverage": 0.007080078125, "entropy_perplexity": 11.427638160163212},
+        {"epoch": 5, "train_loss": 0.16041959, "val_mse": 0.17308891, "planar_mse": 0.13745206743478774, "curved_mse": 0.18701402895679378, "edge_mse": 0.17408479974333163, "unique_bins": 30, "coverage": 0.00732421875, "entropy_perplexity": 10.848110108177973},
+        {"epoch": 6, "train_loss": 0.16090507, "val_mse": 0.17411771, "planar_mse": 0.14512931207815807, "curved_mse": 0.1914112495653557, "edge_mse": 0.17231423668233695, "unique_bins": 65, "coverage": 0.015869140625, "entropy_perplexity": 20.923878976903378},
+        {"epoch": 7, "train_loss": 0.15862118, "val_mse": 0.1711981, "planar_mse": 0.1383657231926918, "curved_mse": 0.1834469824803598, "edge_mse": 0.17236983678839377, "unique_bins": 60, "coverage": 0.0146484375, "entropy_perplexity": 16.35979045535225},
+        {"epoch": 8, "train_loss": 0.15402681, "val_mse": 0.16884886, "planar_mse": 0.13244442484445043, "curved_mse": 0.1828102707260787, "edge_mse": 0.1699816837445297, "unique_bins": 67, "coverage": 0.016357421875, "entropy_perplexity": 22.060893186030633},
+        {"epoch": 9, "train_loss": 0.14744154, "val_mse": 0.16261402, "planar_mse": 0.11809766764442126, "curved_mse": 0.17206810147623824, "edge_mse": 0.16733650818664944, "unique_bins": 87, "coverage": 0.021240234375, "entropy_perplexity": 29.759094363923698}
+      ]
+    }
+  ],
+  "paired_comparison": {
+    "lower_best_val_mse": "fsq_micro_4096_10epoch_weighted",
+    "best_val_mse_relative_reduction_percent": 13.6615430325324,
+    "final_val_mse_relative_reduction_percent": 18.40440678569932,
+    "final_curved_proxy_mse_relative_reduction_percent": 13.724445021760392,
+    "final_planar_like_mse_relative_reduction_percent": 21.409165332702617,
+    "final_edge_mse_relative_reduction_percent": 19.930616863499424,
+    "final_unique_bins_ratio_4096_over_8192": 3.0,
+    "final_entropy_perplexity_ratio_4096_over_8192": 2.21235251154697
+  },
+  "gates": {
+    "all_metrics_finite": true,
+    "parent_source_and_exact_content_isolation_verified": true,
+    "usage_increased_in_both_arms": true,
+    "healthy_usage_reference_perplexity_800_to_1500_met": false,
+    "curved_proxy_reference_mse_at_most_0.00005_met": false,
+    "advance_directly_to_long_training": false
+  },
+  "interpretation": {
+    "supported": [
+      "Under this single-seed matched micro protocol, the 4096-code six-dimensional FSQ arm reconstructs every validation bucket better than the 8192-code four-dimensional arm at epoch 9 and uses more codes.",
+      "Aggregate FSQ monitoring is working: both arms move away from their 4-to-5-bin initialization, while the 8192 arm visibly loses utilization after its epoch-4 peak."
+    ],
+    "not_supported": [
+      "Because NS_LEVELS changes both codebook cardinality and FSQ latent dimensionality, this experiment does not isolate codebook-size reduction from the benefit of a six-dimensional FSQ bottleneck.",
+      "Ten epochs on 951 train and 370 validation patches do not establish final architecture superiority, CAD validity, or paper-comparable quality.",
+      "Neither arm meets the heuristic utilization or curved-reconstruction gate, so lower reconstruction loss alone does not justify a full long run."
+    ],
+    "decision": "Retain the 4096-code six-dimensional arm as the next controlled candidate, but return to data distribution and representation diagnostics before increasing epochs or starting AR training."
+  }
+}

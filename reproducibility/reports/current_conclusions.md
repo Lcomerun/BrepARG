@@ -12,12 +12,14 @@
 6. **更长 BrepARG 自训改善但不根治。** 短训复杂 `5/92`、strict `0/92`；长训 VQ400/AR300 后复杂 `13/100`、strict `6/100`，拓扑中位数仍约 6 faces/12 edges。[E013, E014]
 7. **生成约束只能改变选择结果。** 调温度、关闭 bbox 单调约束、最小面/边阈值、原始 BrepARG sampler 和质量门均未修复真实 token 重建失败或生成分布坍塌。[E009, E012]
 8. **50 faces 是协议内边界。** 当前 sequence 的 faces 范围 2-50，global edges 范围 2-150。50-face 失败应单列高难度桶，不能排除为越界。[E003, E006]
+9. **Protocol V2 已完成一次真实小规模闭环。** 2,000 条扫描中 994 条按 parent 分组进入 795/100/99 train/val/test，三对 parent overlap 均为 0；VQ tensor 化前 source、parent 和 exact patch overlap 也为 0。[E028]
 
 ### 强推断
 
 1. validation CE 长期低于 train CE 主要由 parent-CAD 泄露、训练态 dropout 和 batch 等权 CE 共同造成，而不是单一的数据难度差异。[E003, E004, E015]
 2. 当前 surface Chamfer heavy tail 和 true-token 装配失败说明仅提高 FSQ level 不足；decoder/assembly、loss 形态、曲面参数化与 shape-level 一致性都可能参与。[E006, E007, E016]
 3. 长序列 exposure bias 会放大 AR 错误，但长度不是唯一主因；所有 face/length 桶均有明显重建失败。[E006, E007, E008]
+4. 在单 seed、951/370 patch、10 epoch 的严格配对实验中，6 维 4096 FSQ 相对 4 维 8192 FSQ 的末轮全局 validation MSE 低 `18.40%`，曲面代理桶低 `13.72%`，末轮 perplexity 为 `29.76` 对 `13.45`。这支持把 4096/6D 保留为下一候选，但两者都未达到 usage 或曲面重建晋级门槛。[E028]
 
 ### 证据不足
 
@@ -26,6 +28,7 @@
 3. DFS 是否在全数据、同 epoch、同 context 下稳定优于 RCM，当前 medium control 不足以定论。
 4. 多随机种子下的模型与生成波动范围未知。
 5. parent-CAD 隔离重训后的绝对指标未知。
+6. 4096/6D 的微型优势能否在更大 cohort、多 seed 和 100 epoch 左右保持，当前未知；E028 不包含 CAD 生成或 OCC Valid。
 
 ## 根因优先级
 
@@ -44,12 +47,13 @@
 
 1. **冻结当前 selected checkpoint 和 protocol。** 不再继续无门控长训，不使用 nonfinite latest。
 2. **重建 parent-CAD 隔离 split。** 先做身份审计，再从零训练；旧 validation CE 仅保留为开发曲线。
-3. **实现 ground-truth assembly oracle。** 不经过 VQ/FSQ/AR，直接将解析几何送入同一装配与 OCC 验证链路。
-4. **实现 continuous-latent bypass oracle。** 相同 decoder 和 assembly，唯一变量是绕过 FSQ quantization。
-5. **实现 teacher-forced argmax reconstruction。** 每个真实前缀取一步 argmax，重建完整预测 token，隔离条件预测错误和自由运行 exposure。
-6. **按 shape 等权报告复杂曲面指标。** 同时保留 patch 等权；按 surface type、faces、global edges、sequence length 分桶。
-7. **只有 oracle 指向 FSQ 容量时才重训 capacity。** 一次只改 levels 或 latent dimension，并保持 split、样本、decoder、loss、seed 不变。
-8. **在同一 parent-isolated protocol 下重训 V13 与 BrepARG。** 官方权重若词表不兼容，只能做官方协议复现或明确标为 unavailable。
+3. **扩大训练前先诊断低 usage。** E028 两组 usage 虽上升但 perplexity 仍只有 `13.45/29.76`；先核对全量过滤后曲面分布、增加可解释的曲面定向采样消融，并用多 seed 验证 4096/6D 趋势，不直接追加长训。[E028]
+4. **实现 ground-truth assembly oracle。** 不经过 VQ/FSQ/AR，直接将解析几何送入同一装配与 OCC 验证链路。
+5. **实现 continuous-latent bypass oracle。** 相同 decoder 和 assembly，唯一变量是绕过 FSQ quantization。
+6. **实现 teacher-forced argmax reconstruction。** 每个真实前缀取一步 argmax，重建完整预测 token，隔离条件预测错误和自由运行 exposure。
+7. **按 shape 等权报告复杂曲面指标。** 同时保留 patch 等权；按 surface type、faces、global edges、sequence length 分桶。
+8. **只有 oracle 指向 FSQ 容量时才重训 capacity。** 一次只改 levels 或 latent dimension，并保持 split、样本、decoder、loss、seed 不变。
+9. **在同一 parent-isolated protocol 下重训 V13 与 BrepARG。** 官方权重若词表不兼容，只能做官方协议复现或明确标为 unavailable。
 
 ## 已排除假设
 
@@ -59,6 +63,7 @@
 - 只做生成后 water-tight/valid filtering 就能提高真实 Valid。
 - 只换回 BrepARG 原始生成逻辑就能解决坍塌。
 - 只增加 AR batch size 或训练 epoch 就能修复上游几何。
+- 因为 4096/6D 在 10 epoch 微型实验领先，就可以跳过 usage 门槛直接进入长训或 AR。
 - 50-face 样本属于当前协议外。
 - validation loss 较低足以证明泛化良好。
 - same-data 自训 BrepARG 等价于官方模型复现。

@@ -33,6 +33,7 @@
 | E025 | source_audit | workspace size、hardlinks、cleanup governance | `docs/full_experiment_postmortem_20260731.md` | 审计时间点后可能变化 |
 | E026 | provenance | dirty outer source、clean commit、nested BrepARG | `provenance/*` | 当前源码不是 clean commit 本身 |
 | E027 | catalog/decision record | 推荐、诊断、阻塞与 historical failed 实验 | `experiments/*`, `PACKAGE_MANIFEST.json` | blocked 项没有伪造命令/结果 |
+| E028 | source audit / engineering micro experiment | Protocol V2 parent 隔离、VQ exact 去重、4096/8192 FSQ 十轮配对重建与 usage | `reports/protocol_v2/fsq_micro_comparison_20260804.json`, `reports/tensorboard/protocol_v2_fsq_micro_20260804/*` | 单 seed、951/370 patch、10 epoch；不含生成或 OCC Valid，不能判定最终架构 |
 
 ## 结论追踪规则
 
