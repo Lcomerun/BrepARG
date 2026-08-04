@@ -1,0 +1,11 @@
+# Protocol V2 and FSQ engineering smoke
+
+These reports record the first real-data execution of the parent-CAD-isolated V13 data protocol and two one-epoch FSQ pipeline checks. They are engineering smoke evidence, not model-quality or paper-comparable results.
+
+The protocol run scanned 2,000 records from archive chunk `abc_0000`. It accepted 1,063 records under the 10–50 face, 150 global-edge and 30 per-face-edge limits, selected 994 without splitting a parent group, and produced 795/100/99 train/validation/test records. All three parent-overlap counts are zero. Of 937 rejected records, 584 exceeded 50 faces and 306 had fewer than 10 faces, showing that the historical cohort differed materially from the intended protocol.
+
+The VQ sampling stage then removed exact duplicates inside each split. Validation remained authoritative: 30 exact-content hashes shared by otherwise unrelated CADs were removed from training, after which source, parent and exact-hash overlap were all zero. Rounded-to-four-decimal hashes remain audit-only.
+
+Both CUDA arms used the same final 951 train and 370 validation patches, RTX 3060, batch 128, AMP, learning rate `3e-4`, seed 0 and one epoch. The 8192-code arm used four validation bins with perplexity 4.0; the six-dimensional 4096-code arm used five bins with perplexity 4.50. The historical trainer reported a mean of three batch means; because the final validation batch contained 114 rather than 128 patches, the report now preserves that value as `reported_batch_mean_val_mse` and separately recomputes strict sample-weighted MSE from the three bucket totals. On that corrected engineering-smoke metric, the 4096 arm was about 0.815% lower, but a one-epoch random-initialization smoke cannot rank architectures. The actionable result is that utilization collapse is now directly measurable and must be part of the next controlled gate.
+
+Raw parsed CADs and checkpoints remain in ignored local storage. The repository keeps only aggregate JSON and the selected lightweight TensorBoard event files under `reports/tensorboard/protocol_v2_fsq_smoke_20260803/`.

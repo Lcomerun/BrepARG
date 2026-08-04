@@ -1,0 +1,89 @@
+{
+  "report_version": "v13.fsq-protocol-v2-smoke.v1",
+  "status": "VERIFIED_ENGINEERING_SMOKE",
+  "date": "2026-08-03",
+  "git_commit_at_run": "d4dae7f7f8627bb3785fb21f9f28a08e21b7d3fc",
+  "protocol_sha256": "43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f",
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "memory_mib": 12288,
+    "driver": "591.86",
+    "torch": "2.2.2+cu118"
+  },
+  "shared_controls": {
+    "requested_train_patches": 2048,
+    "requested_val_patches": 512,
+    "deduplicated_train_before_cross_split_filter": 981,
+    "deduplicated_val": 370,
+    "cross_split_exact_hashes_removed_from_train": 30,
+    "final_train_patches": 951,
+    "final_val_patches": 370,
+    "train_source_keys": 30,
+    "val_source_keys": 7,
+    "train_parent_ids": 27,
+    "val_parent_ids": 7,
+    "source_key_overlap": 0,
+    "parent_id_overlap": 0,
+    "exact_hash_overlap_after_filter": 0,
+    "batch_size": 128,
+    "epochs": 1,
+    "learning_rate": 0.0003,
+    "amp": true,
+    "complex_fraction": 0.0,
+    "curved_fraction": 0.0,
+    "complex_loss_weight": 1.0,
+    "curved_loss_weight": 1.0,
+    "seed": 0
+  },
+  "runs": [
+    {
+      "id": "fsq_8192_4d",
+      "levels": [8, 8, 8, 16],
+      "codebook_size": 8192,
+      "finite_train_batches": "8/8",
+      "finite_val_batches": "3/3",
+      "train_mse": 0.23081576,
+      "reported_batch_mean_val_mse": 0.20549075,
+      "sample_weighted_val_mse_recomputed": 0.20548305908203124,
+      "unique_bins": 4,
+      "coverage": 0.00048828125,
+      "entropy_perplexity": 4.0,
+      "bucket_mse": {
+        "surface_planar_like": {"samples": 45, "mse": 0.15521996832556195},
+        "surface_curved_proxy": {"samples": 99, "mse": 0.20578491574887073},
+        "edge": {"samples": 226, "mse": 0.21535896737359267}
+      },
+      "history_sha256": "5f5d04ac036dba20d86948a0f2b63c51e306c4e9e62901a9029ba4695eeca7a4"
+    },
+    {
+      "id": "fsq_4096_6d",
+      "levels": [4, 4, 4, 4, 4, 4],
+      "codebook_size": 4096,
+      "finite_train_batches": "8/8",
+      "finite_val_batches": "3/3",
+      "train_mse": 0.2319883,
+      "reported_batch_mean_val_mse": 0.20395194,
+      "sample_weighted_val_mse_recomputed": 0.20380870518686947,
+      "unique_bins": 5,
+      "coverage": 0.001220703125,
+      "entropy_perplexity": 4.502134277492281,
+      "bucket_mse": {
+        "surface_planar_like": {"samples": 45, "mse": 0.15366411407788594},
+        "surface_curved_proxy": {"samples": 99, "mse": 0.20426952101365484},
+        "edge": {"samples": 226, "mse": 0.21359138586352358}
+      },
+      "history_sha256": "0bad2ab7d4d9e395124ab4b3977269d1e39a984309f9cce4a268380830ada092"
+    }
+  ],
+  "interpretation": {
+    "supported": [
+      "Protocol V2 data loading, CUDA forward/backward, checkpoint writing, aggregate code usage, bucket MSE and TensorBoard emission work end to end.",
+      "Both one-epoch arms show extremely low initial FSQ utilization, which is now visible instead of hidden by global reconstruction MSE."
+    ],
+    "not_supported": [
+      "One epoch is not evidence that the 4096-level arm is superior.",
+      "This smoke does not estimate final CAD validity or paper-comparable quality."
+    ],
+    "next_gate": "Run the planned roughly 100-epoch controlled comparison on a larger Protocol V2 cohort; advance only if curved-proxy validation reconstruction improves while aggregate usage rises materially."
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "report_version": "v13.protocol-v2-smoke.v1",
+  "status": "VERIFIED_ENGINEERING_SMOKE",
+  "date": "2026-08-03",
+  "git_commit_at_run": "d4dae7f7f8627bb3785fb21f9f28a08e21b7d3fc",
+  "protocol": {
+    "source": "ABC parsed archive chunk abc_0000 (machine-local source redacted)",
+    "archive_chunks": [0],
+    "max_scan_records": 2000,
+    "max_eligible_records": 1000,
+    "seed": 20260803,
+    "protocol_sha256": "43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f",
+    "config": {
+      "min_faces": 10,
+      "max_faces": 50,
+      "max_global_edges": 150,
+      "max_edges_per_face": 30,
+      "train_ratio": 0.8,
+      "val_ratio": 0.1,
+      "test_ratio": 0.1
+    },
+    "records_scanned": 2000,
+    "records_eligible": 1063,
+    "records_selected": 994,
+    "records_rejected": 937,
+    "reject_reasons": {
+      "too_few_faces": 306,
+      "too_many_faces": 584,
+      "too_many_global_edges": 2,
+      "too_many_edges_per_face": 45
+    },
+    "split_records": {"train": 795, "val": 100, "test": 99},
+    "split_parents": {"train": 323, "val": 100, "test": 99},
+    "parent_overlap_counts": {"train__val": 0, "train__test": 0, "val__test": 0},
+    "archive_member_load_failures": 0,
+    "eligible_cap_overshoot_records": 0,
+    "summary_file_sha256": "f842f69cc6a988e6e56835cb98a4d50f625047b3d239c930a89079b568708c5c"
+  },
+  "storage_observation": {
+    "failed_output_volume": "E drive",
+    "windows_volume_health": "Warning",
+    "windows_operational_status": "Full Repair Needed",
+    "action": "reran the smoke under ignored local_runs on D; no source archive was modified"
+  }
+}
