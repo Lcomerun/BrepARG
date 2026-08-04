@@ -1,4 +1,5 @@
 import json
+import hashlib
 import pickle
 import subprocess
 import sys
@@ -238,6 +239,7 @@ def test_build_protocol_scans_zip_writes_rejects_and_has_zero_parent_overlap(tmp
     assert summary["reject_reasons"] == {"too_few_faces": 1}
     assert summary["experiment_scale"] == "full"
     assert len(summary["protocol_sha256"]) == 64
+    assert len(summary["split_pickle_sha256"]) == 64
     assert sum(map(len, split.values())) == 5
     assert {row["split"] for row in rows if row["parent_id"] == "a" * 24} <= {"train", "val", "test"}
     assert len({row["split"] for row in rows if row["parent_id"] == "a" * 24}) == 1
@@ -256,6 +258,9 @@ def test_build_protocol_scans_zip_writes_rejects_and_has_zero_parent_overlap(tmp
     with (output / "split.pkl").open("rb") as handle:
         written_split = pickle.load(handle)
     assert written_split == split
+    assert hashlib.sha256((output / "split.pkl").read_bytes()).hexdigest() == summary[
+        "split_pickle_sha256"
+    ]
     assert all(Path(path).exists() for paths in split.values() for path in paths)
 
 

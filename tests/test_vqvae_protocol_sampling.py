@@ -16,12 +16,14 @@ if str(IMPROVEMENTS_DIR) not in sys.path:
 
 from vqvae_sampling import (  # noqa: E402
     audit_train_val_inventories,
+    balanced_round_robin_records,
     canonical_patch_hash,
     collect_vqvae_sample_records,
     deduplicate_patch_records,
     remove_train_exact_hash_overlap,
     patch_records_from_parsed,
     rounded_patch_hash,
+    surface_curvature_proxy,
 )
 
 
@@ -114,6 +116,171 @@ def test_require_all_paths_validates_remaining_sources_without_retaining_patches
     assert summary["loaded_paths"] == 3
     assert summary["failed_paths"] == 0
     assert summary["source_records_available"] == 2
+
+
+def test_protocol_sampling_deduplicates_before_cap_and_balances_parent_coverage(tmp_path):
+    paths = []
+    for index, parent in enumerate(("a" * 24, "b" * 24, "c" * 24, "d" * 24), start=1):
+        path = tmp_path / source(parent, index=index)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        value = float(index)
+        parsed_data = {
+            "surf_ncs": np.full((1, 32, 32, 3), value, dtype=np.float32),
+            "edge_ncs": np.full((1, 32, 3), value, dtype=np.float32),
+        }
+        with path.open("wb") as handle:
+            pickle.dump(parsed_data, handle)
+        paths.append(path)
+
+    records, summary = collect_vqvae_sample_records(
+        paths,
+        cap=4,
+        seed=0,
+        require_parent_id=True,
+        require_all_paths=True,
+        deduplicate_before_cap=True,
+        balance_by_parent=True,
+        min_parent_coverage=0.75,
+    )
+
+    assert len(records) == 4
+    assert len({record["parent_id"] for record in records}) == 4
+    assert summary["scan_complete"] is True
+    assert summary["unique_records_before_cap"] == 8
+    assert summary["parent_cads_contributing"] == 4
+    assert summary["parent_coverage"] == 1.0
+    assert summary["dedup_before_cap"]["duplicates_removed"] == 0
+
+
+def test_balanced_round_robin_records_is_deterministic_and_parent_fair():
+    records = [
+        record(f"record-{parent}-{index}", source(parent, index=index), parent)
+        for parent in ("a" * 24, "b" * 24, "c" * 24)
+        for index in (1, 2, 3)
+    ]
+
+    first = balanced_round_robin_records(records, target=6, seed=17)
+    second = balanced_round_robin_records(list(reversed(records)), target=6, seed=17)
+
+    assert [item["record_id"] for item in first] == [item["record_id"] for item in second]
+    assert {item["parent_id"] for item in first} == {"a" * 24, "b" * 24, "c" * 24}
+    assert {item["parent_id"] for item in first}.issuperset({"a" * 24, "b" * 24, "c" * 24})
+
+
+def test_balanced_round_robin_records_exhausts_uneven_sources():
+    parent = "a" * 24
+    records = [
+        record("short", source(parent, index=1), parent),
+        *[
+            record(f"long-{index}", source(parent, index=2), parent)
+            for index in range(4)
+        ],
+    ]
+
+    selected = balanced_round_robin_records(records, target=5, seed=0)
+
+    assert {item["record_id"] for item in selected} == {
+        "short",
+        "long-0",
+        "long-1",
+        "long-2",
+        "long-3",
+    }
+
+
+def test_balanced_round_robin_records_honors_curved_fraction_and_parent_coverage():
+    parents = ("a" * 24, "b" * 24, "c" * 24, "d" * 24)
+    records = []
+    for index, parent in enumerate(parents):
+        records.append(
+            {
+                **record(f"curved-{index}", source(parent, index=1), parent),
+                "curvature_score": 1.0 - index * 0.1,
+            }
+        )
+        records.append(
+            {
+                **record(f"flat-{index}", source(parent, index=2), parent),
+                "curvature_score": 0.0,
+            }
+        )
+
+    selected = balanced_round_robin_records(
+        records,
+        target=4,
+        curved_fraction=0.5,
+        seed=0,
+    )
+
+    assert {item["record_id"] for item in selected}.issuperset({"curved-0", "curved-1"})
+    assert {item["parent_id"] for item in selected} == set(parents)
+
+
+def test_balanced_sampling_prioritizes_parent_coverage_over_concentrated_curved_quota():
+    parents = ("a" * 24, "b" * 24, "c" * 24, "d" * 24)
+    records = [
+        {
+            **record(f"curved-{index}", source(parents[0], index=index + 1), parents[0]),
+            "curvature_score": 1.0 - index * 0.1,
+        }
+        for index in range(3)
+    ]
+    records.extend(
+        {
+            **record(f"flat-{index}", source(parent, index=9), parent),
+            "curvature_score": 0.0,
+        }
+        for index, parent in enumerate(parents[1:], start=1)
+    )
+
+    selected = balanced_round_robin_records(
+        records,
+        target=4,
+        curved_fraction=0.5,
+        seed=0,
+    )
+
+    assert {item["parent_id"] for item in selected} == set(parents)
+    assert sum(item["curvature_score"] > 0 for item in selected) == 1
+
+
+def test_parent_coverage_counts_direct_selected_parents_not_merged_provenance(tmp_path):
+    first_parent = "a" * 24
+    second_parent = "b" * 24
+    paths = []
+    for index, parent in enumerate((first_parent, second_parent), start=1):
+        path = tmp_path / source(parent, index=index)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("wb") as handle:
+            pickle.dump(parsed(), handle)
+        paths.append(path)
+
+    records, summary = collect_vqvae_sample_records(
+        paths,
+        cap=1,
+        seed=0,
+        require_parent_id=True,
+        require_all_paths=True,
+        deduplicate_before_cap=True,
+        balance_by_parent=True,
+    )
+
+    assert len(records) == 1
+    assert summary["parent_cads_contributing"] == 1
+    assert summary["parent_coverage"] == 0.5
+
+
+def test_surface_curvature_proxy_is_rotation_invariant_for_tilted_plane():
+    plane = np.zeros((32, 32, 3), dtype=np.float32)
+    plane[..., 0] = np.linspace(0.0, 1.0, 32, dtype=np.float32)[:, None]
+    plane[..., 1] = np.linspace(0.0, 1.0, 32, dtype=np.float32)[None, :]
+    angle = np.deg2rad(37.0)
+    tilted = plane.copy()
+    tilted[..., 0] = np.cos(angle) * plane[..., 0] + np.sin(angle) * plane[..., 2]
+    tilted[..., 2] = -np.sin(angle) * plane[..., 0] + np.cos(angle) * plane[..., 2]
+
+    assert surface_curvature_proxy(plane) == pytest.approx(0.0, abs=1e-7)
+    assert surface_curvature_proxy(tilted) == pytest.approx(0.0, abs=1e-7)
 
 
 def test_require_all_paths_rejects_a_requested_source_with_zero_patches(tmp_path):
@@ -499,6 +666,26 @@ def test_train_val_inventory_audit_accepts_disjoint_provenance():
     }
 
 
+def test_cross_split_exact_removal_reports_kind_and_parent_breakdown():
+    shared_surface = np.zeros((32, 32, 3), dtype=np.float32)
+    shared_edge = np.ones((32, 32, 3), dtype=np.float32)
+    train = [
+        record("surface", source("a" * 24), "a" * 24, shared_surface),
+        record("edge", source("b" * 24), "b" * 24, shared_edge, kind="edge"),
+    ]
+    val = [
+        record("val-surface", source("c" * 24), "c" * 24, shared_surface.copy()),
+        record("val-edge", source("d" * 24), "d" * 24, shared_edge.copy(), kind="edge"),
+    ]
+
+    kept, summary = remove_train_exact_hash_overlap(train, val)
+
+    assert kept == []
+    assert summary["removed_by_kind"] == {"edge": 1, "surface": 1}
+    assert summary["train_parents_affected"] == ["a" * 24, "b" * 24]
+    assert summary["train_parent_count_affected"] == 2
+
+
 def test_train_val_inventory_audit_canonicalizes_explicit_source_keys():
     train = [
         record(
@@ -695,6 +882,9 @@ def test_remove_train_exact_hash_overlap_keeps_validation_authoritative():
         "train_records_removed": 1,
         "overlap_hashes_removed": 1,
         "removed_fraction": 0.5,
+        "removed_by_kind": {"surface": 1},
+        "train_parents_affected": ["a" * 24],
+        "train_parent_count_affected": 1,
     }
     assert audit_train_val_inventories(filtered, val)["status"] == "VERIFIED"
 

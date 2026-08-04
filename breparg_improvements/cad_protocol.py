@@ -308,12 +308,15 @@ def _write_outputs(
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest = "".join(json.dumps(dict(row), sort_keys=True, ensure_ascii=True) + "\n" for row in rows)
+    split_payload = pickle.dumps(dict(split), protocol=pickle.HIGHEST_PROTOCOL)
+    summary = dict(summary)
+    summary["split_pickle_sha256"] = hashlib.sha256(split_payload).hexdigest()
     _atomic_write_bytes(output_dir / "protocol_manifest.jsonl", manifest.encode("utf-8"))
     _atomic_write_bytes(
         output_dir / "protocol_summary.json",
-        (json.dumps(dict(summary), indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"),
+        (json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"),
     )
-    _atomic_write_bytes(output_dir / "split.pkl", pickle.dumps(dict(split), protocol=pickle.HIGHEST_PROTOCOL))
+    _atomic_write_bytes(output_dir / "split.pkl", split_payload)
 
     integrity = _summarize_split_integrity(split)
     _atomic_write_bytes(
@@ -478,5 +481,8 @@ def build_protocol(
         "split_parents": split_parents,
         "protocol_sha256": _protocol_hash(rows, config),
     }
+    summary["split_pickle_sha256"] = hashlib.sha256(
+        pickle.dumps(dict(split), protocol=pickle.HIGHEST_PROTOCOL)
+    ).hexdigest()
     _write_outputs(Path(output_dir), rows, split, summary)
     return rows, split, summary

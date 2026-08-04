@@ -8,6 +8,7 @@ import numpy as np
 
 from cad_protocol import canonical_source_key, parent_cad_id
 from sharded_data import PATCH_SHARD_FORMAT, iter_shard_records
+from vqvae_metrics import surface_plane_residual
 
 
 def _clamp_fraction(value):
@@ -28,14 +29,7 @@ def _as_array(value, ndim):
 
 
 def surface_curvature_proxy(surface):
-    points = np.asarray(surface, dtype=np.float32).reshape(-1, 3)
-    if points.size == 0:
-        return 0.0
-    span = np.ptp(points, axis=0)
-    largest = float(np.max(span))
-    if largest <= 1e-8:
-        return 0.0
-    return float(np.min(span) / largest)
+    return surface_plane_residual(surface)
 
 
 def edge_curvature_proxy(edge):
@@ -343,12 +337,22 @@ def remove_train_exact_hash_overlap(train_records, val_records):
         if canonical_patch_hash(record.get("kind"), record.get("array")) in val_hashes
     }
     removed = len(train_records) - len(kept)
+    removed_by_kind = {}
+    removed_parents = set()
+    for record in train_records:
+        if canonical_patch_hash(record.get("kind"), record.get("array")) in val_hashes:
+            kind = str(record.get("kind", "unknown"))
+            removed_by_kind[kind] = removed_by_kind.get(kind, 0) + 1
+            removed_parents.update(_record_parent_ids(record))
     return kept, {
         "train_records_before": len(train_records),
         "train_records_after": len(kept),
         "train_records_removed": removed,
         "overlap_hashes_removed": len(removed_hashes),
         "removed_fraction": removed / len(train_records) if train_records else 0.0,
+        "removed_by_kind": dict(sorted(removed_by_kind.items())),
+        "train_parents_affected": sorted(removed_parents),
+        "train_parent_count_affected": len(removed_parents),
     }
 
 
@@ -492,6 +496,152 @@ def select_patch_records(records, target, curved_fraction=0.0, seed=0, exclude_i
     return selected
 
 
+def _record_parent_ids(record):
+    return {
+        value
+        for value in _record_values(
+            record,
+            "provenance_parent_ids",
+            "parent_id",
+            keep_missing=True,
+        )
+        if _canonical_parent_identity(value) is not None
+    }
+
+
+def _balanced_round_robin_order(candidates, seed):
+    grouped = {}
+    for record in candidates:
+        parent = _canonical_parent_identity(record.get("parent_id"))
+        if parent is None:
+            raise ValueError(
+                f"balanced sampling requires a canonical parent_id: {record.get('parent_id')!r}"
+            )
+        source = canonical_source_key(record.get("source_key") or record.get("source_path", ""))
+        grouped.setdefault(parent, {}).setdefault(source, []).append(record)
+
+    rng = random.Random(seed)
+    parent_order = sorted(grouped)
+    rng.shuffle(parent_order)
+    source_orders = {}
+    for parent in parent_order:
+        source_orders[parent] = sorted(grouped[parent])
+        rng.shuffle(source_orders[parent])
+        for source in source_orders[parent]:
+            rng.shuffle(grouped[parent][source])
+
+    ordered = []
+    parent_queues = {}
+    for parent in parent_order:
+        queue = []
+        sources = source_orders[parent]
+        depth = 0
+        while len(queue) < sum(len(grouped[parent][source]) for source in sources):
+            for source in sources:
+                group = grouped[parent][source]
+                if depth < len(group):
+                    queue.append(group[depth])
+            depth += 1
+        parent_queues[parent] = queue
+    depth = 0
+    while len(ordered) < len(candidates):
+        added = False
+        for parent in parent_order:
+            queue = parent_queues[parent]
+            if depth < len(queue):
+                ordered.append(queue[depth])
+                added = True
+        if not added:
+            break
+        depth += 1
+    return ordered
+
+
+def balanced_round_robin_records(
+    records,
+    target,
+    curved_fraction=0.0,
+    seed=0,
+    exclude_ids=None,
+):
+    """Select deterministically while giving every parent/source one turn per pass."""
+    target = max(0, int(target))
+    excluded_ids = set(exclude_ids or [])
+    candidates = sorted(
+        (
+            record
+            for record in records
+            if record.get("record_id") not in excluded_ids
+        ),
+        key=_record_sort_key,
+    )
+    if target == 0 or not candidates:
+        return []
+
+    curved_fraction = _clamp_fraction(curved_fraction)
+    curved_target = min(
+        target,
+        len(candidates),
+        int(math.ceil(target * curved_fraction)) if curved_fraction > 0 else 0,
+    )
+    full_order = _balanced_round_robin_order(candidates, seed)
+    parent_order = list(
+        dict.fromkeys(
+            _canonical_parent_identity(record.get("parent_id")) for record in full_order
+        )
+    )
+    by_parent = {parent: [] for parent in parent_order}
+    for record in candidates:
+        by_parent[_canonical_parent_identity(record.get("parent_id"))].append(record)
+
+    selected = []
+    selected_ids = set()
+    for parent in parent_order[:target]:
+        record = min(
+            by_parent[parent],
+            key=lambda item: (
+                -float(item.get("curvature_score", 0.0)),
+                _record_sort_key(item),
+            ),
+        )
+        selected.append(record)
+        selected_ids.add(record.get("record_id"))
+
+    curved_selected = sum(
+        float(record.get("curvature_score", 0.0)) > 0.0 for record in selected
+    )
+    curved_order = sorted(
+        (
+            record
+            for record in candidates
+            if record.get("record_id") not in selected_ids
+            and float(record.get("curvature_score", 0.0)) > 0.0
+        ),
+        key=lambda record: (
+            -float(record.get("curvature_score", 0.0)),
+            _record_sort_key(record),
+        ),
+    )
+    for record in curved_order:
+        if len(selected) == target or curved_selected >= curved_target:
+            break
+        selected.append(record)
+        selected_ids.add(record.get("record_id"))
+        curved_selected += 1
+
+    remaining = [
+        record for record in candidates if record.get("record_id") not in selected_ids
+    ]
+    remaining_order = _balanced_round_robin_order(remaining, seed)
+    for record in remaining_order:
+        if len(selected) == target:
+            break
+        if record.get("record_id") not in selected_ids:
+            selected.append(record)
+            selected_ids.add(record.get("record_id"))
+    return selected
+
+
 def collect_vqvae_sample_records(
     paths,
     cap,
@@ -505,6 +655,9 @@ def collect_vqvae_sample_records(
     oversample_factor=1.2,
     require_parent_id=False,
     require_all_paths=False,
+    deduplicate_before_cap=False,
+    balance_by_parent=False,
+    min_parent_coverage=0.0,
 ):
     cap = max(0, int(cap))
     paths = [Path(path) for path in paths]
@@ -525,6 +678,13 @@ def collect_vqvae_sample_records(
     loaded_paths = 0
     failed_paths = 0
     dropped_records_source_cap = 0
+    retain_full_inventory = bool(deduplicate_before_cap or balance_by_parent)
+    requested_parents = {
+        parent
+        for path in paths
+        for parent in [parent_cad_id(path)]
+        if parent is not None
+    }
 
     for path in paths:
         try:
@@ -558,31 +718,55 @@ def collect_vqvae_sample_records(
             )
         enough_all = len(all_records) >= scan_target
         enough_complex = complex_target == 0 or len(complex_records) >= complex_scan_target
-        if require_all_paths and enough_all and enough_complex:
+        if require_all_paths and enough_all and enough_complex and not retain_full_inventory:
             continue
         all_records.extend(records)
         complex_records.extend([record for record in records if record["is_complex_source"]])
         enough_all = len(all_records) >= scan_target
         enough_complex = complex_target == 0 or len(complex_records) >= complex_scan_target
-        if enough_all and enough_complex and not require_all_paths:
+        if enough_all and enough_complex and not require_all_paths and not retain_full_inventory:
             break
 
-    complex_selected = select_patch_records(
+    dedup_summary = None
+    if deduplicate_before_cap:
+        all_records, dedup_summary = deduplicate_patch_records(all_records)
+        complex_records = [record for record in all_records if record["is_complex_source"]]
+
+    selector = balanced_round_robin_records if balance_by_parent else select_patch_records
+    complex_selected = selector(
         complex_records,
         complex_target,
-        curved_fraction=curved_fraction,
         seed=seed + 1,
+        curved_fraction=curved_fraction,
     )
     selected_ids = {record["record_id"] for record in complex_selected}
     uniform_target = max(0, all_target - len(complex_selected))
-    uniform_selected = select_patch_records(
+    uniform_selected = selector(
         all_records,
         uniform_target,
-        curved_fraction=curved_fraction,
         seed=seed + 2,
         exclude_ids=selected_ids,
+        curved_fraction=curved_fraction,
     )
     selected = complex_selected + uniform_selected
+    contributing_parents = {
+        parent
+        for record in selected
+        for parent in [_canonical_parent_identity(record.get("parent_id"))]
+        if parent is not None
+    }
+    parent_coverage = (
+        len(contributing_parents & requested_parents) / len(requested_parents)
+        if requested_parents
+        else 0.0
+    )
+    min_parent_coverage = _clamp_fraction(min_parent_coverage)
+    if min_parent_coverage and parent_coverage < min_parent_coverage:
+        raise RuntimeError(
+            "VQ parent coverage below configured gate: "
+            f"{parent_coverage:.6f} < {min_parent_coverage:.6f} "
+            f"({len(contributing_parents & requested_parents)}/{len(requested_parents)})"
+        )
 
     summary = {
         "requested": cap,
@@ -601,6 +785,14 @@ def collect_vqvae_sample_records(
         "loaded_paths": loaded_paths,
         "failed_paths": failed_paths,
         "source_records_available": len(all_records),
+        "scan_complete": loaded_paths + failed_paths == len(paths),
+        "unique_records_before_cap": len(all_records),
+        "dedup_before_cap": dedup_summary,
+        "balanced_by_parent": bool(balance_by_parent),
+        "requested_parent_cads": len(requested_parents),
+        "parent_cads_contributing": len(contributing_parents & requested_parents),
+        "parent_coverage": parent_coverage,
+        "min_parent_coverage": min_parent_coverage,
     }
     return selected, summary
 

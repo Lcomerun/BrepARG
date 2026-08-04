@@ -15,7 +15,7 @@ Task-1 结论(有证据,见 repro_outputs/DATA_FORMAT_COMPARISON.md):
 阶段:  --stage split | vqsweep | vqvae | sequence | ar | all
 """
 
-import os, sys, glob, json, time, pickle, random, argparse, warnings, types
+import os, sys, glob, json, time, pickle, random, argparse, warnings, types, hashlib, platform, subprocess
 import numpy as np
 import torch
 import torch.nn as nn
@@ -59,16 +59,19 @@ from ar_training_utils import (
 )
 from vqvae_sampling import (
     audit_train_val_inventories,
+    balanced_round_robin_records,
     collect_vqvae_patch_shard_records,
     collect_vqvae_sample_records,
     deduplicate_patch_records,
     remove_train_exact_hash_overlap,
     records_to_chw_array,
     records_to_patch_weights,
+    select_patch_records,
     validate_inventory_identities,
 )
 from vqvae_metrics import VQValidationAccumulator, patch_bucket
 from vqvae_sample_cache import load_vqvae_sample_cache, save_vqvae_sample_cache
+from cad_protocol import parent_cad_id
 
 # ---- paths (heavy artifacts on /data) ----
 DATA = '/data/public/luol/breparg_data'
@@ -123,7 +126,23 @@ VQ_COMPLEX_LOSS_WEIGHT = float(os.environ.get('NS_VQ_COMPLEX_LOSS_WEIGHT', '1'))
 VQ_CURVED_LOSS_WEIGHT = float(os.environ.get('NS_VQ_CURVED_LOSS_WEIGHT', '1'))
 VQ_CURVED_LOSS_THRESHOLD = float(os.environ.get('NS_VQ_CURVED_LOSS_THRESHOLD', '0.02'))
 PROTOCOL_V2 = parse_env_bool(os.environ.get('NS_PROTOCOL_V2'), True)
+VQ_BALANCE_BY_PARENT = parse_env_bool(os.environ.get('NS_VQ_BALANCE_BY_PARENT'), PROTOCOL_V2)
+VQ_DEDUP_BEFORE_CAP = parse_env_bool(os.environ.get('NS_VQ_DEDUP_BEFORE_CAP'), True)
+VQ_MIN_PARENT_COVERAGE = float(os.environ.get('NS_VQ_MIN_PARENT_COVERAGE', '0'))
 VQ_TB_LOG_DIR = os.environ.get('NS_VQ_TB_LOG_DIR', '').strip()
+VQ_SWEEP_TRAIN_CAP = int(os.environ.get('NS_VQ_SWEEP_TRAIN_CAP', '12000'))
+VQ_SWEEP_EPOCHS = int(os.environ.get('NS_VQ_SWEEP_EPOCHS', '15'))
+VQ_EXPERIMENT_SEED = int(os.environ.get('NS_VQ_EXPERIMENT_SEED', '0'))
+VQ_PROMOTION_MIN_PERPLEXITY = float(os.environ.get('NS_VQ_PROMOTION_MIN_PERPLEXITY', '800'))
+VQ_PROMOTION_MAX_CURVED_PARENT_MSE = float(
+    os.environ.get('NS_VQ_PROMOTION_MAX_CURVED_PARENT_MSE', '5e-5')
+)
+VQ_PROMOTION_MIN_PARENT_COVERAGE = float(
+    os.environ.get('NS_VQ_PROMOTION_MIN_PARENT_COVERAGE', '0.9')
+)
+ALLOW_UNPROMOTED_VQ_DOWNSTREAM = parse_env_bool(
+    os.environ.get('NS_ALLOW_UNPROMOTED_VQ_DOWNSTREAM'), False
+)
 AR_EPOCHS = int(os.environ.get('NS_AR_EPOCHS', '120'))
 AR_BS = int(os.environ.get('NS_AR_BS', '32'))
 AR_DMODEL = int(os.environ.get('NS_AR_DMODEL', '256'))
@@ -173,6 +192,14 @@ def load_report():
             'vq_complex_loss_weight': VQ_COMPLEX_LOSS_WEIGHT,
             'vq_curved_loss_weight': VQ_CURVED_LOSS_WEIGHT,
             'vq_curved_loss_threshold': VQ_CURVED_LOSS_THRESHOLD,
+            'vq_balance_by_parent': VQ_BALANCE_BY_PARENT,
+            'vq_dedup_before_cap': VQ_DEDUP_BEFORE_CAP,
+            'vq_min_parent_coverage': VQ_MIN_PARENT_COVERAGE,
+            'vq_experiment_seed': VQ_EXPERIMENT_SEED,
+            'vq_promotion_min_perplexity': VQ_PROMOTION_MIN_PERPLEXITY,
+            'vq_promotion_max_curved_parent_mse': VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
+            'vq_promotion_min_parent_coverage': VQ_PROMOTION_MIN_PARENT_COVERAGE,
+            'allow_unpromoted_vq_downstream': ALLOW_UNPROMOTED_VQ_DOWNSTREAM,
             'ar_dmodel': AR_DMODEL, 'ar_layers': AR_LAYERS, 'ar_lr': AR_LR,
             'ar_max_seq_len': AR_MAX_SEQ_LEN,
             'ar_save_every': AR_SAVE_EVERY, 'ar_resume_from': AR_RESUME_FROM or None,
@@ -180,14 +207,319 @@ def load_report():
 def save_report(r): json.dump(r, open(REPORT, 'w'), ensure_ascii=False, indent=2)
 
 
+def evaluate_vq_promotion(
+        metrics,
+        min_perplexity=800.0,
+        max_curved_parent_mse=5e-5,
+        min_parent_coverage=0.9):
+    """Evaluate the representation and cohort gates required before AR work."""
+    code_usage = metrics.get('code_usage') or {}
+    bucket_metrics = metrics.get('parent_cluster_reconstruction_mse') or {}
+    curved_metrics = bucket_metrics.get('surface_curved_proxy') or {}
+    observed = {
+        'perplexity': safe_json_number(code_usage.get('entropy_perplexity')),
+        'curved_parent_mse': safe_json_number(curved_metrics.get('mse')),
+        'nonfinite_val_samples': metrics.get('nonfinite_val_samples'),
+        'train_parent_coverage': safe_json_number(metrics.get('train_parent_coverage')),
+        'val_parent_coverage': safe_json_number(metrics.get('val_parent_coverage')),
+    }
+    thresholds = {
+        'min_perplexity': float(min_perplexity),
+        'max_curved_parent_mse': float(max_curved_parent_mse),
+        'max_nonfinite_val_samples': 0,
+        'min_parent_coverage': float(min_parent_coverage),
+    }
+    reasons = []
+    perplexity = observed['perplexity']
+    if perplexity is None or float(perplexity) < thresholds['min_perplexity']:
+        reasons.append(
+            f"perplexity {perplexity!r} is below {thresholds['min_perplexity']}"
+        )
+    curved_parent_mse = observed['curved_parent_mse']
+    if curved_parent_mse is None or float(curved_parent_mse) > thresholds['max_curved_parent_mse']:
+        reasons.append(
+            "curved parent-cluster MSE "
+            f"{curved_parent_mse!r} exceeds {thresholds['max_curved_parent_mse']}"
+        )
+    nonfinite = observed['nonfinite_val_samples']
+    if type(nonfinite) is not int or nonfinite != 0:
+        reasons.append(f"nonfinite validation samples must be 0, observed {nonfinite!r}")
+    for name in ('train', 'val'):
+        coverage = observed[f'{name}_parent_coverage']
+        if coverage is None or float(coverage) < thresholds['min_parent_coverage']:
+            reasons.append(
+                f"{name} parent coverage {coverage!r} is below "
+                f"{thresholds['min_parent_coverage']}"
+            )
+    return {
+        'eligible': not reasons,
+        'observed': observed,
+        'thresholds': thresholds,
+        'reasons': reasons,
+    }
+
+
+def require_vq_promotion(stage_name):
+    """Fail closed before VQ-dependent work unless a diagnostic override is explicit."""
+    report = load_report()
+    promotion = (report.get('stages', {}).get('vqvae') or {}).get('promotion') or {}
+    eligible = promotion.get('eligible') is True
+    reasons = (
+        list(promotion.get('reasons', []))
+        if promotion
+        else ['VQ promotion result is missing']
+    )
+    gate = {
+        'eligible': eligible,
+        'override_enabled': bool(ALLOW_UNPROMOTED_VQ_DOWNSTREAM),
+        'allowed': bool(eligible or ALLOW_UNPROMOTED_VQ_DOWNSTREAM),
+        'reasons': reasons,
+    }
+    report.setdefault('downstream_vq_gate', {})[str(stage_name)] = gate
+    save_report(report)
+    if not gate['allowed']:
+        raise RuntimeError(
+            f"VQ promotion gate blocked {stage_name}: " + "; ".join(gate['reasons'])
+        )
+    return gate
+
+
+def sha256_file(path):
+    digest = hashlib.sha256()
+    with open(path, 'rb') as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b''):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def current_git_state():
+    repo_root = os.path.dirname(_HERE)
+    try:
+        commit = subprocess.check_output(
+            ['git', '-C', repo_root, 'rev-parse', 'HEAD'],
+            text=True,
+            stderr=subprocess.STDOUT,
+        ).strip()
+        dirty = bool(
+            subprocess.check_output(
+                ['git', '-C', repo_root, 'status', '--porcelain'],
+                text=True,
+                stderr=subprocess.STDOUT,
+            ).strip()
+        )
+    except (OSError, subprocess.CalledProcessError) as exc:
+        raise RuntimeError("VQ run manifest requires readable Git revision state") from exc
+    return {'commit': commit, 'dirty': dirty}
+
+
+def require_clean_vq_run(run_manifest):
+    git_state = run_manifest.get('git') or {}
+    if git_state.get('dirty') is not False or not git_state.get('commit'):
+        raise RuntimeError("formal VQ run requires a clean committed worktree")
+    return True
+
+
+def build_checkpoint_promotion(
+        checkpoint_path,
+        checkpoint_payload=None,
+        min_perplexity=800.0,
+        max_curved_parent_mse=5e-5,
+        min_parent_coverage=0.9):
+    if checkpoint_payload is None:
+        checkpoint_payload = torch.load(checkpoint_path, map_location='cpu')
+    context = dict(checkpoint_payload.get('checkpoint_context') or {})
+    metrics = dict(checkpoint_payload.get('validation_metrics') or {})
+    metrics.update({
+        'train_parent_coverage': context.get('train_parent_coverage'),
+        'val_parent_coverage': context.get('val_parent_coverage'),
+    })
+    promotion = evaluate_vq_promotion(
+        metrics,
+        min_perplexity=min_perplexity,
+        max_curved_parent_mse=max_curved_parent_mse,
+        min_parent_coverage=min_parent_coverage,
+    )
+    promotion['binding'] = {
+        'checkpoint_sha256': sha256_file(checkpoint_path),
+        'checkpoint_epoch': checkpoint_payload.get('checkpoint_epoch'),
+        'fsq_levels': list(checkpoint_payload.get('fsq_levels') or []),
+        'git_commit': context.get('git_commit'),
+        'split_pickle_sha256': context.get('split_pickle_sha256'),
+        'protocol_sha256': context.get('protocol_sha256'),
+    }
+    return promotion
+
+
+def verify_vq_promotion_binding(
+        promotion,
+        checkpoint_path,
+        split_metadata,
+        current_git=None):
+    binding = promotion.get('binding') or {}
+    if not binding:
+        raise RuntimeError("VQ promotion checkpoint binding is missing")
+    if sha256_file(checkpoint_path) != binding.get('checkpoint_sha256'):
+        raise RuntimeError("VQ promotion checkpoint SHA-256 mismatch")
+    checkpoint_payload = torch.load(checkpoint_path, map_location='cpu')
+    if list(checkpoint_payload.get('fsq_levels') or []) != list(FSQ_LEVELS):
+        raise RuntimeError("VQ promotion FSQ levels do not match current configuration")
+    if binding.get('fsq_levels') != list(FSQ_LEVELS):
+        raise RuntimeError("VQ promotion FSQ levels binding mismatch")
+    context = checkpoint_payload.get('checkpoint_context') or {}
+    if (
+        binding.get('split_pickle_sha256') != split_metadata.get('split_pickle_sha256')
+        or context.get('split_pickle_sha256') != split_metadata.get('split_pickle_sha256')
+        or binding.get('protocol_sha256') != split_metadata.get('protocol_sha256')
+        or context.get('protocol_sha256') != split_metadata.get('protocol_sha256')
+    ):
+        raise RuntimeError("VQ promotion split binding does not match current protocol")
+    git_state = current_git_state() if current_git is None else current_git
+    if (
+        git_state.get('dirty') is not False
+        or binding.get('git_commit') != git_state.get('commit')
+        or context.get('git_commit') != git_state.get('commit')
+    ):
+        raise RuntimeError("VQ promotion Git commit binding does not match current source")
+    if checkpoint_payload.get('checkpoint_epoch') != binding.get('checkpoint_epoch'):
+        raise RuntimeError("VQ promotion checkpoint epoch binding mismatch")
+    thresholds = promotion.get('thresholds') or {}
+    expected_promotion = build_checkpoint_promotion(
+        checkpoint_path,
+        checkpoint_payload,
+        min_perplexity=thresholds.get('min_perplexity', 800.0),
+        max_curved_parent_mse=thresholds.get('max_curved_parent_mse', 5e-5),
+        min_parent_coverage=thresholds.get('min_parent_coverage', 0.9),
+    )
+    if (
+        promotion.get('eligible') != expected_promotion.get('eligible')
+        or promotion.get('observed') != expected_promotion.get('observed')
+        or promotion.get('thresholds') != expected_promotion.get('thresholds')
+        or promotion.get('reasons') != expected_promotion.get('reasons')
+    ):
+        raise RuntimeError("VQ promotion metrics do not match the bound checkpoint")
+    return True
+
+
+def require_bound_vq_checkpoint(
+        stage_name,
+        split_metadata,
+        current_git=None,
+        checkpoint_path=None):
+    """Apply the representation gate and the non-overridable artifact binding gate."""
+    report = load_report()
+    promotion = (report.get('stages', {}).get('vqvae') or {}).get('promotion') or {}
+    checkpoint_path = checkpoint_path or VQVAE_PT
+    verify_vq_promotion_binding(
+        promotion,
+        checkpoint_path,
+        split_metadata,
+        current_git=current_git,
+    )
+    gate = require_vq_promotion(stage_name)
+    return gate, promotion
+
+
+def checkpoint_context_from_run(run_manifest, protocol_data):
+    split_metadata = dict((run_manifest.get('experiment') or {}).get('protocol') or {})
+    return {
+        'git_commit': (run_manifest.get('git') or {}).get('commit'),
+        'split_pickle_sha256': split_metadata.get('split_pickle_sha256'),
+        'protocol_sha256': split_metadata.get('protocol_sha256'),
+        'train_parent_coverage': protocol_data['train_sampling'].get(
+            'final_parent_coverage'
+        ),
+        'val_parent_coverage': protocol_data['val_sampling'].get('parent_coverage'),
+        'run_manifest': run_manifest,
+    }
+
+
 def build_fsq_vqvae(levels=FSQ_LEVELS):
+    legacy_embedding_count = 8192
     m = VQModel(in_channels=3, out_channels=3,
                 down_block_types=['DownEncoderBlock2D'] * 5, up_block_types=['UpDecoderBlock2D'] * 5,
                 block_out_channels=[32, 64, 128, 256, 512], layers_per_block=2, act_fn='silu',
-                latent_channels=128, vq_embed_dim=64, num_vq_embeddings=int(np.prod(levels)),
+                latent_channels=128, vq_embed_dim=64,
+                num_vq_embeddings=legacy_embedding_count,
                 norm_num_groups=32, sample_size=512)
     m.quantize = FSQQuantiser(num_embed=int(np.prod(levels)), embed_dim=64, fsq_levels=levels, in_dim=64)
     return m
+
+
+def seed_vq_experiment(seed):
+    """Reset every RNG used by VQ initialization and training."""
+    seed = int(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+
+
+def fsq_comparison_configs():
+    """Return matched A/B/C levels: baseline, dimension, then codebook ablation."""
+    return [
+        {'name': 'fsq_8192_4d', 'levels': (8, 8, 8, 16), 'lr': VQ_LR},
+        {'name': 'fsq_4096_6d', 'levels': (4, 4, 4, 4, 4, 4), 'lr': VQ_LR},
+        {'name': 'fsq_8192_6d', 'levels': (4, 4, 4, 4, 4, 8), 'lr': VQ_LR},
+    ]
+
+
+def build_vq_run_manifest(
+        split_metadata,
+        configs,
+        train_cap=None,
+        val_cap=None,
+        epochs=None):
+    """Capture the immutable source, runtime, protocol, and sweep controls."""
+    git_state = current_git_state()
+    gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
+    return {
+        'created_at': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
+        'git': git_state,
+        'launch': {
+            'argv': list(sys.argv),
+            'relevant_env': {
+                name: value for name, value in sorted(os.environ.items())
+                if name.startswith('NS_')
+            },
+        },
+        'runtime': {
+            'python': sys.version,
+            'platform': platform.platform(),
+            'pytorch': torch.__version__,
+            'cuda': torch.version.cuda,
+            'cudnn': torch.backends.cudnn.version(),
+            'gpu': gpu,
+            'tf32_matmul': torch.backends.cuda.matmul.allow_tf32,
+            'tf32_cudnn': torch.backends.cudnn.allow_tf32,
+            'cudnn_deterministic': torch.backends.cudnn.deterministic,
+            'cudnn_benchmark': torch.backends.cudnn.benchmark,
+            'deterministic_algorithms': torch.are_deterministic_algorithms_enabled(),
+            'amp': VQ_AMP,
+        },
+        'experiment': {
+            'seed': VQ_EXPERIMENT_SEED,
+            'protocol': dict(split_metadata),
+            'train_cap': VQ_SWEEP_TRAIN_CAP if train_cap is None else int(train_cap),
+            'val_cap': VQ_VAL_SAMPLES if val_cap is None else int(val_cap),
+            'epochs': VQ_SWEEP_EPOCHS if epochs is None else int(epochs),
+            'batch_size': VQ_BS,
+            'curved_fraction': VQ_CURVED_FRACTION,
+            'complex_fraction': VQ_COMPLEX_FRACTION,
+            'curved_loss_weight': VQ_CURVED_LOSS_WEIGHT,
+            'complex_loss_weight': VQ_COMPLEX_LOSS_WEIGHT,
+            'min_parent_coverage': VQ_MIN_PARENT_COVERAGE,
+            'arms': [
+                {
+                    'name': config['name'],
+                    'levels': list(config['levels']),
+                    'codebook': int(np.prod(config['levels'])),
+                    'lr': config['lr'],
+                }
+                for config in configs
+            ],
+        },
+    }
 
 
 _LAST_VQVAE_SAMPLING_SUMMARY = None
@@ -292,8 +624,12 @@ def _collect_protocol_inventory(paths, cap, seed):
         max_source_edges=VQ_MAX_SOURCE_EDGES,
         require_parent_id=True,
         require_all_paths=True,
+        deduplicate_before_cap=VQ_DEDUP_BEFORE_CAP,
+        balance_by_parent=VQ_BALANCE_BY_PARENT,
+        min_parent_coverage=0.0,
     )
-    deduplicated, dedup_summary = deduplicate_patch_records(records)
+    deduplicated, final_dedup_summary = deduplicate_patch_records(records)
+    dedup_summary = summary.get('dedup_before_cap') or final_dedup_summary
     if not deduplicated:
         raise RuntimeError("Protocol V2 VQ inventory produced zero geometry patches")
     return deduplicated, summary, dedup_summary
@@ -306,12 +642,22 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
             "Protocol V2 rejects legacy VQ cache/shards without split-specific "
             "parent provenance and a matching protocol fingerprint"
         )
-    train_records, train_sampling, train_dedup = _collect_protocol_inventory(
-        split.get('train', []), train_cap, seed=0
-    )
     val_records, val_sampling, val_dedup = _collect_protocol_inventory(
         split.get('val', []), val_cap, seed=1
     )
+    train_candidate_cap = train_cap + len(val_records)
+    train_records, train_sampling, train_dedup = _collect_protocol_inventory(
+        split.get('train', []), train_candidate_cap, seed=0
+    )
+    for split_name, sampling in (('train', train_sampling), ('validation', val_sampling)):
+        coverage = float(sampling.get('parent_coverage', 0.0))
+        if VQ_MIN_PARENT_COVERAGE > 0 and coverage < VQ_MIN_PARENT_COVERAGE:
+            raise RuntimeError(
+                f"VQ parent coverage below configured gate for {split_name}: "
+                f"{coverage:.6f} < {VQ_MIN_PARENT_COVERAGE:.6f} "
+                f"({sampling.get('parent_cads_contributing', 0)}/"
+                f"{sampling.get('requested_parent_cads', 0)})"
+            )
     train_sources, train_parents = validate_inventory_identities(train_records, 'train')
     val_sources, val_parents = validate_inventory_identities(val_records, 'val')
     source_overlap = sorted(train_sources & val_sources)
@@ -331,6 +677,39 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
     )
     if not train_records:
         raise RuntimeError("Protocol V2 exact-overlap filtering removed all train patches")
+    available_after_exact_filter = len(train_records)
+    selector = balanced_round_robin_records if VQ_BALANCE_BY_PARENT else select_patch_records
+    train_records = selector(
+        train_records,
+        train_cap,
+        seed=2,
+        curved_fraction=VQ_CURVED_FRACTION,
+    )
+    train_sampling['candidate_cap_with_val_reserve'] = train_candidate_cap
+    train_sampling['candidates_after_exact_filter'] = available_after_exact_filter
+    train_sampling['requested'] = int(train_cap)
+    train_sampling['selected'] = len(train_records)
+    train_sampling['requested_cap_met'] = len(train_records) == int(train_cap)
+    train_sampling['effective_cap_met'] = len(train_records) == min(
+        int(train_cap), available_after_exact_filter
+    )
+    final_train_parents = {
+        record.get('parent_id')
+        for record in train_records
+        if isinstance(record.get('parent_id'), str)
+    }
+    final_train_coverage = (
+        len(final_train_parents) / train_sampling.get('requested_parent_cads', 1)
+        if train_sampling.get('requested_parent_cads', 0)
+        else 0.0
+    )
+    train_sampling['final_parent_cads_contributing'] = len(final_train_parents)
+    train_sampling['final_parent_coverage'] = final_train_coverage
+    if VQ_MIN_PARENT_COVERAGE > 0 and final_train_coverage < VQ_MIN_PARENT_COVERAGE:
+        raise RuntimeError(
+            "VQ parent coverage below configured gate for train after exact filtering: "
+            f"{final_train_coverage:.6f} < {VQ_MIN_PARENT_COVERAGE:.6f}"
+        )
     integrity = audit_train_val_inventories(train_records, val_records)
     return {
         'X_train': records_to_chw_array(train_records),
@@ -345,6 +724,12 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
             patch_bucket(record, curved_threshold=VQ_CURVED_LOSS_THRESHOLD)
             for record in val_records
         ],
+        'val_parent_ids': [record.get('parent_id') for record in val_records],
+        'val_parent_groups': [
+            tuple(record.get('provenance_parent_ids') or [record.get('parent_id')])
+            for record in val_records
+        ],
+        'train_parent_ids': [record.get('parent_id') for record in train_records],
         'train_sampling': train_sampling,
         'val_sampling': val_sampling,
         'train_dedup': train_dedup,
@@ -365,45 +750,101 @@ def weighted_reconstruction_loss(recon, target, weights=None):
 
 
 # ===========================================================================
+def load_verified_protocol_split(return_metadata=False):
+    """Load one SHA-bound Protocol V2 split after fail-closed integrity checks."""
+    if not PROTOCOL_V2:
+        raise RuntimeError("verified protocol split loading requires Protocol V2")
+    if not PROTOCOL_DIR:
+        raise RuntimeError(
+            "Protocol V2 requires NS_PROTOCOL_DIR from tools/build_cad_protocol.py"
+        )
+    summary_path = os.path.join(PROTOCOL_DIR, 'protocol_summary.json')
+    if not os.path.isfile(SPLIT) or not os.path.isfile(summary_path):
+        raise RuntimeError("Protocol V2 split.pkl and protocol_summary.json are required")
+    with open(summary_path, encoding='utf-8') as handle:
+        summary = json.load(handle)
+    if summary.get('status') != 'VERIFIED':
+        raise RuntimeError("Protocol V2 summary must have status VERIFIED")
+    overlaps = summary.get('parent_overlap_counts', {})
+    required_overlaps = {'train__val', 'train__test', 'val__test'}
+    if not isinstance(overlaps, dict) or set(overlaps) != required_overlaps:
+        raise RuntimeError(
+            "Protocol V2 parent_overlap_counts must contain exactly "
+            "train__val, train__test, and val__test"
+        )
+    if any(
+        type(overlaps[name]) is not int or overlaps[name] != 0
+        for name in required_overlaps
+    ):
+        raise RuntimeError(
+            "Protocol V2 parent overlap counts must each be JSON integer zero"
+        )
+    expected_split_sha256 = summary.get('split_pickle_sha256')
+    if not isinstance(expected_split_sha256, str) or not expected_split_sha256:
+        raise RuntimeError(
+            "Protocol V2 protocol_summary.json requires split_pickle_sha256"
+        )
+    with open(SPLIT, 'rb') as handle:
+        split_payload = handle.read()
+    actual_split_sha256 = hashlib.sha256(split_payload).hexdigest()
+    if expected_split_sha256 != actual_split_sha256:
+        raise RuntimeError(
+            "Protocol V2 split.pkl SHA-256 does not match protocol_summary.json"
+        )
+    split = pickle.loads(split_payload)
+    if not isinstance(split, dict):
+        raise RuntimeError("Protocol V2 split.pkl must contain a split mapping")
+    for name in ('train', 'val', 'test'):
+        if name not in split or not isinstance(split[name], (list, tuple)):
+            raise RuntimeError(f"Protocol V2 split requires a {name} sequence")
+    if not split['train'] or not split['val']:
+        raise RuntimeError("Protocol V2 split requires non-empty train and val cohorts")
+    parents_by_split = {}
+    for name in ('train', 'val', 'test'):
+        parents = set()
+        for path in split[name]:
+            parent = parent_cad_id(path)
+            if parent is None:
+                raise RuntimeError(
+                    f"Protocol V2 split contains unresolved parent path in {name}: {path!r}"
+                )
+            parents.add(parent)
+        parents_by_split[name] = parents
+    actual_overlaps = {
+        'train__val': len(parents_by_split['train'] & parents_by_split['val']),
+        'train__test': len(parents_by_split['train'] & parents_by_split['test']),
+        'val__test': len(parents_by_split['val'] & parents_by_split['test']),
+    }
+    if any(actual_overlaps.values()):
+        raise RuntimeError(
+            f"Protocol V2 actual split parent overlap is nonzero: {actual_overlaps}"
+        )
+    if actual_overlaps != overlaps:
+        raise RuntimeError(
+            "Protocol V2 summary parent overlap does not match actual split"
+        )
+    metadata = {
+        'protocol_sha256': summary.get('protocol_sha256'),
+        'split_pickle_sha256': actual_split_sha256,
+        'split_pickle_binding': 'VERIFIED',
+        'parent_overlap_counts': overlaps,
+    }
+    return (split, metadata) if return_metadata else split
+
+
 def stage_split():
     if PROTOCOL_V2:
-        if not PROTOCOL_DIR:
-            raise RuntimeError(
-                "Protocol V2 requires NS_PROTOCOL_DIR from tools/build_cad_protocol.py"
-            )
-        summary_path = os.path.join(PROTOCOL_DIR, 'protocol_summary.json')
-        if not os.path.isfile(SPLIT) or not os.path.isfile(summary_path):
-            raise RuntimeError("Protocol V2 split.pkl and protocol_summary.json are required")
-        with open(summary_path, encoding='utf-8') as handle:
-            summary = json.load(handle)
-        if summary.get('status') != 'VERIFIED':
-            raise RuntimeError("Protocol V2 summary must have status VERIFIED")
-        overlaps = summary.get('parent_overlap_counts', {})
-        required_overlaps = {'train__val', 'train__test', 'val__test'}
-        if set(overlaps) != required_overlaps:
-            raise RuntimeError(
-                "Protocol V2 parent_overlap_counts must contain exactly "
-                "train__val, train__test, and val__test"
-            )
-        if any(
-            type(overlaps[name]) is not int or overlaps[name] != 0
-            for name in required_overlaps
-        ):
-            raise RuntimeError(
-                "Protocol V2 parent overlap counts must each be JSON integer zero"
-            )
-        with open(SPLIT, 'rb') as handle:
-            split = pickle.load(handle)
-        if not split.get('train') or not split.get('val'):
-            raise RuntimeError("Protocol V2 split requires non-empty train and val cohorts")
+        split, verification = load_verified_protocol_split(return_metadata=True)
         log(
-            f"  Protocol V2 verified hash={summary.get('protocol_sha256')} "
+            f"  Protocol V2 verified hash={verification.get('protocol_sha256')} "
             f"train/val/test={len(split.get('train', []))}/{len(split.get('val', []))}/{len(split.get('test', []))}"
         )
         report = load_report()
         report['stages']['split'] = {
             'protocol_v2': True,
-            'protocol_sha256': summary.get('protocol_sha256'),
+            'protocol_sha256': verification.get('protocol_sha256'),
+            'split_pickle_sha256': verification['split_pickle_sha256'],
+            'split_pickle_binding': verification['split_pickle_binding'],
             **{name: len(split.get(name, [])) for name in ('train', 'val', 'test')},
             'status': 'VERIFIED',
         }
@@ -490,8 +931,12 @@ def _train_vqvae(
         save_final_path=None,
         train_weights=None,
         val_buckets=None,
+        val_parent_ids=None,
+        val_parent_groups=None,
         codebook_size=None,
-        tb_log_dir=None):
+        tb_log_dir=None,
+        fsq_levels=None,
+        checkpoint_context=None):
     model = model.to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-6)
     amp_enabled = VQ_AMP if amp_enabled is None else bool(amp_enabled)
@@ -508,7 +953,14 @@ def _train_vqvae(
         raise ValueError(f"validation bucket count mismatch: {len(val_buckets)} != {len(Xva)}")
     if val_buckets and not codebook_size:
         raise ValueError("codebook_size is required with validation buckets")
+    val_parent_groups = list(val_parent_groups or val_parent_ids or [])
+    if val_parent_groups and len(val_parent_groups) != len(Xva):
+        raise ValueError(
+            f"validation parent count mismatch: {len(val_parent_groups)} != {len(Xva)}"
+        )
     Wtr = torch.tensor(train_weights, dtype=torch.float32) if train_weights is not None else None
+    fsq_levels = tuple(FSQ_LEVELS if fsq_levels is None else fsq_levels)
+    checkpoint_context = dict(checkpoint_context or {})
     start_epoch = int(start_epoch)
     initial_best = float(initial_best_val) if initial_best_val is not None else float('inf')
     stop_state = VQVAEStopState(best_val=initial_best, best_epoch=int(initial_best_epoch))
@@ -527,6 +979,7 @@ def _train_vqvae(
         'train_weight_mean': float(torch.mean(Wtr).item()) if Wtr is not None and len(Wtr) else None,
         'train_weight_max': float(torch.max(Wtr).item()) if Wtr is not None and len(Wtr) else None,
         'last_val_metrics': None,
+        'best_val_metrics': None,
     }
     writer = None
     if tb_log_dir:
@@ -559,7 +1012,7 @@ def _train_vqvae(
         model.eval(); vtot = vcount = vnb = 0; val_batches = 0
         nonfinite_val_samples = nonfinite_val_batches = 0
         val_accumulator = (
-            VQValidationAccumulator(int(codebook_size), val_buckets)
+            VQValidationAccumulator(int(codebook_size), val_buckets, val_parent_groups)
             if val_buckets else None
         )
         with torch.no_grad():
@@ -593,11 +1046,22 @@ def _train_vqvae(
         stop_state, improved, should_stop = update_vqvae_stop_state(absolute_epoch, va, stop_state, stop_config)
         best_val = stop_state.best_val
         hist.append((tr, va))
-        if improved and save_path:
-            torch.save({'model_state_dict': model.state_dict(), 'fsq_levels': list(FSQ_LEVELS)}, save_path)
-        if save_final_path:
-            torch.save({'model_state_dict': model.state_dict(), 'fsq_levels': list(FSQ_LEVELS)}, save_final_path)
         val_metrics = val_accumulator.summary() if val_accumulator is not None else None
+        if val_metrics is not None:
+            val_metrics['nonfinite_val_samples'] = nonfinite_val_samples
+        checkpoint_payload = {
+            'model_state_dict': model.state_dict(),
+            'fsq_levels': list(fsq_levels),
+            'checkpoint_epoch': absolute_epoch,
+            'validation_metrics': val_metrics,
+            'checkpoint_context': checkpoint_context,
+        }
+        if improved:
+            meta['best_val_metrics'] = val_metrics
+            if save_path:
+                torch.save(checkpoint_payload, save_path)
+        if save_final_path:
+            torch.save(checkpoint_payload, save_final_path)
         record = {
             'epoch': absolute_epoch,
             'train_loss': metric_for_report(tr),
@@ -619,6 +1083,12 @@ def _train_vqvae(
         if val_metrics is not None:
             record['val_code_usage'] = val_metrics['code_usage']
             record['val_reconstruction_mse'] = val_metrics['reconstruction_mse']
+            if 'parent_cluster_mse' in val_metrics:
+                record['val_parent_cluster_mse'] = val_metrics['parent_cluster_mse']
+            if 'parent_cluster_reconstruction_mse' in val_metrics:
+                record['val_parent_cluster_reconstruction_mse'] = val_metrics[
+                    'parent_cluster_reconstruction_mse'
+                ]
         history.append(record)
         meta.update({
             'epochs_ran': ep + 1,
@@ -637,6 +1107,15 @@ def _train_vqvae(
                     if bucket['mse'] is not None:
                         writer.add_scalar(
                             f'validation/reconstruction_mse/{name}', bucket['mse'], absolute_epoch
+                        )
+                if 'parent_cluster_mse' in val_metrics:
+                    parent_mse = val_metrics['parent_cluster_mse']['mse']
+                    if parent_mse is not None:
+                        writer.add_scalar('validation/parent_cluster_mse/global', parent_mse, absolute_epoch)
+                for name, bucket in val_metrics.get('parent_cluster_reconstruction_mse', {}).items():
+                    if bucket['mse'] is not None:
+                        writer.add_scalar(
+                            f'validation/parent_cluster_mse/{name}', bucket['mse'], absolute_epoch
                         )
         if history_path:
             json.dump({
@@ -676,29 +1155,74 @@ def stage_vqsweep():
             "VQ sweep requires Protocol V2; legacy patch-level validation is unsupported"
         )
     log("VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)")
-    split = pickle.load(open(SPLIT, 'rb'))
-    protocol_data = collect_protocol_vq_data(split, train_cap=12000, val_cap=VQ_VAL_SAMPLES)
+    split, split_metadata = load_verified_protocol_split(return_metadata=True)
+    configs = fsq_comparison_configs()
+    run_manifest = build_vq_run_manifest(
+        split_metadata,
+        configs,
+        train_cap=VQ_SWEEP_TRAIN_CAP,
+        val_cap=VQ_VAL_SAMPLES,
+        epochs=VQ_SWEEP_EPOCHS,
+    )
+    require_clean_vq_run(run_manifest)
+    protocol_data = collect_protocol_vq_data(split, train_cap=VQ_SWEEP_TRAIN_CAP, val_cap=VQ_VAL_SAMPLES)
+    checkpoint_context = checkpoint_context_from_run(run_manifest, protocol_data)
     Xtr = protocol_data['X_train']; Xva = protocol_data['X_val']
     log(f"  sweep 数据: train={len(Xtr)} val={len(Xva)}  (短训 15 ep)")
-    configs = [
-        {'name': 'lr1e-3_L8.8.8.16', 'levels': (8, 8, 8, 16), 'lr': 1e-3},
-        {'name': 'lr3e-4_L8.8.8.16', 'levels': (8, 8, 8, 16), 'lr': 3e-4},
-        {'name': 'lr1e-3_L8.8.8.8',  'levels': (8, 8, 8, 8),  'lr': 1e-3},
-    ]
     results = []
     for c in configs:
-        torch.manual_seed(0); np.random.seed(0); random.seed(0)
+        seed_vq_experiment(VQ_EXPERIMENT_SEED)
         m = build_fsq_vqvae(c['levels'])
-        _, bv, _ = _train_vqvae(
-            m, Xtr, Xva, epochs=15, bs=VQ_BS, lr=c['lr'], tag=c['name'],
-            val_buckets=protocol_data['val_buckets'], codebook_size=int(np.prod(c['levels']))
+        seed_vq_experiment(VQ_EXPERIMENT_SEED)
+        arm_history = os.path.join(OUT, f"{c['name']}_history.json")
+        arm_tb = os.path.join(VQ_TB_LOG_DIR, c['name']) if VQ_TB_LOG_DIR else None
+        arm_checkpoint = os.path.join(OUT, f"{c['name']}_best.pt")
+        hist, bv, arm_meta = _train_vqvae(
+            m, Xtr, Xva, epochs=VQ_SWEEP_EPOCHS, bs=VQ_BS, lr=c['lr'], tag=c['name'],
+            val_buckets=protocol_data['val_buckets'],
+            val_parent_groups=protocol_data['val_parent_groups'],
+            codebook_size=int(np.prod(c['levels'])), history_path=arm_history,
+            tb_log_dir=arm_tb,
+            save_path=arm_checkpoint,
+            fsq_levels=c['levels'],
+            checkpoint_context=checkpoint_context,
+        )
+        final_metrics = arm_meta.get('last_val_metrics') or {}
+        checkpoint_payload = torch.load(arm_checkpoint, map_location='cpu')
+        promotion = build_checkpoint_promotion(
+            arm_checkpoint,
+            checkpoint_payload,
+            min_perplexity=VQ_PROMOTION_MIN_PERPLEXITY,
+            max_curved_parent_mse=VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
+            min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
         )
         results.append({'name': c['name'], 'levels': list(c['levels']),
                         'codebook': int(np.prod(c['levels'])), 'lr': c['lr'], 'best_val_recon': round(bv, 5)})
+        results[-1].update({
+            'epochs_ran': arm_meta.get('epochs_ran'),
+            'history_path': arm_history,
+            'tensorboard_dir': arm_tb,
+            'final_val_metrics': final_metrics,
+            'best_val_metrics': arm_meta.get('best_val_metrics'),
+            'checkpoint_best': arm_checkpoint,
+            'train_sampling': protocol_data['train_sampling'],
+            'val_sampling': protocol_data['val_sampling'],
+            'cross_split_exact': protocol_data['cross_split_exact'],
+            'integrity': protocol_data['integrity'],
+            'promotion': promotion,
+        })
         log(f"  -> {c['name']}: best_val_recon={bv:.5f}")
     results.sort(key=lambda x: x['best_val_recon'])
-    json.dump({'sweep': results, 'winner': results[0]}, open(SWEEP_JSON, 'w'), indent=2)
-    r = load_report(); r['stages']['vqsweep'] = {'results': results, 'winner': results[0]['name']}; save_report(r)
+    json.dump(
+        {'run_manifest': run_manifest, 'sweep': results, 'winner': results[0]},
+        open(SWEEP_JSON, 'w'),
+        indent=2,
+    )
+    r = load_report(); r['stages']['vqsweep'] = {
+        'run_manifest': run_manifest,
+        'results': results,
+        'winner': results[0]['name'],
+    }; save_report(r)
     log(f"  WINNER: {results[0]['name']} (val_recon={results[0]['best_val_recon']})")
     return True
 
@@ -709,10 +1233,12 @@ def stage_vqvae():
             "VQ-VAE training requires Protocol V2; legacy patch-level validation is unsupported"
         )
     log(f"VQVAE: 全量训练 FSQ-VQVAE (levels={FSQ_LEVELS}, codebook={SE_CODEBOOK})")
-    split = pickle.load(open(SPLIT, 'rb'))
-    protocol_data = collect_protocol_vq_data(split)
-    Xtr = protocol_data['X_train']; Xva = protocol_data['X_val']
-    Wtr = protocol_data['train_weights']
+    split, split_metadata = load_verified_protocol_split(return_metadata=True)
+    configs = [{
+        'name': 'vqvae',
+        'levels': FSQ_LEVELS,
+        'lr': VQ_LR,
+    }]
     resume_summary = None
     start_epoch = 0
     initial_best_val = None
@@ -725,6 +1251,18 @@ def stage_vqvae():
         initial_best_epoch = resume_summary['best_epoch']
     if VQ_TARGET_EPOCH:
         epochs_to_run = continuation_epoch_count(start_epoch, int(VQ_TARGET_EPOCH))
+    run_manifest = build_vq_run_manifest(
+        split_metadata,
+        configs,
+        train_cap=VQ_SAMPLES,
+        val_cap=VQ_VAL_SAMPLES,
+        epochs=epochs_to_run,
+    )
+    require_clean_vq_run(run_manifest)
+    protocol_data = collect_protocol_vq_data(split)
+    checkpoint_context = checkpoint_context_from_run(run_manifest, protocol_data)
+    Xtr = protocol_data['X_train']; Xva = protocol_data['X_val']
+    Wtr = protocol_data['train_weights']
     log(f"  data train={len(Xtr)} val={len(Xva)} epochs={epochs_to_run} start_epoch={start_epoch} bs={VQ_BS} lr={VQ_LR} device={DEVICE}")
     m = build_fsq_vqvae(FSQ_LEVELS)
     if VQ_RESUME_FROM:
@@ -748,12 +1286,24 @@ def stage_vqvae():
         save_final_path=VQVAE_FINAL_PT,
         train_weights=Wtr,
         val_buckets=protocol_data['val_buckets'],
+        val_parent_groups=protocol_data['val_parent_groups'],
         codebook_size=SE_CODEBOOK,
         tb_log_dir=VQ_TB_LOG_DIR or None,
+        fsq_levels=FSQ_LEVELS,
+        checkpoint_context=checkpoint_context,
     )
     first_val = hist[0][1] if hist else float('inf')
     baseline_best = initial_best_val if initial_best_val is not None else first_val
     ok = bool(hist) and np.isfinite(bv) and np.isfinite(first_val) and bv <= baseline_best
+    last_val_metrics = meta.get('last_val_metrics') or {}
+    checkpoint_payload = torch.load(VQVAE_PT, map_location='cpu')
+    promotion = build_checkpoint_promotion(
+        VQVAE_PT,
+        checkpoint_payload,
+        min_perplexity=VQ_PROMOTION_MIN_PERPLEXITY,
+        max_curved_parent_mse=VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
+        min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
+    )
     r = load_report(); r['stages']['vqvae'] = {
         'samples': len(Xtr) + len(Xva), 'train_samples': len(Xtr), 'val_samples': len(Xva),
         'epochs': epochs_to_run, 'target_epoch': int(VQ_TARGET_EPOCH) if VQ_TARGET_EPOCH else None,
@@ -782,7 +1332,10 @@ def stage_vqvae():
             'cross_split_exact': protocol_data['cross_split_exact'],
             'integrity': protocol_data['integrity'],
         },
-        'last_val_metrics': meta.get('last_val_metrics'),
+        'last_val_metrics': last_val_metrics,
+        'best_val_metrics': meta.get('best_val_metrics'),
+        'run_manifest': run_manifest,
+        'promotion': promotion,
         'tensorboard': VQ_TB_LOG_DIR or None,
         'history': VQVAE_HISTORY_JSON,
         'checkpoint_best': VQVAE_PT,
@@ -806,6 +1359,8 @@ def stage_vqvae():
 
 
 def stage_sequence():
+    _, split_metadata = load_verified_protocol_split(return_metadata=True)
+    _, promotion = require_bound_vq_checkpoint('sequence', split_metadata)
     log("SEQUENCE: RCM + FSQ-VQVAE 重建 5K 序列")
     import importlib.util
     spec = importlib.util.spec_from_file_location('breparg_2sequence', os.path.join(BREPARG, '2sequence.py'))
@@ -820,6 +1375,7 @@ def stage_sequence():
     for sp, g in pre.group_cache:
         (tr if sp == 'train' else va if sp == 'val' else te).append(g)
     out = {'train': tr, 'val': va, 'test': te, 'vocab_size': pre.vocab_size,
+           'vq_binding': dict(promotion['binding']),
            'special_token_size': pre.special_token_size, 'face_index_size': pre.face_index_size,
            'se_codebook_size': pre.se_codebook_size, 'bbox_index_size': pre.bbox_index_size,
            'face_index_offset': pre.face_index_offset, 'se_token_offset': pre.se_token_offset,
@@ -836,15 +1392,18 @@ def stage_sequence():
     r = load_report(); r['stages']['sequence'] = {
         'sequences': nseq, 'train': len(tr), 'val': len(va), 'test': len(te),
         'vocab_size': out['vocab_size'], 'max_token': int(mx), 'out_of_vocab': bad,
+        'vq_binding': out['vq_binding'],
         'se_tokens_per_element': pre.se_tokens_per_element, 'ordering': 'RCM',
         'status': 'VERIFIED' if bad == 0 and nseq > 0 and pre.se_tokens_per_element == 4 else 'FAILED'}
     save_report(r)
     return bad == 0 and nseq > 0
 
 
-def _load_ar_seqs(max_seq_len=None):
+def _load_ar_seqs(max_seq_len=None, expected_vq_binding=None):
     max_seq_len = AR_MAX_SEQ_LEN if max_seq_len is None else int(max_seq_len)
     data = pickle.load(open(SEQ_PKL, 'rb'))
+    if expected_vq_binding is not None and data.get('vq_binding') != expected_vq_binding:
+        raise RuntimeError("sequence VQ binding does not match the current checkpoint")
     def seqs_of(split): return [g['original']['input_ids'] for g in data[split] if len(g['original']['input_ids']) <= max_seq_len]
     return data, seqs_of('train'), seqs_of('val')
 
@@ -987,8 +1546,12 @@ def ar_stage_verified(meta):
 
 
 def stage_ar():
+    _, split_metadata = load_verified_protocol_split(return_metadata=True)
+    _, promotion = require_bound_vq_checkpoint('ar', split_metadata)
     log("AR: 训练 AR(新方案 FSQ+RCM 序列)")
-    data, tr, va = _load_ar_seqs(AR_MAX_SEQ_LEN)
+    data, tr, va = _load_ar_seqs(
+        AR_MAX_SEQ_LEN, expected_vq_binding=promotion['binding']
+    )
     log(f"  train={len(tr)} val={len(va)} vocab={data['vocab_size']} d_model={AR_DMODEL} layers={AR_LAYERS} bs={AR_BS} lr={AR_LR} max_seq_len={AR_MAX_SEQ_LEN}")
     meta = _train_ar(
         data, tr, va, AR_DMODEL, AR_LAYERS, AR_LR, AR_EPOCHS, AR_BS, tag="ar",
@@ -1016,9 +1579,13 @@ def stage_ar():
 
 
 def stage_ar_sweep():
+    _, split_metadata = load_verified_protocol_split(return_metadata=True)
+    _, promotion = require_bound_vq_checkpoint('ar_sweep', split_metadata)
     """AR 超参对比:在**同一份** FSQ+RCM 序列上训练多个配置,按 best val CE 排名。"""
     log("AR_SWEEP: AR 超参对比(同序列,不同 d_model/layers/lr)")
-    data, tr, va = _load_ar_seqs(AR_MAX_SEQ_LEN)
+    data, tr, va = _load_ar_seqs(
+        AR_MAX_SEQ_LEN, expected_vq_binding=promotion['binding']
+    )
     log(f"  train={len(tr)} val={len(va)} vocab={data['vocab_size']} max_seq_len={AR_MAX_SEQ_LEN}")
     configs = [
         {'name': 'd256_L8_lr5e-4', 'd': 256, 'L': 8, 'lr': 5e-4},

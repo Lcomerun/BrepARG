@@ -1783,8 +1783,8 @@ print(tuple(X.shape), dim)
             for surface in [flat_surface, curved_surface, mildly_curved_surface]:
                 surface[0, :, :, 0] = xx
                 surface[0, :, :, 1] = yy
-            curved_surface[0, :, :, 2] = xx
-            mildly_curved_surface[0, :, :, 2] = xx * 0.25
+            curved_surface[0, :, :, 2] = xx ** 2
+            mildly_curved_surface[0, :, :, 2] = (xx ** 2) * 0.25
 
             for path, surface in [
                 (flat_path, flat_surface),

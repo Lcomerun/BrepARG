@@ -13,22 +13,23 @@
 7. **生成约束只能改变选择结果。** 调温度、关闭 bbox 单调约束、最小面/边阈值、原始 BrepARG sampler 和质量门均未修复真实 token 重建失败或生成分布坍塌。[E009, E012]
 8. **50 faces 是协议内边界。** 当前 sequence 的 faces 范围 2-50，global edges 范围 2-150。50-face 失败应单列高难度桶，不能排除为越界。[E003, E006]
 9. **Protocol V2 已完成一次真实小规模闭环。** 2,000 条扫描中 994 条按 parent 分组进入 795/100/99 train/val/test，三对 parent overlap 均为 0；VQ tensor 化前 source、parent 和 exact patch overlap 也为 0。[E028]
+10. **Protocol V3 的代码已修复小 cap 前缀采样和验证口径。** 新流程先全扫描、exact 去重，再按 parent/source 平衡取样；validation 的共享 patch 会展开到全部 provenance parent，曲面桶使用旋转不变 PCA 残差。直接 VQ stage 也必须通过 split SHA 硬门。真实 clean-commit cohort 尚待重跑，当前不发布 E029 数值。
 
 ### 强推断
 
 1. validation CE 长期低于 train CE 主要由 parent-CAD 泄露、训练态 dropout 和 batch 等权 CE 共同造成，而不是单一的数据难度差异。[E003, E004, E015]
 2. 当前 surface Chamfer heavy tail 和 true-token 装配失败说明仅提高 FSQ level 不足；decoder/assembly、loss 形态、曲面参数化与 shape-level 一致性都可能参与。[E006, E007, E016]
 3. 长序列 exposure bias 会放大 AR 错误，但长度不是唯一主因；所有 face/length 桶均有明显重建失败。[E006, E007, E008]
-4. 在单 seed、951/370 patch、10 epoch 的严格配对实验中，6 维 4096 FSQ 相对 4 维 8192 FSQ 的末轮全局 validation MSE 低 `18.40%`，曲面代理桶低 `13.72%`，末轮 perplexity 为 `29.76` 对 `13.45`。这些 patch 只来自 27/7 个 train/validation parent CAD，故 370 个 validation patch 不是 370 个独立 CAD 观测。4096/6D 已满足“曲面桶改善且 usage 不恶化”的相对微实验门，支持进入更大 cohort、约 100 epoch 的受控 VQ 实验；绝对 usage/重建和跨 parent 复现仍待验证。[E028]
+4. E028 的单 seed、951/370 patch、10 epoch 实验曾观察到 4096/6D 早期领先，但其 patch 只来自 27/7 个 train/validation parent，属于相关样本上的早期优化观察。后续 preliminary cohort 又存在 decoder 初始化不匹配与 representative-parent 聚簇混杂，因此目前不能把 4096/6D、8192/4D 或 8192/6D 任一配置判为架构胜者；必须等待修复后的双 seed 三臂重跑。[E028]
 
 ### 证据不足
 
 1. FSQ 量化、连续 decoder 和 OCC assembly 各自贡献多少，尚未被三个 oracle 完全拆开。
 2. 官方 BrepARG 公开权重的实际质量尚未在兼容词表和官方协议下复现。
 3. DFS 是否在全数据、同 epoch、同 context 下稳定优于 RCM，当前 medium control 不足以定论。
-4. 多随机种子下的模型与生成波动范围未知。
+4. 修复后的三臂实验尚无可发布随机种子结果；模型与生成波动仍未知。
 5. parent-CAD 隔离重训后的绝对指标未知。
-6. 4096/6D 的微型优势能否在更大 cohort、多 seed 和 100 epoch 左右保持，当前未知；E028 不包含 CAD 生成或 OCC Valid。
+6. 三种 FSQ 配置在 matched initialization、provenance-aware parent 指标下的相对稳定性未知；进入约 100 epoch 或 AR 前必须先完成 clean-commit 小规模重跑。
 
 ## 根因优先级
 
@@ -47,7 +48,7 @@
 
 1. **冻结当前 selected checkpoint 和 protocol。** 不再继续无门控长训，不使用 nonfinite latest。
 2. **重建 parent-CAD 隔离 split。** 先做身份审计，再从零训练；旧 validation CE 仅保留为开发曲线。
-3. **晋级 4096/6D 到下一阶段受控 VQ 实验。** 在更大的 Protocol V2 cohort 上运行约 100 epoch，继续按曲面桶和 aggregate usage 选型；不在当前微型 cohort 上简单续训，也不提前进入 AR。[E028]
+3. **先提交 Protocol V3，再重跑三臂双 seed 小规模实验。** 从不可变 commit 启动，保持 parent coverage ≥90%、同一 validation cohort、matched shared initialization、PCA 曲面桶和 provenance-aware parent-cluster 指标；只有重跑结果通过 perplexity、curved MSE、coverage 与 nonfinite 硬门，才决定约 100 epoch 候选，不提前进入 AR。
 4. **实现 ground-truth assembly oracle。** 不经过 VQ/FSQ/AR，直接将解析几何送入同一装配与 OCC 验证链路。
 5. **实现 continuous-latent bypass oracle。** 相同 decoder 和 assembly，唯一变量是绕过 FSQ quantization。
 6. **实现 teacher-forced argmax reconstruction。** 每个真实前缀取一步 argmax，重建完整预测 token，隔离条件预测错误和自由运行 exposure。
@@ -64,6 +65,8 @@
 - 只换回 BrepARG 原始生成逻辑就能解决坍塌。
 - 只增加 AR batch size 或训练 epoch 就能修复上游几何。
 - 因为 4096/6D 在 10 epoch 微型实验领先，就可以跳过下一阶段受控 VQ 验证直接进入正式全量训练或 AR。
+- 因为某个 6D arm 在单个 seed 的 best validation MSE 更低，就可以忽略另一个 seed 的 usage 失稳。
+- 因为每个 arm 都重置了同一 seed，就可以不检查模型构造阶段不同 embedding 大小造成的 RNG 消耗差异。
 - 50-face 样本属于当前协议外。
 - validation loss 较低足以证明泛化良好。
 - same-data 自训 BrepARG 等价于官方模型复现。
