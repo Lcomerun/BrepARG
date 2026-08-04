@@ -23,7 +23,7 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 - [x] (2026-08-04 01:35 +08:00) Closed the final requested-source source-cap gap and added mixed/all-nonfinite checkpoint regression coverage; focused Protocol V2 VQ tests now report 68 passing tests.
 - [x] (2026-08-04 12:26 +08:00) Ran matched 8192/4D and 4096/6D ten-epoch CUDA arms from clean commit `a9a562a`; both emitted ten finite history and TensorBoard steps.
 - [x] (2026-08-04 13:00 +08:00) Curated the complete per-epoch comparison as E028; 4096/6D passed the relative micro gate and advances to the planned larger-cohort controlled VQ experiment, while AR and formal full training remain deferred.
-- [ ] Complete final independent review and verification, commit the curated evidence, and push the feature branch.
+- [x] (2026-08-04 14:35 +08:00) Completed independent code and evidence reviews, final focused/artifact/Git verification, and committed all review corrections; remote push and SHA confirmation are the only remaining operational action.
 
 ## Surprises & Discoveries
 
@@ -124,7 +124,7 @@ The observable result is a `protocol_summary.json` whose accepted rows satisfy 1
 
 ## Outcomes & Retrospective
 
-Protocol V2 and the VQ/FSQ observability path are implemented and exercised on real parsed CADs. The smoke scanned 2,000 records, found 1,063 eligible, selected 994 complete-parent records and produced 795/100/99 train/validation/test records with zero parent overlap. The matched ten-epoch CUDA arms completed every batch; 4096/6D passes the pre-run relative gate and advances to the next larger-cohort controlled VQ experiment, while its low absolute usage remains an explicit health risk to monitor before AR or formal full-data promotion. Aggregate evidence is in `reports/protocol_v2/`; raw histories and checkpoints remain ignored. Final verification and remote push remain.
+Protocol V2 and the VQ/FSQ observability path are implemented, independently reviewed and exercised on real parsed CADs. The smoke scanned 2,000 records, found 1,063 eligible, selected 994 complete-parent records and produced 795/100/99 train/validation/test records with zero parent overlap. The matched ten-epoch CUDA arms completed every batch; 4096/6D passes the pre-run relative gate and advances to the next larger-cohort controlled VQ experiment, while its low absolute usage and seven-parent validation cohort remain explicit risks to resolve before AR or formal full-data promotion. Aggregate evidence is in `reports/protocol_v2/`; raw histories and checkpoints remain ignored. Focused protocol tests report 108 passing tests, broad regression has the same 16 baseline/environment failures as before this experiment, and no forbidden or over-10-MiB tracked artifact remains. Remote push and SHA confirmation are the only remaining operational action.
 
 ## Context and Orientation
 
@@ -268,3 +268,5 @@ Revision note 2026-08-04 13:00 +08:00: Recorded both matched ten-epoch CUDA runs
 Revision note 2026-08-04 14:10 +08:00: Corrected the evidence interpretation after independent review: 800–1500 perplexity and `5e-5` curved MSE are later health references, not the micro-run acceptance gate; also distinguished the changed scientific hyperparameter from run-specific output variables.
 
 Revision note 2026-08-04 14:25 +08:00: Added the effective 27/7 train/validation parent cohort disclosure after evidence review so patch counts cannot be mistaken for independent CAD observations.
+
+Revision note 2026-08-04 14:35 +08:00: Recorded final review closure and verification evidence immediately before pushing the feature branch; no implementation or experiment metric changed.
