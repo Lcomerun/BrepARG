@@ -11,6 +11,7 @@ from __future__ import annotations
 from collections import Counter
 from dataclasses import asdict, dataclass
 import hashlib
+import itertools
 import json
 import numbers
 import os
@@ -18,7 +19,7 @@ import pickle
 import re
 import tempfile
 import zipfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Mapping, Sequence
 
 
@@ -67,6 +68,16 @@ class ProtocolConfig:
             raise ValueError("split ratios must be non-negative and sum to one")
 
 
+@dataclass(frozen=True)
+class ArchiveMember:
+    archive_path: Path
+    original_name: str
+    normalized_name: str
+    source_path: str
+    source_key: str
+    materialization_key: str
+
+
 def _path_name(value: str) -> str:
     normalized = str(value).replace("\\", "/")
     return normalized.rsplit("/", 1)[-1]
@@ -75,6 +86,71 @@ def _path_name(value: str) -> str:
 def canonical_source_key(value: str) -> str:
     """Return a separator- and case-normalized stable source identity."""
     return str(value).replace("\\", "/").strip().casefold()
+
+
+def _safe_archive_member_name(value: str) -> str:
+    normalized = str(value).replace("\\", "/")
+    parts = normalized.split("/")
+    path = PurePosixPath(normalized)
+    drive_like = bool(re.match(r"^[A-Za-z]:", normalized))
+    if (
+        not normalized
+        or path.is_absolute()
+        or drive_like
+        or any(part in {"", ".", ".."} for part in parts)
+    ):
+        raise ValueError(f"unsafe archive member path: {value!r}")
+    return path.as_posix()
+
+
+def validate_archive_member_inventory(archive_paths: Iterable[Path]) -> tuple[ArchiveMember, ...]:
+    """Return a globally unique, materialization-safe pickle inventory."""
+    archive_names: dict[str, Path] = {}
+    source_keys: set[str] = set()
+    materialization_keys: set[str] = set()
+    inventory: list[ArchiveMember] = []
+    paths = sorted((Path(path) for path in archive_paths), key=lambda path: str(path.resolve()).casefold())
+    for archive_path in paths:
+        archive_name_key = archive_path.name.casefold()
+        previous = archive_names.get(archive_name_key)
+        if previous is not None:
+            raise ValueError(
+                f"duplicate archive basename: {archive_path.name!r} from {previous} and {archive_path}"
+            )
+        archive_names[archive_name_key] = archive_path
+        with zipfile.ZipFile(archive_path, "r") as archive:
+            infos = sorted(
+                (info for info in archive.infolist() if not info.is_dir()),
+                key=lambda info: (info.filename.replace("\\", "/").casefold(), info.filename),
+            )
+            for info in infos:
+                if not info.filename.lower().endswith(".pkl"):
+                    continue
+                normalized = _safe_archive_member_name(info.filename)
+                source_path = f"{archive_path.name}!/{normalized}"
+                source_key = canonical_source_key(source_path)
+                if source_key in source_keys:
+                    raise ValueError(f"duplicate archive member identity: {source_path}")
+                source_keys.add(source_key)
+                materialization_key = canonical_source_key(
+                    f"{archive_path.stem}/{normalized}"
+                )
+                if materialization_key in materialization_keys:
+                    raise ValueError(
+                        f"duplicate materialization target identity: {archive_path.stem}/{normalized}"
+                    )
+                materialization_keys.add(materialization_key)
+                inventory.append(
+                    ArchiveMember(
+                        archive_path=archive_path,
+                        original_name=info.filename,
+                        normalized_name=normalized,
+                        source_path=source_path,
+                        source_key=source_key,
+                        materialization_key=materialization_key,
+                    )
+                )
+    return tuple(inventory)
 
 
 def parent_cad_id(value: str) -> str | None:
@@ -308,10 +384,18 @@ def _write_outputs(
 ) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     manifest = "".join(json.dumps(dict(row), sort_keys=True, ensure_ascii=True) + "\n" for row in rows)
+    quarantine = "".join(
+        json.dumps(dict(row), sort_keys=True, ensure_ascii=True) + "\n"
+        for row in rows
+        if str(row.get("reject_reason") or "").startswith("load_failed:")
+    )
     split_payload = pickle.dumps(dict(split), protocol=pickle.HIGHEST_PROTOCOL)
     summary = dict(summary)
     summary["split_pickle_sha256"] = hashlib.sha256(split_payload).hexdigest()
     _atomic_write_bytes(output_dir / "protocol_manifest.jsonl", manifest.encode("utf-8"))
+    _atomic_write_bytes(
+        output_dir / "quarantined_pickle_members.jsonl", quarantine.encode("utf-8")
+    )
     _atomic_write_bytes(
         output_dir / "protocol_summary.json",
         (json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"),
@@ -352,32 +436,26 @@ def _summarize_split_integrity(
 
 
 def _iter_archive_records(
-    archive_paths: Iterable[Path], max_scan_records: int
-) -> Iterable[tuple[Path, str, str, Mapping[str, Any] | None, str | None]]:
+    inventory: Sequence[ArchiveMember], max_scan_records: int
+) -> Iterable[tuple[ArchiveMember, Mapping[str, Any] | None, str | None]]:
     seen = 0
-    for archive_path in sorted(Path(path) for path in archive_paths):
+    for archive_path, members in itertools.groupby(inventory, key=lambda item: item.archive_path):
         with zipfile.ZipFile(archive_path, "r") as archive:
-            members = sorted(
-                info.filename.replace("\\", "/")
-                for info in archive.infolist()
-                if not info.is_dir() and info.filename.lower().endswith(".pkl")
-            )
             for member in members:
                 if max_scan_records > 0 and seen >= max_scan_records:
                     return
                 seen += 1
-                source_path = f"{archive_path.name}!/{member}"
                 try:
-                    with archive.open(member, "r") as handle:
+                    with archive.open(member.original_name, "r") as handle:
                         data = pickle.load(handle)
-                    yield archive_path, member, source_path, data, None
+                    yield member, data, None
                 except Exception as exc:
-                    yield archive_path, member, source_path, None, type(exc).__name__
+                    yield member, None, type(exc).__name__
 
 
 def _materialize_selected(
     selected_rows: Sequence[dict[str, Any]],
-    archive_locations: Mapping[str, tuple[Path, str]],
+    archive_locations: Mapping[str, ArchiveMember],
     materialize_root: Path,
 ) -> dict[str, list[str]]:
     split: dict[str, list[str]] = {name: [] for name in SPLITS}
@@ -386,16 +464,23 @@ def _materialize_selected(
     try:
         for row in sorted(selected_rows, key=lambda item: str(item["source_key"])):
             source_key = str(row["source_key"])
-            archive_path, member = archive_locations[source_key]
+            member = archive_locations[source_key]
             split_name = str(row["split"])
-            target = materialize_root / split_name / archive_path.stem / Path(member)
+            target = (
+                materialize_root
+                / split_name
+                / member.archive_path.stem
+                / Path(member.normalized_name)
+            )
             resolved_target = target.resolve()
             if resolved_target in materialized_targets:
                 raise RuntimeError(f"duplicate materialization target: {resolved_target}")
             materialized_targets.add(resolved_target)
             target.parent.mkdir(parents=True, exist_ok=True)
-            archive = open_archives.setdefault(archive_path, zipfile.ZipFile(archive_path, "r"))
-            _atomic_write_bytes(target, archive.read(member))
+            archive = open_archives.setdefault(
+                member.archive_path, zipfile.ZipFile(member.archive_path, "r")
+            )
+            _atomic_write_bytes(target, archive.read(member.original_name))
             split[split_name].append(str(resolved_target))
     finally:
         for archive in open_archives.values():
@@ -411,16 +496,25 @@ def build_protocol(
     materialize_root: Path,
     max_scan_records: int = 0,
     max_eligible_records: int = 0,
+    max_load_failures: int = 100,
+    max_load_failure_fraction: float = 0.001,
 ) -> tuple[list[dict[str, Any]], dict[str, list[str]], dict[str, Any]]:
     """Scan ZIP members, filter, split by parent, materialize, and write evidence."""
+    max_load_failures = int(max_load_failures)
+    max_load_failure_fraction = float(max_load_failure_fraction)
+    if max_load_failures < 0:
+        raise ValueError("max_load_failures must be non-negative")
+    if not 0.0 <= max_load_failure_fraction <= 1.0:
+        raise ValueError("max_load_failure_fraction must be between zero and one")
+    inventory = validate_archive_member_inventory(archive_paths)
     rows: list[dict[str, Any]] = []
-    archive_locations: dict[str, tuple[Path, str]] = {}
-    for archive_path, member, source_path, data, load_error in _iter_archive_records(
-        archive_paths, max(0, int(max_scan_records))
+    archive_locations: dict[str, ArchiveMember] = {}
+    for member, data, load_error in _iter_archive_records(
+        inventory, max(0, int(max_scan_records))
     ):
-        row = build_manifest_row(source_path, data, config, load_error=load_error)
+        row = build_manifest_row(member.source_path, data, config, load_error=load_error)
         rows.append(row)
-        archive_locations[row["source_key"]] = (archive_path, member)
+        archive_locations[row["source_key"]] = member
 
     selected_parents = _select_parent_groups(rows, max(0, int(max_eligible_records)), config.seed)
     assignment = assign_parent_splits(
@@ -449,13 +543,20 @@ def build_protocol(
     load_failures = sum(
         str(row.get("reject_reason") or "").startswith("load_failed:") for row in rows
     )
+    load_failure_fraction = load_failures / len(rows) if rows else 0.0
+    load_failure_count_within_limit = load_failures <= max_load_failures
+    load_failure_fraction_within_limit = (
+        load_failure_fraction <= max_load_failure_fraction
+    )
     failure_reasons = []
     if eligible_count == 0:
         failure_reasons.append("no_eligible_records")
     elif selected_count == 0:
         failure_reasons.append("no_selected_records")
-    if load_failures:
-        failure_reasons.append("archive_member_load_failures")
+    if not load_failure_count_within_limit:
+        failure_reasons.append("archive_member_load_failure_count_exceeded")
+    if not load_failure_fraction_within_limit:
+        failure_reasons.append("archive_member_load_failure_fraction_exceeded")
     if split_integrity["status"] == "LEAKAGE_DETECTED":
         failure_reasons.append("parent_overlap")
     summary: dict[str, Any] = {
@@ -472,6 +573,19 @@ def build_protocol(
         "records_selected": selected_count,
         "records_rejected": len(rows) - eligible_count,
         "archive_member_load_failures": load_failures,
+        "quarantined_pickle_members": load_failures,
+        "quarantined_pickle_members_file": "quarantined_pickle_members.jsonl",
+        "load_failure_policy": {
+            "status": "WITHIN_LIMITS"
+            if load_failure_count_within_limit and load_failure_fraction_within_limit
+            else "EXCEEDED",
+            "max_count": max_load_failures,
+            "max_fraction": max_load_failure_fraction,
+            "observed_count": load_failures,
+            "observed_fraction": load_failure_fraction,
+            "count_within_limit": load_failure_count_within_limit,
+            "fraction_within_limit": load_failure_fraction_within_limit,
+        },
         "max_eligible_records": max(0, int(max_eligible_records)),
         "eligible_cap_overshoot_records": cap_overshoot,
         "eligible_cap_overshoot_parent_id": selected_parent_ids[0]
@@ -488,6 +602,14 @@ def build_protocol(
     }
     summary["split_pickle_sha256"] = hashlib.sha256(
         pickle.dumps(dict(split), protocol=pickle.HIGHEST_PROTOCOL)
+    ).hexdigest()
+    quarantine_payload = "".join(
+        json.dumps(dict(row), sort_keys=True, ensure_ascii=True) + "\n"
+        for row in rows
+        if str(row.get("reject_reason") or "").startswith("load_failed:")
+    ).encode("utf-8")
+    summary["quarantined_pickle_members_sha256"] = hashlib.sha256(
+        quarantine_payload
     ).hexdigest()
     _write_outputs(Path(output_dir), rows, split, summary)
     return rows, split, summary

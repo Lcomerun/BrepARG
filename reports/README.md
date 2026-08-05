@@ -4,6 +4,7 @@ This directory is the lightweight entry point for understanding V13 experiment s
 
 Start with these repository documents:
 
+- `reports/protocol_v4/README.md` records the fixed controls, data binding, launch status, interpretation limits, and full-data decision boundary for the 100-epoch three-seed FSQ cohort.
 - `reports/protocol_v3/README.md` summarizes the clean-commit, two-seed, three-arm Protocol V3 FSQ engineering cohort and its `NO_PROMOTED_ARM` decision.
 - `reports/protocol_v3/fsq_abc_15epoch_two_seed_20260804.json` contains the complete lightweight E029 histories, sampling audits, promotion bindings, and TensorBoard hashes.
 - `reproducibility/reports/current_conclusions.md` contains the current scientific conclusions, root-cause priorities, excluded hypotheses, and next experiment order.

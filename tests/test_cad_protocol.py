@@ -3,6 +3,7 @@ import hashlib
 import pickle
 import subprocess
 import sys
+import warnings
 import zipfile
 from pathlib import Path
 
@@ -364,22 +365,118 @@ def test_cap_overshoot_uses_only_one_indivisible_parent_group(tmp_path):
     assert summary["eligible_cap_overshoot_parent_id"] == "a" * 24
 
 
-def test_protocol_summary_fails_when_an_archive_member_cannot_be_loaded(tmp_path):
+def test_protocol_quarantines_bad_pickle_without_putting_it_in_split(tmp_path):
     archive = tmp_path / "abc_0000_parsed.zip"
     with zipfile.ZipFile(archive, "w") as handle:
         handle.writestr(source("a" * 24, index=1), pickle.dumps(make_cad()))
         handle.writestr(source("b" * 24, index=2), b"not a pickle")
 
-    _, _, summary = build_protocol(
+    rows, split, summary = build_protocol(
         archive_paths=[archive],
         config=ProtocolConfig(seed=3),
         output_dir=tmp_path / "out",
         materialize_root=tmp_path / "materialized",
+        max_load_failures=1,
+        max_load_failure_fraction=0.5,
+    )
+
+    assert summary["status"] == "VERIFIED"
+    assert summary["archive_member_load_failures"] == 1
+    assert summary["failure_reasons"] == []
+    assert summary["quarantined_pickle_members"] == 1
+    assert summary["load_failure_policy"]["status"] == "WITHIN_LIMITS"
+    rejected = [row for row in rows if str(row.get("reject_reason", "")).startswith("load_failed:")]
+    assert len(rejected) == 1
+    assert rejected[0]["source_path"].endswith(source("b" * 24, index=2))
+    assert all("b" * 24 not in path for paths in split.values() for path in paths)
+    quarantine_rows = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "quarantined_pickle_members.jsonl").read_text().splitlines()
+    ]
+    assert quarantine_rows == rejected
+
+
+@pytest.mark.parametrize(
+    ("max_failures", "max_fraction", "expected_reason"),
+    [
+        (0, 1.0, "archive_member_load_failure_count_exceeded"),
+        (1, 0.49, "archive_member_load_failure_fraction_exceeded"),
+    ],
+)
+def test_protocol_fails_when_bad_pickle_threshold_is_exceeded(
+    tmp_path, max_failures, max_fraction, expected_reason
+):
+    archive = tmp_path / "abc_0000_parsed.zip"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr(source("a" * 24, index=1), pickle.dumps(make_cad()))
+        handle.writestr(source("b" * 24, index=2), b"not a pickle")
+
+    _, split, summary = build_protocol(
+        archive_paths=[archive],
+        config=ProtocolConfig(seed=3),
+        output_dir=tmp_path / "out",
+        materialize_root=tmp_path / "materialized",
+        max_load_failures=max_failures,
+        max_load_failure_fraction=max_fraction,
     )
 
     assert summary["status"] == "FAILED"
-    assert summary["archive_member_load_failures"] == 1
-    assert summary["failure_reasons"] == ["archive_member_load_failures"]
+    assert expected_reason in summary["failure_reasons"]
+    assert summary["load_failure_policy"]["status"] == "EXCEEDED"
+    assert all("b" * 24 not in path for paths in split.values() for path in paths)
+
+
+def test_protocol_rejects_duplicate_archive_basenames_before_materialization(tmp_path):
+    archives = []
+    for directory in (tmp_path / "left", tmp_path / "right"):
+        directory.mkdir()
+        archive = directory / "abc_0000_parsed.zip"
+        with zipfile.ZipFile(archive, "w") as handle:
+            handle.writestr(source("a" * 24), pickle.dumps(make_cad()))
+        archives.append(archive)
+
+    with pytest.raises(ValueError, match="duplicate archive basename"):
+        build_protocol(
+            archive_paths=archives,
+            config=ProtocolConfig(seed=3),
+            output_dir=tmp_path / "out",
+            materialize_root=tmp_path / "materialized",
+        )
+
+    assert not (tmp_path / "materialized").exists()
+
+
+def test_protocol_rejects_duplicate_member_identity_within_archive(tmp_path):
+    archive = tmp_path / "abc_0000_parsed.zip"
+    member = source("a" * 24)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        with zipfile.ZipFile(archive, "w") as handle:
+            handle.writestr(member, pickle.dumps(make_cad()))
+            handle.writestr(member, pickle.dumps(make_cad(edges=13)))
+
+    with pytest.raises(ValueError, match="duplicate archive member identity"):
+        build_protocol(
+            archive_paths=[archive],
+            config=ProtocolConfig(seed=3),
+            output_dir=tmp_path / "out",
+            materialize_root=tmp_path / "materialized",
+        )
+
+
+@pytest.mark.parametrize("member", ["../escape.pkl", "/absolute.pkl", "C:/drive.pkl"])
+def test_protocol_rejects_unsafe_archive_member_paths(tmp_path, member):
+    archive = tmp_path / "abc_0000_parsed.zip"
+    with zipfile.ZipFile(archive, "w") as handle:
+        handle.writestr(member, pickle.dumps(make_cad()))
+
+    with pytest.raises(ValueError, match="unsafe archive member path"):
+        build_protocol(
+            archive_paths=[archive],
+            config=ProtocolConfig(seed=3),
+            output_dir=tmp_path / "out",
+            materialize_root=tmp_path / "materialized",
+        )
 
 
 def test_cli_returns_nonzero_for_failed_protocol(tmp_path):

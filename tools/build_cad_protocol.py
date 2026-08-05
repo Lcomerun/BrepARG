@@ -60,6 +60,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--materialize-root", type=Path, required=True)
     parser.add_argument("--max-scan-records", type=int, default=0)
     parser.add_argument("--max-eligible-records", type=int, default=0)
+    parser.add_argument("--max-load-failures", type=int, default=100)
+    parser.add_argument("--max-load-failure-fraction", type=float, default=0.001)
     parser.add_argument("--min-faces", type=int, default=10)
     parser.add_argument("--max-faces", type=int, default=50)
     parser.add_argument("--max-global-edges", type=int, default=150)
@@ -85,6 +87,8 @@ def main() -> int:
         materialize_root=args.materialize_root,
         max_scan_records=args.max_scan_records,
         max_eligible_records=args.max_eligible_records,
+        max_load_failures=args.max_load_failures,
+        max_load_failure_fraction=args.max_load_failure_fraction,
     )
     print(json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=True), flush=True)
     return 0 if summary.get("status") == "VERIFIED" else 1

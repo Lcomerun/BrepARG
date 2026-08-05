@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated": "2026-08-04",
+  "updated": "2026-08-05",
   "entries": [
     {
       "id": "current-scientific-conclusions",
@@ -65,6 +65,14 @@
       "summary": "reports/protocol_v3/README.md",
       "metrics": "reports/protocol_v3/fsq_abc_15epoch_two_seed_20260804.json",
       "tensorboard": "reports/tensorboard/protocol_v3_fsq_abc_15epoch_two_seed_20260804",
+      "artifacts_external": true
+    },
+    {
+      "id": "protocol-v4-fsq-three-seed-100epoch-20260805",
+      "status": "launched-results-pending",
+      "category": "training-experiment",
+      "summary": "reports/protocol_v4/README.md",
+      "metrics": null,
       "artifacts_external": true
     },
     {

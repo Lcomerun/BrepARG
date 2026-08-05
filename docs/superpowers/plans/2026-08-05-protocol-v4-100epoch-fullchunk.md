@@ -12,11 +12,13 @@ After this change, the user can launch a reproducible three-arm, three-seed, 100
 - [x] (2026-08-05 10:29 +08:00) Ran the four Protocol V3 focused files with the actual `brepgen_env`; all 170 tests passed.
 - [x] (2026-08-05 10:35 +08:00) Inspected the existing Protocol V2 artifact and 15-epoch run manifests. The reusable split has 795/100/99 records, 323/100/99 parent CADs, protocol SHA `43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f`, split SHA `df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357`, and zero parent overlap.
 - [x] (2026-08-05 10:38 +08:00) Wrote and self-reviewed the Protocol V4 design and this ExecPlan.
-- [ ] Add failing tests for tolerated corrupt pickle quarantine, excessive corruption failure, and archive/member identity preflight.
-- [ ] Implement full-chunk protocol safety and make the focused tests pass.
-- [ ] Add failing tests for the three-seed 100-epoch cohort launcher and atomic state transitions.
-- [ ] Implement the cross-platform orchestrator and Windows detached-start wrapper.
-- [ ] Run focused tests, compileall, and the supported complete test suite; record exact evidence.
+- [x] (2026-08-05 10:41 +08:00) Added failing tests for tolerated corrupt pickle quarantine, excessive corruption failure, and archive/member identity preflight; the red run reported eight expected behavior failures and no unrelated failure after correcting one missing test import.
+- [x] (2026-08-05 10:44 +08:00) Implemented full-chunk protocol safety; all 45 protocol tests pass.
+- [x] (2026-08-05 10:46 +08:00) Added failing tests for the three-seed 100-epoch cohort launcher and atomic state transitions; collection failed because the new orchestrator module did not yet exist.
+- [x] (2026-08-05 10:49 +08:00) Implemented the cross-platform orchestrator and Windows detached-start wrapper; all 11 initial launcher tests pass.
+- [x] (2026-08-05 10:52 +08:00) Ran the initial 188 focused tests, all passing; Python compileall and PowerShell parsing pass. The complete suite reports 430 passed and the same 16 documented baseline failures: 11 require excluded `BrepARG/`, one legacy fixture lacks `ordering`, and four use the Python 3.11 `Path.write_text(newline=...)` API under Python 3.10. No Protocol V4 test fails.
+- [x] (2026-08-05 10:54 +08:00) Added and passed two further launcher regressions: inherited unlisted `NS_*` variables are removed, and non-empty seed output directories cannot be reused without state. The exact five-file focused command now reports 190 passed; compileall and PowerShell parsing still pass.
+- [x] (2026-08-05 10:58 +08:00) Ran a real `abc_0000` builder smoke over 50 pickle members. It exited zero with `VERIFIED`, 24 eligible, 15 parent-complete selected records, 0 load failures, an empty-quarantine SHA, 12/2/1 split records, and zero parent overlap.
 - [ ] Commit and push the new experiment branch before training so run manifests bind to an immutable clean commit.
 - [ ] Start the detached seed 0/1/2 cohort and confirm the launcher PID, child training PID, GPU activity, and advancing seed-0 log.
 
@@ -61,6 +63,8 @@ After this change, the user can launch a reproducible three-arm, three-seed, 100
 ## Outcomes & Retrospective
 
 Implementation and launch outcomes will be recorded here after verification. A successful outcome is source/tests/docs pushed on the Protocol V4 branch plus a detached cohort process proven to have passed protocol verification, loaded the expected 12,000/4,637 cohort, started seed 0 on CUDA, and advanced its log. Completed metrics are not required in this turn.
+
+Implementation verification is complete. Corrupt pickle records are quarantined and cannot enter a split; count/fraction thresholds distinguish isolated damage from systemic failure; archive/member identities are preflighted before materialization. The three-seed orchestrator fixes every scientific control, runs seeds sequentially, writes atomic state, stops on failure, and accepts only a sweep whose three arms each report 100 epochs. Focused verification is fully green; complete-suite failures remain identical in category and count to the Protocol V3 baseline after accounting for the 18 newly passing tests.
 
 ## Context and Orientation
 
