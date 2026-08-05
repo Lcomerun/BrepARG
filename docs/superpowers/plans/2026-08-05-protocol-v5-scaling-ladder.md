@@ -15,7 +15,7 @@ After this change, the user can launch one fail-closed experiment pipeline that 
 - [x] (2026-08-05 23:06 +08:00) Implemented and tested the fail-closed corrupt-pickle allowlist, empty failed manifests, and global multi-chunk identity evidence.
 - [x] (2026-08-05 23:06 +08:00) Implemented and tested quantizer-selectable VQ sweeps, the 60k learned-VQ arm, and the conditional continuous bypass arm.
 - [x] (2026-08-05 23:06 +08:00) Implemented and tested the unattended ladder orchestrator, plateau decisions, summaries, plots, and bypass-oracle recommendation gate.
-- [x] (2026-08-05 23:21 +08:00) Ran focused, full-regression, syntax, PowerShell-parser, diff, inventory, and real CUDA forward/backward verification; commit and push are the remaining publication actions.
+- [x] (2026-08-05 23:25 +08:00) Ran focused, full-regression, syntax, PowerShell-parser, diff, inventory, and real CUDA forward/backward verification; committed implementation as `e771ecc` and pushed `experiment/protocol-v5-scaling-ladder` to `origin`.
 - [ ] Launch the ladder and observe protocol/training health long enough to rule out an immediate failure.
 
 ## Surprises & Discoveries
@@ -57,7 +57,7 @@ After this change, the user can launch one fail-closed experiment pipeline that 
 
 ## Outcomes & Retrospective
 
-Source implementation is complete. Focused verification reports 142 passing tests, including red-green regressions for launcher control files and failed-protocol manifest splits. The full `tests/` run reports 444 passing tests plus the same 16 documented V4 baseline failures: 11 require the intentionally excluded `BrepARG/` worktree directory, one old sequence fixture lacks `ordering`, and four use a Python 3.11 `Path.write_text(newline=...)` API while this environment is Python 3.10. Python compilation, PowerShell parsing, and `git diff --check` pass. Real CUDA forward/backward through encoder, official learned VQ or continuous bypass, and decoder produced finite losses and gradients. The metadata inventory is globally unique across all 100 parsed archives. Commit, push, and detached launch evidence remain to be recorded. Completion of this turn does not mean the long-running 60k and 300k numerical results already exist; the user explicitly permits handing off after the process is confirmed healthy.
+Source implementation is complete and published on `origin/experiment/protocol-v5-scaling-ladder`; implementation commit `e771ecc` contains no raw data, checkpoints, logs, or upstream `BrepARG/` source. Focused verification reports 142 passing tests, including red-green regressions for launcher control files and failed-protocol manifest splits. The full `tests/` run reports 444 passing tests plus the same 16 documented V4 baseline failures: 11 require the intentionally excluded `BrepARG/` worktree directory, one old sequence fixture lacks `ordering`, and four use a Python 3.11 `Path.write_text(newline=...)` API while this environment is Python 3.10. Python compilation, PowerShell parsing, and `git diff --check` pass. Real CUDA forward/backward through encoder, official learned VQ or continuous bypass, and decoder produced finite losses and gradients. The metadata inventory is globally unique across all 100 parsed archives. Detached launch evidence remains to be recorded. Completion of this turn does not mean the long-running 60k and 300k numerical results already exist; the user explicitly permits handing off after the process is confirmed healthy.
 
 ## Context and Orientation
 
@@ -121,3 +121,5 @@ Git tracks code, tests, this plan, concise JSON/CSV/PNG summaries, histories, an
 Revision note 2026-08-05: created after verifying the completed 12k cohort, the absence of an active training process, and the availability of all 100 local parsed ABC archives.
 
 Revision note 2026-08-05: recorded the completed implementation, launcher race regression, focused test result, and real 681,406-member archive inventory preflight.
+
+Revision note 2026-08-05: recorded implementation commit `e771ecc` and publication to the V5 experiment branch.
