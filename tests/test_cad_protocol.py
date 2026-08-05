@@ -365,7 +365,7 @@ def test_cap_overshoot_uses_only_one_indivisible_parent_group(tmp_path):
     assert summary["eligible_cap_overshoot_parent_id"] == "a" * 24
 
 
-def test_protocol_quarantines_bad_pickle_without_putting_it_in_split(tmp_path):
+def test_protocol_requires_exact_allowlist_before_quarantining_bad_pickle(tmp_path):
     archive = tmp_path / "abc_0000_parsed.zip"
     with zipfile.ZipFile(archive, "w") as handle:
         handle.writestr(source("a" * 24, index=1), pickle.dumps(make_cad()))
@@ -380,11 +380,14 @@ def test_protocol_quarantines_bad_pickle_without_putting_it_in_split(tmp_path):
         max_load_failure_fraction=0.5,
     )
 
-    assert summary["status"] == "VERIFIED"
+    assert summary["status"] == "FAILED"
+    assert summary["failure_reasons"] == ["unapproved_archive_member_load_failure"]
+    assert split == {"train": [], "val": [], "test": []}
     assert summary["archive_member_load_failures"] == 1
-    assert summary["failure_reasons"] == []
     assert summary["quarantined_pickle_members"] == 1
     assert summary["load_failure_policy"]["status"] == "WITHIN_LIMITS"
+    assert summary["load_failure_allowlist"]["status"] == "UNAPPROVED_FAILURES"
+    assert all(row["split"] is None for row in rows)
     rejected = [row for row in rows if str(row.get("reject_reason", "")).startswith("load_failed:")]
     assert len(rejected) == 1
     assert rejected[0]["source_path"].endswith(source("b" * 24, index=2))
@@ -394,6 +397,44 @@ def test_protocol_quarantines_bad_pickle_without_putting_it_in_split(tmp_path):
         for line in (tmp_path / "out" / "quarantined_pickle_members.jsonl").read_text().splitlines()
     ]
     assert quarantine_rows == rejected
+    manifest_rows = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "protocol_manifest.jsonl").read_text().splitlines()
+    ]
+    assert all(row["split"] is None for row in manifest_rows)
+
+    candidates = [
+        json.loads(line)
+        for line in (tmp_path / "out" / "load_failure_allowlist_candidates.jsonl").read_text().splitlines()
+    ]
+    assert candidates == [
+        {
+            "source_key": rejected[0]["source_key"],
+            "crc32": rejected[0]["archive_crc32"],
+            "file_size": len(b"not a pickle"),
+            "error_type": "UnpicklingError",
+        }
+    ]
+
+    allowlist = tmp_path / "allowlist.json"
+    allowlist.write_text(json.dumps({"schema_version": 1, "entries": candidates}))
+    approved_rows, approved_split, approved_summary = build_protocol(
+        archive_paths=[archive],
+        config=ProtocolConfig(seed=3),
+        output_dir=tmp_path / "approved",
+        materialize_root=tmp_path / "approved_materialized",
+        max_load_failures=1,
+        max_load_failure_fraction=0.5,
+        load_failure_allowlist_path=allowlist,
+    )
+
+    assert approved_summary["status"] == "VERIFIED"
+    assert approved_summary["failure_reasons"] == []
+    assert approved_summary["load_failure_allowlist"]["status"] == "ALL_FAILURES_APPROVED"
+    assert approved_summary["load_failure_allowlist"]["approved_failures"] == 1
+    assert sum(map(len, approved_split.values())) == 1
+    assert all("b" * 24 not in path for paths in approved_split.values() for path in paths)
+    assert len(approved_rows) == len(rows)
 
 
 @pytest.mark.parametrize(
@@ -423,7 +464,30 @@ def test_protocol_fails_when_bad_pickle_threshold_is_exceeded(
     assert summary["status"] == "FAILED"
     assert expected_reason in summary["failure_reasons"]
     assert summary["load_failure_policy"]["status"] == "EXCEEDED"
-    assert all("b" * 24 not in path for paths in split.values() for path in paths)
+    assert split == {"train": [], "val": [], "test": []}
+
+
+def test_protocol_inventory_summary_binds_global_member_identity(tmp_path):
+    archives = [tmp_path / "abc_0000_parsed.zip", tmp_path / "abc_0001_parsed.zip"]
+    for index, archive in enumerate(archives):
+        with zipfile.ZipFile(archive, "w") as handle:
+            handle.writestr(source(chr(ord("a") + index) * 24), pickle.dumps(make_cad()))
+
+    _, _, summary = build_protocol(
+        archive_paths=archives,
+        config=ProtocolConfig(seed=3),
+        output_dir=tmp_path / "out",
+        materialize_root=tmp_path / "materialized",
+    )
+
+    assert summary["archive_inventory"] == {
+        "archives": 2,
+        "pickle_members": 2,
+        "unique_source_keys": 2,
+        "unique_materialization_keys": 2,
+        "sha256": summary["archive_inventory"]["sha256"],
+    }
+    assert len(summary["archive_inventory"]["sha256"]) == 64
 
 
 def test_protocol_rejects_duplicate_archive_basenames_before_materialization(tmp_path):

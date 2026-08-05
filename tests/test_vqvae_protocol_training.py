@@ -526,6 +526,70 @@ def test_fsq_comparison_configs_split_dimension_and_codebook_confounds(train_mod
     assert len({config["lr"] for config in configs}) == 1
 
 
+def test_scaling_quantizer_configs_expose_matched_fsq_and_official_vq(train_module):
+    configs = train_module.quantizer_comparison_configs(
+        ("fsq_8192_4d", "fsq_4096_6d", "vq_4096_64d_random")
+    )
+
+    assert [config["name"] for config in configs] == [
+        "fsq_8192_4d",
+        "fsq_4096_6d",
+        "vq_4096_64d_random",
+    ]
+    assert [config["codebook_size"] for config in configs] == [8192, 4096, 4096]
+    assert configs[0]["quantizer"]["kind"] == "fsq"
+    assert configs[1]["quantizer"]["latent_grid_dimensions"] == 6
+    assert configs[2]["quantizer"] == {
+        "kind": "learned_vq",
+        "implementation": "BrepARG.quantise.VectorQuantiser",
+        "codebook_size": 4096,
+        "embedding_dim": 64,
+        "distance": "cos",
+        "anchor": "random",
+        "first_batch": False,
+        "contrastive_loss": True,
+        "decay": 0.99,
+        "downstream_compatible": False,
+    }
+    assert len({config["lr"] for config in configs}) == 1
+
+
+def test_official_vq_4096_random_quantizer_forward_backward_contract(train_module):
+    config = train_module.quantizer_comparison_configs(("vq_4096_64d_random",))[0]
+    train_module.seed_vq_experiment(17)
+    model = train_module.build_quantized_vqvae(config)
+    latent = torch.randn(2, 64, 2, 2, requires_grad=True)
+
+    quantized, loss, info = model.quantize(latent)
+    (quantized.square().mean() + loss).backward()
+
+    assert quantized.shape == latent.shape
+    assert torch.isfinite(loss)
+    assert latent.grad is not None
+    assert info[2].shape == (8,)
+    assert int(info[2].min()) >= 0
+    assert int(info[2].max()) < 4096
+    assert model.quantize.anchor == "random"
+    assert model.quantize.embed_dim == 64
+    assert model.quantize.num_embed == 4096
+
+
+def test_continuous_bypass_quantizer_preserves_latent_and_has_no_vq_loss(train_module):
+    config = train_module.quantizer_comparison_configs(("continuous_bypass_64d",))[0]
+    model = train_module.build_quantized_vqvae(config)
+    latent = torch.randn(2, 64, 2, 2, requires_grad=True)
+
+    quantized, loss, info = model.quantize(latent)
+    (quantized.square().mean() + loss).backward()
+
+    assert quantized is latent
+    assert loss.item() == 0.0
+    assert info[2].shape == (8,)
+    assert latent.grad is not None
+    assert config["quantizer"]["kind"] == "continuous_bypass"
+    assert config["quantizer"]["downstream_compatible"] is False
+
+
 def test_fsq_comparison_arms_share_all_non_quantizer_initialization(train_module):
     def shared_state_digests(levels):
         torch.manual_seed(17)
@@ -1790,6 +1854,38 @@ def test_train_vqvae_partial_nonfinite_validation_invalidates_epoch(
     assert record["train_loss"] == pytest.approx(0.0)
     assert meta["last_val_metrics"]["reconstruction_mse"]["edge"]["samples"] == 1
     assert not best_path.exists()
+
+
+def test_curved_plateau_mode_preserves_global_nonfinite_hard_stop(
+    tmp_path, monkeypatch, train_module
+):
+    monkeypatch.setattr(train_module, "VQ_PLATEAU_METRIC", "curved_parent_mse")
+    samples = np.zeros((2, 3, 32, 32), dtype=np.float32)
+    stop_config = train_module.VQVAEStopConfig(
+        min_epochs=1,
+        patience=99,
+        max_nonfinite_val_epochs=1,
+        min_delta=1e-5,
+    )
+
+    _, _, meta = train_module._train_vqvae(
+        PartiallyNonfiniteDecoderAutoencoder(),
+        samples,
+        samples,
+        epochs=3,
+        bs=2,
+        lr=0.0,
+        tag="curved-plateau-nonfinite-stop",
+        amp_enabled=False,
+        val_buckets=["surface_curved_proxy", "edge"],
+        val_parent_ids=["parent-a", "parent-b"],
+        codebook_size=4,
+        stop_config=stop_config,
+    )
+
+    assert meta["epochs_ran"] == 1
+    assert meta["stopped_early"] is True
+    assert meta["stop_reason"] == "nonfinite_val_epochs=1"
 
 
 def test_train_vqvae_all_nonfinite_validation_cannot_become_best(

@@ -76,6 +76,8 @@ class ArchiveMember:
     source_path: str
     source_key: str
     materialization_key: str
+    crc32: int
+    file_size: int
 
 
 def _path_name(value: str) -> str:
@@ -148,9 +150,87 @@ def validate_archive_member_inventory(archive_paths: Iterable[Path]) -> tuple[Ar
                         source_path=source_path,
                         source_key=source_key,
                         materialization_key=materialization_key,
+                        crc32=int(info.CRC),
+                        file_size=int(info.file_size),
                     )
                 )
     return tuple(inventory)
+
+
+def summarize_archive_member_inventory(
+    inventory: Sequence[ArchiveMember],
+) -> dict[str, Any]:
+    identities = [
+        {
+            "source_key": member.source_key,
+            "materialization_key": member.materialization_key,
+            "crc32": member.crc32,
+            "file_size": member.file_size,
+        }
+        for member in inventory
+    ]
+    payload = json.dumps(
+        identities, sort_keys=True, separators=(",", ":"), ensure_ascii=True
+    ).encode("utf-8")
+    return {
+        "archives": len({member.archive_path.name.casefold() for member in inventory}),
+        "pickle_members": len(inventory),
+        "unique_source_keys": len({member.source_key for member in inventory}),
+        "unique_materialization_keys": len(
+            {member.materialization_key for member in inventory}
+        ),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+    }
+
+
+def _load_failure_allowlist(path: Path | None) -> tuple[set[tuple[str, int, int, str]], dict[str, Any]]:
+    if path is None:
+        return set(), {"path": None, "sha256": None, "entries": 0}
+    path = Path(path)
+    payload_bytes = path.read_bytes()
+    payload = json.loads(payload_bytes.decode("utf-8"))
+    if payload.get("schema_version") != 1 or not isinstance(payload.get("entries"), list):
+        raise ValueError("load failure allowlist must use schema_version 1 and an entries list")
+    entries: set[tuple[str, int, int, str]] = set()
+    for item in payload["entries"]:
+        if not isinstance(item, Mapping):
+            raise ValueError("load failure allowlist entries must be objects")
+        try:
+            identity = (
+                canonical_source_key(item["source_key"]),
+                int(item["crc32"]),
+                int(item["file_size"]),
+                str(item["error_type"]),
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ValueError("invalid load failure allowlist entry") from exc
+        if identity in entries:
+            raise ValueError(f"duplicate load failure allowlist entry: {identity[0]}")
+        entries.add(identity)
+    return entries, {
+        "path": str(path.resolve()),
+        "sha256": hashlib.sha256(payload_bytes).hexdigest(),
+        "entries": len(entries),
+    }
+
+
+def _load_failure_candidate(row: Mapping[str, Any]) -> dict[str, Any]:
+    reason = str(row.get("reject_reason") or "")
+    return {
+        "source_key": canonical_source_key(row.get("source_key", "")),
+        "crc32": int(row["archive_crc32"]),
+        "file_size": int(row["archive_file_size"]),
+        "error_type": reason.split(":", 1)[1],
+    }
+
+
+def _allowlist_identity(candidate: Mapping[str, Any]) -> tuple[str, int, int, str]:
+    return (
+        canonical_source_key(candidate["source_key"]),
+        int(candidate["crc32"]),
+        int(candidate["file_size"]),
+        str(candidate["error_type"]),
+    )
 
 
 def parent_cad_id(value: str) -> str | None:
@@ -389,12 +469,21 @@ def _write_outputs(
         for row in rows
         if str(row.get("reject_reason") or "").startswith("load_failed:")
     )
+    allowlist_candidates = "".join(
+        json.dumps(_load_failure_candidate(row), sort_keys=True, ensure_ascii=True) + "\n"
+        for row in rows
+        if str(row.get("reject_reason") or "").startswith("load_failed:")
+    )
     split_payload = pickle.dumps(dict(split), protocol=pickle.HIGHEST_PROTOCOL)
     summary = dict(summary)
     summary["split_pickle_sha256"] = hashlib.sha256(split_payload).hexdigest()
     _atomic_write_bytes(output_dir / "protocol_manifest.jsonl", manifest.encode("utf-8"))
     _atomic_write_bytes(
         output_dir / "quarantined_pickle_members.jsonl", quarantine.encode("utf-8")
+    )
+    _atomic_write_bytes(
+        output_dir / "load_failure_allowlist_candidates.jsonl",
+        allowlist_candidates.encode("utf-8"),
     )
     _atomic_write_bytes(
         output_dir / "protocol_summary.json",
@@ -498,6 +587,7 @@ def build_protocol(
     max_eligible_records: int = 0,
     max_load_failures: int = 100,
     max_load_failure_fraction: float = 0.001,
+    load_failure_allowlist_path: Path | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, list[str]], dict[str, Any]]:
     """Scan ZIP members, filter, split by parent, materialize, and write evidence."""
     max_load_failures = int(max_load_failures)
@@ -507,12 +597,16 @@ def build_protocol(
     if not 0.0 <= max_load_failure_fraction <= 1.0:
         raise ValueError("max_load_failure_fraction must be between zero and one")
     inventory = validate_archive_member_inventory(archive_paths)
+    inventory_summary = summarize_archive_member_inventory(inventory)
+    allowlist, allowlist_metadata = _load_failure_allowlist(load_failure_allowlist_path)
     rows: list[dict[str, Any]] = []
     archive_locations: dict[str, ArchiveMember] = {}
     for member, data, load_error in _iter_archive_records(
         inventory, max(0, int(max_scan_records))
     ):
         row = build_manifest_row(member.source_path, data, config, load_error=load_error)
+        row["archive_crc32"] = member.crc32
+        row["archive_file_size"] = member.file_size
         rows.append(row)
         archive_locations[row["source_key"]] = member
 
@@ -525,21 +619,18 @@ def build_protocol(
         if row.get("protocol_eligible") and parent in assignment:
             row["split"] = assignment[str(parent)]
 
-    selected_rows = [row for row in rows if row.get("split") in SPLITS]
-    split = _materialize_selected(selected_rows, archive_locations, Path(materialize_root))
-    split_integrity = _summarize_split_integrity(split)
+    planned_selected_rows = [row for row in rows if row.get("split") in SPLITS]
     reject_reasons = Counter(
         str(row["reject_reason"]) for row in rows if row.get("reject_reason")
     )
-    split_counts = {name: len(split[name]) for name in SPLITS}
-    split_parents = {
-        name: len({row["parent_id"] for row in selected_rows if row["split"] == name})
-        for name in SPLITS
-    }
     eligible_count = sum(bool(row.get("protocol_eligible")) for row in rows)
-    selected_count = len(selected_rows)
-    selected_parent_ids = sorted({str(row["parent_id"]) for row in selected_rows})
-    cap_overshoot = max(0, selected_count - max_eligible_records) if max_eligible_records > 0 else 0
+    planned_selected_count = len(planned_selected_rows)
+    selected_parent_ids = sorted({str(row["parent_id"]) for row in planned_selected_rows})
+    cap_overshoot = (
+        max(0, planned_selected_count - max_eligible_records)
+        if max_eligible_records > 0
+        else 0
+    )
     load_failures = sum(
         str(row.get("reject_reason") or "").startswith("load_failed:") for row in rows
     )
@@ -548,17 +639,46 @@ def build_protocol(
     load_failure_fraction_within_limit = (
         load_failure_fraction <= max_load_failure_fraction
     )
+    load_failure_candidates = [
+        _load_failure_candidate(row)
+        for row in rows
+        if str(row.get("reject_reason") or "").startswith("load_failed:")
+    ]
+    approved_load_failures = sum(
+        _allowlist_identity(candidate) in allowlist for candidate in load_failure_candidates
+    )
+    unapproved_load_failures = load_failures - approved_load_failures
     failure_reasons = []
     if eligible_count == 0:
         failure_reasons.append("no_eligible_records")
-    elif selected_count == 0:
+    elif planned_selected_count == 0:
         failure_reasons.append("no_selected_records")
     if not load_failure_count_within_limit:
         failure_reasons.append("archive_member_load_failure_count_exceeded")
     if not load_failure_fraction_within_limit:
         failure_reasons.append("archive_member_load_failure_fraction_exceeded")
+    if unapproved_load_failures:
+        failure_reasons.append("unapproved_archive_member_load_failure")
+    if failure_reasons:
+        split = {name: [] for name in SPLITS}
+    else:
+        split = _materialize_selected(
+            planned_selected_rows, archive_locations, Path(materialize_root)
+        )
+    split_integrity = _summarize_split_integrity(split)
     if split_integrity["status"] == "LEAKAGE_DETECTED":
         failure_reasons.append("parent_overlap")
+    if failure_reasons:
+        split = {name: [] for name in SPLITS}
+        for row in rows:
+            row["split"] = None
+    selected_rows = planned_selected_rows if not failure_reasons else []
+    selected_count = len(selected_rows)
+    split_counts = {name: len(split[name]) for name in SPLITS}
+    split_parents = {
+        name: len({row["parent_id"] for row in selected_rows if row["split"] == name})
+        for name in SPLITS
+    }
     summary: dict[str, Any] = {
         "status": "FAILED" if failure_reasons else "VERIFIED",
         "failure_reasons": failure_reasons,
@@ -568,6 +688,7 @@ def build_protocol(
         "protocol_version": config.version,
         "config": asdict(config),
         "archives_scanned": len({str(path) for path in archive_paths}),
+        "archive_inventory": inventory_summary,
         "records_scanned": len(rows),
         "records_eligible": eligible_count,
         "records_selected": selected_count,
@@ -585,6 +706,19 @@ def build_protocol(
             "observed_fraction": load_failure_fraction,
             "count_within_limit": load_failure_count_within_limit,
             "fraction_within_limit": load_failure_fraction_within_limit,
+        },
+        "load_failure_allowlist": {
+            **allowlist_metadata,
+            "status": (
+                "NO_FAILURES"
+                if load_failures == 0
+                else "ALL_FAILURES_APPROVED"
+                if unapproved_load_failures == 0
+                else "UNAPPROVED_FAILURES"
+            ),
+            "approved_failures": approved_load_failures,
+            "unapproved_failures": unapproved_load_failures,
+            "candidate_file": "load_failure_allowlist_candidates.jsonl",
         },
         "max_eligible_records": max(0, int(max_eligible_records)),
         "eligible_cap_overshoot_records": cap_overshoot,
@@ -610,6 +744,13 @@ def build_protocol(
     ).encode("utf-8")
     summary["quarantined_pickle_members_sha256"] = hashlib.sha256(
         quarantine_payload
+    ).hexdigest()
+    candidate_payload = "".join(
+        json.dumps(candidate, sort_keys=True, ensure_ascii=True) + "\n"
+        for candidate in load_failure_candidates
+    ).encode("utf-8")
+    summary["load_failure_allowlist_candidates_sha256"] = hashlib.sha256(
+        candidate_payload
     ).hexdigest()
     _write_outputs(Path(output_dir), rows, split, summary)
     return rows, split, summary

@@ -133,6 +133,10 @@ VQ_TB_LOG_DIR = os.environ.get('NS_VQ_TB_LOG_DIR', '').strip()
 VQ_SWEEP_TRAIN_CAP = int(os.environ.get('NS_VQ_SWEEP_TRAIN_CAP', '12000'))
 VQ_SWEEP_EPOCHS = int(os.environ.get('NS_VQ_SWEEP_EPOCHS', '15'))
 VQ_EXPERIMENT_SEED = int(os.environ.get('NS_VQ_EXPERIMENT_SEED', '0'))
+VQ_SWEEP_ARMS = tuple(
+    name.strip() for name in os.environ.get('NS_VQ_SWEEP_ARMS', '').split(',') if name.strip()
+)
+VQ_PLATEAU_METRIC = os.environ.get('NS_VQ_PLATEAU_METRIC', 'global_val').strip().lower()
 VQ_PROMOTION_MIN_PERPLEXITY = float(os.environ.get('NS_VQ_PROMOTION_MIN_PERPLEXITY', '800'))
 VQ_PROMOTION_MAX_CURVED_PARENT_MSE = float(
     os.environ.get('NS_VQ_PROMOTION_MAX_CURVED_PARENT_MSE', '5e-5')
@@ -510,16 +514,62 @@ def checkpoint_context_from_run(run_manifest, protocol_data):
     }
 
 
-def build_fsq_vqvae(levels=FSQ_LEVELS):
+def _build_base_vqvae(num_vq_embeddings=8192):
     legacy_embedding_count = 8192
-    m = VQModel(in_channels=3, out_channels=3,
+    return VQModel(in_channels=3, out_channels=3,
                 down_block_types=['DownEncoderBlock2D'] * 5, up_block_types=['UpDecoderBlock2D'] * 5,
                 block_out_channels=[32, 64, 128, 256, 512], layers_per_block=2, act_fn='silu',
                 latent_channels=128, vq_embed_dim=64,
-                num_vq_embeddings=legacy_embedding_count,
+                num_vq_embeddings=int(num_vq_embeddings or legacy_embedding_count),
                 norm_num_groups=32, sample_size=512)
+
+
+def build_fsq_vqvae(levels=FSQ_LEVELS):
+    m = _build_base_vqvae(8192)
     m.quantize = FSQQuantiser(num_embed=int(np.prod(levels)), embed_dim=64, fsq_levels=levels, in_dim=64)
     return m
+
+
+def build_learned_vqvae(
+        codebook_size=4096,
+        embedding_dim=64,
+        distance='cos',
+        anchor='random',
+        first_batch=False,
+        contrastive_loss=True):
+    from quantise import VectorQuantiser
+
+    m = _build_base_vqvae(codebook_size)
+    original = m.quantize
+    quantizer = VectorQuantiser(
+        num_embed=int(codebook_size),
+        embed_dim=int(embedding_dim),
+        beta=original.beta,
+        distance=distance,
+        anchor=anchor,
+        first_batch=bool(first_batch),
+        contras_loss=bool(contrastive_loss),
+    )
+    quantizer.embedding.weight.data.copy_(original.embedding.weight.data)
+    m.quantize = quantizer
+    return m
+
+
+class ContinuousBypassQuantizer(nn.Module):
+    def forward(self, latent, *args, **kwargs):
+        indices = torch.zeros(
+            latent.shape[0] * latent.shape[2] * latent.shape[3],
+            dtype=torch.long,
+            device=latent.device,
+        )
+        zero = latent.new_zeros(())
+        return latent, zero, (latent.new_tensor(1.0), None, indices)
+
+
+def build_continuous_bypass_vqvae():
+    model = _build_base_vqvae(1)
+    model.quantize = ContinuousBypassQuantizer()
+    return model
 
 
 def seed_vq_experiment(seed):
@@ -539,6 +589,111 @@ def fsq_comparison_configs():
         {'name': 'fsq_4096_6d', 'levels': (4, 4, 4, 4, 4, 4), 'lr': VQ_LR},
         {'name': 'fsq_8192_6d', 'levels': (4, 4, 4, 4, 4, 8), 'lr': VQ_LR},
     ]
+
+
+def quantizer_comparison_configs(arm_names=None):
+    configs = {
+        'fsq_8192_4d': {
+            'name': 'fsq_8192_4d',
+            'kind': 'fsq',
+            'levels': (8, 8, 8, 16),
+            'codebook_size': 8192,
+            'lr': VQ_LR,
+            'quantizer': {
+                'kind': 'fsq',
+                'levels': [8, 8, 8, 16],
+                'codebook_size': 8192,
+                'latent_grid_dimensions': 4,
+                'downstream_compatible': True,
+            },
+        },
+        'fsq_4096_6d': {
+            'name': 'fsq_4096_6d',
+            'kind': 'fsq',
+            'levels': (4, 4, 4, 4, 4, 4),
+            'codebook_size': 4096,
+            'lr': VQ_LR,
+            'quantizer': {
+                'kind': 'fsq',
+                'levels': [4, 4, 4, 4, 4, 4],
+                'codebook_size': 4096,
+                'latent_grid_dimensions': 6,
+                'downstream_compatible': True,
+            },
+        },
+        'fsq_8192_6d': {
+            'name': 'fsq_8192_6d',
+            'kind': 'fsq',
+            'levels': (4, 4, 4, 4, 4, 8),
+            'codebook_size': 8192,
+            'lr': VQ_LR,
+            'quantizer': {
+                'kind': 'fsq',
+                'levels': [4, 4, 4, 4, 4, 8],
+                'codebook_size': 8192,
+                'latent_grid_dimensions': 6,
+                'downstream_compatible': True,
+            },
+        },
+        'vq_4096_64d_random': {
+            'name': 'vq_4096_64d_random',
+            'kind': 'learned_vq',
+            'levels': (),
+            'codebook_size': 4096,
+            'lr': VQ_LR,
+            'quantizer': {
+                'kind': 'learned_vq',
+                'implementation': 'BrepARG.quantise.VectorQuantiser',
+                'codebook_size': 4096,
+                'embedding_dim': 64,
+                'distance': 'cos',
+                'anchor': 'random',
+                'first_batch': False,
+                'contrastive_loss': True,
+                'decay': 0.99,
+                'downstream_compatible': False,
+            },
+        },
+        'continuous_bypass_64d': {
+            'name': 'continuous_bypass_64d',
+            'kind': 'continuous_bypass',
+            'levels': (),
+            'codebook_size': 1,
+            'lr': VQ_LR,
+            'quantizer': {
+                'kind': 'continuous_bypass',
+                'embedding_dim': 64,
+                'usage_metric_meaningful': False,
+                'downstream_compatible': False,
+            },
+        },
+    }
+    requested = tuple(arm_names or configs)
+    unknown = [name for name in requested if name not in configs]
+    if unknown:
+        raise ValueError('unknown VQ sweep arms: ' + ', '.join(unknown))
+    if not requested or len(set(requested)) != len(requested):
+        raise ValueError('VQ sweep arms must be non-empty and unique')
+    return [dict(configs[name]) for name in requested]
+
+
+def build_quantized_vqvae(config):
+    kind = config.get('kind')
+    if kind == 'fsq':
+        return build_fsq_vqvae(tuple(config['levels']))
+    if kind == 'learned_vq':
+        quantizer = config['quantizer']
+        return build_learned_vqvae(
+            codebook_size=config['codebook_size'],
+            embedding_dim=quantizer['embedding_dim'],
+            distance=quantizer['distance'],
+            anchor=quantizer['anchor'],
+            first_batch=quantizer['first_batch'],
+            contrastive_loss=quantizer['contrastive_loss'],
+        )
+    if kind == 'continuous_bypass':
+        return build_continuous_bypass_vqvae()
+    raise ValueError(f'unsupported quantizer kind: {kind!r}')
 
 
 def build_vq_run_manifest(
@@ -586,17 +741,23 @@ def build_vq_run_manifest(
             'curved_loss_weight': VQ_CURVED_LOSS_WEIGHT,
             'complex_loss_weight': VQ_COMPLEX_LOSS_WEIGHT,
             'min_parent_coverage': VQ_MIN_PARENT_COVERAGE,
-            'arms': [
-                {
-                    'name': config['name'],
-                    'levels': list(config['levels']),
-                    'codebook': int(np.prod(config['levels'])),
-                    'lr': config['lr'],
-                }
-                for config in configs
-            ],
+            'plateau_metric': VQ_PLATEAU_METRIC,
+            'arms': [_vq_arm_manifest(config) for config in configs],
         },
     }
+
+
+def _vq_arm_manifest(config):
+    levels = tuple(config.get('levels') or ())
+    payload = {
+        'name': config['name'],
+        'levels': list(levels),
+        'codebook': int(config.get('codebook_size') or np.prod(levels)),
+        'lr': config['lr'],
+    }
+    if config.get('quantizer'):
+        payload['quantizer'] = dict(config['quantizer'])
+    return payload
 
 
 _LAST_VQVAE_SAMPLING_SUMMARY = None
@@ -1013,6 +1174,7 @@ def _train_vqvae(
         codebook_size=None,
         tb_log_dir=None,
         fsq_levels=None,
+        quantizer_metadata=None,
         checkpoint_context=None):
     model = model.to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-6)
@@ -1038,9 +1200,16 @@ def _train_vqvae(
     Wtr = torch.tensor(train_weights, dtype=torch.float32) if train_weights is not None else None
     fsq_levels = tuple(FSQ_LEVELS if fsq_levels is None else fsq_levels)
     checkpoint_context = dict(checkpoint_context or {})
+    quantizer_metadata = dict(quantizer_metadata or {
+        'kind': 'fsq',
+        'levels': list(fsq_levels),
+        'codebook_size': int(codebook_size or np.prod(fsq_levels)),
+        'downstream_compatible': True,
+    })
     start_epoch = int(start_epoch)
     initial_best = float(initial_best_val) if initial_best_val is not None else float('inf')
     stop_state = VQVAEStopState(best_val=initial_best, best_epoch=int(initial_best_epoch))
+    plateau_state = VQVAEStopState()
     best_val = stop_state.best_val; hist = []; history = list(history_prefix or [])
     best_curved_parent_mse = float('inf')
     prior_perplexities = []
@@ -1127,6 +1296,8 @@ def _train_vqvae(
             else float('inf')
         )
         stop_state, improved, should_stop = update_vqvae_stop_state(absolute_epoch, va, stop_state, stop_config)
+        global_should_stop = should_stop
+        active_stop_reason = stop_state.stop_reason if global_should_stop else ''
         best_val = stop_state.best_val
         hist.append((tr, va))
         val_metrics = val_accumulator.summary() if val_accumulator is not None else None
@@ -1146,9 +1317,32 @@ def _train_vqvae(
                 'historical_means': {},
                 'history_ratio': None,
             }
+        plateau_improved = None
+        plateau_value = None
+        if VQ_PLATEAU_METRIC == 'curved_parent_mse':
+            curved_bucket = (
+                (val_metrics or {})
+                .get('parent_cluster_reconstruction_mse', {})
+                .get('surface_curved_proxy', {})
+            )
+            plateau_value = curved_bucket.get('mse')
+            plateau_value = (
+                float(plateau_value)
+                if safe_json_number(plateau_value) is not None
+                else float('inf')
+            )
+            plateau_state, plateau_improved, plateau_should_stop = update_vqvae_stop_state(
+                absolute_epoch, plateau_value, plateau_state, stop_config
+            )
+            should_stop = global_should_stop or plateau_should_stop
+            if plateau_should_stop and not active_stop_reason:
+                active_stop_reason = f'curved_parent_mse:{plateau_state.stop_reason}'
+        elif VQ_PLATEAU_METRIC != 'global_val':
+            raise ValueError(f'unsupported VQ plateau metric: {VQ_PLATEAU_METRIC!r}')
         checkpoint_payload = {
             'model_state_dict': model.state_dict(),
             'fsq_levels': list(fsq_levels),
+            'quantizer': quantizer_metadata,
             'checkpoint_epoch': absolute_epoch,
             'validation_metrics': val_metrics,
             'checkpoint_context': checkpoint_context,
@@ -1191,6 +1385,14 @@ def _train_vqvae(
             'nonfinite_val_samples': nonfinite_val_samples,
             'consecutive_nonfinite_val_epochs': stop_state.consecutive_nonfinite_val_epochs,
             'epochs_without_improvement': stop_state.epochs_without_improvement,
+            'plateau_metric': VQ_PLATEAU_METRIC,
+            'plateau_value': metric_for_report(plateau_value),
+            'plateau_improved': plateau_improved,
+            'plateau_epochs_without_improvement': (
+                plateau_state.epochs_without_improvement
+                if VQ_PLATEAU_METRIC == 'curved_parent_mse'
+                else stop_state.epochs_without_improvement
+            ),
         }
         if val_metrics is not None:
             record['val_code_usage'] = val_metrics['code_usage']
@@ -1208,7 +1410,7 @@ def _train_vqvae(
             'global_best_epoch': stop_state.best_epoch,
             'checkpoint_epoch': meta['checkpoint_epoch'],
             'end_epoch': absolute_epoch,
-            'stop_reason': stop_state.stop_reason,
+            'stop_reason': active_stop_reason,
             'last_val_metrics': val_metrics,
         })
         if writer is not None:
@@ -1245,17 +1447,19 @@ def _train_vqvae(
                     'patience': stop_config.patience,
                     'min_delta': stop_config.min_delta,
                     'max_nonfinite_val_epochs': stop_config.max_nonfinite_val_epochs,
+                    'plateau_metric': VQ_PLATEAU_METRIC,
+                    'quantizer': quantizer_metadata,
                 },
                 'history': history,
                 'best_val_recon': metric_for_report(best_val),
                 'best_epoch': stop_state.best_epoch,
-                'stop_reason': stop_state.stop_reason,
+                'stop_reason': active_stop_reason,
             }, open(history_path, 'w'), indent=2)
         if ep % 10 == 0 or ep == epochs - 1:
             log(f"  {tag} ep {absolute_epoch:3d} train={format_metric(tr)} val={format_metric(va)} best={format_metric(best_val)} finite_train={nb}/{train_batches} finite_val={vnb}/{val_batches}")
         if should_stop:
             meta['stopped_early'] = True
-            log(f"  {tag} early stop at ep {absolute_epoch}: {stop_state.stop_reason} best={format_metric(best_val)} best_epoch={stop_state.best_epoch}")
+            log(f"  {tag} early stop at ep {absolute_epoch}: {active_stop_reason} best={format_metric(best_val)} best_epoch={stop_state.best_epoch}")
             break
     finally:
         if writer is not None:
@@ -1270,7 +1474,11 @@ def stage_vqsweep():
         )
     log("VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)")
     split, split_metadata = load_verified_protocol_split(return_metadata=True)
-    configs = fsq_comparison_configs()
+    configs = (
+        quantizer_comparison_configs(VQ_SWEEP_ARMS)
+        if VQ_SWEEP_ARMS
+        else fsq_comparison_configs()
+    )
     run_manifest = build_vq_run_manifest(
         split_metadata,
         configs,
@@ -1286,7 +1494,7 @@ def stage_vqsweep():
     results = []
     for c in configs:
         seed_vq_experiment(VQ_EXPERIMENT_SEED)
-        m = build_fsq_vqvae(c['levels'])
+        m = build_quantized_vqvae(c) if c.get('kind') else build_fsq_vqvae(c['levels'])
         seed_vq_experiment(VQ_EXPERIMENT_SEED)
         arm_history = os.path.join(OUT, f"{c['name']}_history.json")
         arm_tb = os.path.join(VQ_TB_LOG_DIR, c['name']) if VQ_TB_LOG_DIR else None
@@ -1295,10 +1503,11 @@ def stage_vqsweep():
             m, Xtr, Xva, epochs=VQ_SWEEP_EPOCHS, bs=VQ_BS, lr=c['lr'], tag=c['name'],
             val_buckets=protocol_data['val_buckets'],
             val_parent_groups=protocol_data['val_parent_groups'],
-            codebook_size=int(np.prod(c['levels'])), history_path=arm_history,
+            codebook_size=int(c.get('codebook_size') or np.prod(c['levels'])), history_path=arm_history,
             tb_log_dir=arm_tb,
             save_path=arm_checkpoint,
             fsq_levels=c['levels'],
+            quantizer_metadata=c.get('quantizer'),
             checkpoint_context=checkpoint_context,
         )
         final_metrics = arm_meta.get('last_val_metrics') or {}
@@ -1311,7 +1520,9 @@ def stage_vqsweep():
             min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
         )
         results.append({'name': c['name'], 'levels': list(c['levels']),
-                        'codebook': int(np.prod(c['levels'])), 'lr': c['lr'], 'best_val_recon': round(bv, 5)})
+                        'codebook': int(c.get('codebook_size') or np.prod(c['levels'])),
+                        'quantizer': c.get('quantizer'),
+                        'lr': c['lr'], 'best_val_recon': round(bv, 5)})
         results[-1].update({
             'epochs_ran': arm_meta.get('epochs_ran'),
             'history_path': arm_history,
