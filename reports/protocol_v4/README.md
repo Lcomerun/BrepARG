@@ -1,6 +1,18 @@
 # Protocol V4: 100-Epoch Three-Seed FSQ Cohort
 
-Status on 2026-08-05: implementation and pre-launch verification complete; the local RTX 3060 cohort is being launched from branch `experiment/protocol-v4-100epoch-fullchunk`. Final metrics are intentionally not reported until all requested runs finish and a separate statistics task is requested.
+Status on 2026-08-05: all three seeds and all three FSQ arms completed 100 epochs from clean commit `12fd520`. The cohort state is `COMPLETED`, every seed returned code 0, all stderr logs are empty, and the experiment decision is `NO_PROMOTED_ARM`.
+
+## Result
+
+| Arm | Checkpoint val MSE, mean +/- sample SD | Checkpoint perplexity, mean (range) | Checkpoint coverage, mean | Curved parent MSE, mean |
+| --- | ---: | ---: | ---: | ---: |
+| 8192/4D | `0.006035 +/- 0.001303` | `1501.43 (1369.53-1606.22)` | `44.90%` | `0.010950` |
+| 4096/6D | `0.005609 +/- 0.000350` | `663.69 (619.42-746.62)` | `43.49%` | `0.010588` |
+| 8192/6D | `0.006100 +/- 0.000328` | `902.64 (694.94-1089.24)` | `31.48%` | `0.011530` |
+
+The 4096/6D arm remains the diagnostic cross-seed leader on checkpoint validation MSE and curved parent-cluster MSE mean. It is not promoted: its checkpoint perplexity is below the `800` healthy-usage reference in all three seeds, and seed 0 still selected epoch 99, so this cohort does not establish a stable healthy-usage platform. The 8192/4D arm has substantially higher perplexity but also the largest reconstruction variance, including seed-1 late degradation. No arm passes the complete representation decision.
+
+The outcome does not authorize an all-chunk build or sequence/AR work. The full-data curved reference of `5e-5` is not used to reject this single-chunk cohort by itself, but every observed curved MSE remains around `1e-2`, so it also provides no evidence for downstream readiness.
 
 ## What this experiment changes
 
@@ -26,7 +38,7 @@ The all-chunk builder now checks archive and member identities before materializ
 
 ## Interpretation boundary
 
-This experiment determines whether the 4096/6D arm remains ahead after longer same-data optimization and whether entropy perplexity, code coverage, and curved parent-cluster MSE reach a stable platform. `ppl >= 800` is evaluated at that platform, not at an arbitrary early epoch.
+This experiment determines whether the 4096/6D arm remains ahead after longer same-data optimization and whether entropy perplexity, code coverage, and curved parent-cluster MSE reach a stable platform. The result is mixed: the reconstruction ranking remains favorable to 4096/6D in aggregate, but `ppl >= 800` is not met and the curves do not prove a stable platform.
 
 The paper-scale `curved <= 5e-5` reference is not a hard gate for this single-chunk experiment. It becomes meaningful only after a later filtered full-ABC run reaches its own platform. No sequence regeneration or AR training is permitted from Protocol V4 alone.
 
@@ -36,5 +48,6 @@ If 4096/6D remains ahead with healthy utilization, the next stage is a full-chun
 
 The implementation plan is `docs/superpowers/plans/2026-08-05-protocol-v4-100epoch-fullchunk.md`. The launcher is `tools/run_protocol_v4_100epoch_cohort.py`, with Windows background wrapper `tools/start_protocol_v4_100epoch_cohort.ps1`.
 
-Raw checkpoints, changing histories, PID/state files, and stdout/stderr logs remain under ignored `local_runs/`. After all nine runs finish, a later result-statistics task may copy compact histories, aggregate JSON, and curated TensorBoard event files into `reports/`.
+The structured result is `fsq_abc_100epoch_three_seed_20260805.json`, and `artifact_manifest.json` binds every copied file by byte count and SHA-256. Complete 100-epoch histories are under `reports/protocol_v4/histories/`, and all nine curated event files are under `reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/`. Inspect the latter with `tensorboard --logdir reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805`.
 
+The nine local checkpoints total about 1.92 GiB and remain under ignored `local_runs/`; they are identified by SHA-256 in the structured result but are not committed. PID/state and stdout/stderr files also remain local.

@@ -4,7 +4,8 @@ This directory is the lightweight entry point for understanding V13 experiment s
 
 Start with these repository documents:
 
-- `reports/protocol_v4/README.md` records the fixed controls, data binding, launch status, interpretation limits, and full-data decision boundary for the 100-epoch three-seed FSQ cohort.
+- `reports/protocol_v4/README.md` records the completed 100-epoch, three-seed FSQ cohort, its `NO_PROMOTED_ARM` decision, and the boundary that still blocks full-data and AR work.
+- `reports/protocol_v4/fsq_abc_100epoch_three_seed_20260805.json` contains the E030 per-run checkpoint metrics, cross-seed aggregates, hashes, and artifact inventory; complete histories are beside it under `histories/`.
 - `reports/protocol_v3/README.md` summarizes the clean-commit, two-seed, three-arm Protocol V3 FSQ engineering cohort and its `NO_PROMOTED_ARM` decision.
 - `reports/protocol_v3/fsq_abc_15epoch_two_seed_20260804.json` contains the complete lightweight E029 histories, sampling audits, promotion bindings, and TensorBoard hashes.
 - `reproducibility/reports/current_conclusions.md` contains the current scientific conclusions, root-cause priorities, excluded hypotheses, and next experiment order.
@@ -19,7 +20,7 @@ When adding a new experiment, commit its aggregate metrics and conclusion only w
 
 ## TensorBoard logs
 
-`reports/tensorboard/` contains the currently available lightweight TensorBoard event files copied from ignored local runs. The directory preserves each run's relative path below `local_runs/`, so logs with identical filenames from different experiments do not overwrite one another. These files total less than 0.1 MiB and are stored directly in Git; Git LFS is not required.
+`reports/tensorboard/` contains the currently available lightweight TensorBoard event files copied from ignored local runs. The directory preserves each run's relative path below `local_runs/`, so logs with identical filenames from different experiments do not overwrite one another. The Protocol V4 package adds nine 100-epoch event files totaling about 0.82 MiB; these remain small enough for Git, so Git LFS is not required.
 
 From the repository root, inspect them on another machine with:
 

@@ -19,8 +19,10 @@ After this change, the user can launch a reproducible three-arm, three-seed, 100
 - [x] (2026-08-05 10:52 +08:00) Ran the initial 188 focused tests, all passing; Python compileall and PowerShell parsing pass. The complete suite reports 430 passed and the same 16 documented baseline failures: 11 require excluded `BrepARG/`, one legacy fixture lacks `ordering`, and four use the Python 3.11 `Path.write_text(newline=...)` API under Python 3.10. No Protocol V4 test fails.
 - [x] (2026-08-05 10:54 +08:00) Added and passed two further launcher regressions: inherited unlisted `NS_*` variables are removed, and non-empty seed output directories cannot be reused without state. The exact five-file focused command now reports 190 passed; compileall and PowerShell parsing still pass.
 - [x] (2026-08-05 10:58 +08:00) Ran a real `abc_0000` builder smoke over 50 pickle members. It exited zero with `VERIFIED`, 24 eligible, 15 parent-complete selected records, 0 load failures, an empty-quarantine SHA, 12/2/1 split records, and zero parent overlap.
-- [ ] Commit and push the new experiment branch before training so run manifests bind to an immutable clean commit.
-- [ ] Start the detached seed 0/1/2 cohort and confirm the launcher PID, child training PID, GPU activity, and advancing seed-0 log.
+- [x] (2026-08-05 12:42 +08:00) Committed and pushed branch `experiment/protocol-v4-100epoch-fullchunk`; all run manifests bind to clean commit `12fd520`.
+- [x] (2026-08-05 12:46 +08:00) Started the detached seed 0/1/2 cohort and confirmed the launcher, child process, CUDA activity, expected controls and advancing seed-0 log.
+- [x] (2026-08-05 16:11 +08:00) All nine arm/seed runs completed 100 epochs with return code 0 and empty stderr logs; cohort state is `COMPLETED`.
+- [x] (2026-08-05 18:00 +08:00) Aggregated E030, copied nine histories and nine TensorBoard event files into the curated reports tree, and retained all approximately 1.92 GiB of checkpoints outside Git.
 
 ## Surprises & Discoveries
 
@@ -62,9 +64,11 @@ After this change, the user can launch a reproducible three-arm, three-seed, 100
 
 ## Outcomes & Retrospective
 
-Implementation and launch outcomes will be recorded here after verification. A successful outcome is source/tests/docs pushed on the Protocol V4 branch plus a detached cohort process proven to have passed protocol verification, loaded the expected 12,000/4,637 cohort, started seed 0 on CUDA, and advanced its log. Completed metrics are not required in this turn.
+Implementation and launch acceptance passed. The source/tests/docs were pushed before launch, the process loaded the expected 12,000/4,637 cohort on CUDA, and seeds 0, 1 and 2 each completed all three 100-epoch arms sequentially.
 
 Implementation verification is complete. Corrupt pickle records are quarantined and cannot enter a split; count/fraction thresholds distinguish isolated damage from systemic failure; archive/member identities are preflighted before materialization. The three-seed orchestrator fixes every scientific control, runs seeds sequentially, writes atomic state, stops on failure, and accepts only a sweep whose three arms each report 100 epochs. Focused verification is fully green; complete-suite failures remain identical in category and count to the Protocol V3 baseline after accounting for the 18 newly passing tests.
+
+The final scientific decision is `NO_PROMOTED_ARM`. Across the three selected checkpoints, 4096/6D has the lowest mean validation MSE (`0.005609`) and curved parent-cluster MSE (`0.010588`), but its perplexity is only `619.42–746.62`, below the `800` reference in every seed. Seed 0 still selects epoch 99, so the cohort does not establish a stable healthy-usage plateau. No all-chunk build, sequence regeneration or AR training follows automatically from this result.
 
 ## Context and Orientation
 
@@ -118,7 +122,7 @@ The protocol changes are accepted when a below-threshold corrupt pickle creates 
 
 The launcher changes are accepted when tests prove every seed uses the same scientific controls, only seed/output paths differ, all three configured arms are expected, failed seeds stop the sequence, and only a verified 100-epoch three-arm sweep can be marked complete. The real detached launch must bind to a clean pushed commit and the existing protocol/split hashes.
 
-The experiment is not accepted as a capacity or AR-promotion conclusion merely because it starts or completes. Later analysis must examine per-seed perplexity, code coverage, curved parent-cluster MSE, curve plateaus, and seed variance. Full-data expansion is allowed only if 4096/6D remains ahead at plateau with healthy usage. Sequence/AR remains prohibited until full-data VQ passes its representation decision.
+The experiment is not accepted as a capacity or AR-promotion conclusion merely because it completed. E030 examines per-seed perplexity, code coverage, curved parent-cluster MSE, late curves and seed variance, and finds that 4096/6D is the diagnostic reconstruction leader but not a promoted winner. Full-data expansion remains allowed only after a healthy, interpretable platform decision. Sequence/AR remains prohibited until full-data VQ passes its representation decision.
 
 ## Idempotence and Recovery
 
@@ -130,7 +134,7 @@ No step deletes archives, materialized protocol data, old V3 runs, or checkpoint
 
 ## Artifacts and Notes
 
-Track source code, tests, this plan, the design, and a concise launch/readme update. Do not commit the approximately 229 MB checkpoints, raw full histories while they are changing, local protocol pickles, raw datasets, stdout/stderr logs, or PID/state files. Curated TensorBoard event files and a compact result JSON may be copied under `reports/` in a later result-statistics task after all runs finish.
+Track source code, tests, this plan, the design, the E030 summary, completed histories and curated TensorBoard events. Do not commit the nine checkpoints (about 1.92 GiB total), local protocol pickles, raw datasets, stdout/stderr logs, or PID/state files. The report binds local checkpoints by SHA-256 without uploading them.
 
 The existing 15-epoch evidence remains Protocol V3 evidence and is not overwritten. Protocol V4 uses a new `local_runs/protocol_v4_*` root and a new Git branch.
 
@@ -148,3 +152,5 @@ It continues to return `(rows, split, summary)`. The summary adds a `load_failur
 The implementation uses only the Python standard library and existing NumPy/PyTorch/Diffusers/TensorBoard training environment. PowerShell is used only to detach the Windows orchestrator.
 
 Revision note 2026-08-05: created after the user approved a same-data three-arm 100-epoch rerun with an added third seed, clarified that bad pickle members must never enter a split, limited the current task to verified launch rather than continuous monitoring, and kept sequence/AR gated behind a later full-data VQ decision.
+
+Revision note 2026-08-05 after completion: recorded all nine completed runs and E030. The GPU became idle because the cohort finished normally, not because data loading stalled or training crashed. Curated histories/TensorBoard events are now in Git scope; checkpoints remain local.

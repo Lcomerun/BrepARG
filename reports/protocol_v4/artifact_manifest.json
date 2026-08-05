@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "evidence_id": "E030",
+  "files": [
+    {"path": "reports/protocol_v4/histories/seed0/fsq_8192_4d_history.json", "bytes": 265265, "sha256": "57987697e9d281464762437fdc0e3ad1308106ecd3844760c3f8db40e3867c32"},
+    {"path": "reports/protocol_v4/histories/seed0/fsq_4096_6d_history.json", "bytes": 265565, "sha256": "1fb8754fdbeef26b0b36b8d3aa180ee048872ad1353811ecb685167d5c623a7d"},
+    {"path": "reports/protocol_v4/histories/seed0/fsq_8192_6d_history.json", "bytes": 265977, "sha256": "a7fd95e88f33e832a6d984eced396f8c0d223ad9c0b524114a97f976f9eb3cc9"},
+    {"path": "reports/protocol_v4/histories/seed1/fsq_8192_4d_history.json", "bytes": 264814, "sha256": "74f059cb6fc0d20dc1d4488bed9b78558a42b9ed3b253dfc2d79beedec9b2435"},
+    {"path": "reports/protocol_v4/histories/seed1/fsq_4096_6d_history.json", "bytes": 266259, "sha256": "a2be3342a620b761275e47772bc385fb3aa4e0ed062af27fed098e7dcd471c5b"},
+    {"path": "reports/protocol_v4/histories/seed1/fsq_8192_6d_history.json", "bytes": 265822, "sha256": "feede5b18ad15650a5a8d3417996c6e463d569b8b49624ebe67dffecdea8eb48"},
+    {"path": "reports/protocol_v4/histories/seed2/fsq_8192_4d_history.json", "bytes": 264616, "sha256": "4dd0a295e08d72d51c4b184edd60fb5530c96fc965159e497580f22501fd01bd"},
+    {"path": "reports/protocol_v4/histories/seed2/fsq_4096_6d_history.json", "bytes": 265106, "sha256": "5196a8f782f1122fb5cfc4f5436d62cf4d5845fe2e65ea59550d18cf9bbf37f7"},
+    {"path": "reports/protocol_v4/histories/seed2/fsq_8192_6d_history.json", "bytes": 265488, "sha256": "623efac08294d871f1e73fabdd9e50bd57a92de3d37f775d19e10fbf7d62ae31"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed0/fsq_8192_4d/events.out.tfevents.1785905207.DESKTOP-VDBMPQG.31024.0", "bytes": 95262, "sha256": "e338740ed1a4ad2a88bd549bb98372ec5f10681914aeeb6a7c1e5cacf4e8a924"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed0/fsq_4096_6d/events.out.tfevents.1785906574.DESKTOP-VDBMPQG.31024.1", "bytes": 95262, "sha256": "3587ecc6bd8bfe06eb94ccb8280fbc40a356f2c4835ba5aaf361e66b683b0b13"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed0/fsq_8192_6d/events.out.tfevents.1785907932.DESKTOP-VDBMPQG.31024.2", "bytes": 95262, "sha256": "e8495fada4be31f7801f665fd6a074e195479538f723fd69b919a935d0f1bd82"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed1/fsq_8192_4d/events.out.tfevents.1785909320.DESKTOP-VDBMPQG.42868.0", "bytes": 95262, "sha256": "2dbc498fcedbfadeb24b647bce9893f960540ce88f3ed2009a973b4fbec4da5f"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed1/fsq_4096_6d/events.out.tfevents.1785910686.DESKTOP-VDBMPQG.42868.1", "bytes": 95262, "sha256": "0fac770da637a15f8eb25ce23997490da2b9fe7fa2c589f2fd85fcb44502d0bc"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed1/fsq_8192_6d/events.out.tfevents.1785912036.DESKTOP-VDBMPQG.42868.2", "bytes": 95262, "sha256": "dbf8cab52b82dd1ad5aef1a8db5790e369752546fb7b8a7a3dbbece3073f9c12"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed2/fsq_8192_4d/events.out.tfevents.1785913408.DESKTOP-VDBMPQG.24424.0", "bytes": 95262, "sha256": "997339e089553d7decbc1e3d6bc44fcbe6ea34a0cdddaaacb5768296317a7beb"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed2/fsq_4096_6d/events.out.tfevents.1785914783.DESKTOP-VDBMPQG.24424.1", "bytes": 95262, "sha256": "14c3c269a4c04fca01708b831bab3373e964e9b02b5f9c0036d51ae9ea1776ba"},
+    {"path": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805/seed2/fsq_8192_6d/events.out.tfevents.1785916146.DESKTOP-VDBMPQG.24424.2", "bytes": 95262, "sha256": "4df5f93def63117b05eeffb95f0b1508b3a2c426f53a9e986f619d830e59b9a8"}
+  ]
+}

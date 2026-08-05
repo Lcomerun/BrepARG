@@ -216,6 +216,31 @@
       "evidence_ids": ["E027"]
     },
     {
+      "id": "protocol_v4_fsq_100epoch_three_seed",
+      "date": "2026-08-05",
+      "method": "Matched three-arm FSQ cohort trained from scratch for 100 epochs across seeds 0, 1 and 2",
+      "data_cohort": "Protocol V2 parent-isolated abc_0000 subset; 12000/4637 deduplicated train/validation patches",
+      "configuration": {
+        "arms": ["8192/4D", "4096/6D", "8192/6D"],
+        "batch_size": 128,
+        "learning_rate": 0.0003,
+        "epochs": 100,
+        "direct_train_parent_coverage": 0.9597523219814241,
+        "validation_parent_coverage": 1.0
+      },
+      "metrics": {
+        "fsq_4096_6d_checkpoint_val_mse_mean": 0.005608963333333334,
+        "fsq_4096_6d_checkpoint_perplexity_min": 619.4226271873138,
+        "fsq_4096_6d_checkpoint_perplexity_max": 746.6206002650422,
+        "fsq_4096_6d_checkpoint_curved_parent_mse_mean": 0.010587695152922877,
+        "promotion_eligible_arms": 0
+      },
+      "status": "completed_no_promoted_arm",
+      "outcome": "4096/6D led the cross-seed reconstruction means but missed the usage reference in every seed; full-chunk expansion and sequence/AR remain blocked.",
+      "confidence": "confirmed_for_single_chunk_cohort",
+      "evidence_ids": ["E030"]
+    },
+    {
       "id": "continuous_latent_bypass_oracle",
       "date": null,
       "method": "Decoder reconstruction without FSQ quantization",

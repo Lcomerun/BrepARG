@@ -14,6 +14,7 @@
 8. **50 faces 是协议内边界。** 当前 sequence 的 faces 范围 2-50，global edges 范围 2-150。50-face 失败应单列高难度桶，不能排除为越界。[E003, E006]
 9. **Protocol V2 已完成一次真实小规模闭环。** 2,000 条扫描中 994 条按 parent 分组进入 795/100/99 train/val/test，三对 parent overlap 均为 0；VQ tensor 化前 source、parent 和 exact patch overlap 也为 0。[E028]
 10. **Protocol V3 已从干净提交完成双 seed 三臂 15 epoch 工程 cohort，但无配置通过晋级门。** 12,000/4,637 patch 的最终 inventory 覆盖 322/100 parent，source、parent、exact overlap 均为 0；4096/6D 的 checkpoint MSE 在两个 seed 均最低，但 perplexity 仅 `310.25–548.04`，曲面 parent-cluster MSE 均值 `0.02527`，仍未达到 `>=800` 和 `<=5e-5` 门槛。程序状态为 `NO_PROMOTED_ARM`，不进入 AR。[E029]
+11. **Protocol V4 已完成三 seed、三臂、100 epoch 的同数据受控 cohort，仍无配置晋级。** 4096/6D 的 checkpoint val MSE 均值 `0.005609`、曲面 parent-cluster MSE 均值 `0.010588`，均为三臂最低；但三个 seed 的 checkpoint perplexity 仅 `619.42–746.62`，全部低于 `800` 健康参考，且 seed 0 到 epoch 99 仍在选出新 best。程序和统计结论均为 `NO_PROMOTED_ARM`，当前不扩到全 chunk，也不进入序列/AR。[E030]
 
 ### 强推断
 
@@ -21,13 +22,14 @@
 2. 当前 surface Chamfer heavy tail 和 true-token 装配失败说明仅提高 FSQ level 不足；decoder/assembly、loss 形态、曲面参数化与 shape-level 一致性都可能参与。[E006, E007, E016]
 3. 长序列 exposure bias 会放大 AR 错误，但长度不是唯一主因；所有 face/length 桶均有明显重建失败。[E006, E007, E008]
 4. E028 的单 seed、951/370 patch、10 epoch 实验曾观察到 4096/6D 早期领先，但其 patch 只来自 27/7 个 train/validation parent，属于相关样本上的早期优化观察。E029 在匹配初始化、322/100 parent 和双 seed 下再次观察到 4096/6D 的 15 epoch MSE 领先，但三臂都未通过绝对表征门；因此它仍只是下一轮诊断候选，不能称为容量胜者或进入 AR。[E028, E029]
+5. E030 将同一比较扩到三个 seed 和 100 epoch 后，4096/6D 的平均重建指标仍领先且方差较小，但其 usage 未达健康参考；8192/4D 虽达到更高 perplexity，却有更差且更不稳定的重建。当前证据支持“维度、离散容量和优化稳定性存在权衡”，不支持单独把 4096 或 8192 宣布为容量胜者。[E030]
 
 ### 证据不足
 
 1. FSQ 量化、连续 decoder 和 OCC assembly 各自贡献多少，尚未被三个 oracle 完全拆开。
 2. 官方 BrepARG 公开权重的实际质量尚未在兼容词表和官方协议下复现。
 3. DFS 是否在全数据、同 epoch、同 context 下稳定优于 RCM，当前 medium control 不足以定论。
-4. Protocol V3 只有两个随机种子和 15 epoch，优化方差已有初步范围，但长训练与生成波动仍未知。
+4. Protocol V4 已有三个随机种子和 100 epoch，但仍只覆盖 `abc_0000` 的 parent-isolated 子集；全量数据平台、patch Chamfer、CAD 重建和 OCC Valid 仍未知。
 5. parent-CAD 隔离重训后的绝对指标未知。
 6. 三种 FSQ 配置的 clean-commit 小规模重跑已完成，但全部未晋级；当前 `5e-5` 曲面门是否与本项目归一化 MSE 及 CAD/OCC 质量正确校准仍缺证据。
 
@@ -48,7 +50,7 @@
 
 1. **冻结当前 selected checkpoint 和 protocol。** 不再继续无门控长训，不使用 nonfinite latest。
 2. **重建 parent-CAD 隔离 split。** 先做身份审计，再从零训练；旧 validation CE 仅保留为开发曲线。
-3. **保持 Protocol V3 的 `NO_PROMOTED_ARM` 硬门，先校准表征指标再扩大训练。** 本轮已从不可变 commit 完成双 seed 三臂实验；不得从最低 MSE 自动选 winner。下一步应验证 curved MSE/perplexity 与 patch Chamfer、CAD 重建和 OCC Valid 的关系，再决定是否扩大 parent 数、seed 数或 epoch。
+3. **保持 Protocol V4 的 `NO_PROMOTED_ARM` 决策，不自动扩到全 chunk。** 4096/6D 的平均 MSE 领先不足以覆盖其三个 seed 均低于 `ppl=800` 的事实；先用现有 checkpoint 校准 curved MSE/perplexity 与 patch Chamfer、CAD 重建和 OCC Valid 的关系。只有 4096/6D 在可解释的平台上仍领先且 usage 健康，才启动带坏 pickle 隔离和 member 唯一性预检的全 chunk protocol。
 4. **实现 ground-truth assembly oracle。** 不经过 VQ/FSQ/AR，直接将解析几何送入同一装配与 OCC 验证链路。
 5. **实现 continuous-latent bypass oracle。** 相同 decoder 和 assembly，唯一变量是绕过 FSQ quantization。
 6. **实现 teacher-forced argmax reconstruction。** 每个真实前缀取一步 argmax，重建完整预测 token，隔离条件预测错误和自由运行 exposure。

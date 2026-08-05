@@ -20,6 +20,7 @@
 | BrepARG short same-data | 10k/1k/1k，VQ best70，AR best77/80 | val CE `0.871925`；complex 5/92，strict 0/92 | 完成；质量差且 split 泄露 | E005, E013 |
 | BrepARG long same-data | 同 split，VQ400/AR300 | val CE `0.765318`；complex 13/100，strict 6/100 | 完成；长训改善但不根治 | E005, E014 |
 | V13 parent split audit | 只审计身份 | val/test parent-shared records `56.75%/57.17%` | 完成；历史泛化结论降级 | E004 |
+| Protocol V4 FSQ 100 epoch | 同 `abc_0000` parent-isolated cohort；三臂、seed 0/1/2 | 4096/6D checkpoint val MSE 均值 `0.005609`、ppl `619.42–746.62`、curved parent MSE 均值 `0.010588` | 完成；`NO_PROMOTED_ARM`，不扩全 chunk、不进 AR | E030 |
 | Ground-truth assembly oracle | 未来：完全绕过 VQ/AR | 未执行 | **阻塞**；缺 package-safe CLI | E027 |
 | Continuous latent oracle | 未来：绕过 FSQ quantization | 未执行 | **阻塞**；缺 verified bypass | E027 |
 | Teacher-forced argmax | 未来：真实前缀下一步 argmax 重建 | 未执行 | **阻塞**；现有实验只算 CE/重建 target | E027 |

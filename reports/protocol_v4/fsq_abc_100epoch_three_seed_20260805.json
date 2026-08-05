@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "evidence_id": "E030",
+  "date": "2026-08-05",
+  "experiment_type": "100-epoch single-chunk diagnostic cohort; not a full-data capacity conclusion",
+  "provenance": {
+    "run_commit": "12fd5208c91ac33f9ff89cca862682836d534a63",
+    "source_branch": "experiment/protocol-v4-100epoch-fullchunk",
+    "run_code_state": "CLEAN_IMMUTABLE_COMMIT",
+    "cohort_started_at": "2026-08-05T12:46:19+08:00",
+    "cohort_finished_at": "2026-08-05T16:11:50+08:00",
+    "cohort_status": "COMPLETED",
+    "split_binding": "VERIFIED"
+  },
+  "common_controls": {
+    "source_scope": "abc_0000; Protocol V2 scan of 2000 parsed records",
+    "seeds": [0, 1, 2],
+    "arms": {
+      "fsq_8192_4d": [8, 8, 8, 16],
+      "fsq_4096_6d": [4, 4, 4, 4, 4, 4],
+      "fsq_8192_6d": [4, 4, 4, 4, 4, 8]
+    },
+    "epochs": 100,
+    "batch_size": 128,
+    "learning_rate": 0.0003,
+    "train_cap": 12000,
+    "validation_cap": 4637,
+    "complex_oversampling": false,
+    "curved_oversampling": false,
+    "loss_weights": {"default": 1.0, "complex": 1.0, "curved": 1.0},
+    "direct_train_parent_coverage": {"contributing": 310, "requested": 323, "fraction": 0.9597523219814241},
+    "validation_parent_coverage": {"contributing": 100, "requested": 100, "fraction": 1.0},
+    "full_provenance_parent_counts": {"train": 322, "validation": 100},
+    "source_parent_exact_overlap_counts": {"source": 0, "parent": 0, "exact_patch": 0},
+    "protocol_sha256": "43d0c5b36375cc78f3386a78a020a9baacc5a314372380f29e2eedb446345e6f",
+    "split_pickle_sha256": "df72b5757c3aabc89c707fd351c086ca8914cd96a49868decb8d15c104b17357"
+  },
+  "runs": [
+    {"seed": 0, "arm": "fsq_8192_4d", "checkpoint_epoch": 94, "checkpoint_val_mse": 0.00548895, "checkpoint_perplexity": 1369.534581190163, "checkpoint_coverage": 0.4053955078125, "checkpoint_curved_parent_mse": 0.010614940346644917, "checkpoint_sha256": "d2d631638751a0c08b955def6fc10d8bd9e514d711cd1d39da872ca79752ec8d", "promotion_eligible": false},
+    {"seed": 0, "arm": "fsq_4096_6d", "checkpoint_epoch": 99, "checkpoint_val_mse": 0.00600542, "checkpoint_perplexity": 625.0167752035126, "checkpoint_coverage": 0.390625, "checkpoint_curved_parent_mse": 0.011263154999294277, "checkpoint_sha256": "dedda40d249441a317b86ebf9c1ea5192e3a6b6007f1b52149c551ae2cd25cfd", "promotion_eligible": false},
+    {"seed": 0, "arm": "fsq_8192_6d", "checkpoint_epoch": 98, "checkpoint_val_mse": 0.00645277, "checkpoint_perplexity": 1089.2370005378596, "checkpoint_coverage": 0.37841796875, "checkpoint_curved_parent_mse": 0.011759912778059461, "checkpoint_sha256": "44d9d2eab2a5c709ded550cfb770ce83b8bd3ba8bd6a2624118bb3c82686d16c", "promotion_eligible": false},
+    {"seed": 1, "arm": "fsq_8192_4d", "checkpoint_epoch": 91, "checkpoint_val_mse": 0.00752144, "checkpoint_perplexity": 1528.5366561220305, "checkpoint_coverage": 0.4676513671875, "checkpoint_curved_parent_mse": 0.012092766572218559, "checkpoint_sha256": "5596ce892530a59850d4fe27e64d9b22de694473781d58527df193563ac0f8cd", "promotion_eligible": false},
+    {"seed": 1, "arm": "fsq_4096_6d", "checkpoint_epoch": 88, "checkpoint_val_mse": 0.00547984, "checkpoint_perplexity": 619.4226271873138, "checkpoint_coverage": 0.416015625, "checkpoint_curved_parent_mse": 0.010280734491231734, "checkpoint_sha256": "40837cac023bb76d016a4221f2e1255a30f2975b0f46f401936bfcaf62adc080", "promotion_eligible": false},
+    {"seed": 1, "arm": "fsq_8192_6d", "checkpoint_epoch": 95, "checkpoint_val_mse": 0.00604176, "checkpoint_perplexity": 923.7513770231903, "checkpoint_coverage": 0.2958984375, "checkpoint_curved_parent_mse": 0.011200825481631026, "checkpoint_sha256": "ba13065114b0c7cdc6338954baca58e0e7939049d6d2db030062a5e0c84ad82f", "promotion_eligible": false},
+    {"seed": 2, "arm": "fsq_8192_4d", "checkpoint_epoch": 92, "checkpoint_val_mse": 0.00509312, "checkpoint_perplexity": 1606.2166619597617, "checkpoint_coverage": 0.4739990234375, "checkpoint_curved_parent_mse": 0.010143664124273477, "checkpoint_sha256": "669606f3b5e2cc47dcf13fa5d1d39be773cd5c14df27a326dc63b811ef0a6740", "promotion_eligible": false},
+    {"seed": 2, "arm": "fsq_4096_6d", "checkpoint_epoch": 96, "checkpoint_val_mse": 0.00534163, "checkpoint_perplexity": 746.6206002650422, "checkpoint_coverage": 0.498046875, "checkpoint_curved_parent_mse": 0.010219195968242615, "checkpoint_sha256": "e6879c3fd261894472e7463bbaa7d6d7c6a2be4198178e07ad66ed677890fe9e", "promotion_eligible": false},
+    {"seed": 2, "arm": "fsq_8192_6d", "checkpoint_epoch": 99, "checkpoint_val_mse": 0.00580502, "checkpoint_perplexity": 694.9423322617549, "checkpoint_coverage": 0.2701416015625, "checkpoint_curved_parent_mse": 0.011628807709873085, "checkpoint_sha256": "69a0b61af7ccf5af0df145daf0c3e36aa3f41059af84ead65213015b88f06c05", "promotion_eligible": false}
+  ],
+  "aggregate_by_arm": {
+    "fsq_8192_4d": {"checkpoint_val_mse_mean": 0.006034503333333333, "checkpoint_val_mse_sd": 0.0013028452844575725, "checkpoint_perplexity_mean": 1501.4292997573182, "checkpoint_perplexity_range": [1369.534581190163, 1606.2166619597617], "checkpoint_coverage_mean": 0.4490152994791667, "checkpoint_curved_parent_mse_mean": 0.010950457014378983},
+    "fsq_4096_6d": {"checkpoint_val_mse_mean": 0.005608963333333334, "checkpoint_val_mse_sd": 0.00035022695132347164, "checkpoint_perplexity_mean": 663.6866675519561, "checkpoint_perplexity_range": [619.4226271873138, 746.6206002650422], "checkpoint_coverage_mean": 0.4348958333333333, "checkpoint_curved_parent_mse_mean": 0.010587695152922877},
+    "fsq_8192_6d": {"checkpoint_val_mse_mean": 0.00609985, "checkpoint_val_mse_sd": 0.0003277588316125135, "checkpoint_perplexity_mean": 902.6435699409349, "checkpoint_perplexity_range": [694.9423322617549, 1089.2370005378596], "checkpoint_coverage_mean": 0.3148193359375, "checkpoint_curved_parent_mse_mean": 0.011529848656521189}
+  },
+  "trajectory_observations": {
+    "fsq_4096_6d_final_perplexity_range": [625.0167752035126, 766.4985111597698],
+    "fsq_4096_6d_mean_final_perplexity": 672.831319760559,
+    "fsq_4096_6d_mean_validation_change_epoch_90_to_99": 0.00008752333333333338,
+    "fsq_4096_6d_seed0_best_epoch": 99,
+    "interpretation": "The 4096/6D arm is not demonstrably at a stable healthy-usage plateau: all checkpoint perplexities are below 800 and seed 0 still selected epoch 99."
+  },
+  "assets": {
+    "history_root": "reports/protocol_v4/histories",
+    "tensorboard_root": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805",
+    "history_files": 9,
+    "tensorboard_event_files": 9,
+    "history_bytes": 2388912,
+    "tensorboard_bytes": 857358,
+    "checkpoints_in_git": false,
+    "local_checkpoint_bytes_excluded": 2059134357
+  },
+  "decision": {
+    "status": "NO_PROMOTED_ARM",
+    "diagnostic_mse_and_curved_mean_leader": "fsq_4096_6d",
+    "winner": null,
+    "expand_to_full_chunks": false,
+    "advance_to_sequence_or_ar": false,
+    "reason": "4096/6D has the lowest cross-seed checkpoint validation MSE and curved parent-cluster MSE means, but its checkpoint perplexity is 619.42-746.62, below the 800 healthy-usage reference in every seed. The single-chunk curves do not prove a stable plateau, and the full-data curved threshold is intentionally not applied as a pass condition here."
+  },
+  "limitations": [
+    "The protocol is a parent-isolated subset built from only abc_0000, not the full ABC corpus.",
+    "Validation reconstruction MSE is not Chamfer distance, OCC validity, or generated CAD quality.",
+    "The 5e-5 curved reference comes from paper-scale VQ training and is not calibrated as a single-chunk promotion gate.",
+    "The run does not include sequence regeneration, AR training, free generation, or OCC evaluation."
+  ]
+}

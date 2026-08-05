@@ -69,10 +69,11 @@
     },
     {
       "id": "protocol-v4-fsq-three-seed-100epoch-20260805",
-      "status": "launched-results-pending",
-      "category": "training-experiment",
+      "status": "no-promoted-arm",
+      "category": "training-result",
       "summary": "reports/protocol_v4/README.md",
-      "metrics": null,
+      "metrics": "reports/protocol_v4/fsq_abc_100epoch_three_seed_20260805.json",
+      "tensorboard": "reports/tensorboard/protocol_v4_fsq_abc_100epoch_three_seed_20260805",
       "artifacts_external": true
     },
     {
