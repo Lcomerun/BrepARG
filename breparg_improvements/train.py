@@ -530,6 +530,37 @@ def build_fsq_vqvae(levels=FSQ_LEVELS):
     return m
 
 
+class AmpSafeLearnedVectorQuantiser(nn.Module):
+    """Keep the upstream history pool and codebook math in float32 under AMP."""
+
+    def __init__(self, quantizer):
+        super().__init__()
+        self.quantizer = quantizer
+
+    @property
+    def anchor(self):
+        return self.quantizer.anchor
+
+    @property
+    def embed_dim(self):
+        return self.quantizer.embed_dim
+
+    @property
+    def num_embed(self):
+        return self.quantizer.num_embed
+
+    @property
+    def pool(self):
+        return self.quantizer.pool
+
+    def forward(self, latent, *args, **kwargs):
+        input_dtype = latent.dtype
+        quantized, loss, info = self.quantizer(latent.float(), *args, **kwargs)
+        if quantized.dtype != input_dtype:
+            quantized = quantized.to(dtype=input_dtype)
+        return quantized, loss, info
+
+
 def build_learned_vqvae(
         codebook_size=4096,
         embedding_dim=64,
@@ -539,9 +570,17 @@ def build_learned_vqvae(
         contrastive_loss=True):
     from quantise import VectorQuantiser
 
+    class AmpSafeVectorQuantiser(VectorQuantiser):
+        def forward(self, z, *args, **kwargs):
+            pool = getattr(self, 'pool', None)
+            features = getattr(pool, 'features', None)
+            if features is not None and (features.device != z.device or features.dtype != z.dtype):
+                pool.features = features.to(device=z.device, dtype=z.dtype)
+            return super().forward(z, *args, **kwargs)
+
     m = _build_base_vqvae(codebook_size)
     original = m.quantize
-    quantizer = VectorQuantiser(
+    quantizer = AmpSafeVectorQuantiser(
         num_embed=int(codebook_size),
         embed_dim=int(embedding_dim),
         beta=original.beta,
@@ -551,7 +590,7 @@ def build_learned_vqvae(
         contras_loss=bool(contrastive_loss),
     )
     quantizer.embedding.weight.data.copy_(original.embedding.weight.data)
-    m.quantize = quantizer
+    m.quantize = AmpSafeLearnedVectorQuantiser(quantizer)
     return m
 
 

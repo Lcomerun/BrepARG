@@ -574,6 +574,40 @@ def test_official_vq_4096_random_quantizer_forward_backward_contract(train_modul
     assert model.quantize.num_embed == 4096
 
 
+def test_official_vq_builder_adapts_half_latents_for_history_pool(train_module):
+    config = train_module.quantizer_comparison_configs(("vq_4096_64d_random",))[0]
+    train_module.seed_vq_experiment(17)
+    model = train_module.build_quantized_vqvae(config)
+    latent = torch.randn(2, 64, 2, 2, dtype=torch.float16, requires_grad=True)
+
+    quantized, loss, info = model.quantize(latent)
+    (quantized.float().square().mean() + loss.float()).backward()
+
+    assert quantized.shape == latent.shape
+    assert quantized.dtype == latent.dtype
+    assert torch.isfinite(loss)
+    assert latent.grad is not None
+    assert info[2].shape == (8,)
+    assert model.quantize.pool.features.dtype == torch.float32
+
+
+def test_official_vq_4096_random_quantizer_aligns_history_pool_for_amp(train_module):
+    if not torch.cuda.is_available():
+        pytest.skip("requires CUDA AMP")
+    config = train_module.quantizer_comparison_configs(("vq_4096_64d_random",))[0]
+    train_module.seed_vq_experiment(17)
+    model = train_module.build_quantized_vqvae(config).cuda()
+    latent = torch.randn(2, 64, 2, 2, device="cuda", dtype=torch.float16)
+
+    with torch.cuda.amp.autocast(enabled=True):
+        quantized, loss, _ = model.quantize(latent)
+        objective = quantized.square().mean() + loss
+    objective.backward()
+
+    assert torch.isfinite(objective).item()
+    assert model.quantize.pool.features.dtype == torch.float32
+
+
 def test_continuous_bypass_quantizer_preserves_latent_and_has_no_vq_loss(train_module):
     config = train_module.quantizer_comparison_configs(("continuous_bypass_64d",))[0]
     model = train_module.build_quantized_vqvae(config)

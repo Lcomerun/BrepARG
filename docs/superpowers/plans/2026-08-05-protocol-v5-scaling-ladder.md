@@ -30,6 +30,10 @@ After this change, the user can launch one fail-closed experiment pipeline that 
   Evidence: a strict-empty Python workspace check rejected an otherwise valid detached launch. Runtime validation now permits only those three ordinary files and still rejects every other pre-existing entry.
 - Observation: the real all-archive metadata preflight completed successfully.
   Evidence: 100 archives expose 681,406 pickle members, 681,406 unique archive-qualified source keys, and 681,406 unique materialization keys; inventory SHA256 is `5c0f93b016e24a48ee638b2a97f270f020b6997aff02d326f1823baef1c33618`.
+- Observation: the first C-drive retry completed protocol construction and materialized all 15,000 selected records, but failed at the 60k learned-VQ arm before producing a sweep report.
+  Evidence: `C:\V13_protocol_v5_scaling_20260805_local\protocol\protocol_summary.json` is `VERIFIED` with zero load failures and zero parent overlap; `train_60k_seed0.stderr.log` reports an upstream `FeaturePool` Float destination versus AMP Half source mismatch.
+- Observation: the failure is an interface dtype mismatch at the excluded upstream quantizer boundary, not a data, disk, or CUDA capacity failure.
+  Evidence: FSQ arms reached epochs 64 and 75, the official VQ crash occurs in `FeaturePool.query`, and a CUDA encoder?quantizer?decoder smoke reproduces the issue only for Half latent input.
 
 ## Decision Log
 
@@ -54,10 +58,13 @@ After this change, the user can launch one fail-closed experiment pipeline that 
 - Decision: conditionally run a 300k continuous-latent bypass after the scaling analysis reports `CONTINUE_CAPACITY_INVESTIGATION`.
   Rationale: task four requests the oracle only when the 300k extrapolation misses the target. The state machine can make that decision from completed evidence, then run the same encoder/decoder and data with quantization replaced by an identity pass-through for seeds 0 and 1. It skips the oracle when the projection is plausible. No AR stage is reachable from this pipeline.
   Date/Author: 2026-08-05 / Codex.
+- Decision: keep the upstream `BrepARG/` source unchanged and wrap the learned quantizer in our `train.py` with a float32 internal boundary, restoring the incoming dtype for the decoder.
+  Rationale: the official codebook and FeaturePool remain numerically unchanged, while both cosine-distance math and history-pool writes become valid under AMP. The failed C workspace and E recycle-bin copy remain untouched as audit evidence; the corrected run uses a new C-drive workspace.
+  Date/Author: 2026-08-06 / Codex.
 
 ## Outcomes & Retrospective
 
-Source implementation is complete and published on `origin/experiment/protocol-v5-scaling-ladder`; implementation commit `e771ecc` contains no raw data, checkpoints, logs, or upstream `BrepARG/` source. Focused verification reports 142 passing tests, including red-green regressions for launcher control files and failed-protocol manifest splits. The full `tests/` run reports 444 passing tests plus the same 16 documented V4 baseline failures: 11 require the intentionally excluded `BrepARG/` worktree directory, one old sequence fixture lacks `ordering`, and four use a Python 3.11 `Path.write_text(newline=...)` API while this environment is Python 3.10. Python compilation, PowerShell parsing, and `git diff --check` pass. Real CUDA forward/backward through encoder, official learned VQ or continuous bypass, and decoder produced finite losses and gradients. The metadata inventory is globally unique across all 100 parsed archives. Detached launch evidence remains to be recorded. Completion of this turn does not mean the long-running 60k and 300k numerical results already exist; the user explicitly permits handing off after the process is confirmed healthy.
+Source implementation is published on `origin/experiment/protocol-v5-scaling-ladder`; implementation commit `e771ecc` contains no raw data, checkpoints, logs, or upstream `BrepARG/` source. The first C-drive retry reached the protocol and failed only at learned VQ seed0 due to the diagnosed AMP dtype boundary. The corrected adapter has 87 focused VQ/ladder tests passing, a finite CUDA end-to-end learned-VQ smoke with float32 FeaturePool, Python compilation, and diff checks passing. The full `tests/` baseline remains 444 passing plus the documented 16 unrelated failures. The corrected retry launch is the remaining runtime action; numerical scaling results do not yet exist.
 
 ## Context and Orientation
 
