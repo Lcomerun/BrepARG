@@ -14,8 +14,8 @@ Protocol V5 compares two finite scalar quantization configurations and one learn
 - [x] (2026-08-07 10:42 +08:00) Added a failing recovery test that rejects replay of successful protocol/training work, then implemented `resume_ladder_after_analysis` and observed the test pass.
 - [x] (2026-08-07 11:04 +08:00) Ran the focused Protocol V5 suite with a repository-specific Git configuration: 146 tests passed.
 - [x] (2026-08-07 11:06 +08:00) Re-ran the real scaling analysis successfully and regenerated its PNG, CSV, and JSON artifacts in the original experiment workspace.
-- [ ] Commit and push the renderer and recovery changes to `experiment/protocol-v5-scaling-ladder`.
-- [ ] Resume the failed ladder at analysis, run the two continuous-bypass seeds, and validate each sweep artifact.
+- [x] (2026-08-07 10:27 +08:00) Committed the renderer and recovery changes as `661e879` and pushed them, together with the preceding learned-VQ AMP fix, to `experiment/protocol-v5-scaling-ladder`.
+- [ ] Resume the failed ladder at analysis, run the two continuous-bypass seeds, and validate each sweep artifact (completed: analysis retry passed and seed 0 reached its first fully finite epoch at 96-98% GPU utilization; remaining: automatic completion and validation of seed 0 and seed 1).
 - [ ] Record the oracle comparison and final state while keeping `advance_to_ar=false`.
 
 ## Surprises & Discoveries
@@ -52,7 +52,7 @@ Protocol V5 compares two finite scalar quantization configurations and one learn
 
 ## Outcomes & Retrospective
 
-The reporting failure is fixed and the real scaling report now renders successfully. The numerical conclusion did not change: learned VQ outperforms FSQ-4096/6D at 60k, while FSQ scaling remains orders of magnitude above the curved reconstruction target. The remaining outcome is the two-seed continuous-latent oracle. When it completes, this section must record its curved parent MSE relative to the 60k learned-VQ and 300k FSQ arms, the final ladder status, and whether the evidence points to quantization or shared encoder/decoder capacity.
+The reporting failure is fixed and the real scaling report now renders successfully. The numerical conclusion did not change: learned VQ outperforms FSQ-4096/6D at 60k, while FSQ scaling remains orders of magnitude above the curved reconstruction target. Recovery has entered the two-seed continuous-latent oracle without replaying prior training. Seed 0 completed epoch 0 with `train=0.05907`, `val=0.02195`, `finite_train=2344/2344`, and `finite_val=94/94`, while the RTX 3060 sustained about 96-98% utilization. The background parent process will validate seed 0 and then start seed 1 automatically. When both complete, this section must record curved parent MSE relative to the 60k learned-VQ and 300k FSQ arms, the final ladder status, and whether the evidence points to quantization or shared encoder/decoder capacity.
 
 ## Context and Orientation
 
@@ -122,3 +122,5 @@ The original failure is preserved in the step history even after recovery. A new
 Pillow is the only added runtime dependency used by reporting, and it is already installed in the `brepgen_env` environment. Training dependencies and model behavior remain unchanged.
 
 Revision note 2026-08-07: Created this recovery plan after the native Matplotlib crash was isolated, documenting the existing TDD evidence, safe resume design, and conditional oracle completion criteria.
+
+Revision note 2026-08-07 10:41 +08:00: Recorded the pushed fix commit and the healthy automatic recovery state after continuous-bypass seed 0 completed its first fully finite epoch under sustained GPU load.
