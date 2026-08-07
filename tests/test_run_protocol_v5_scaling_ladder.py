@@ -19,9 +19,13 @@ from tools.run_protocol_v5_scaling_ladder import (  # noqa: E402
     build_oracle_environment,
     build_training_command,
     build_training_environment,
+    resume_ladder_after_analysis,
     run_ladder,
 )
-from tools.summarize_protocol_v5_scaling import summarize_scaling  # noqa: E402
+from tools.summarize_protocol_v5_scaling import (  # noqa: E402
+    render_scaling_pngs,
+    summarize_scaling,
+)
 
 
 def make_config(tmp_path):
@@ -168,6 +172,28 @@ def test_scaling_summary_does_not_recommend_bypass_when_projected_target_is_plau
     assert summary["decision"]["advance_to_ar"] is False
 
 
+def test_scaling_png_renderer_does_not_require_matplotlib(tmp_path):
+    from PIL import Image
+
+    summary = summarize_scaling(
+        [
+            {"patches": 60000, "protocol_scope": "master", **run_row(0, "fsq_4096_6d", 4096, 5e-3, 1000)},
+            {"patches": 60000, "protocol_scope": "master", **run_row(1, "fsq_4096_6d", 4096, 4e-3, 1100)},
+            {"patches": 300000, "protocol_scope": "master", **run_row(0, "fsq_4096_6d", 4096, 2e-3, 1300)},
+            {"patches": 300000, "protocol_scope": "master", **run_row(1, "fsq_4096_6d", 4096, 2.2e-3, 1400)},
+        ]
+    )
+
+    render_scaling_pngs(summary, tmp_path)
+
+    for name in ("curved_mse_scaling.png", "usage_scaling.png"):
+        path = tmp_path / name
+        assert path.stat().st_size > 1000
+        with Image.open(path) as image:
+            image.verify()
+            assert image.format == "PNG"
+
+
 def test_full_ladder_runs_conditional_oracle_and_never_enters_ar(tmp_path):
     config = make_config(tmp_path)
     calls = []
@@ -250,3 +276,102 @@ def test_full_ladder_runs_conditional_oracle_and_never_enters_ar(tmp_path):
         if Path(command[1]).name == "train.py"
         for token in command
     )
+
+
+def test_resume_after_analysis_failure_reuses_completed_training(tmp_path):
+    config = make_config(tmp_path)
+    workspace = config.workspace_root
+    workspace.mkdir()
+    (workspace / "protocol").mkdir()
+    (workspace / "protocol" / "protocol_summary.json").write_text(json.dumps({"status": "VERIFIED"}))
+    for rung in RUNG_SPECS:
+        for seed in config.seeds:
+            output = workspace / "rungs" / rung.name / f"seed{seed}"
+            output.mkdir(parents=True)
+            (output / "vqvae_hp_sweep.json").write_text(
+                json.dumps(
+                    {
+                        "run_manifest": {
+                            "experiment": {
+                                "train_cap": rung.train_cap,
+                                "arms": [{"name": arm} for arm in rung.arms],
+                            }
+                        },
+                        "mse_ranking": [
+                            {
+                                "name": arm,
+                                "epochs_ran": 40,
+                                "train_sampling": {
+                                    "requested_cap_met": True,
+                                    "final_parent_coverage": 0.95,
+                                },
+                            }
+                            for arm in rung.arms
+                        ],
+                    }
+                )
+            )
+    state = {
+        "status": "FAILED",
+        "phase": "ANALYSIS",
+        "steps": [],
+        "gpu_expected": False,
+    }
+    (workspace / "ladder_state.json").write_text(json.dumps(state))
+    calls = []
+
+    def fake_runner(command, **kwargs):
+        calls.append((list(command), dict(kwargs.get("env") or {})))
+        script = Path(command[1]).name
+        if script == "summarize_protocol_v5_scaling.py":
+            output = Path(command[command.index("--output-dir") + 1])
+            output.mkdir(parents=True, exist_ok=True)
+            (output / "scaling_summary.json").write_text(
+                json.dumps(
+                    {
+                        "decision": {
+                            "status": "CONTINUE_CAPACITY_INVESTIGATION",
+                            "continuous_bypass_oracle_recommended": True,
+                            "advance_to_ar": False,
+                        }
+                    }
+                )
+            )
+        elif script == "train.py":
+            env = kwargs["env"]
+            output = Path(env["NS_OUTBASE"]) / env["NS_OUT"]
+            output.mkdir(parents=True, exist_ok=True)
+            (output / "vqvae_hp_sweep.json").write_text(
+                json.dumps(
+                    {
+                        "run_manifest": {
+                            "experiment": {
+                                "train_cap": 300000,
+                                "arms": [{"name": "continuous_bypass_64d"}],
+                            }
+                        },
+                        "mse_ranking": [
+                            {
+                                "name": "continuous_bypass_64d",
+                                "epochs_ran": 40,
+                                "train_sampling": {
+                                    "requested_cap_met": True,
+                                    "final_parent_coverage": 0.95,
+                                },
+                            }
+                        ],
+                    }
+                )
+            )
+        else:
+            raise AssertionError(f"unexpected recovery command: {command}")
+        return subprocess.CompletedProcess(command, 0)
+
+    result = resume_ladder_after_analysis(config, runner=fake_runner)
+
+    assert result["status"] == "COMPLETED"
+    assert result["continuous_bypass_oracle"] == "COMPLETED"
+    assert result["advance_to_ar"] is False
+    assert len(calls) == 3
+    assert Path(calls[0][0][1]).name == "summarize_protocol_v5_scaling.py"
+    assert all(Path(command[1]).name == "train.py" for command, _ in calls[1:])

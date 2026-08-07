@@ -200,6 +200,87 @@ def collect_rows(v4_summary: Path, rung_root: Path) -> list[dict[str, Any]]:
     return rows
 
 
+def render_scaling_pngs(summary: Mapping[str, Any], output_dir: Path) -> None:
+    from PIL import Image, ImageDraw, ImageFont
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    styles = {
+        "fsq_8192_4d": ((35, 99, 158), "FSQ 8192/4D"),
+        "fsq_4096_6d": ((204, 76, 52), "FSQ 4096/6D"),
+        "vq_4096_64d_random": ((39, 135, 91), "VQ 4096/64D random"),
+    }
+    for metric, ylabel, filename in (
+        ("curved_parent_mse_mean", "Curved parent-cluster MSE", "curved_mse_scaling.png"),
+        ("usage_fraction_mean", "Perplexity / codebook size", "usage_scaling.png"),
+    ):
+        image = Image.new("RGB", (1350, 864), "white")
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.load_default(size=18)
+        small_font = ImageFont.load_default(size=16)
+        left, top, right, bottom = 150, 70, 1290, 750
+        points_by_arm = {}
+        all_points = []
+        for arm in styles:
+            points = sorted(
+                (point for point in summary["points"] if point["arm"] == arm),
+                key=lambda item: item["patches"],
+            )
+            points_by_arm[arm] = points
+            all_points.extend(points)
+        x_values = [float(point["patches"]) for point in all_points]
+        y_values = [float(point[metric]) for point in all_points]
+        x_logs = [math.log10(value) for value in x_values]
+        y_plot = [math.log10(value) for value in y_values] if metric == "curved_parent_mse_mean" else y_values
+        x_min, x_max = min(x_logs), max(x_logs)
+        y_min, y_max = min(y_plot), max(y_plot)
+        x_pad = max((x_max - x_min) * 0.08, 0.05)
+        y_pad = max((y_max - y_min) * 0.12, 0.01)
+        x_min, x_max = x_min - x_pad, x_max + x_pad
+        y_min, y_max = y_min - y_pad, y_max + y_pad
+
+        def canvas_xy(point):
+            x_value = math.log10(float(point["patches"]))
+            y_value = float(point[metric])
+            if metric == "curved_parent_mse_mean":
+                y_value = math.log10(y_value)
+            x = left + (x_value - x_min) / (x_max - x_min) * (right - left)
+            y = bottom - (y_value - y_min) / (y_max - y_min) * (bottom - top)
+            return round(x), round(y)
+
+        draw.rectangle((left, top, right, bottom), outline=(80, 80, 80), width=2)
+        for index in range(6):
+            fraction = index / 5
+            x = round(left + fraction * (right - left))
+            y = round(bottom - fraction * (bottom - top))
+            draw.line((x, top, x, bottom), fill=(222, 225, 228), width=1)
+            draw.line((left, y, right, y), fill=(222, 225, 228), width=1)
+            x_value = 10 ** (x_min + fraction * (x_max - x_min))
+            y_value = y_min + fraction * (y_max - y_min)
+            if metric == "curved_parent_mse_mean":
+                y_label = f"{10 ** y_value:.2g}"
+            else:
+                y_label = f"{y_value:.2f}"
+            draw.text((x - 25, bottom + 10), f"{x_value / 1000:.0f}k", fill=(40, 40, 40), font=small_font)
+            draw.text((left - 92, y - 9), y_label, fill=(40, 40, 40), font=small_font)
+
+        for arm, (color, label) in styles.items():
+            coordinates = [canvas_xy(point) for point in points_by_arm[arm]]
+            if len(coordinates) > 1:
+                draw.line(coordinates, fill=color, width=5, joint="curve")
+            for x, y in coordinates:
+                draw.ellipse((x - 8, y - 8, x + 8, y + 8), fill=color, outline="white", width=2)
+
+        draw.text(((left + right) // 2 - 70, bottom + 55), "Training patches", fill=(25, 25, 25), font=font)
+        draw.text((20, top - 38), ylabel, fill=(25, 25, 25), font=font)
+        legend_x, legend_y = left + 25, top + 20
+        for color, label in styles.values():
+            draw.line((legend_x, legend_y + 9, legend_x + 36, legend_y + 9), fill=color, width=5)
+            draw.text((legend_x + 48, legend_y), label, fill=(25, 25, 25), font=small_font)
+            legend_y += 30
+        image.save(output_dir / filename, format="PNG", optimize=True)
+
+
 def write_outputs(summary: Mapping[str, Any], output_dir: Path) -> None:
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -224,45 +305,7 @@ def write_outputs(summary: Mapping[str, Any], output_dir: Path) -> None:
         writer.writeheader()
         for point in summary["points"]:
             writer.writerow({name: point[name] for name in fieldnames})
-
-    import matplotlib
-
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-
-    styles = {
-        "fsq_8192_4d": ("o", "FSQ 8192/4D"),
-        "fsq_4096_6d": ("s", "FSQ 4096/6D"),
-        "vq_4096_64d_random": ("^", "VQ 4096/64D random"),
-    }
-    for metric, ylabel, filename in (
-        ("curved_parent_mse_mean", "Curved parent-cluster MSE", "curved_mse_scaling.png"),
-        ("usage_fraction_mean", "Perplexity / codebook size", "usage_scaling.png"),
-    ):
-        figure, axis = plt.subplots(figsize=(7.5, 4.8))
-        for arm, (marker, label) in styles.items():
-            points = sorted(
-                (point for point in summary["points"] if point["arm"] == arm),
-                key=lambda item: item["patches"],
-            )
-            if not points:
-                continue
-            axis.plot(
-                [point["patches"] for point in points],
-                [point[metric] for point in points],
-                marker=marker,
-                label=label,
-            )
-        axis.set_xscale("log")
-        if metric == "curved_parent_mse_mean":
-            axis.set_yscale("log")
-        axis.set_xlabel("Training patches")
-        axis.set_ylabel(ylabel)
-        axis.grid(True, which="both", alpha=0.25)
-        axis.legend()
-        figure.tight_layout()
-        figure.savefig(output_dir / filename, dpi=180)
-        plt.close(figure)
+    render_scaling_pngs(summary, output_dir)
 
 
 def parse_args(argv=None):

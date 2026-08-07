@@ -444,6 +444,15 @@ def run_ladder(
                 _atomic_write_json(state_path, state)
                 return state
 
+    return _run_analysis_and_oracle(config, state, runner)
+
+
+def _run_analysis_and_oracle(
+    config: LadderConfig,
+    state: dict[str, Any],
+    runner: Callable[..., subprocess.CompletedProcess[Any]],
+) -> dict[str, Any]:
+    state_path = config.workspace_root / "ladder_state.json"
     if not _run_step(
         config,
         state,
@@ -504,6 +513,46 @@ def run_ladder(
     )
     _atomic_write_json(state_path, state)
     return state
+
+
+def resume_ladder_after_analysis(
+    config: LadderConfig,
+    *,
+    runner: Callable[..., subprocess.CompletedProcess[Any]] = subprocess.run,
+) -> dict[str, Any]:
+    """Resume a failed analysis without repeating verified protocol or VQ sweeps."""
+    state_path = config.workspace_root / "ladder_state.json"
+    state = _read_json(state_path)
+    if state.get("status") != "FAILED" or state.get("phase") != "ANALYSIS":
+        raise RuntimeError("analysis recovery requires a FAILED state in ANALYSIS phase")
+    protocol_summary = _read_json(config.workspace_root / "protocol" / "protocol_summary.json")
+    if protocol_summary.get("status") != "VERIFIED":
+        raise RuntimeError("analysis recovery requires a verified master protocol")
+    for rung in RUNG_SPECS:
+        for seed in config.seeds:
+            sweep = (
+                config.workspace_root
+                / "rungs"
+                / rung.name
+                / f"seed{seed}"
+                / "vqvae_hp_sweep.json"
+            )
+            complete, error = _sweep_is_complete(sweep, rung, config)
+            if not complete:
+                raise RuntimeError(
+                    f"analysis recovery rejected {rung.name} seed{seed}: {error}"
+                )
+    state.update(
+        {
+            "status": "RUNNING",
+            "phase": "ANALYSIS",
+            "gpu_expected": False,
+            "updated_at": _now(),
+        }
+    )
+    state.pop("error", None)
+    _atomic_write_json(state_path, state)
+    return _run_analysis_and_oracle(config, state, runner)
 
 
 def parse_seed_list(value: str) -> tuple[int, ...]:
