@@ -124,6 +124,32 @@ def summarize_calibration(
     for row in normalized:
         grouped[str(row["arm"])].append(row)
     arms = {name: _arm_summary(group) for name, group in sorted(grouped.items())}
+    by_cad: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    for row in normalized:
+        by_cad[str(row["cad_id"])][str(row["arm"])] = row
+    paired_against_original = {}
+    for model_name in sorted(name for name in arms if name != "original"):
+        matched = [
+            group for group in by_cad.values()
+            if "original" in group and model_name in group
+        ]
+        original_valid = [group for group in matched if bool(group["original"].get("brep_valid"))]
+        both_valid = sum(bool(group[model_name].get("brep_valid")) for group in original_valid)
+        model_valid_original_invalid = sum(
+            bool(group[model_name].get("brep_valid"))
+            for group in matched
+            if not bool(group["original"].get("brep_valid"))
+        )
+        paired_against_original[model_name] = {
+            "matched_cads": len(matched),
+            "original_valid_cads": len(original_valid),
+            "both_valid": both_valid,
+            "original_valid_model_invalid": len(original_valid) - both_valid,
+            "original_invalid_model_valid": model_valid_original_invalid,
+            "model_valid_rate_given_original_valid": (
+                both_valid / len(original_valid) if original_valid else None
+            ),
+        }
     original = arms.get("original")
     model_names = [name for name in arms if name != "original"]
     primary_name = "continuous_bypass_64d" if "continuous_bypass_64d" in arms else (model_names[0] if model_names else None)
@@ -150,6 +176,7 @@ def summarize_calibration(
     return {
         "rows": len(normalized),
         "arms": arms,
+        "paired_against_original": paired_against_original,
         "decision": {
             "status": status,
             "reason": reason,

@@ -16,8 +16,8 @@ The calibration result determines the next work. If validity is acceptable at cu
 - [x] (2026-08-09 11:15 +08:00) Added tests for deterministic validation-CAD selection, parent isolation, edge decode semantics, CAD-level bucket MSE, failure retention, duplicate-safe bins, three-way decisions, and a Matplotlib-free PNG renderer; 12 focused tests pass.
 - [x] (2026-08-09 11:20 +08:00) Implemented the fail-closed calibration runner with strict checkpoint loading, direct patch reconstruction, CPU joint optimization, STEP/OCC validation, attempt-preserving JSONL, restart keys, and Pillow summary rendering.
 - [x] (2026-08-09 11:25 +08:00) Ran a one-CAD three-arm smoke cohort. Original and continuous bypass were strict BRep-valid; bypass curved MSE was `7.5644e-5`. FSQ-8192/4D curved MSE was `0.0020393` and its STEP was BRep-invalid.
-- [ ] Run 100-200 validation CAD for continuous bypass and FSQ-8192/4D, write the calibration curve and decision, and push code plus lightweight evidence.
-- [ ] Follow exactly one decision branch: accept current gate and start learned VQ 300k; define and investigate a representation gate; or repair assembly first.
+- [x] (2026-08-09 12:05 +08:00) Ran 100 matched validation CAD for original, continuous bypass, and FSQ-8192/4D. All 300 attempts were retained. Strict BRep validity was 84/100 original, 70/100 bypass, and 49/100 FSQ.
+- [ ] Follow exactly one decision branch (selected: repair assembly first). The formal summary reports `ASSEMBLY_DOMINATED`; implementation and paired re-evaluation remain.
 - [ ] Apply the explicit wall trigger after calibration plus conditional stability/decoder work: if curved error remains more than five times the task-derived gate, stop for a separate representation-upgrade cost/benefit review.
 
 ## Surprises & Discoveries
@@ -33,6 +33,12 @@ The calibration result determines the next work. If validity is acceptable at cu
 
 - Observation: The first matched-CAD smoke result is directionally consistent with a representation bottleneck, but is not sufficient for a decision.
   Evidence: The original and bypass arms assembled as strict-valid, while FSQ failed strict validity on the same topology; bypass curved MSE was about 27 times lower than FSQ. The formal decision remains gated on at least 100 CAD.
+
+- Observation: The formal cohort does not support treating curved MSE as the sole assembly gate.
+  Evidence: Among the 84 CAD whose original patches assembled validly, bypass retained 69 valid and lost 15. Bypass curved-MSE medians were `4.24e-5` for valid and `6.23e-5` for invalid, while face-count medians were 21 and 28 and edge-count medians were 50 and 70. The bypass quartile valid curve is not monotonic.
+
+- Observation: The current assembly implementation has measurable failure floor even with unmodified parsed geometry.
+  Evidence: Original control validity was 84/100. Failures included 10 written-but-invalid STEP files and 6 assembly exceptions from BSpline fitting, wire construction, or solid/shell construction.
 
 ## Decision Log
 
@@ -62,7 +68,7 @@ The calibration result determines the next work. If validity is acceptable at cu
 
 ## Outcomes & Retrospective
 
-Protocol V5 evidence is now version-controlled and bound to local checkpoints by SHA-256. The direct reconstruction and assembly calibration path has passed both an original-data control and a matched three-arm smoke test. The smoke outcome is informative but not a scientific decision because it contains one CAD. This section must be updated after the 100-200 CAD cohort, including validity by arm, the error-validity relationship, the selected branch, and any limitations caused by nonfinite reconstructions or OCC failures.
+Protocol V5 evidence is version-controlled and bound to local checkpoints by SHA-256. The direct calibration completed on 100 matched validation CAD. Original, bypass, and FSQ strict validity were 84%, 70%, and 49%. The paired result confirms that bypass is substantially better than FSQ, but current bypass validity is below the 80% acceptance floor and its invalidity is not strongly or monotonically explained by curved MSE. Because original parsed geometry also loses 16% through the same assembly path, the selected branch is `ASSEMBLY_DOMINATED`: repair and calibrate the assembly chain before learned-VQ 300k or decoder surgery. AR remains blocked.
 
 ## Context and Orientation
 
@@ -127,3 +133,5 @@ The runtime dependencies are NumPy, PyTorch, Pillow, the local BrepARG source tr
 Revision note 2026-08-09: Created the assembly-calibration execution plan after Protocol V5 evidence was pushed. It records the direct patch reconstruction design, original-data control, three-way branch logic, Git evidence policy, and five-times wall trigger.
 
 Revision note 2026-08-09 11:25 +08:00: Recorded the successful original-control and three-arm smoke integrations, focused test coverage, and the explicit restriction that the one-CAD result cannot select a scientific branch.
+
+Revision note 2026-08-09 12:10 +08:00: Recorded the 100-CAD matched cohort, formal `ASSEMBLY_DOMINATED` decision, paired original-control evidence, and the resulting requirement to repair assembly before VQ-300k or decoder work.

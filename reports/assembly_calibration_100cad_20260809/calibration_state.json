@@ -1,0 +1,176 @@
+{
+  "advance_to_ar": false,
+  "arms": [
+    "original",
+    "continuous_bypass_64d",
+    "fsq_8192_4d"
+  ],
+  "checkpoints": {
+    "continuous_bypass_64d": {
+      "bytes": 228649130,
+      "checkpoint_epoch": 59,
+      "path": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\rungs\\continuous_bypass_300k\\seed1\\continuous_bypass_64d_best.pt",
+      "quantizer": {
+        "downstream_compatible": false,
+        "embedding_dim": 64,
+        "kind": "continuous_bypass",
+        "usage_metric_meaningful": false
+      },
+      "sha256": "93f9b106137814f552d155d053701d995bbed82211956e5db23c9237a6222ffc",
+      "validation_metrics": {
+        "code_usage": {
+          "coverage": 1.0,
+          "entropy_perplexity": 1.0,
+          "tokens": 48000,
+          "unique_bins": 1
+        },
+        "nonfinite_val_samples": 0,
+        "parent_cluster_mse": {
+          "mse": 0.0001579952106765731,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "nonfinite_samples": 0,
+          "parent_clusters": 1500,
+          "parent_patch_contributions": 18552,
+          "unique_patch_samples": 12000
+        },
+        "parent_cluster_reconstruction_mse": {
+          "edge": {
+            "mse": 0.0001052298048772176,
+            "nonfinite_parent_contributions": 0,
+            "nonfinite_parents": 0,
+            "nonfinite_samples": 0,
+            "parent_clusters": 1500,
+            "parent_patch_contributions": 10730,
+            "unique_patch_samples": 5656
+          },
+          "surface_curved_proxy": {
+            "mse": 0.0004014993050282363,
+            "nonfinite_parent_contributions": 0,
+            "nonfinite_parents": 0,
+            "nonfinite_samples": 0,
+            "parent_clusters": 1166,
+            "parent_patch_contributions": 3189,
+            "unique_patch_samples": 2606
+          },
+          "surface_planar_like": {
+            "mse": 2.040682740881528e-05,
+            "nonfinite_parent_contributions": 0,
+            "nonfinite_parents": 0,
+            "nonfinite_samples": 0,
+            "parent_clusters": 1262,
+            "parent_patch_contributions": 4633,
+            "unique_patch_samples": 3738
+          }
+        },
+        "reconstruction_mse": {
+          "edge": {
+            "mse": 0.00020780834956602318,
+            "nonfinite_samples": 0,
+            "samples": 5656
+          },
+          "surface_curved_proxy": {
+            "mse": 0.0004815089503099918,
+            "nonfinite_samples": 0,
+            "samples": 2606
+          },
+          "surface_planar_like": {
+            "mse": 2.0166512225649167e-05,
+            "nonfinite_samples": 0,
+            "samples": 3738
+          }
+        }
+      }
+    },
+    "fsq_8192_4d": {
+      "bytes": 228781357,
+      "checkpoint_epoch": 16,
+      "path": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\rungs\\300k\\seed1\\fsq_8192_4d_best.pt",
+      "quantizer": {
+        "codebook_size": 8192,
+        "downstream_compatible": true,
+        "kind": "fsq",
+        "latent_grid_dimensions": 4,
+        "levels": [
+          8,
+          8,
+          8,
+          16
+        ]
+      },
+      "sha256": "4f0e0f03978d07e29b0128feebe0b5d821c13334674ca24e030ada720bede139",
+      "validation_metrics": {
+        "code_usage": {
+          "coverage": 0.70556640625,
+          "entropy_perplexity": 1656.791439497627,
+          "tokens": 48000,
+          "unique_bins": 5780
+        },
+        "nonfinite_val_samples": 0,
+        "parent_cluster_mse": {
+          "mse": 0.0007734393633304701,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "nonfinite_samples": 0,
+          "parent_clusters": 1500,
+          "parent_patch_contributions": 18552,
+          "unique_patch_samples": 12000
+        },
+        "parent_cluster_reconstruction_mse": {
+          "edge": {
+            "mse": 0.0004968493582983008,
+            "nonfinite_parent_contributions": 0,
+            "nonfinite_parents": 0,
+            "nonfinite_samples": 0,
+            "parent_clusters": 1500,
+            "parent_patch_contributions": 10730,
+            "unique_patch_samples": 5656
+          },
+          "surface_curved_proxy": {
+            "mse": 0.002000572237871115,
+            "nonfinite_parent_contributions": 0,
+            "nonfinite_parents": 0,
+            "nonfinite_samples": 0,
+            "parent_clusters": 1166,
+            "parent_patch_contributions": 3189,
+            "unique_patch_samples": 2606
+          },
+          "surface_planar_like": {
+            "mse": 0.00035328154986472574,
+            "nonfinite_parent_contributions": 0,
+            "nonfinite_parents": 0,
+            "nonfinite_samples": 0,
+            "parent_clusters": 1262,
+            "parent_patch_contributions": 4633,
+            "unique_patch_samples": 3738
+          }
+        },
+        "reconstruction_mse": {
+          "edge": {
+            "mse": 0.0007929408958825224,
+            "nonfinite_samples": 0,
+            "samples": 5656
+          },
+          "surface_curved_proxy": {
+            "mse": 0.0021456420977926313,
+            "nonfinite_samples": 0,
+            "samples": 2606
+          },
+          "surface_planar_like": {
+            "mse": 0.0003406598812275522,
+            "nonfinite_samples": 0,
+            "samples": 3738
+          }
+        }
+      }
+    }
+  },
+  "created_at": "2026-08-09T02:04:07+0800",
+  "expected_rows": 300,
+  "manifest": "D:\\luolin\\V13\\local_runs\\assembly_calibration_100cad_v1_20260809\\calibration_manifest.jsonl",
+  "manifest_rows": 300,
+  "protocol_dir": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol",
+  "protocol_sha256": "6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3",
+  "selected_cads": 100,
+  "status": "COMPLETED"
+}

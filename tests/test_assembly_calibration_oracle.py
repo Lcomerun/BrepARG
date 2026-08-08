@@ -269,3 +269,14 @@ def test_calibration_renderer_writes_png_without_matplotlib(tmp_path, monkeypatc
     with Image.open(output) as image:
         assert image.format == "PNG"
         assert image.size == (1350, 864)
+
+
+def test_calibration_reports_matched_model_degradation_from_original_control():
+    values = [(1e-5 * (index + 1), index < 15) for index in range(20)]
+    summary = summarize_calibration(_rows(values), min_cads=20)
+    paired = summary["paired_against_original"]["continuous_bypass_64d"]
+    assert paired["matched_cads"] == 20
+    assert paired["original_valid_cads"] == 20
+    assert paired["both_valid"] == 15
+    assert paired["original_valid_model_invalid"] == 5
+    assert paired["model_valid_rate_given_original_valid"] == pytest.approx(0.75)
