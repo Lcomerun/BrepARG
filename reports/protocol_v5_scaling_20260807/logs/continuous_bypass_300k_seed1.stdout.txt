@@ -1,0 +1,14 @@
+[13:05:04] ===== STAGE vqsweep =====
+[13:05:04] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[13:09:14]   sweep 数据: train=300000 val=12000  (短训 15 ep)
+[13:14:05]   continuous_bypass_64d ep   0 train=0.03196 val=0.00349 best=0.00349 finite_train=2344/2344 finite_val=94/94
+[14:02:31]   continuous_bypass_64d ep  10 train=0.00045 val=0.00038 best=0.00038 finite_train=2344/2344 finite_val=94/94
+[14:50:47]   continuous_bypass_64d ep  20 train=0.00037 val=0.00032 best=0.00032 finite_train=2344/2344 finite_val=94/94
+[15:39:05]   continuous_bypass_64d ep  30 train=0.00030 val=0.00030 best=0.00030 finite_train=2344/2344 finite_val=94/94
+[16:27:23]   continuous_bypass_64d ep  40 train=0.00025 val=0.00036 best=0.00026 finite_train=2344/2344 finite_val=94/94
+[17:15:38]   continuous_bypass_64d ep  50 train=0.00019 val=0.00021 best=0.00021 finite_train=2344/2344 finite_val=94/94
+[18:03:56]   continuous_bypass_64d ep  60 train=0.00023 val=0.00025 best=0.00021 finite_train=2344/2344 finite_val=94/94
+[18:28:05]   continuous_bypass_64d early stop at ep 65: patience=15 best=0.00021 best_epoch=50
+[18:28:05]   -> continuous_bypass_64d: best_val_recon=0.00021
+[18:28:05]   NO PROMOTED ARM: MSE ranking is diagnostic only
+[18:28:05] DONE {'vqsweep': 'PASS'} in 323.0min

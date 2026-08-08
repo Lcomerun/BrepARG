@@ -1,0 +1,5731 @@
+{
+  "tag": "continuous_bypass_64d",
+  "config": {
+    "epochs_requested": 100,
+    "start_epoch": 0,
+    "target_epoch": 100,
+    "batch_size": 128,
+    "lr": 0.0003,
+    "amp": true,
+    "min_epochs": 40,
+    "patience": 15,
+    "min_delta": 1e-05,
+    "max_nonfinite_val_epochs": 2,
+    "plateau_metric": "curved_parent_mse",
+    "quantizer": {
+      "kind": "continuous_bypass",
+      "embedding_dim": 64,
+      "usage_metric_meaningful": false,
+      "downstream_compatible": false
+    }
+  },
+  "history": [
+    {
+      "epoch": 0,
+      "train_loss": 0.03195932,
+      "val_loss": 0.00349094,
+      "best_val": 0.00349094,
+      "best_epoch": 0,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00828502,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.0012750840305369158
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.007796589675256147
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0029715556252529474
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0031204564980243815
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0013294754301090166
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.008285022700567463
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.002222869262623376
+        }
+      }
+    },
+    {
+      "epoch": 1,
+      "train_loss": 0.00243684,
+      "val_loss": 0.00142947,
+      "best_val": 0.00142947,
+      "best_epoch": 1,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00308105,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.00044227811059286174
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0031651446527060077
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0012821856107350842
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0012452966105639142
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.000464157509949218
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.003081045826740381
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0009318909283067869
+        }
+      }
+    },
+    {
+      "epoch": 2,
+      "train_loss": 0.00124372,
+      "val_loss": 0.00096486,
+      "best_val": 0.00096486,
+      "best_epoch": 2,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00194254,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.0003289743747531556
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0020795113378585814
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0008715361045379302
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0008218898847619191
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0003439157806403
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0019425401266653399
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006085502878236105
+        }
+      }
+    },
+    {
+      "epoch": 3,
+      "train_loss": 0.00089551,
+      "val_loss": 0.00076964,
+      "best_val": 0.00076964,
+      "best_epoch": 3,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00157006,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.00022852892226650674
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0017112545106133016
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0006934174147224209
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.000651397174029611
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00024122452855445737
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0015700590578499652
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004728259551165614
+        }
+      }
+    },
+    {
+      "epoch": 4,
+      "train_loss": 0.00070148,
+      "val_loss": 0.0006408,
+      "best_val": 0.0006408,
+      "best_epoch": 4,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00126577,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.00019058155812244114
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0014226775418113818
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0005781033678424981
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0005368192112049703
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00020205640654987384
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0012657719598481063
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00038257864704722386
+        }
+      }
+    },
+    {
+      "epoch": 5,
+      "train_loss": 0.00060055,
+      "val_loss": 0.00059641,
+      "best_val": 0.00059641,
+      "best_epoch": 5,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00115604,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.0001888292354406373
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0012680055757916216
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0005563490696151999
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0004909725136479954
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00019803673605133039
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0011560423756898335
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00034681186429241594
+        }
+      }
+    },
+    {
+      "epoch": 6,
+      "train_loss": 0.00055413,
+      "val_loss": 0.00050256,
+      "best_val": 0.00050256,
+      "best_epoch": 6,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00096298,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.0001057966485019257
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0011102951288353307
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0004847534923997824
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.000413341675597309
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00011564093064859023
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0009629771611444019
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00030061472077253675
+        }
+      }
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.00050811,
+      "val_loss": 0.00045495,
+      "best_val": 0.00045495,
+      "best_epoch": 7,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00089789,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 9.599354388247655e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0010534045505774421
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0004164481925148916
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00035776307655270724
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.895335151015376e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0008978939617618151
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00023378136777179643
+        }
+      }
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.00047974,
+      "val_loss": 0.00048479,
+      "best_val": 0.00045495,
+      "best_epoch": 7,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0009434347663403907 >= 0.0008978939617618151"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00094343,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.00010589550657403709
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.001076441430253383
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0004625987101159076
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00039565825877581546
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00011030932486553056
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0009434347663403907
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0002821986184094591
+        }
+      }
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.00047255,
+      "val_loss": 0.00042616,
+      "best_val": 0.00042616,
+      "best_epoch": 9,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00080734,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 7.538650490913517e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0009468542027576391
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0004180765305188547
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0003392540609471311
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 7.951905535475226e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0008073403921967728
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00023749025830495536
+        }
+      }
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.00045446,
+      "val_loss": 0.00037825,
+      "best_val": 0.00037825,
+      "best_epoch": 10,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00071611,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 4.81625264576868e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008563638216125449
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00037611310268715627
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002938416914376471
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 5.380552308219448e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007161136038420562
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00020076402574497224
+        }
+      }
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.00044834,
+      "val_loss": 0.00038784,
+      "best_val": 0.00037825,
+      "best_epoch": 10,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007423938397067787 >= 0.0007161136038420562"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00074239,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 4.778070805869036e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008908057570618244
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0003808330303056526
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00030210126000105203
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 5.0371046943247476e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007423938397067787
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0002051747699114382
+        }
+      }
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.00041499,
+      "val_loss": 0.00049847,
+      "best_val": 0.00037825,
+      "best_epoch": 10,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0009276946969026417 >= 0.0007161136038420562"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 2,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00092769,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.0001335160489727868
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.001061295430057892
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0004803520762743188
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.000408034260978789
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00013622679210597525
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0009276946969026417
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0002974913563705337
+        }
+      }
+    },
+    {
+      "epoch": 13,
+      "train_loss": 0.00042651,
+      "val_loss": 0.00042985,
+      "best_val": 0.00037825,
+      "best_epoch": 10,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0008590034194868562 >= 0.0007161136038420562"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 3,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.000859,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 3,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 9.03808159045923e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0010102961068452158
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00038676949001870023
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.000342647359570907
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.652741610702376e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0008590034194868562
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00022481312731855555
+        }
+      }
+    },
+    {
+      "epoch": 14,
+      "train_loss": 0.00042045,
+      "val_loss": 0.00041704,
+      "best_val": 0.00037825,
+      "best_epoch": 10,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0008463201427076647 >= 0.0007161136038420562"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 4,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00084632,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 4,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 8.353347717676977e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0010116536944078326
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0003634897365621635
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0003290590208508628
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 8.768030510187679e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0008463201427076647
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0002048079672971582
+        }
+      }
+    },
+    {
+      "epoch": 15,
+      "train_loss": 0.00038502,
+      "val_loss": 0.00052357,
+      "best_val": 0.00037825,
+      "best_epoch": 10,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0009966655366586267 >= 0.0007161136038420562"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 5,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00099667,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 5,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.00016789266275178094
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0011401089192462348
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00047455524171191414
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0004309663986875517
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00016923305386874575
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0009966655366586267
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0002996045092828847
+        }
+      }
+    },
+    {
+      "epoch": 16,
+      "train_loss": 0.0003897,
+      "val_loss": 0.00034573,
+      "best_val": 0.00034573,
+      "best_epoch": 16,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.0006692,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.646768385034573e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008200273206215765
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0003315762189416064
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00026456542769552377
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.738953689157514e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006691970235986131
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00017097212526392692
+        }
+      }
+    },
+    {
+      "epoch": 17,
+      "train_loss": 0.00038595,
+      "val_loss": 0.00039393,
+      "best_val": 0.00034573,
+      "best_epoch": 16,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007589340590205519 >= 0.0006691970235986131"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00075893,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 6.529134105541798e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008974940700028028
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.000379110057978834
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0003111387696925981
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 6.884729593004925e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007589340590205519
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00021345758257685933
+        }
+      }
+    },
+    {
+      "epoch": 18,
+      "train_loss": 0.00037313,
+      "val_loss": 0.00037968,
+      "best_val": 0.00034573,
+      "best_epoch": 16,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007361430151632472 >= 0.0006691970235986131"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 2,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00073614,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 7.896541413171011e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008771810726709819
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0003491953364527108
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00030082057860411567
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 8.069397558553505e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007361430151632472
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00019799576616048097
+        }
+      }
+    },
+    {
+      "epoch": 19,
+      "train_loss": 0.00036669,
+      "val_loss": 0.00038031,
+      "best_val": 0.00034573,
+      "best_epoch": 16,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007700539573279323 >= 0.0006691970235986131"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 3,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00077005,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 3,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 6.0701978993112984e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0009060810494250005
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0003492968299831225
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.000298600997249497
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 6.331447813877027e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007700539573279323
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00019347416082843112
+        }
+      }
+    },
+    {
+      "epoch": 20,
+      "train_loss": 0.00036895,
+      "val_loss": 0.00032001,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00062574,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.6325557728631964e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007569665281330983
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00030617053209799997
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00025030052367235457
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.779810292003483e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006257438602960393
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00016564418609103386
+        }
+      }
+    },
+    {
+      "epoch": 21,
+      "train_loss": 0.00033963,
+      "val_loss": 0.00049411,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0008923126116390906 >= 0.0006257438602960393"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00089231,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.00013769236240629591
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.001026802939831188
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00048422196251783254
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00041184630669188613
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00014772451404734067
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0008923126116390906
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00031049510276603016
+        }
+      }
+    },
+    {
+      "epoch": 22,
+      "train_loss": 0.00034438,
+      "val_loss": 0.00035774,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0006920599678870796 >= 0.0006257438602960393"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 2,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00069206,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 5.78547842930693e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008245342123546979
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0003408609217579704
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002800052327046384
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 5.988167283338165e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006920599678870796
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00018532194513994524
+        }
+      }
+    },
+    {
+      "epoch": 23,
+      "train_loss": 0.00034302,
+      "val_loss": 0.00034393,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0006482599275882251 >= 0.0006257438602960393"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 3,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00064826,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 3,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.946654752920304e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008101903968591563
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0003303190251130645
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.000264203260826006
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 4.020940528285282e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006482599275882251
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00017231377228953322
+        }
+      }
+    },
+    {
+      "epoch": 24,
+      "train_loss": 0.00034388,
+      "val_loss": 0.00036576,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007124678651541983 >= 0.0006257438602960393"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 4,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00071247,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 4,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 7.492448659141979e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008492099392746337
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00033522938046153645
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00029167830800934104
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 7.606549051083152e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007124678651541983
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00019670707338737207
+        }
+      }
+    },
+    {
+      "epoch": 25,
+      "train_loss": 0.00032347,
+      "val_loss": 0.00035496,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007250842566492898 >= 0.0006257438602960393"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 5,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00072508,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 5,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 5.235769989864055e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0009114191264242347
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002985620451663494
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002736838485713673
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 5.27198851117701e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007250842566492898
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0001615315930327779
+        }
+      }
+    },
+    {
+      "epoch": 26,
+      "train_loss": 0.00036824,
+      "val_loss": 0.00033509,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 6,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00062049,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 6,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.7095637904613656e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.000756875703073141
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.000337702576146485
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002577757224206401
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.771026886344019e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006204886747524391
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0001765858708245654
+        }
+      }
+    },
+    {
+      "epoch": 27,
+      "train_loss": 0.00031463,
+      "val_loss": 0.00043676,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0009042879919140957 >= 0.0006204886747524391"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 7,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00090429,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 7,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.00011703544446758278
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0010727701862538878
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0003550131100951952
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0003627333966503597
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00012048955678075055
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0009042879919140957
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00023986056760844066
+        }
+      }
+    },
+    {
+      "epoch": 28,
+      "train_loss": 0.00031898,
+      "val_loss": 0.00031331,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0006898898871591179 >= 0.0006204886747524391"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 8,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00068989,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 8,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.494999199369655e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008367423021292154
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00025611400376004755
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00024359178568443419
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.59980793661134e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006898898871591179
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00013919265263153316
+        }
+      }
+    },
+    {
+      "epoch": 29,
+      "train_loss": 0.00031749,
+      "val_loss": 0.0004001,
+      "best_val": 0.00032001,
+      "best_epoch": 20,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007709699764494704 >= 0.0006204886747524391"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 9,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00077097,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 9,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 9.747967111868427e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008964812522119731
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00037138264978814047
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00032805202504192633
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00010117850732654155
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007709699764494704
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00023042175104353595
+        }
+      }
+    },
+    {
+      "epoch": 30,
+      "train_loss": 0.00030298,
+      "val_loss": 0.00029785,
+      "best_val": 0.00029785,
+      "best_epoch": 30,
+      "improved": true,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0006538660474344117 >= 0.0006204886747524391"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00065387,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 10,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 4.04150257018902e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007775644970335895
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002469571272570273
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00023136708176973878
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 4.1601387350213066e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006538660474344117
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00013445813709005684
+        }
+      }
+    },
+    {
+      "epoch": 31,
+      "train_loss": 0.00029614,
+      "val_loss": 0.00028767,
+      "best_val": 0.00028767,
+      "best_epoch": 31,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00057295,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.2985498468860654e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007118310439158364
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002605495131821936
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002216383111513481
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.330754096596285e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005729486963388731
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00013938780634175927
+        }
+      }
+    },
+    {
+      "epoch": 32,
+      "train_loss": 0.00027713,
+      "val_loss": 0.00027822,
+      "best_val": 0.00028767,
+      "best_epoch": 31,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005839634081700063 >= 0.0005729486963388731"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00058396,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.441839625634969e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007135140832777482
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00023878193374832614
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00021693695829306189
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.556776881833628e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005839634081700063
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0001328322164113577
+        }
+      }
+    },
+    {
+      "epoch": 33,
+      "train_loss": 0.00030422,
+      "val_loss": 0.00043672,
+      "best_val": 0.00028767,
+      "best_epoch": 31,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0008942465933503129 >= 0.0005729486963388731"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 2,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00089425,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.0002024992931350476
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.001035811120800296
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00031548662993580113
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0003607431782559724
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00020547217230078223
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0008942465933503129
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00021486095347661576
+        }
+      }
+    },
+    {
+      "epoch": 34,
+      "train_loss": 0.00032803,
+      "val_loss": 0.00027217,
+      "best_val": 0.00027217,
+      "best_epoch": 34,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00053307,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.546650946346134e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0006444721436790841
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002636837741005066
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00020782270240193154
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.6250658348935495e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005330706729778734
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0001374437737631295
+        }
+      }
+    },
+    {
+      "epoch": 35,
+      "train_loss": 0.00027867,
+      "val_loss": 0.00030884,
+      "best_val": 0.00027217,
+      "best_epoch": 34,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.00062595407644097 >= 0.0005330706729778734"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00062595,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.906722368623065e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007899730321295202
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002720473222547127
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002347539313912289
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.059988527823974e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00062595407644097
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00013866948068489156
+        }
+      }
+    },
+    {
+      "epoch": 36,
+      "train_loss": 0.000282,
+      "val_loss": 0.00047745,
+      "best_val": 0.00027217,
+      "best_epoch": 34,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0009224486559176942 >= 0.0005330706729778734"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 2,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00092245,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.000184128222365668
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0010478180758312884
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0004084995496223754
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00040580298694128204
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00018664191257975387
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0009224486559176942
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0002877452530908217
+        }
+      }
+    },
+    {
+      "epoch": 37,
+      "train_loss": 0.00030131,
+      "val_loss": 0.00038034,
+      "best_val": 0.00027217,
+      "best_epoch": 34,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007263606342291644 >= 0.0005330706729778734"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 3,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00072636,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 3,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 7.476091576785724e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008471979689241583
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00036718326429848597
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0003056360881197345
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 7.695276316934147e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007263606342291644
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00021583358814338766
+        }
+      }
+    },
+    {
+      "epoch": 38,
+      "train_loss": 0.00028147,
+      "val_loss": 0.00025782,
+      "best_val": 0.00025782,
+      "best_epoch": 38,
+      "improved": true,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005881851669295774 >= 0.0005330706729778734"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00058819,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 4,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.0074844870476387e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007416079380709701
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00019203410754940948
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00019651203951349312
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.0256821453316393e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005881851669295774
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.987185298478405e-05
+        }
+      }
+    },
+    {
+      "epoch": 39,
+      "train_loss": 0.00026442,
+      "val_loss": 0.0002481,
+      "best_val": 0.00025782,
+      "best_epoch": 38,
+      "improved": false,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00051994,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.6858450590039513e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0006326808786673687
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002171282479715328
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0001898174268786713
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.74188955087289e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005199391680557815
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00011303009685153842
+        }
+      }
+    },
+    {
+      "epoch": 40,
+      "train_loss": 0.00024912,
+      "val_loss": 0.00035874,
+      "best_val": 0.00025782,
+      "best_epoch": 38,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0006976571781318825 >= 0.0005199391680557815"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 2,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00069766,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 7.232184925873952e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.000801975259837393
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00034380627119401407
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00029837442138533885
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 7.693621684868598e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006976571781318825
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00021995933590898212
+        }
+      }
+    },
+    {
+      "epoch": 41,
+      "train_loss": 0.0002457,
+      "val_loss": 0.00025997,
+      "best_val": 0.00025782,
+      "best_epoch": 38,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005637674944031679 >= 0.0005199391680557815"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 3,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00056377,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.3259620994186177e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007026776703644668
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00021243274577949052
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.000198416702620142
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.4967530144946097e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005637674944031679
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00011123560153851277
+        }
+      }
+    },
+    {
+      "epoch": 42,
+      "train_loss": 0.00027728,
+      "val_loss": 0.00029102,
+      "best_val": 0.00025782,
+      "best_epoch": 38,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.000607153024024858 >= 0.0005199391680557815"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 4,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00060715,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 3,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 7.088089346498183e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007149909938781774
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00024117370546082256
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00023209612116229677
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 7.443063248933531e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.000607153024024858
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00014284500704397717
+        }
+      }
+    },
+    {
+      "epoch": 43,
+      "train_loss": 0.00023393,
+      "val_loss": 0.00022039,
+      "best_val": 0.00022039,
+      "best_epoch": 43,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00046904,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.1293744939471106e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0005854436441126045
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00018377114896088546
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00016616791313054464
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.0890905669146034e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004690420348755123
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.380828476786065e-05
+        }
+      }
+    },
+    {
+      "epoch": 44,
+      "train_loss": 0.0002378,
+      "val_loss": 0.00025212,
+      "best_val": 0.00022039,
+      "best_epoch": 43,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0004866591592982891 >= 0.0004690420348755123"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00048666,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.3011062934752394e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0005861755716468683
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.000249612197690511
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0001912737018108792
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.353152123033839e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004866591592982891
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00012334821136135288
+        }
+      }
+    },
+    {
+      "epoch": 45,
+      "train_loss": 0.00021353,
+      "val_loss": 0.00030343,
+      "best_val": 0.00022039,
+      "best_epoch": 43,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0006287356429825517 >= 0.0004690420348755123"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 2,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00062874,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 6.780404366850782e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007555536249324076
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.000250837145587655
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00024537790828274477
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 7.000224192885955e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006287356429825517
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00015732188844729244
+        }
+      }
+    },
+    {
+      "epoch": 46,
+      "train_loss": 0.00023814,
+      "val_loss": 0.00024914,
+      "best_val": 0.00022039,
+      "best_epoch": 43,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005586235761009467 >= 0.0004690420348755123"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 3,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00055862,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 3,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 1.8238683069362748e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007202242551543381
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00018468608715753153
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0001866616654313189
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 1.854625873857288e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005586235761009467
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.054878252192553e-05
+        }
+      }
+    },
+    {
+      "epoch": 47,
+      "train_loss": 0.0002186,
+      "val_loss": 0.00031428,
+      "best_val": 0.00022039,
+      "best_epoch": 43,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0006905117564576873 >= 0.0004690420348755123"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 4,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00069051,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 4,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 8.661733127442564e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0007828118306521915
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002488615133346661
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002531585296035628
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.374075822538269e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006905117564576873
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0001490831120290174
+        }
+      }
+    },
+    {
+      "epoch": 48,
+      "train_loss": 0.00024376,
+      "val_loss": 0.00029229,
+      "best_val": 0.00022039,
+      "best_epoch": 43,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005743432212975592 >= 0.0004690420348755123"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 5,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00057434,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 5,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.577179346535284e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0006981924696346582
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00027479125982659636
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.000221894181448053
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.557406545061224e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005743432212975592
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00013880428198127784
+        }
+      }
+    },
+    {
+      "epoch": 49,
+      "train_loss": 0.00029111,
+      "val_loss": 0.00068824,
+      "best_val": 0.00022039,
+      "best_epoch": 43,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0012680789179563955 >= 0.0004690420348755123"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 6,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00126808,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 6,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 0.0005432089633064877
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0013350785232035664
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00048605550556297435
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0005993105534089549
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005328355991525239
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0012680789179563955
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00038919485184348826
+        }
+      }
+    },
+    {
+      "epoch": 50,
+      "train_loss": 0.00019339,
+      "val_loss": 0.00020808,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": true,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 0,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00045026,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 1.9557061224296655e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0005493473707596874
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0001754412373855462
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00015766058813253834
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 1.9933961366821407e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004502611634387048
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 8.932098523046623e-05
+        }
+      }
+    },
+    {
+      "epoch": 51,
+      "train_loss": 0.0002489,
+      "val_loss": 0.00024624,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0004838248685168751 >= 0.0004502611634387048"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 1,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00048382,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.9339781935835676e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0005900101827439639
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00023120187157201272
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00018856882467668234
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.0083390027527026e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004838248685168751
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00012198169004257263
+        }
+      }
+    },
+    {
+      "epoch": 52,
+      "train_loss": 0.00027222,
+      "val_loss": 0.00027101,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005039039369689448 >= 0.0004502611634387048"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 2,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.0005039,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.42610699355177e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0006131148081053161
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002764525749926423
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002048208563933213
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.434622763903654e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005039039369689448
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0001377972722395744
+        }
+      }
+    },
+    {
+      "epoch": 53,
+      "train_loss": 0.00020975,
+      "val_loss": 0.00023789,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005321227657135567 >= 0.0004502611634387048"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 3,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00053212,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 3,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.294752036046204e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0006560917747477385
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00018725460994719635
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00018077358291926967
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.361223349014919e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005321227657135567
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.631179064627137e-05
+        }
+      }
+    },
+    {
+      "epoch": 54,
+      "train_loss": 0.00022595,
+      "val_loss": 0.00021333,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0004633272615273939 >= 0.0004502611634387048"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 4,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00046333,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 4,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.1409689502955494e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0005525289848045077
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00017728159511947554
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00016526954388079623
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.207622558446943e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004633272615273939
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.69364164592802e-05
+        }
+      }
+    },
+    {
+      "epoch": 55,
+      "train_loss": 0.00020252,
+      "val_loss": 0.00030579,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0006959813378180673 >= 0.0004502611634387048"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 5,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00069598,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 5,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 6.34641792774963e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008338460425925639
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002226428488943339
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00023659858502525619
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 6.315479525751785e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0006959813378180673
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00012301659623255008
+        }
+      }
+    },
+    {
+      "epoch": 56,
+      "train_loss": 0.00022219,
+      "val_loss": 0.00022854,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0004890103095810436 >= 0.0004502611634387048"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 6,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00048901,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 6,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 3.411842352084706e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0005970724034958434
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00018722681928662866
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00017731546658007925
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.335287595743887e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004890103095810436
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0001025485040083271
+        }
+      }
+    },
+    {
+      "epoch": 57,
+      "train_loss": 0.00023658,
+      "val_loss": 0.00026482,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005192660516470574 >= 0.0004502611634387048"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 7,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00051927,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 7,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 1.8875414400913173e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.000670634022622229
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002403869384450148
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00019682517385212188
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 1.908155497457014e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005192660516470574
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00011686116479979303
+        }
+      }
+    },
+    {
+      "epoch": 58,
+      "train_loss": 0.00020503,
+      "val_loss": 0.00031685,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0007153490881371176 >= 0.0004502611634387048"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 8,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00071535,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 8,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 8.533879231336246e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0008494585839985738
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00022444786207768223
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00025465442122395415
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 8.588886058333146e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0007153490881371176
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.000135703355371685
+        }
+      }
+    },
+    {
+      "epoch": 59,
+      "train_loss": 0.00020392,
+      "val_loss": 0.0002088,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": true,
+      "checkpoint_selection_reasons": [],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 9,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.0004015,
+      "plateau_improved": true,
+      "plateau_epochs_without_improvement": 0,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.0166512225649167e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0004815089503099918
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00020780834956602318
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0001579952106765731
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.040682740881528e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004014993050282363
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0001052298048772176
+        }
+      }
+    },
+    {
+      "epoch": 60,
+      "train_loss": 0.00022781,
+      "val_loss": 0.00024872,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005094400997308282 >= 0.0004014993050282363"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 10,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00050944,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 1,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.9570992114068816e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0006014799332727224
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002310252529059203
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00019304801742778214
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.0151515051250655e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005094400997308282
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00012432112459517876
+        }
+      }
+    },
+    {
+      "epoch": 61,
+      "train_loss": 0.00020081,
+      "val_loss": 0.00022189,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.00047372785168305905 >= 0.0004014993050282363"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 11,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00047373,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 2,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 1.9068494030562913e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0005883583154662808
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.000187090802266209
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00016692060305654563
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 1.9706748890246868e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00047372785168305905
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 9.395778072455946e-05
+        }
+      }
+    },
+    {
+      "epoch": 62,
+      "train_loss": 0.00018643,
+      "val_loss": 0.00025635,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005471415770735369 >= 0.0004014993050282363"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 12,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00054714,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 3,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 4.541039546554756e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0006736062497074567
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00020351592581669607
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00020072290683054782
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 4.63089578877155e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005471415770735369
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00011665645401375002
+        }
+      }
+    },
+    {
+      "epoch": 63,
+      "train_loss": 0.00019895,
+      "val_loss": 0.00024254,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0005231289410446644 >= 0.0004014993050282363"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 13,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00052313,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 4,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.9330300304785314e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0006226997206791714
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.00020829076474391446
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00018748067194727003
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 3.012420586367636e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0005231289410446644
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00011067979816447225
+        }
+      }
+    },
+    {
+      "epoch": 64,
+      "train_loss": 0.00019348,
+      "val_loss": 0.00026246,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.00050746240109196 >= 0.0004014993050282363"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 14,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.00050746,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 5,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.8408126209758603e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.000607675997476873
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0002580871732011615
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.0002017032390260642
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.890511694623469e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00050746240109196
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.00013103765178447315
+        }
+      }
+    },
+    {
+      "epoch": 65,
+      "train_loss": 0.00019068,
+      "val_loss": 0.00019989,
+      "best_val": 0.00020808,
+      "best_epoch": 50,
+      "improved": false,
+      "checkpoint_selected": false,
+      "checkpoint_selection_reasons": [
+        "curved parent-cluster MSE did not improve: 0.0004262974965578698 >= 0.0004014993050282363"
+      ],
+      "train_batches": 2344,
+      "finite_train_batches": 2344,
+      "skipped_train_batches": 0,
+      "val_batches": 94,
+      "finite_val_batches": 94,
+      "finite_val_samples": 12000,
+      "nonfinite_val_batches": 0,
+      "nonfinite_val_samples": 0,
+      "consecutive_nonfinite_val_epochs": 0,
+      "epochs_without_improvement": 15,
+      "plateau_metric": "curved_parent_mse",
+      "plateau_value": 0.0004263,
+      "plateau_improved": false,
+      "plateau_epochs_without_improvement": 6,
+      "val_code_usage": {
+        "tokens": 48000,
+        "unique_bins": 1,
+        "coverage": 1.0,
+        "entropy_perplexity": 1.0
+      },
+      "val_reconstruction_mse": {
+        "surface_planar_like": {
+          "samples": 3738,
+          "nonfinite_samples": 0,
+          "mse": 2.459784052117771e-05
+        },
+        "surface_curved_proxy": {
+          "samples": 2606,
+          "nonfinite_samples": 0,
+          "mse": 0.0005259659180608613
+        },
+        "edge": {
+          "samples": 5656,
+          "nonfinite_samples": 0,
+          "mse": 0.0001655079989862803
+        }
+      },
+      "val_parent_cluster_mse": {
+        "unique_patch_samples": 12000,
+        "parent_patch_contributions": 18552,
+        "parent_clusters": 1500,
+        "nonfinite_samples": 0,
+        "nonfinite_parent_contributions": 0,
+        "nonfinite_parents": 0,
+        "mse": 0.00015284084251755757
+      },
+      "val_parent_cluster_reconstruction_mse": {
+        "surface_planar_like": {
+          "unique_patch_samples": 3738,
+          "parent_patch_contributions": 4633,
+          "parent_clusters": 1262,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 2.5158724796957216e-05
+        },
+        "surface_curved_proxy": {
+          "unique_patch_samples": 2606,
+          "parent_patch_contributions": 3189,
+          "parent_clusters": 1166,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 0.0004262974965578698
+        },
+        "edge": {
+          "unique_patch_samples": 5656,
+          "parent_patch_contributions": 10730,
+          "parent_clusters": 1500,
+          "nonfinite_samples": 0,
+          "nonfinite_parent_contributions": 0,
+          "nonfinite_parents": 0,
+          "mse": 8.71942110364086e-05
+        }
+      }
+    }
+  ],
+  "best_val_recon": 0.00020808,
+  "best_epoch": 50,
+  "stop_reason": "patience=15"
+}

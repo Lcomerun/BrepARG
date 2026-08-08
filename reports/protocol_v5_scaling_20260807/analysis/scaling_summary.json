@@ -1,0 +1,308 @@
+{
+  "decision": {
+    "advance_to_ar": false,
+    "continuous_bypass_oracle_recommended": true,
+    "reason": "shared-protocol 60k-to-300k scaling does not project to the target; isolate decoder/quantizer capacity before AR",
+    "status": "CONTINUE_CAPACITY_INVESTIGATION",
+    "target_curved_parent_mse": 5e-05
+  },
+  "limitations": [
+    "12k is a historical single-chunk reference and is excluded from the projection fit.",
+    "The two-point power-law projection is diagnostic, not a guarantee of full-data behavior.",
+    "No result in this report authorizes sequence generation or AR training."
+  ],
+  "points": [
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse_mean": 0.010587695152922875,
+      "curved_parent_mse_sd": 0.0005857740609637633,
+      "patches": 12000,
+      "perplexity_mean": 663.6866675519561,
+      "protocol_scope": "historical_reference",
+      "runs": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "usage_fraction_mean": 0.1620328778203018,
+      "usage_fraction_sd": 0.017548177885514615
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse_mean": 0.010950457014378984,
+      "curved_parent_mse_sd": 0.001016945752679024,
+      "patches": 12000,
+      "perplexity_mean": 1501.4292997573184,
+      "protocol_scope": "historical_reference",
+      "runs": 3,
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "usage_fraction_mean": 0.18327994381803203,
+      "usage_fraction_sd": 0.014727421953620545
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse_mean": 0.004423262278816909,
+      "curved_parent_mse_sd": 0.00038873619247615485,
+      "patches": 60000,
+      "perplexity_mean": 482.46004315963825,
+      "protocol_scope": "master",
+      "runs": 2,
+      "seeds": [
+        0,
+        1
+      ],
+      "usage_fraction_mean": 0.11778809647452106,
+      "usage_fraction_sd": 0.005745818402221212
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse_mean": 0.004717895873108025,
+      "curved_parent_mse_sd": 0.001959808022509673,
+      "patches": 60000,
+      "perplexity_mean": 1412.1923546486346,
+      "protocol_scope": "master",
+      "runs": 2,
+      "seeds": [
+        0,
+        1
+      ],
+      "usage_fraction_mean": 0.17238676204206965,
+      "usage_fraction_sd": 0.02947985800776424
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "codebook_size": 4096,
+      "curved_parent_mse_mean": 0.0026254455321873893,
+      "curved_parent_mse_sd": 0.0001351459451858272,
+      "patches": 60000,
+      "perplexity_mean": 1546.2847223725598,
+      "protocol_scope": "master",
+      "runs": 2,
+      "seeds": [
+        0,
+        1
+      ],
+      "usage_fraction_mean": 0.37751091854798824,
+      "usage_fraction_sd": 0.02472342504737687
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse_mean": 0.0034969567194681247,
+      "curved_parent_mse_sd": 0.0003853137009158052,
+      "patches": 300000,
+      "perplexity_mean": 586.6056353269266,
+      "protocol_scope": "master",
+      "runs": 2,
+      "seeds": [
+        0,
+        1
+      ],
+      "usage_fraction_mean": 0.14321426643723795,
+      "usage_fraction_sd": 0.010879347647194447
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse_mean": 0.0020178869601801723,
+      "curved_parent_mse_sd": 2.4486715118192418e-05,
+      "patches": 300000,
+      "perplexity_mean": 1604.5666883213469,
+      "protocol_scope": "master",
+      "runs": 2,
+      "seeds": [
+        0,
+        1
+      ],
+      "usage_fraction_mean": 0.1958699570704769,
+      "usage_fraction_sd": 0.009015741138312439
+    }
+  ],
+  "projection": {
+    "method": "two_point_power_law_on_shared_master_protocol",
+    "power": -0.14600402577410435,
+    "projected_curved_parent_mse": 0.002498539567716858,
+    "projected_full_patches": 3000000,
+    "source_points": [
+      60000,
+      300000
+    ]
+  },
+  "rows": [
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse": 0.010614940346644917,
+      "patches": 12000,
+      "perplexity": 1369.534581190163,
+      "protocol_scope": "historical_reference",
+      "seed": 0,
+      "usage_fraction": 0.1671795143054398
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.011263154999294277,
+      "patches": 12000,
+      "perplexity": 625.0167752035126,
+      "protocol_scope": "historical_reference",
+      "seed": 0,
+      "usage_fraction": 0.15259198613367006
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse": 0.012092766572218559,
+      "patches": 12000,
+      "perplexity": 1528.5366561220305,
+      "protocol_scope": "historical_reference",
+      "seed": 1,
+      "usage_fraction": 0.1865889472805213
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.010280734491231734,
+      "patches": 12000,
+      "perplexity": 619.4226271873138,
+      "protocol_scope": "historical_reference",
+      "seed": 1,
+      "usage_fraction": 0.15122622734065277
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse": 0.010143664124273477,
+      "patches": 12000,
+      "perplexity": 1606.2166619597617,
+      "protocol_scope": "historical_reference",
+      "seed": 2,
+      "usage_fraction": 0.19607136986813498
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.010219195968242615,
+      "patches": 12000,
+      "perplexity": 746.6206002650422,
+      "protocol_scope": "historical_reference",
+      "seed": 2,
+      "usage_fraction": 0.18228041998658256
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.0027210081464781534,
+      "patches": 60000,
+      "perplexity": 1617.8914101376852,
+      "protocol_scope": "master",
+      "seed": 0,
+      "usage_fraction": 0.3949930200531458
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse": 0.0033321023305676375,
+      "patches": 60000,
+      "perplexity": 1582.9579329353833,
+      "protocol_scope": "master",
+      "seed": 0,
+      "usage_fraction": 0.19323216954777628
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.004148384281024381,
+      "patches": 60000,
+      "perplexity": 465.81837544998496,
+      "protocol_scope": "master",
+      "seed": 0,
+      "usage_fraction": 0.11372518931884398
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.0025298829178966257,
+      "patches": 60000,
+      "perplexity": 1474.6780346074347,
+      "protocol_scope": "master",
+      "seed": 1,
+      "usage_fraction": 0.36002881704283074
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.004698140276609437,
+      "patches": 60000,
+      "perplexity": 499.10171086929154,
+      "protocol_scope": "master",
+      "seed": 1,
+      "usage_fraction": 0.12185100363019813
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse": 0.006103689415648413,
+      "patches": 60000,
+      "perplexity": 1241.4267763618857,
+      "protocol_scope": "master",
+      "seed": 1,
+      "usage_fraction": 0.151541354536363
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse": 0.002035201682489229,
+      "patches": 300000,
+      "perplexity": 1552.3419371450668,
+      "protocol_scope": "master",
+      "seed": 0,
+      "usage_fraction": 0.18949486537415366
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.003224498788666474,
+      "patches": 300000,
+      "perplexity": 555.0956787344214,
+      "protocol_scope": "master",
+      "seed": 0,
+      "usage_fraction": 0.13552140594102086
+    },
+    {
+      "arm": "fsq_8192_4d",
+      "codebook_size": 8192,
+      "curved_parent_mse": 0.002000572237871115,
+      "patches": 300000,
+      "perplexity": 1656.791439497627,
+      "protocol_scope": "master",
+      "seed": 1,
+      "usage_fraction": 0.20224504876680016
+    },
+    {
+      "arm": "fsq_4096_6d",
+      "codebook_size": 4096,
+      "curved_parent_mse": 0.003769414650269776,
+      "patches": 300000,
+      "perplexity": 618.115591919432,
+      "protocol_scope": "master",
+      "seed": 1,
+      "usage_fraction": 0.15090712693345507
+    }
+  ],
+  "schema_version": 1,
+  "vq_control": {
+    "available": true,
+    "interpretation": "LEARNED_VQ_LOWER_CURVED_MSE",
+    "vq_minus_fsq_curved_mse": -0.0017978167466295193
+  }
+}

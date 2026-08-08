@@ -1,0 +1,250 @@
+{
+  "advance_to_ar": false,
+  "config": {
+    "archive_root": "D:\\luolin\\V13\\ABC\\processed\\abc_parsed_full_archives",
+    "batch_size": 128,
+    "load_failure_allowlist": null,
+    "max_epochs": 100,
+    "min_epochs": 40,
+    "patience": 15,
+    "protocol_chunks": "0-9",
+    "protocol_record_cap": 15000,
+    "repo_root": "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806",
+    "rungs": [
+      {
+        "arms": [
+          "fsq_8192_4d",
+          "fsq_4096_6d",
+          "vq_4096_64d_random"
+        ],
+        "name": "60k",
+        "train_cap": 60000
+      },
+      {
+        "arms": [
+          "fsq_8192_4d",
+          "fsq_4096_6d"
+        ],
+        "name": "300k",
+        "train_cap": 300000
+      }
+    ],
+    "seeds": [
+      0,
+      1
+    ],
+    "v4_summary": "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\reports\\protocol_v4\\fsq_abc_100epoch_three_seed_20260805.json",
+    "val_cap": 12000,
+    "workspace_root": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806"
+  },
+  "continuous_bypass_oracle": "COMPLETED",
+  "created_at": "2026-08-06T16:39:00+08:00",
+  "decision": {
+    "advance_to_ar": false,
+    "continuous_bypass_oracle_recommended": true,
+    "reason": "shared-protocol 60k-to-300k scaling does not project to the target; isolate decoder/quantizer capacity before AR",
+    "status": "CONTINUE_CAPACITY_INVESTIGATION",
+    "target_curved_parent_mse": 5e-05
+  },
+  "finished_at": "2026-08-07T18:28:05+08:00",
+  "gpu_expected": false,
+  "phase": "COMPLETED",
+  "status": "COMPLETED",
+  "steps": [
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\tools\\preflight_cad_archive_inventory.py",
+        "--archive-root",
+        "D:\\luolin\\V13\\ABC\\processed\\abc_parsed_full_archives",
+        "--chunks",
+        "all",
+        "--output",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\evidence\\full_archive_inventory.json"
+      ],
+      "finished_at": "2026-08-06T16:39:09+08:00",
+      "name": "full_inventory_preflight",
+      "phase": "INVENTORY_PREFLIGHT",
+      "returncode": 0,
+      "started_at": "2026-08-06T16:39:00+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\full_inventory_preflight.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\full_inventory_preflight.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\tools\\build_cad_protocol.py",
+        "--archive-root",
+        "D:\\luolin\\V13\\ABC\\processed\\abc_parsed_full_archives",
+        "--chunks",
+        "0-9",
+        "--output-dir",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol",
+        "--materialize-root",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\materialized",
+        "--max-eligible-records",
+        "15000",
+        "--max-load-failures",
+        "100",
+        "--max-load-failure-fraction",
+        "0.001",
+        "--seed",
+        "20260803"
+      ],
+      "finished_at": "2026-08-06T16:46:20+08:00",
+      "name": "master_protocol",
+      "phase": "CPU_IO_PROTOCOL_BUILD",
+      "returncode": 0,
+      "started_at": "2026-08-06T16:39:09+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\master_protocol.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\master_protocol.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "finished_at": "2026-08-06T21:02:18+08:00",
+      "name": "train_60k_seed0",
+      "phase": "GPU_TRAINING_60K",
+      "returncode": 0,
+      "started_at": "2026-08-06T16:46:20+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\train_60k_seed0.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\train_60k_seed0.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "finished_at": "2026-08-07T00:32:16+08:00",
+      "name": "train_60k_seed1",
+      "phase": "GPU_TRAINING_60K",
+      "returncode": 0,
+      "started_at": "2026-08-06T21:02:18+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\train_60k_seed1.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\train_60k_seed1.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "finished_at": "2026-08-07T04:46:11+08:00",
+      "name": "train_300k_seed0",
+      "phase": "GPU_TRAINING_300K",
+      "returncode": 0,
+      "started_at": "2026-08-07T00:32:16+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\train_300k_seed0.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\train_300k_seed0.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "finished_at": "2026-08-07T08:55:49+08:00",
+      "name": "train_300k_seed1",
+      "phase": "GPU_TRAINING_300K",
+      "returncode": 0,
+      "started_at": "2026-08-07T04:46:11+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\train_300k_seed1.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\train_300k_seed1.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\tools\\summarize_protocol_v5_scaling.py",
+        "--v4-summary",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\reports\\protocol_v4\\fsq_abc_100epoch_three_seed_20260805.json",
+        "--rung-root",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\rungs",
+        "--output-dir",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\analysis",
+        "--target-curved-mse",
+        "5e-05",
+        "--projected-full-patches",
+        "3000000"
+      ],
+      "finished_at": "2026-08-07T09:25:47+08:00",
+      "name": "analyze_scaling",
+      "phase": "ANALYSIS",
+      "returncode": 3228369023,
+      "started_at": "2026-08-07T08:55:49+08:00",
+      "status": "FAILED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\analyze_scaling.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\analyze_scaling.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\tools\\summarize_protocol_v5_scaling.py",
+        "--v4-summary",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\reports\\protocol_v4\\fsq_abc_100epoch_three_seed_20260805.json",
+        "--rung-root",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\rungs",
+        "--output-dir",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\analysis",
+        "--target-curved-mse",
+        "5e-05",
+        "--projected-full-patches",
+        "3000000"
+      ],
+      "finished_at": "2026-08-07T10:28:31+08:00",
+      "name": "analyze_scaling",
+      "phase": "ANALYSIS",
+      "returncode": 0,
+      "started_at": "2026-08-07T10:28:30+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\analyze_scaling.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\analyze_scaling.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "finished_at": "2026-08-07T13:05:02+08:00",
+      "name": "continuous_bypass_300k_seed0",
+      "phase": "GPU_ORACLE_CONTINUOUS_BYPASS",
+      "returncode": 0,
+      "started_at": "2026-08-07T10:28:31+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\continuous_bypass_300k_seed0.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\continuous_bypass_300k_seed0.stdout.log"
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "finished_at": "2026-08-07T18:28:05+08:00",
+      "name": "continuous_bypass_300k_seed1",
+      "phase": "GPU_ORACLE_CONTINUOUS_BYPASS",
+      "returncode": 0,
+      "started_at": "2026-08-07T13:05:02+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\continuous_bypass_300k_seed1.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\logs\\continuous_bypass_300k_seed1.stdout.log"
+    }
+  ],
+  "updated_at": "2026-08-07T18:28:05+08:00"
+}
