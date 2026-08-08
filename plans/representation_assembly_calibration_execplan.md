@@ -18,6 +18,10 @@ The calibration result determines the next work. If validity is acceptable at cu
 - [x] (2026-08-09 11:25 +08:00) Ran a one-CAD three-arm smoke cohort. Original and continuous bypass were strict BRep-valid; bypass curved MSE was `7.5644e-5`. FSQ-8192/4D curved MSE was `0.0020393` and its STEP was BRep-invalid.
 - [x] (2026-08-09 12:05 +08:00) Ran 100 matched validation CAD for original, continuous bypass, and FSQ-8192/4D. All 300 attempts were retained. Strict BRep validity was 84/100 original, 70/100 bypass, and 49/100 FSQ.
 - [ ] Follow exactly one decision branch (selected: repair assembly first). The formal summary reports `ASSEMBLY_DOMINATED`; implementation and paired re-evaluation remain.
+- [x] (2026-08-09 14:05 +08:00) Audited all retained STEP files with both OCC-native and project-strict definitions. The definitions disagree, so both remain reported with attempts as denominator.
+- [x] (2026-08-09 14:30 +08:00) Ran a conservative ShapeFix pilot on 29 saved STEP attempts matched to the ten original-control saved-invalid CADs. Only two model-arm files became both native- and strict-valid; none of the ten original controls did, so generic postprocessing was rejected as the assembly repair.
+- [x] (2026-08-09 15:00 +08:00) Diagnosed the fixed strict-invalid subset: 9/10 original-control saved-invalid files had wire self-intersections; only 2/10 had non-unit solid count. The dominant repair target is directed trim-loop construction.
+- [ ] Implement and validate a directed-edge trim-loop pilot on the fixed original-control failures, then re-evaluate matched bypass/FSQ attempts.
 - [ ] Apply the explicit wall trigger after calibration plus conditional stability/decoder work: if curved error remains more than five times the task-derived gate, stop for a separate representation-upgrade cost/benefit review.
 
 ## Surprises & Discoveries
@@ -39,6 +43,15 @@ The calibration result determines the next work. If validity is acceptable at cu
 
 - Observation: The current assembly implementation has measurable failure floor even with unmodified parsed geometry.
   Evidence: Original control validity was 84/100. Failures included 10 written-but-invalid STEP files and 6 assembly exceptions from BSpline fitting, wire construction, or solid/shell construction.
+
+- Observation: OCC-native and project-strict validity are not equivalent and neither may silently replace the other.
+  Evidence: For direct-WCS, native validity was 86/100, strict validity was 85/100, and both-valid was 80/100. For the three calibration arms together, 24 files were native-only valid and 11 were strict-only valid.
+
+- Observation: A generic OCC ShapeFix pass is not a sufficient repair.
+  Evidence: It changed only 2/29 matched saved STEP attempts to strict-valid and changed 0/10 original-control saved-invalid files. Both successes were also native-valid, so no native-invalid output was promoted.
+
+- Observation: The frozen original-control failures are dominated by trim-loop self-intersection rather than a global shell tolerance issue.
+  Evidence: Component diagnosis found wire self-intersections in 9/10 original saved-invalid files, while non-unit solid count occurred in 2/10 and free edges in 0/10.
 
 ## Decision Log
 
@@ -66,9 +79,19 @@ The calibration result determines the next work. If validity is acceptable at cu
   Rationale: This preserves reproducibility across machines without turning Git into artifact storage.
   Date/Author: 2026-08-09 / Codex
 
+- Decision: Preserve both OCC-native and project-strict validity and require a promoted repair to improve attempts-based original and bypass results without increasing strict-only/native-invalid acceptance.
+  Rationale: The observed cross-matrix proves the metrics test different properties; optimizing only one can create false progress.
+  Date/Author: 2026-08-09 / Codex
+
+- Decision: Reject generic ShapeFix as the main assembly repair and diagnose topology failure components before changing construction.
+  Rationale: The fixed 29-attempt pilot repaired no original-control failures and only two model-arm files.
+  Date/Author: 2026-08-09 / Codex
+
 ## Outcomes & Retrospective
 
 Protocol V5 evidence is version-controlled and bound to local checkpoints by SHA-256. The direct calibration completed on 100 matched validation CAD. Original, bypass, and FSQ strict validity were 84%, 70%, and 49%. The paired result confirms that bypass is substantially better than FSQ, but current bypass validity is below the 80% acceptance floor and its invalidity is not strongly or monotonically explained by curved MSE. Because original parsed geometry also loses 16% through the same assembly path, the selected branch is `ASSEMBLY_DOMINATED`: repair and calibrate the assembly chain before learned-VQ 300k or decoder surgery. AR remains blocked.
+
+The first assembly-repair probe did not solve the branch: dual validity auditing exposed metric disagreement, and a conservative ShapeFix pass did not repair any original-control saved-invalid STEP. The next accepted work is targeted topology diagnosis and construction repair on the frozen failure subset, not VQ or decoder training.
 
 ## Context and Orientation
 
@@ -135,3 +158,7 @@ Revision note 2026-08-09: Created the assembly-calibration execution plan after 
 Revision note 2026-08-09 11:25 +08:00: Recorded the successful original-control and three-arm smoke integrations, focused test coverage, and the explicit restriction that the one-CAD result cannot select a scientific branch.
 
 Revision note 2026-08-09 12:10 +08:00: Recorded the 100-CAD matched cohort, formal `ASSEMBLY_DOMINATED` decision, paired original-control evidence, and the resulting requirement to repair assembly before VQ-300k or decoder work.
+
+Revision note 2026-08-09 14:35 +08:00: Recorded the dual-validity audit, the rejected ShapeFix pilot, and the targeted topology-diagnosis gate for the assembly branch.
+
+Revision note 2026-08-09 15:00 +08:00: Added component-level evidence; directed trim-loop construction is the next repair pilot and all representation/AR stages remain blocked.

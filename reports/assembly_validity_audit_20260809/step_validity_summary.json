@@ -1,0 +1,21 @@
+{
+  "attempts": 100,
+  "both_valid": 80,
+  "both_valid_rate": 0.8,
+  "native_brep_valid": 86,
+  "native_brep_valid_rate": 0.86,
+  "native_false_strict_true": 5,
+  "native_only": 6,
+  "native_true_strict_false": 6,
+  "neither_valid": 2,
+  "no_step": 7,
+  "status_counts": {
+    "audited": 93,
+    "no_step": 7
+  },
+  "step_saved": 93,
+  "step_saved_rate": 0.93,
+  "strict_brep_valid": 85,
+  "strict_brep_valid_rate": 0.85,
+  "strict_only": 5
+}

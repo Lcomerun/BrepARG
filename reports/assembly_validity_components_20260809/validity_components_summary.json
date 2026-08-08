@@ -1,0 +1,14 @@
+{
+  "attempts": 81,
+  "by_arm": {
+    "continuous_bypass_64d": 26,
+    "fsq_8192_4d": 45,
+    "original": 10
+  },
+  "diagnosed": 81,
+  "with_bad_shell_edges": 0,
+  "with_free_edges": 1,
+  "with_nonunit_solid_count": 42,
+  "with_wire_order_failures": 0,
+  "with_wire_self_intersections": 63
+}
