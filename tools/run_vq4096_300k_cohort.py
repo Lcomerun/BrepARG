@@ -31,12 +31,17 @@ def atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
 
 
 def training_environment(
-    *, protocol_dir: Path, output_root: Path, seed: int,
+    *, repo_root: Path, protocol_dir: Path, output_root: Path, seed: int,
     train_cap: int, val_cap: int, epochs: int, min_epochs: int,
     patience: int, batch_size: int, learning_rate: str,
 ) -> dict[str, str]:
     seed_root = output_root / f"seed{seed}"
     return {
+        # Git checks this process-local config before repository ownership, so
+        # the training manifest can bind HEAD without changing global config.
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "safe.directory",
+        "GIT_CONFIG_VALUE_0": str(Path(repo_root).resolve()).replace("\\", "/"),
         "NS_OUTBASE": str(output_root), "NS_OUT": f"seed{seed}",
         "NS_PROTOCOL_DIR": str(protocol_dir), "NS_PROTOCOL_V2": "1",
         "NS_VQ_BS": str(batch_size), "NS_VQ_COMPLEX_FRACTION": "0",
@@ -121,7 +126,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         atomic_json(state_path, state)
         env = {key: value for key, value in os.environ.items() if not key.startswith("NS_")}
         env.update(training_environment(
-            protocol_dir=args.protocol_dir, output_root=args.output_root, seed=seed,
+            repo_root=args.repo_root, protocol_dir=args.protocol_dir,
+            output_root=args.output_root, seed=seed,
             train_cap=args.train_cap, val_cap=args.val_cap, epochs=args.epochs,
             min_epochs=args.min_epochs, patience=args.patience, batch_size=args.batch_size,
             learning_rate=args.learning_rate,
