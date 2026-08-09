@@ -14,8 +14,8 @@ The four arms are `fsq_8192_4d`, `fsq_4096_6d`, `vq_4096_64d_random`, and `conti
 - [x] (2026-08-10 09:05 +08:00) Deleted `D:\luolin\V13\local_runs\vq4096_300k_2seed_20260809` after separately resolving and verifying that it was a single child of `local_runs` and that no training process remained.
 - [x] (2026-08-10 09:45 +08:00) Implemented and tested a five-seed, four-arm launcher that requires exactly 100 completed epochs per arm, best and final checkpoints, exact caps, and fail-closed state.
 - [x] (2026-08-10 09:55 +08:00) Implemented and tested fixed-cohort surface reconstruction with local NPZ artifacts and lightweight per-CAD, per-checkpoint, and cross-seed summaries.
-- [ ] Commit and push the launcher, evaluator, tests, and updated plan before training.
-- [ ] Start the cohort, verify 300k/12k sampling, GPU utilization, TensorBoard output, and the first finite training epoch, then allow the launcher to continue unattended.
+- [x] (2026-08-10 00:29 +08:00) Committed and pushed the launcher, evaluator, focused tests, and plan as `d379d4b` on `experiment/protocol-v5-scaling-ladder`.
+- [x] (2026-08-10 00:36 +08:00) Started the cohort and verified the exact `train=300000 val=12000` inventory gate, an active TensorBoard event file, no stderr traceback, and sustained ~97% GPU utilization on seed 0. The first epoch is still running; the launcher is left unattended as configured.
 - [ ] After all five seeds finish, run automatic surface reconstruction, archive lightweight evidence, compare arms, and decide the next representation gate. AR remains blocked until this item completes.
 
 ## Surprises & Discoveries
