@@ -136,6 +136,7 @@ VQ_EXPERIMENT_SEED = int(os.environ.get('NS_VQ_EXPERIMENT_SEED', '0'))
 VQ_SWEEP_ARMS = tuple(
     name.strip() for name in os.environ.get('NS_VQ_SWEEP_ARMS', '').split(',') if name.strip()
 )
+VQ_SAVE_FINAL = parse_env_bool(os.environ.get('NS_VQ_SAVE_FINAL'), False)
 VQ_PLATEAU_METRIC = os.environ.get('NS_VQ_PLATEAU_METRIC', 'global_val').strip().lower()
 VQ_PROMOTION_MIN_PERPLEXITY = float(os.environ.get('NS_VQ_PROMOTION_MIN_PERPLEXITY', '800'))
 VQ_PROMOTION_MAX_CURVED_PARENT_MSE = float(
@@ -1538,6 +1539,9 @@ def stage_vqsweep():
         arm_history = os.path.join(OUT, f"{c['name']}_history.json")
         arm_tb = os.path.join(VQ_TB_LOG_DIR, c['name']) if VQ_TB_LOG_DIR else None
         arm_checkpoint = os.path.join(OUT, f"{c['name']}_best.pt")
+        arm_final_checkpoint = (
+            os.path.join(OUT, f"{c['name']}_final.pt") if VQ_SAVE_FINAL else None
+        )
         hist, bv, arm_meta = _train_vqvae(
             m, Xtr, Xva, epochs=VQ_SWEEP_EPOCHS, bs=VQ_BS, lr=c['lr'], tag=c['name'],
             val_buckets=protocol_data['val_buckets'],
@@ -1545,6 +1549,7 @@ def stage_vqsweep():
             codebook_size=int(c.get('codebook_size') or np.prod(c['levels'])), history_path=arm_history,
             tb_log_dir=arm_tb,
             save_path=arm_checkpoint,
+            save_final_path=arm_final_checkpoint,
             fsq_levels=c['levels'],
             quantizer_metadata=c.get('quantizer'),
             checkpoint_context=checkpoint_context,
@@ -1571,6 +1576,8 @@ def stage_vqsweep():
             'checkpoint_epoch': arm_meta.get('checkpoint_epoch'),
             'checkpoint_val_recon': arm_meta.get('checkpoint_val_recon'),
             'checkpoint_best': arm_checkpoint,
+            'checkpoint_final': arm_final_checkpoint,
+            'final_checkpoint_epoch': arm_meta.get('end_epoch'),
             'train_sampling': protocol_data['train_sampling'],
             'val_sampling': protocol_data['val_sampling'],
             'cross_split_exact': protocol_data['cross_split_exact'],
