@@ -78,6 +78,13 @@ def sweep_complete(path: Path, *, train_cap: int, min_epochs: int, max_epochs: i
     )
 
 
+def mark_retry_running(state: dict[str, Any]) -> dict[str, Any]:
+    state["status"] = "RUNNING"
+    state["updated_at"] = now()
+    state["active_seed"] = None
+    return state
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, required=True)
@@ -114,6 +121,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             "learning_rate": args.learning_rate, "protocol_dir": str(args.protocol_dir),
         },
     }
+    # A retry keeps prior failed steps as evidence, but the cohort itself is
+    # running again.  Without this reset, status remains misleadingly FAILED
+    # until both seeds complete.
+    mark_retry_running(state)
+    atomic_json(state_path, state)
     for seed in seeds:
         sweep = args.output_root / f"seed{seed}" / "vqvae_hp_sweep.json"
         if sweep_complete(sweep, train_cap=args.train_cap, min_epochs=args.min_epochs, max_epochs=args.epochs):

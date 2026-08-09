@@ -1,6 +1,6 @@
 import json
 
-from tools.run_vq4096_300k_cohort import sweep_complete, training_environment
+from tools.run_vq4096_300k_cohort import mark_retry_running, sweep_complete, training_environment
 
 
 def test_training_environment_is_single_arm_300k_random_vq(tmp_path):
@@ -26,3 +26,11 @@ def test_sweep_complete_checks_cap_arm_and_parent_coverage(tmp_path):
                                             "final_parent_coverage": 0.95}}],
     }), encoding="utf-8")
     assert sweep_complete(path, train_cap=300000, min_epochs=40, max_epochs=100)
+
+
+def test_retry_state_becomes_running_without_dropping_failed_step():
+    state = {"status": "FAILED", "active_seed": 0, "steps": [{"status": "FAILED"}]}
+    result = mark_retry_running(state)
+    assert result["status"] == "RUNNING"
+    assert result["active_seed"] is None
+    assert result["steps"] == [{"status": "FAILED"}]
