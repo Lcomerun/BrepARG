@@ -24,7 +24,7 @@ The calibration result determines the next work. If validity is acceptable at cu
 - [x] (2026-08-09 15:35 +08:00) Implemented directed trim loops with global edge-id mapping and vertex-directed reversal. On the frozen 10 original saved-invalid CADs it yielded 0 strict-valid, 5 native-valid, and 2 topology-rejected attempts, so it was not promoted or expanded.
 - [x] (2026-08-09 16:00 +08:00) Ran a 100-CAD original-control joint-iteration ablation at zero iterations. Strict validity changed from 84 to 86, but native validity stayed 85 and both-valid stayed 81, so joint optimization is not the main general repair lever.
 - [x] (2026-08-09 16:05 +08:00) Computed paired assembly ceilings. Bypass retained 69/84 original strict-valid CADs and 66/81 original both-valid CADs; FSQ retained 48/84 and 44/81. The assembly floor is real but does not explain the large FSQ loss relative to bypass.
-- [ ] Train learned VQ-4096/64D with random historical-pool anchoring on the 300k protocol for seeds 0 and 1, then compare its curved error and utilization against bypass and FSQ.
+- [ ] (2026-08-09 16:14 +08:00) Train learned VQ-4096/64D with random historical-pool anchoring on the 300k protocol for seeds 0 and 1, then compare its curved error and utilization against bypass and FSQ. Seed 0 is currently healthy after the CPU data build: `train=300000`, `val=12000`, GPU 97-98%, about 3.5 GB VRAM, no stderr; the launcher will start seed 1 serially after seed 0 passes its sweep gate.
 - [ ] Apply the explicit wall trigger after calibration plus conditional stability/decoder work: if curved error remains more than five times the task-derived gate, stop for a separate representation-upgrade cost/benefit review.
 
 ## Surprises & Discoveries
