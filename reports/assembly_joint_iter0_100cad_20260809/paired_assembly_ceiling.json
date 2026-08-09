@@ -1,0 +1,32 @@
+{
+  "arms": {
+    "continuous_bypass_64d": {
+      "both_valid_retained": 66,
+      "both_valid_retention_rate": 0.8148148148148148,
+      "paired_attempts": 100,
+      "reference_both_valid_attempts": 81,
+      "reference_strict_invalid_attempts": 16,
+      "reference_strict_valid_attempts": 84,
+      "strict_invalid_recovered": 1,
+      "strict_recovery_rate": 0.0625,
+      "strict_retention_rate": 0.8214285714285714,
+      "strict_valid_retained": 69
+    },
+    "fsq_8192_4d": {
+      "both_valid_retained": 44,
+      "both_valid_retention_rate": 0.5432098765432098,
+      "paired_attempts": 100,
+      "reference_both_valid_attempts": 81,
+      "reference_strict_invalid_attempts": 16,
+      "reference_strict_valid_attempts": 84,
+      "strict_invalid_recovered": 1,
+      "strict_recovery_rate": 0.0625,
+      "strict_retention_rate": 0.5714285714285714,
+      "strict_valid_retained": 48
+    }
+  },
+  "reference_arm": "original",
+  "reference_attempts": 100,
+  "reference_both_valid": 81,
+  "reference_strict_valid": 84
+}

@@ -1,0 +1,12 @@
+{
+  "attempts": 8,
+  "by_arm": {
+    "original": 8
+  },
+  "diagnosed": 8,
+  "with_bad_shell_edges": 0,
+  "with_free_edges": 0,
+  "with_nonunit_solid_count": 0,
+  "with_wire_order_failures": 0,
+  "with_wire_self_intersections": 8
+}

@@ -1,0 +1,44 @@
+{
+  "attempts": 100,
+  "both_valid": 81,
+  "both_valid_rate": 0.81,
+  "by_arm": {
+    "original": {
+      "attempts": 100,
+      "both_valid": 81,
+      "both_valid_rate": 0.81,
+      "native_brep_valid": 85,
+      "native_brep_valid_rate": 0.85,
+      "native_false_strict_true": 5,
+      "native_only": 4,
+      "native_true_strict_false": 4,
+      "neither_valid": 4,
+      "no_step": 6,
+      "status_counts": {
+        "audited": 94,
+        "no_step": 6
+      },
+      "step_saved": 94,
+      "step_saved_rate": 0.94,
+      "strict_brep_valid": 86,
+      "strict_brep_valid_rate": 0.86,
+      "strict_only": 5
+    }
+  },
+  "native_brep_valid": 85,
+  "native_brep_valid_rate": 0.85,
+  "native_false_strict_true": 5,
+  "native_only": 4,
+  "native_true_strict_false": 4,
+  "neither_valid": 4,
+  "no_step": 6,
+  "status_counts": {
+    "audited": 94,
+    "no_step": 6
+  },
+  "step_saved": 94,
+  "step_saved_rate": 0.94,
+  "strict_brep_valid": 86,
+  "strict_brep_valid_rate": 0.86,
+  "strict_only": 5
+}

@@ -17,11 +17,14 @@ The calibration result determines the next work. If validity is acceptable at cu
 - [x] (2026-08-09 11:20 +08:00) Implemented the fail-closed calibration runner with strict checkpoint loading, direct patch reconstruction, CPU joint optimization, STEP/OCC validation, attempt-preserving JSONL, restart keys, and Pillow summary rendering.
 - [x] (2026-08-09 11:25 +08:00) Ran a one-CAD three-arm smoke cohort. Original and continuous bypass were strict BRep-valid; bypass curved MSE was `7.5644e-5`. FSQ-8192/4D curved MSE was `0.0020393` and its STEP was BRep-invalid.
 - [x] (2026-08-09 12:05 +08:00) Ran 100 matched validation CAD for original, continuous bypass, and FSQ-8192/4D. All 300 attempts were retained. Strict BRep validity was 84/100 original, 70/100 bypass, and 49/100 FSQ.
-- [ ] Follow exactly one decision branch (selected: repair assembly first). The formal summary reports `ASSEMBLY_DOMINATED`; implementation and paired re-evaluation remain.
+- [x] (2026-08-09 16:10 +08:00) Followed the assembly-dominated branch through two bounded repair pilots. Neither generic ShapeFix nor directed trim loops improved original-control both-valid rate, and the 0-vs-200 joint-iteration control was tied at 81/100 both-valid. Closed broad assembly exploration and returned to the paired representation comparison while retaining the measured assembly floor.
 - [x] (2026-08-09 14:05 +08:00) Audited all retained STEP files with both OCC-native and project-strict definitions. The definitions disagree, so both remain reported with attempts as denominator.
 - [x] (2026-08-09 14:30 +08:00) Ran a conservative ShapeFix pilot on 29 saved STEP attempts matched to the ten original-control saved-invalid CADs. Only two model-arm files became both native- and strict-valid; none of the ten original controls did, so generic postprocessing was rejected as the assembly repair.
 - [x] (2026-08-09 15:00 +08:00) Diagnosed the fixed strict-invalid subset: 9/10 original-control saved-invalid files had wire self-intersections; only 2/10 had non-unit solid count. The dominant repair target is directed trim-loop construction.
-- [ ] Implement and validate a directed-edge trim-loop pilot on the fixed original-control failures, then re-evaluate matched bypass/FSQ attempts.
+- [x] (2026-08-09 15:35 +08:00) Implemented directed trim loops with global edge-id mapping and vertex-directed reversal. On the frozen 10 original saved-invalid CADs it yielded 0 strict-valid, 5 native-valid, and 2 topology-rejected attempts, so it was not promoted or expanded.
+- [x] (2026-08-09 16:00 +08:00) Ran a 100-CAD original-control joint-iteration ablation at zero iterations. Strict validity changed from 84 to 86, but native validity stayed 85 and both-valid stayed 81, so joint optimization is not the main general repair lever.
+- [x] (2026-08-09 16:05 +08:00) Computed paired assembly ceilings. Bypass retained 69/84 original strict-valid CADs and 66/81 original both-valid CADs; FSQ retained 48/84 and 44/81. The assembly floor is real but does not explain the large FSQ loss relative to bypass.
+- [ ] Train learned VQ-4096/64D with random historical-pool anchoring on the 300k protocol for seeds 0 and 1, then compare its curved error and utilization against bypass and FSQ.
 - [ ] Apply the explicit wall trigger after calibration plus conditional stability/decoder work: if curved error remains more than five times the task-derived gate, stop for a separate representation-upgrade cost/benefit review.
 
 ## Surprises & Discoveries
@@ -52,6 +55,15 @@ The calibration result determines the next work. If validity is acceptable at cu
 
 - Observation: The frozen original-control failures are dominated by trim-loop self-intersection rather than a global shell tolerance issue.
   Evidence: Component diagnosis found wire self-intersections in 9/10 original saved-invalid files, while non-unit solid count occurred in 2/10 and free edges in 0/10.
+
+- Observation: Fixing edge orientation and local/global loop indexing does not remove the strict self-intersection result.
+  Evidence: Directed trimming produced 0/10 strict-valid on the frozen original saved-invalid subset; all eight written STEP files still reported wire self-intersections and two CADs had branching/open face topology.
+
+- Observation: Removing joint surface-offset optimization changes which validity definition passes but not the robust both-valid ceiling.
+  Evidence: At 0 iterations the 100-CAD original control was native 85, strict 86, both 81; at 200 iterations it was native 85, strict 84, both 81.
+
+- Observation: Representation error causes substantial loss even after conditioning on CADs the original assembly path can handle.
+  Evidence: Continuous bypass retained strict validity on 69/84 original-valid CADs, while FSQ-8192/4D retained only 48/84. Both recovered just 1/16 original-invalid CADs.
 
 ## Decision Log
 
@@ -87,11 +99,21 @@ The calibration result determines the next work. If validity is acceptable at cu
   Rationale: The fixed 29-attempt pilot repaired no original-control failures and only two model-arm files.
   Date/Author: 2026-08-09 / Codex
 
+- Decision: Do not promote directed trim construction or zero-iteration joint optimization.
+  Rationale: Neither improved the 100-CAD both-valid ceiling, and directed trimming introduced two fail-closed topology rejections on the frozen subset.
+  Date/Author: 2026-08-09 / Codex
+
+- Decision: Resume the missing learned-VQ 300k experiment while preserving the measured original-control assembly floor.
+  Rationale: Paired conditioning shows FSQ loses 36 strict-valid original CADs versus 15 for bypass. This representation-dependent gap remains scientifically actionable even though assembly has an independent floor.
+  Date/Author: 2026-08-09 / Codex
+
 ## Outcomes & Retrospective
 
 Protocol V5 evidence is version-controlled and bound to local checkpoints by SHA-256. The direct calibration completed on 100 matched validation CAD. Original, bypass, and FSQ strict validity were 84%, 70%, and 49%. The paired result confirms that bypass is substantially better than FSQ, but current bypass validity is below the 80% acceptance floor and its invalidity is not strongly or monotonically explained by curved MSE. Because original parsed geometry also loses 16% through the same assembly path, the selected branch is `ASSEMBLY_DOMINATED`: repair and calibrate the assembly chain before learned-VQ 300k or decoder surgery. AR remains blocked.
 
 The first assembly-repair probe did not solve the branch: dual validity auditing exposed metric disagreement, and a conservative ShapeFix pass did not repair any original-control saved-invalid STEP. The next accepted work is targeted topology diagnosis and construction repair on the frozen failure subset, not VQ or decoder training.
+
+The bounded assembly investigation is now complete. Directed trimming and removal of joint optimization did not improve the robust both-valid rate. Paired analysis nevertheless shows a large representation-induced loss: bypass retains roughly 82% of original strict-valid CADs while FSQ retains 57%. The next missing matrix cell is therefore learned VQ-4096/64D at 300k for two seeds. This does not declare assembly fixed and does not authorize AR; it isolates whether a learned 64-dimensional codebook closes the bypass gap.
 
 ## Context and Orientation
 
@@ -162,3 +184,5 @@ Revision note 2026-08-09 12:10 +08:00: Recorded the 100-CAD matched cohort, form
 Revision note 2026-08-09 14:35 +08:00: Recorded the dual-validity audit, the rejected ShapeFix pilot, and the targeted topology-diagnosis gate for the assembly branch.
 
 Revision note 2026-08-09 15:00 +08:00: Added component-level evidence; directed trim-loop construction is the next repair pilot and all representation/AR stages remain blocked.
+
+Revision note 2026-08-09 16:10 +08:00: Recorded the negative directed-trim and joint-iteration pilots, paired assembly ceiling, and evidence-based transition to the missing learned-VQ 300k cohort. AR remains blocked.

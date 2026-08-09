@@ -1,0 +1,59 @@
+{
+  "advance_to_ar": false,
+  "advance_to_vq_300k": false,
+  "attempts": 10,
+  "both_valid": 0,
+  "both_valid_rate": 0.0,
+  "by_arm": {
+    "original": {
+      "attempts": 10,
+      "both_valid": 0,
+      "both_valid_rate": 0.0,
+      "native_brep_valid": 5,
+      "native_brep_valid_rate": 0.5,
+      "native_false_strict_true": 0,
+      "native_only": 5,
+      "native_true_strict_false": 5,
+      "neither_valid": 3,
+      "no_step": 2,
+      "status_counts": {
+        "assembly_error": 2,
+        "brep_invalid": 8
+      },
+      "step_saved": 8,
+      "step_saved_rate": 0.8,
+      "strict_brep_valid": 0,
+      "strict_brep_valid_rate": 0.0,
+      "strict_only": 0
+    }
+  },
+  "native_brep_valid": 5,
+  "native_brep_valid_rate": 0.5,
+  "native_false_strict_true": 0,
+  "native_only": 5,
+  "native_true_strict_false": 5,
+  "neither_valid": 3,
+  "no_step": 2,
+  "reference_arm": "original",
+  "selected_cad_ids": [
+    "00000444_4ed4c78d6d754aac90876fc2_step_003",
+    "00002441_179a8df075c94d0596b1f20d_step_010",
+    "00008763_affd199038524a1c8e3b7ad4_step_001",
+    "00029780_a4788d5955c04fe1886666b7_step_000",
+    "00032101_674d8fea687f4d9bbca6599b_step_000",
+    "00047472_197769bbdd814278b715d88a_step_000",
+    "00051587_446e8810d6884cae80689579_step_000",
+    "00063055_e309c689b9b44f0686f47966_step_000",
+    "00067160_2a27016aa44f42c69c1079f7_step_000",
+    "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000"
+  ],
+  "status_counts": {
+    "assembly_error": 2,
+    "brep_invalid": 8
+  },
+  "step_saved": 8,
+  "step_saved_rate": 0.8,
+  "strict_brep_valid": 0,
+  "strict_brep_valid_rate": 0.0,
+  "strict_only": 0
+}

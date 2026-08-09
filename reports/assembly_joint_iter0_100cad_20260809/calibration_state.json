@@ -1,0 +1,15 @@
+{
+  "advance_to_ar": false,
+  "arms": [
+    "original"
+  ],
+  "checkpoints": {},
+  "created_at": "2026-08-09T16:00:08+0800",
+  "expected_rows": 100,
+  "manifest": "D:\\luolin\\V13\\local_runs\\assembly_joint_iter0_100cad_20260809\\calibration_manifest.jsonl",
+  "manifest_rows": 100,
+  "protocol_dir": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol",
+  "protocol_sha256": "6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3",
+  "selected_cads": 100,
+  "status": "COMPLETED"
+}
