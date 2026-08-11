@@ -22,7 +22,7 @@
   "health_summary": {
     "seed0_nonfinite_arms": ["fsq_8192_4d", "fsq_4096_6d", "vq_4096_64d_random", "continuous_bypass_64d"],
     "seed1_nonfinite_arms": ["fsq_8192_4d", "fsq_4096_6d"],
-    "seed2_observation": "fsq_8192_4d reached epoch 40 with non-finite validation batches",
+    "seed2_observation": "fsq_8192_4d reached epoch 50; epoch 50 had only 65/2344 finite train batches and 5/94 finite validation batches",
     "promotion_allowed": false,
     "downstream_ar_allowed": false
   },

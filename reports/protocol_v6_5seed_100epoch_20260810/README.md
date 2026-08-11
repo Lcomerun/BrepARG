@@ -16,8 +16,9 @@ integrity checks.
 
 - Seed 0: completed all four arms at 100 epochs; launcher validation passed.
 - Seed 1: completed all four arms at 100 epochs; launcher validation passed.
-- Seed 2: running; the `fsq_8192_4d` arm had reached epoch 40 when this snapshot
-  was collected.
+- Seed 2: running; the `fsq_8192_4d` arm had reached epoch 50 when this snapshot
+  was collected. At epoch 50 only 65/2344 train batches and 5/94 validation
+  batches were finite.
 - Seeds 3 and 4: not started yet.
 - Surface reconstruction: not started.
 - AR and sequence regeneration: still blocked.
@@ -48,6 +49,7 @@ and non-finite sample counts.
 - `cohort_state.json`: launcher state and checkpoint SHA-256 records for
   completed seeds.
 - `seed0/` and `seed1/`: sweep manifests and per-arm training histories.
+- `seed2_fsq_8192_4d_history.json`: current history snapshot for the active arm.
 - `logs/`: stdout/stderr snapshots for completed seeds and the active seed.
 - `training_health_summary.csv` and `.json`: compact cross-seed status table.
 
