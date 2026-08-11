@@ -29,18 +29,19 @@ finite losses and useful code usage before any downstream decision.
 
 ## Health finding
 
-Seed 0 logs show numerical instability in the learned VQ and continuous-bypass
-arms after an initially finite phase. For example, the learned VQ arm reached
-`best_val_recon=0.00154` at epoch 7, then reported non-finite train and
-validation batches through epoch 99. The continuous-bypass arm likewise became
-non-finite during later epochs. These runs are retained as evidence, but they
-are not healthy representation results and must not be promoted to sequence/AR.
+Seed 0 shows numerical instability in all four arms after an initially finite
+phase. The learned VQ arm reached `best_val_recon=0.00154` at epoch 7 and then
+reported non-finite validation samples through epoch 99; the two FSQ arms and
+continuous bypass also became non-finite later in training. In seed 1, the
+learned VQ and continuous-bypass arms stayed finite for all 100 epochs, while
+both FSQ arms became non-finite after their early finite phase. These runs are
+retained as evidence, but an arm with any non-finite validation epoch is not a
+healthy representation result and must not be promoted to sequence/AR.
 
-Seed 1 remained finite in the logged checkpoints through epoch 99, but its
-promotion gate was still false because the configured curved-parent-MSE and
-perplexity thresholds were not satisfied. See the per-seed `vqvae_hp_sweep.json`
-and `*_history.json` files for the complete bucket metrics and non-finite sample
-counts.
+The promotion gate was false for every completed arm because the configured
+curved-parent-MSE and perplexity criteria were not satisfied. See the per-seed
+`vqvae_hp_sweep.json` and `*_history.json` files for the complete bucket metrics
+and non-finite sample counts.
 
 ## Tracked artifacts
 
@@ -52,4 +53,3 @@ counts.
 
 Model checkpoints (`*.pt`), TensorBoard event files, raw protocol data, and
 surface reconstruction arrays are deliberately not tracked in Git.
-

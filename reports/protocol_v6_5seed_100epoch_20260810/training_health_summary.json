@@ -20,8 +20,8 @@
   "active_seed": 2,
   "surface_reconstruction": "pending",
   "health_summary": {
-    "seed0_nonfinite_arms": ["vq_4096_64d_random", "continuous_bypass_64d"],
-    "seed1_nonfinite_arms": [],
+    "seed0_nonfinite_arms": ["fsq_8192_4d", "fsq_4096_6d", "vq_4096_64d_random", "continuous_bypass_64d"],
+    "seed1_nonfinite_arms": ["fsq_8192_4d", "fsq_4096_6d"],
     "seed2_observation": "fsq_8192_4d reached epoch 40 with non-finite validation batches",
     "promotion_allowed": false,
     "downstream_ar_allowed": false
