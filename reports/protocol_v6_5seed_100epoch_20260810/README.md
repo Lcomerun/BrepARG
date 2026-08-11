@@ -51,7 +51,10 @@ and non-finite sample counts.
 - `seed0/` and `seed1/`: sweep manifests and per-arm training histories.
 - `seed2_fsq_8192_4d_history.json`: current history snapshot for the active arm.
 - `logs/`: stdout/stderr snapshots for completed seeds and the active seed.
+- `tensorboard/`: TensorBoard event snapshots for seed0/seed1 and the active
+  seed2 arm (about 0.7 MiB at this snapshot).
 - `training_health_summary.csv` and `.json`: compact cross-seed status table.
 
-Model checkpoints (`*.pt`), TensorBoard event files, raw protocol data, and
-surface reconstruction arrays are deliberately not tracked in Git.
+Model checkpoints (`*.pt`), raw protocol data, and surface reconstruction arrays
+are deliberately not tracked in Git. The small TensorBoard event snapshots are
+tracked because they are useful for inspecting the reported instability.
