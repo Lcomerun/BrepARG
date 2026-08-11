@@ -1,0 +1,55 @@
+[15:23:12] ===== STAGE vqsweep =====
+[15:23:12] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[15:30:06]   sweep 数据: train=300000 val=12000  (短训 15 ep)
+[15:34:59]   fsq_8192_4d ep   0 train=0.04547 val=0.01466 best=0.01466 finite_train=2344/2344 finite_val=94/94
+[16:23:48]   fsq_8192_4d ep  10 train=0.00130 val=0.00121 best=0.00119 finite_train=2344/2344 finite_val=94/94
+[17:09:56]   fsq_8192_4d ep  20 train=0.00082 val=inf best=0.00095 finite_train=1363/2344 finite_val=51/94
+[17:31:19]   fsq_8192_4d ep  30 train=0.00071 val=inf best=0.00095 finite_train=44/2344 finite_val=3/94
+[17:48:14]   fsq_8192_4d ep  40 train=0.00077 val=inf best=0.00095 finite_train=46/2344 finite_val=2/94
+[18:05:20]   fsq_8192_4d ep  50 train=0.00086 val=inf best=0.00095 finite_train=16/2344 finite_val=0/94
+[18:21:49]   fsq_8192_4d ep  60 train=0.00053 val=inf best=0.00095 finite_train=11/2344 finite_val=0/94
+[18:38:13]   fsq_8192_4d ep  70 train=0.00088 val=inf best=0.00095 finite_train=10/2344 finite_val=0/94
+[18:54:38]   fsq_8192_4d ep  80 train=0.00071 val=inf best=0.00095 finite_train=3/2344 finite_val=1/94
+[19:11:01]   fsq_8192_4d ep  90 train=0.00098 val=inf best=0.00095 finite_train=3/2344 finite_val=0/94
+[19:25:45]   fsq_8192_4d ep  99 train=0.00056 val=inf best=0.00095 finite_train=4/2344 finite_val=1/94
+[19:25:45]   fsq_8192_4d early stop at ep 99: nonfinite_val_epochs=83 best=0.00095 best_epoch=15
+[19:25:45]   -> fsq_8192_4d: best_val_recon=0.00095
+[19:30:38]   fsq_4096_6d ep   0 train=0.04063 val=0.00775 best=0.00775 finite_train=2344/2344 finite_val=94/94
+[20:19:25]   fsq_4096_6d ep  10 train=0.00191 val=inf best=0.00168 finite_train=2343/2344 finite_val=92/94
+[20:41:26]   fsq_4096_6d ep  20 train=0.00153 val=inf best=0.00168 finite_train=68/2344 finite_val=3/94
+[20:58:03]   fsq_4096_6d ep  30 train=0.00136 val=inf best=0.00168 finite_train=24/2344 finite_val=4/94
+[21:14:34]   fsq_4096_6d ep  40 train=0.00166 val=inf best=0.00168 finite_train=17/2344 finite_val=3/94
+[21:31:00]   fsq_4096_6d ep  50 train=0.00165 val=inf best=0.00168 finite_train=25/2344 finite_val=3/94
+[21:47:22]   fsq_4096_6d ep  60 train=0.00160 val=inf best=0.00168 finite_train=13/2344 finite_val=3/94
+[22:03:43]   fsq_4096_6d ep  70 train=0.00131 val=inf best=0.00168 finite_train=11/2344 finite_val=4/94
+[22:20:13]   fsq_4096_6d ep  80 train=0.00238 val=inf best=0.00168 finite_train=7/2344 finite_val=2/94
+[22:36:33]   fsq_4096_6d ep  90 train=0.00089 val=inf best=0.00168 finite_train=2/2344 finite_val=3/94
+[22:51:14]   fsq_4096_6d ep  99 train=0.00129 val=inf best=0.00168 finite_train=5/2344 finite_val=3/94
+[22:51:14]   fsq_4096_6d early stop at ep 99: nonfinite_val_epochs=90 best=0.00168 best_epoch=9
+[22:51:14]   -> fsq_4096_6d: best_val_recon=0.00168
+[22:56:12]   vq_4096_64d_random ep   0 train=0.08561 val=0.01104 best=0.01104 finite_train=2344/2344 finite_val=94/94
+[23:45:44]   vq_4096_64d_random ep  10 train=0.00191 val=0.00106 best=0.00104 finite_train=2344/2344 finite_val=94/94
+[00:35:13]   vq_4096_64d_random ep  20 train=0.00143 val=0.00079 best=0.00077 finite_train=2344/2344 finite_val=94/94
+[01:24:45]   vq_4096_64d_random ep  30 train=0.00129 val=0.00071 best=0.00065 finite_train=2344/2344 finite_val=94/94
+[02:14:24]   vq_4096_64d_random ep  40 train=0.00114 val=0.00066 best=0.00056 finite_train=2344/2344 finite_val=94/94
+[03:04:02]   vq_4096_64d_random ep  50 train=0.00106 val=0.00056 best=0.00056 finite_train=2344/2344 finite_val=94/94
+[03:53:39]   vq_4096_64d_random ep  60 train=0.00089 val=0.00058 best=0.00053 finite_train=2344/2344 finite_val=94/94
+[04:43:16]   vq_4096_64d_random ep  70 train=0.00082 val=0.00057 best=0.00052 finite_train=2344/2344 finite_val=94/94
+[05:32:56]   vq_4096_64d_random ep  80 train=0.00080 val=0.00061 best=0.00049 finite_train=2344/2344 finite_val=94/94
+[06:22:36]   vq_4096_64d_random ep  90 train=0.00075 val=0.00051 best=0.00047 finite_train=2344/2344 finite_val=94/94
+[07:07:20]   vq_4096_64d_random ep  99 train=0.00074 val=0.00045 best=0.00045 finite_train=2344/2344 finite_val=94/94
+[07:07:21]   -> vq_4096_64d_random: best_val_recon=0.00045
+[07:12:13]   continuous_bypass_64d ep   0 train=0.03196 val=0.00349 best=0.00349 finite_train=2344/2344 finite_val=94/94
+[08:00:54]   continuous_bypass_64d ep  10 train=0.00045 val=0.00038 best=0.00038 finite_train=2344/2344 finite_val=94/94
+[08:49:31]   continuous_bypass_64d ep  20 train=0.00037 val=0.00032 best=0.00032 finite_train=2344/2344 finite_val=94/94
+[09:38:09]   continuous_bypass_64d ep  30 train=0.00030 val=0.00030 best=0.00030 finite_train=2344/2344 finite_val=94/94
+[10:26:46]   continuous_bypass_64d ep  40 train=0.00025 val=0.00036 best=0.00026 finite_train=2344/2344 finite_val=94/94
+[11:15:19]   continuous_bypass_64d ep  50 train=0.00019 val=0.00021 best=0.00021 finite_train=2344/2344 finite_val=94/94
+[12:03:42]   continuous_bypass_64d ep  60 train=0.00023 val=0.00025 best=0.00021 finite_train=2344/2344 finite_val=94/94
+[12:52:04]   continuous_bypass_64d ep  70 train=0.00017 val=0.00020 best=0.00021 finite_train=2344/2344 finite_val=94/94
+[13:40:26]   continuous_bypass_64d ep  80 train=0.00018 val=0.00023 best=0.00017 finite_train=2344/2344 finite_val=94/94
+[14:28:47]   continuous_bypass_64d ep  90 train=0.00015 val=0.00024 best=0.00017 finite_train=2344/2344 finite_val=94/94
+[15:12:25]   continuous_bypass_64d ep  99 train=0.00013 val=0.00018 best=0.00017 finite_train=2344/2344 finite_val=94/94
+[15:12:25]   -> continuous_bypass_64d: best_val_recon=0.00017
+[15:12:25]   NO PROMOTED ARM: MSE ranking is diagnostic only
+[15:12:25] DONE {'vqsweep': 'PASS'} in 1429.2min

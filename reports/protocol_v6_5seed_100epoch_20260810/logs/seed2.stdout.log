@@ -1,0 +1,9 @@
+[15:12:33] ===== STAGE vqsweep =====
+[15:12:33] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[15:19:32]   sweep 数据: train=300000 val=12000  (短训 15 ep)
+[15:24:26]   fsq_8192_4d ep   0 train=0.03039 val=0.00505 best=0.00505 finite_train=2344/2344 finite_val=94/94
+[16:13:16]   fsq_8192_4d ep  10 train=0.00134 val=0.00118 best=0.00118 finite_train=2344/2344 finite_val=94/94
+[17:02:06]   fsq_8192_4d ep  20 train=0.00090 val=0.00093 best=0.00091 finite_train=2344/2344 finite_val=94/94
+[17:50:53]   fsq_8192_4d ep  30 train=0.00070 val=0.00078 best=0.00076 finite_train=2330/2344 finite_val=94/94
+[18:37:21]   fsq_8192_4d ep  40 train=0.00066 val=inf best=0.00074 finite_train=1536/2344 finite_val=43/94
+[19:04:01]   fsq_8192_4d ep  50 train=0.00065 val=inf best=0.00074 finite_train=65/2344 finite_val=5/94
