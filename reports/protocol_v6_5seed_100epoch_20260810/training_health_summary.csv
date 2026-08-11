@@ -1,0 +1,15 @@
+seed,arm,status,epochs_ran,best_val_recon,final_checkpoint_epoch,finite_train_epochs,finite_val_epochs,health_note
+0,fsq_8192_4d,completed,100,0.00092,99,100,100,finite history; promotion false
+0,fsq_4096_6d,completed,100,0.00155,99,100,100,finite history; promotion false
+0,vq_4096_64d_random,completed,100,0.00154,99,8,8,nonfinite after epoch 7; do not promote
+0,continuous_bypass_64d,completed,100,0.00034,99,23,23,nonfinite after epoch 22; do not promote
+1,fsq_8192_4d,completed,100,0.00095,99,100,100,finite history; promotion false
+1,fsq_4096_6d,completed,100,0.00168,99,100,100,finite history; promotion false
+1,vq_4096_64d_random,completed,100,0.00045,99,100,100,finite history; promotion false
+1,continuous_bypass_64d,completed,100,0.00017,99,100,100,finite history; promotion false
+2,fsq_8192_4d,running,40,,,40,39,nonfinite validation observed by epoch 40; training continues to fixed budget
+2,fsq_4096_6d,pending,,,,,,
+2,vq_4096_64d_random,pending,,,,,,
+2,continuous_bypass_64d,pending,,,,,,
+3,all,pending,,,,,,
+4,all,pending,,,,,,

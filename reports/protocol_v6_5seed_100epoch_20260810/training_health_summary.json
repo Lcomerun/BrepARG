@@ -1,0 +1,30 @@
+{
+  "report": "protocol_v6_5seed_100epoch_20260810",
+  "snapshot_date": "2026-08-11",
+  "status": "RUNNING",
+  "configuration": {
+    "arms": [
+      "fsq_8192_4d",
+      "fsq_4096_6d",
+      "vq_4096_64d_random",
+      "continuous_bypass_64d"
+    ],
+    "seeds": [0, 1, 2, 3, 4],
+    "train_patches": 300000,
+    "validation_patches": 12000,
+    "epochs": 100,
+    "batch_size": 128,
+    "learning_rate": 0.0003
+  },
+  "completed_seeds": [0, 1],
+  "active_seed": 2,
+  "surface_reconstruction": "pending",
+  "health_summary": {
+    "seed0_nonfinite_arms": ["vq_4096_64d_random", "continuous_bypass_64d"],
+    "seed1_nonfinite_arms": [],
+    "seed2_observation": "fsq_8192_4d reached epoch 40 with non-finite validation batches",
+    "promotion_allowed": false,
+    "downstream_ar_allowed": false
+  },
+  "source_commit": "79deac5"
+}

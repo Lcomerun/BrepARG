@@ -1,0 +1,201 @@
+{
+  "active_seed": 2,
+  "advance_to_ar": false,
+  "configuration": {
+    "arms": [
+      "fsq_8192_4d",
+      "fsq_4096_6d",
+      "vq_4096_64d_random",
+      "continuous_bypass_64d"
+    ],
+    "batch_size": 128,
+    "epochs": 100,
+    "learning_rate": "3e-4",
+    "protocol_dir": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol",
+    "reconstruction_cads": 100,
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "train_cap": 300000,
+    "val_cap": 12000
+  },
+  "created_at": "2026-08-10T00:29:35+08:00",
+  "status": "RUNNING",
+  "steps": [
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "finished_at": "2026-08-10T15:23:05+08:00",
+      "kind": "training",
+      "returncode": 0,
+      "seed": 0,
+      "started_at": "2026-08-10T00:29:35+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\logs\\seed0.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\logs\\seed0.stdout.log",
+      "validation": {
+        "checkpoints": [
+          {
+            "arm": "fsq_8192_4d",
+            "bytes": 228781933,
+            "kind": "checkpoint_best",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed0\\fsq_8192_4d_best.pt",
+            "sha256": "8b3de342dded9cb9c61ca1d3b4d04d65347dc6eb863c2245467b4dc5e9dc5ddf"
+          },
+          {
+            "arm": "fsq_8192_4d",
+            "bytes": 228782306,
+            "kind": "checkpoint_final",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed0\\fsq_8192_4d_final.pt",
+            "sha256": "7658266eb26963bc351b17c6410ea65904a530d06a4ff9c0ef3a9ba15a6e81e0"
+          },
+          {
+            "arm": "fsq_4096_6d",
+            "bytes": 228750189,
+            "kind": "checkpoint_best",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed0\\fsq_4096_6d_best.pt",
+            "sha256": "b5d2ce8aeb35dd927cd6cd81fe54ee1d71a894c71c96a9c3caccbb754e1fa921"
+          },
+          {
+            "arm": "fsq_4096_6d",
+            "bytes": 228750562,
+            "kind": "checkpoint_final",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed0\\fsq_4096_6d_final.pt",
+            "sha256": "e7e30d4c5e7800e6089aeae0003e2d653441155895d4f9565831080999ee89f6"
+          },
+          {
+            "arm": "vq_4096_64d_random",
+            "bytes": 229714742,
+            "kind": "checkpoint_best",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed0\\vq_4096_64d_random_best.pt",
+            "sha256": "7ef433c8dfba9c59ac316f9398779bfa4bc1c4664a208347092a8e4e063e4a25"
+          },
+          {
+            "arm": "vq_4096_64d_random",
+            "bytes": 229715240,
+            "kind": "checkpoint_final",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed0\\vq_4096_64d_random_final.pt",
+            "sha256": "95d2ba82a28d70d94b71c6da304852c17e2a7abaac344d6ead7df7ea49da4458"
+          },
+          {
+            "arm": "continuous_bypass_64d",
+            "bytes": 228649834,
+            "kind": "checkpoint_best",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed0\\continuous_bypass_64d_best.pt",
+            "sha256": "8017246266bb4e685a08d9c27aaf2b2decc78f0a1f3a201bbf843d6e92cdac8e"
+          },
+          {
+            "arm": "continuous_bypass_64d",
+            "bytes": 228650202,
+            "kind": "checkpoint_final",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed0\\continuous_bypass_64d_final.pt",
+            "sha256": "c0beffc1ef2f456ec9844a06111d778fee04b9f24b02cacc1b839abf2c25a606"
+          }
+        ],
+        "reasons": [],
+        "valid": true
+      }
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "finished_at": "2026-08-11T15:12:27+08:00",
+      "kind": "training",
+      "returncode": 0,
+      "seed": 1,
+      "started_at": "2026-08-10T15:23:05+08:00",
+      "status": "COMPLETED",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\logs\\seed1.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\logs\\seed1.stdout.log",
+      "validation": {
+        "checkpoints": [
+          {
+            "arm": "fsq_8192_4d",
+            "bytes": 228781933,
+            "kind": "checkpoint_best",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed1\\fsq_8192_4d_best.pt",
+            "sha256": "d83e615cce56d3e081b70b9c75132ec45e9c8507d66261479cd33dcc67b50f30"
+          },
+          {
+            "arm": "fsq_8192_4d",
+            "bytes": 228782306,
+            "kind": "checkpoint_final",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed1\\fsq_8192_4d_final.pt",
+            "sha256": "8095cfd56fab01db23fc2b92174adf99f361706dfeacad4e5c2f7ddc1d2f741b"
+          },
+          {
+            "arm": "fsq_4096_6d",
+            "bytes": 228750189,
+            "kind": "checkpoint_best",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed1\\fsq_4096_6d_best.pt",
+            "sha256": "765cf2d81ee39c39e55422884d50153f060a944db0a5ae789db73b3178ce2123"
+          },
+          {
+            "arm": "fsq_4096_6d",
+            "bytes": 228750562,
+            "kind": "checkpoint_final",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed1\\fsq_4096_6d_final.pt",
+            "sha256": "c15f2f0a385893b9fe4a125c4569f9bdc87a92b6fc6cb8ce40c68fd4b7f39f39"
+          },
+          {
+            "arm": "vq_4096_64d_random",
+            "bytes": 229714742,
+            "kind": "checkpoint_best",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed1\\vq_4096_64d_random_best.pt",
+            "sha256": "6daaca710613ea9c051eb2fc28acaf55f8f44773344e0a3f6e15274a8fed4ba4"
+          },
+          {
+            "arm": "vq_4096_64d_random",
+            "bytes": 229715112,
+            "kind": "checkpoint_final",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed1\\vq_4096_64d_random_final.pt",
+            "sha256": "9f3577735118cec9561975b35eba8d14ff9fd85913f085ddd88eee5f454a30ab"
+          },
+          {
+            "arm": "continuous_bypass_64d",
+            "bytes": 228649834,
+            "kind": "checkpoint_best",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed1\\continuous_bypass_64d_best.pt",
+            "sha256": "04c7460983f5bf31698908c6b3e31ccba8f92ea14560fd869241c454a5718560"
+          },
+          {
+            "arm": "continuous_bypass_64d",
+            "bytes": 228650266,
+            "kind": "checkpoint_final",
+            "path": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\seed1\\continuous_bypass_64d_final.pt",
+            "sha256": "0cc71b0bec5aefb9cccd9be8de1036f8b2a63e14b653f7a48b4f19a5df1bcba0"
+          }
+        ],
+        "reasons": [],
+        "valid": true
+      }
+    },
+    {
+      "command": [
+        "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
+        "D:\\luolin\\V13\\local_runs\\protocol_v5_runtime_20260806\\breparg_improvements\\train.py",
+        "--stage",
+        "vqsweep"
+      ],
+      "kind": "training",
+      "seed": 2,
+      "started_at": "2026-08-11T15:12:27+08:00",
+      "status": "RUNNING",
+      "stderr": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\logs\\seed2.stderr.log",
+      "stdout": "D:\\luolin\\V13\\local_runs\\protocol_v6_5seed_100epoch_20260810\\logs\\seed2.stdout.log"
+    }
+  ],
+  "updated_at": "2026-08-11T15:12:27+08:00"
+}
