@@ -1,15 +1,21 @@
-seed,arm,status,epochs_ran,best_val_recon,final_checkpoint_epoch,finite_train_epochs,finite_val_epochs,health_note
-0,fsq_8192_4d,completed,100,0.00092,99,18,18,nonfinite after epoch 17; do not promote
-0,fsq_4096_6d,completed,100,0.00155,99,12,12,nonfinite after epoch 11; do not promote
-0,vq_4096_64d_random,completed,100,0.00154,99,8,8,nonfinite after epoch 7; do not promote
-0,continuous_bypass_64d,completed,100,0.00034,99,23,23,nonfinite after epoch 22; do not promote
-1,fsq_8192_4d,completed,100,0.00095,99,17,17,nonfinite after epoch 16; do not promote
-1,fsq_4096_6d,completed,100,0.00168,99,10,10,nonfinite after epoch 9; do not promote
-1,vq_4096_64d_random,completed,100,0.00045,99,100,100,finite history; promotion false
-1,continuous_bypass_64d,completed,100,0.00017,99,100,100,finite history; promotion false
-2,fsq_8192_4d,running,50,,,36,15,epoch 50: only 65/2344 train and 5/94 validation batches finite; training continues to fixed budget
-2,fsq_4096_6d,pending,,,,,,
-2,vq_4096_64d_random,pending,,,,,,
-2,continuous_bypass_64d,pending,,,,,,
-3,all,pending,,,,,,
-4,all,pending,,,,,,
+seed,arm,status,health,epochs_ran,latest_epoch,best_epoch,best_val_recon,fully_finite_train_epochs,fully_finite_val_epochs,first_nonfinite_epoch,last_finite_train_fraction,last_finite_val_fraction,best_curved_parent_mse,best_curved_parent_epoch,final_curved_parent_mse,final_perplexity,final_checkpoint_epoch,promotion_eligible,source_commit
+0,fsq_8192_4d,completed,NUMERICALLY_UNSTABLE,100,99,17,0.00092486,16,18,16,0.002559726962457338,0.0,0.002035201682489229,17,,,99,False,d379d4b3065a38d7eaed86ff8c70ed63b372f66e
+0,fsq_4096_6d,completed,NUMERICALLY_UNSTABLE,100,99,11,0.00155227,12,12,12,0.0004266211604095563,0.0,0.003224498788666474,11,,,99,False,d379d4b3065a38d7eaed86ff8c70ed63b372f66e
+0,vq_4096_64d_random,completed,NUMERICALLY_UNSTABLE,100,99,7,0.00153811,8,8,8,0.0,0.0,0.003707624763498843,7,,,99,False,d379d4b3065a38d7eaed86ff8c70ed63b372f66e
+0,continuous_bypass_64d,completed,NUMERICALLY_UNSTABLE,100,99,22,0.00033944,23,24,23,0.002559726962457338,0.010638297872340425,0.0006697985492448987,22,,,99,False,d379d4b3065a38d7eaed86ff8c70ed63b372f66e
+1,fsq_8192_4d,completed,NUMERICALLY_UNSTABLE,100,99,15,0.0009543,15,17,15,0.0017064846416382253,0.010638297872340425,0.002000572237871115,16,,,99,False,79deac52b5b87388cf5f970af643cede73498b0b
+1,fsq_4096_6d,completed,NUMERICALLY_UNSTABLE,100,99,9,0.00168243,10,10,10,0.0021331058020477816,0.031914893617021274,0.003769414650269776,9,,,99,False,79deac52b5b87388cf5f970af643cede73498b0b
+1,vq_4096_64d_random,completed,HEALTHY_COMPLETE,100,99,96,0.00044739,100,100,,1.0,1.0,0.0009754033895707988,96,0.0010168213857189394,1164.9234908140525,99,False,79deac52b5b87388cf5f970af643cede73498b0b
+1,continuous_bypass_64d,completed,HEALTHY_COMPLETE,100,99,78,0.00017434,100,100,,1.0,1.0,0.0003435516465706863,94,0.0003530772838058358,1.0,99,False,79deac52b5b87388cf5f970af643cede73498b0b
+2,fsq_8192_4d,completed,NUMERICALLY_UNSTABLE,100,99,32,0.00073674,26,36,26,0.008959044368600682,0.010638297872340425,0.0014449726578533745,32,,,99,False,79deac52b5b87388cf5f970af643cede73498b0b
+2,fsq_4096_6d,completed,NUMERICALLY_UNSTABLE,100,99,19,0.00137069,18,20,18,0.0,0.0,0.0030199606809305102,19,,,99,False,79deac52b5b87388cf5f970af643cede73498b0b
+2,vq_4096_64d_random,completed,HEALTHY_COMPLETE,100,99,95,0.00043288,100,100,,1.0,1.0,0.0009180614074072857,95,0.0009715874937399014,1022.6867156290222,99,False,79deac52b5b87388cf5f970af643cede73498b0b
+2,continuous_bypass_64d,completed,HEALTHY_COMPLETE,100,99,81,0.00016351,100,100,,1.0,1.0,0.00032926247315841656,95,0.0004208156958647656,1.0,99,False,79deac52b5b87388cf5f970af643cede73498b0b
+3,fsq_8192_4d,completed,NUMERICALLY_UNSTABLE,100,99,13,0.00093999,15,15,15,0.0,0.0,0.002033205483488101,14,,,,,
+3,fsq_4096_6d,running,NUMERICALLY_UNSTABLE,24,23,11,0.0016185,12,12,12,0.0,0.0,0.0035956879873422954,11,,,,,
+3,vq_4096_64d_random,pending,PENDING,0,,,,0,0,,,,,,,,,,
+3,continuous_bypass_64d,pending,PENDING,0,,,,0,0,,,,,,,,,,
+4,fsq_8192_4d,pending,PENDING,0,,,,0,0,,,,,,,,,,
+4,fsq_4096_6d,pending,PENDING,0,,,,0,0,,,,,,,,,,
+4,vq_4096_64d_random,pending,PENDING,0,,,,0,0,,,,,,,,,,
+4,continuous_bypass_64d,pending,PENDING,0,,,,0,0,,,,,,,,,,

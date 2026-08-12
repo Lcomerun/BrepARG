@@ -16,6 +16,7 @@ The four arms are `fsq_8192_4d`, `fsq_4096_6d`, `vq_4096_64d_random`, and `conti
 - [x] (2026-08-10 09:55 +08:00) Implemented and tested fixed-cohort surface reconstruction with local NPZ artifacts and lightweight per-CAD, per-checkpoint, and cross-seed summaries.
 - [x] (2026-08-10 00:29 +08:00) Committed and pushed the launcher, evaluator, focused tests, and plan as `d379d4b` on `experiment/protocol-v5-scaling-ladder`.
 - [x] (2026-08-10 00:36 +08:00) Started the cohort and verified the exact `train=300000 val=12000` inventory gate, an active TensorBoard event file, no stderr traceback, and sustained ~97% GPU utilization on seed 0. The first epoch is still running; the launcher is left unattended as configured.
+- [x] (2026-08-12 21:37 +08:00) Audited the live cohort: seeds 0, 1, and 2 completed all four fixed 100-epoch loops and passed checkpoint/cap integrity; seed 3 is active on `fsq_4096_6d`; GPU utilization is ~97% and all stderr logs are empty. Archived every currently available lightweight history, sweep, text log, TensorBoard event, state file, and artifact hash while excluding checkpoints and reconstruction arrays.
 - [ ] After all five seeds finish, run automatic surface reconstruction, archive lightweight evidence, compare arms, and decide the next representation gate. AR remains blocked until this item completes.
 
 ## Surprises & Discoveries
@@ -25,6 +26,12 @@ The four arms are `fsq_8192_4d`, `fsq_4096_6d`, `vq_4096_64d_random`, and `conti
 
 - Observation: Existing sweep training already supported a rolling final checkpoint internally, but the stage did not expose it.
   Evidence: `_train_vqvae` accepted `save_final_path`; V6 connects it through `NS_VQ_SAVE_FINAL=1` and records `checkpoint_final` plus final epoch in the sweep manifest.
+
+- Observation: Completing the fixed 100-epoch loop is not equivalent to numerical health. Of the 12 completed seed0-2 histories, only seed1/2 learned VQ and continuous bypass stayed fully finite; every FSQ history and both seed0 64D histories developed incomplete/non-finite epochs. Seed3 FSQ-8192 also became non-finite after epoch 14.
+  Evidence: `reports/protocol_v6_5seed_100epoch_20260810/training_health_summary.json` derives finite epoch counts directly from every history row's expected and finite train/validation batch counts.
+
+- Observation: The launcher validation is an artifact-integrity gate, not a numerical-health gate.
+  Evidence: seeds 0-2 have `validation.valid=true` in `cohort_state.json` despite non-finite histories. No such arm is eligible for representation promotion or AR.
 
 ## Decision Log
 

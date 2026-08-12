@@ -1,60 +1,33 @@
 # Protocol V6: five-seed 100-epoch cohort
 
-This report is an in-progress snapshot of the formal Protocol V6 representation
-cohort launched on 2026-08-10. The local run is outside Git at:
-
-`D:\luolin\V13\local_runs\protocol_v6_5seed_100epoch_20260810`
-
-The matrix is four representation arms (`fsq_8192_4d`, `fsq_4096_6d`,
-`vq_4096_64d_random`, and `continuous_bypass_64d`) at seeds 0 through 4.
-Each arm is configured for 300,000 train patches, 12,000 validation patches,
-batch size 128, learning rate 3e-4, and exactly 100 epochs. Surface
-reconstruction is scheduled only after all 20 arm/seed sweeps pass the launcher
-integrity checks.
+This is a lightweight snapshot generated at `2026-08-12T21:46:36+08:00` from the local
+Protocol V6 run. The formal matrix contains four representation arms at seeds
+0 through 4, with 300,000 train patches, 12,000 validation patches, batch size
+128, learning rate 3e-4, and 100 requested epochs per arm.
 
 ## Snapshot status
 
-- Seed 0: completed all four arms at 100 epochs; launcher validation passed.
-- Seed 1: completed all four arms at 100 epochs; launcher validation passed.
-- Seed 2: running; the `fsq_8192_4d` arm had reached epoch 50 when this snapshot
-  was collected. At epoch 50 only 65/2344 train batches and 5/94 validation
-  batches were finite.
-- Seeds 3 and 4: not started yet.
-- Surface reconstruction: not started.
-- AR and sequence regeneration: still blocked.
+- Launcher status: `RUNNING`.
+- Fully completed seeds: `[0, 1, 2]`.
+- Active seed: `3`.
+- Numerically healthy completed arm/seed histories: `4`.
+- Histories with at least one incomplete/non-finite train or validation epoch: `10`.
+- Surface reconstruction: `pending`.
+- Sequence regeneration and AR: blocked.
 
-The launcher completion gate currently checks epoch count, final epoch index,
-sampling caps, parent coverage, and checkpoint existence. It does not promote a
-model based on those checks alone. The histories must also be inspected for
-finite losses and useful code usage before any downstream decision.
+`training_health_summary.csv` and `.json` distinguish a fixed 100-epoch loop
+from numerical health. `NUMERICALLY_UNSTABLE` means at least one epoch did not
+have all expected train and validation batches finite; such a result must not
+be promoted even when the launcher accepted checkpoint/cap integrity.
 
-## Health finding
+## Tracked evidence
 
-Seed 0 shows numerical instability in all four arms after an initially finite
-phase. The learned VQ arm reached `best_val_recon=0.00154` at epoch 7 and then
-reported non-finite validation samples through epoch 99; the two FSQ arms and
-continuous bypass also became non-finite later in training. In seed 1, the
-learned VQ and continuous-bypass arms stayed finite for all 100 epochs, while
-both FSQ arms became non-finite after their early finite phase. These runs are
-retained as evidence, but an arm with any non-finite validation epoch is not a
-healthy representation result and must not be promoted to sequence/AR.
+- `cohort_state.json`: launcher state and checkpoint hashes for completed seeds.
+- `seedN/`: available per-arm histories and completed sweep manifests.
+- `logs/`: stdout/stderr snapshots.
+- `tensorboard/`: small TensorBoard event snapshots.
+- `artifact_manifest.json`: byte size and SHA-256 for every archived artifact.
 
-The promotion gate was false for every completed arm because the configured
-curved-parent-MSE and perplexity criteria were not satisfied. See the per-seed
-`vqvae_hp_sweep.json` and `*_history.json` files for the complete bucket metrics
-and non-finite sample counts.
-
-## Tracked artifacts
-
-- `cohort_state.json`: launcher state and checkpoint SHA-256 records for
-  completed seeds.
-- `seed0/` and `seed1/`: sweep manifests and per-arm training histories.
-- `seed2_fsq_8192_4d_history.json`: current history snapshot for the active arm.
-- `logs/`: stdout/stderr snapshots for completed seeds and the active seed.
-- `tensorboard/`: TensorBoard event snapshots for seed0/seed1 and the active
-  seed2 arm (about 0.7 MiB at this snapshot).
-- `training_health_summary.csv` and `.json`: compact cross-seed status table.
-
-Model checkpoints (`*.pt`), raw protocol data, and surface reconstruction arrays
-are deliberately not tracked in Git. The small TensorBoard event snapshots are
-tracked because they are useful for inspecting the reported instability.
+Model checkpoints (`*.pt`), reconstructed arrays (`*.npz`), raw protocol data,
+and PID files are excluded. Surface reconstruction JSON/JSONL/CSV evidence will
+be archived after the training matrix finishes and the automatic evaluator runs.

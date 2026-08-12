@@ -1,0 +1,19 @@
+[16:32:19] ===== STAGE vqsweep =====
+[16:32:19] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[16:38:47]   sweep 数据: train=300000 val=12000  (短训 15 ep)
+[16:43:40]   fsq_8192_4d ep   0 train=0.04102 val=0.00753 best=0.00753 finite_train=2344/2344 finite_val=94/94
+[17:32:32]   fsq_8192_4d ep  10 train=0.00122 val=0.00105 best=0.00105 finite_train=2344/2344 finite_val=94/94
+[18:10:30]   fsq_8192_4d ep  20 train=0.00104 val=inf best=0.00094 finite_train=349/2344 finite_val=15/94
+[18:28:14]   fsq_8192_4d ep  30 train=0.00139 val=inf best=0.00094 finite_train=3/2344 finite_val=0/94
+[18:45:10]   fsq_8192_4d ep  40 train=0.00084 val=inf best=0.00094 finite_train=142/2344 finite_val=1/94
+[19:01:31]   fsq_8192_4d ep  50 train=0.00209 val=inf best=0.00094 finite_train=1/2344 finite_val=0/94
+[19:17:49]   fsq_8192_4d ep  60 train=inf val=inf best=0.00094 finite_train=0/2344 finite_val=0/94
+[19:34:07]   fsq_8192_4d ep  70 train=inf val=inf best=0.00094 finite_train=0/2344 finite_val=0/94
+[19:50:25]   fsq_8192_4d ep  80 train=inf val=inf best=0.00094 finite_train=0/2344 finite_val=0/94
+[20:06:44]   fsq_8192_4d ep  90 train=inf val=inf best=0.00094 finite_train=0/2344 finite_val=0/94
+[20:21:26]   fsq_8192_4d ep  99 train=inf val=inf best=0.00094 finite_train=0/2344 finite_val=0/94
+[20:21:26]   fsq_8192_4d early stop at ep 99: nonfinite_val_epochs=85 best=0.00094 best_epoch=13
+[20:21:26]   -> fsq_8192_4d: best_val_recon=0.00094
+[20:26:20]   fsq_4096_6d ep   0 train=0.05034 val=0.00799 best=0.00799 finite_train=2344/2344 finite_val=94/94
+[21:15:14]   fsq_4096_6d ep  10 train=0.00198 val=0.00175 best=0.00175 finite_train=2344/2344 finite_val=94/94
+[21:41:16]   fsq_4096_6d ep  20 train=inf val=inf best=0.00162 finite_train=0/2344 finite_val=0/94
