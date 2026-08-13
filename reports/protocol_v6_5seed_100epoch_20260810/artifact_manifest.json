@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T10:55:00+08:00",
+  "generated_at": "2026-08-13T14:36:15+08:00",
   "artifacts": [
     {
       "path": "checkpoint_manifest.json",
@@ -65,6 +65,16 @@
       "path": "README.md",
       "bytes": 1990,
       "sha256": "2712ffc6abbbe66e9281951fdb05cec056bd37ca0942d67e44acecf5b8107b49"
+    },
+    {
+      "path": "RECENT_EXPERIMENT_SUMMARY_ZH.md",
+      "bytes": 15871,
+      "sha256": "19cc71c60cd2e0b30f8250ab7c135c581b1aca61e69e2c233de08be289679799"
+    },
+    {
+      "path": "protocol_summary_v5_master.json",
+      "bytes": 2306,
+      "sha256": "cf0dfaf71b544851e0531bc33332753d4f06202b27499a5a487946dd9e9eed59"
     },
     {
       "path": "seed0/continuous_bypass_64d_history.json",

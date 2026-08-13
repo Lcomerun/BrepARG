@@ -1,0 +1,78 @@
+{
+  "archive_inventory": {
+    "archives": 10,
+    "pickle_members": 66879,
+    "sha256": "d6b35c479d41c15a08a57eb4272d0828c8f43e8bb3096625a1d3978a6e101e83",
+    "unique_materialization_keys": 66879,
+    "unique_source_keys": 66879
+  },
+  "archive_member_load_failures": 0,
+  "archives_scanned": 10,
+  "config": {
+    "max_edges_per_face": 30,
+    "max_faces": 50,
+    "max_global_edges": 150,
+    "min_faces": 10,
+    "seed": 20260803,
+    "test_ratio": 0.1,
+    "train_ratio": 0.8,
+    "val_ratio": 0.1,
+    "version": "abc-parent-isolated-v2"
+  },
+  "eligible_cap_overshoot_parent_id": null,
+  "eligible_cap_overshoot_records": 0,
+  "experiment_scale": "smoke",
+  "failure_reasons": [],
+  "load_failure_allowlist": {
+    "approved_failures": 0,
+    "candidate_file": "load_failure_allowlist_candidates.jsonl",
+    "entries": 0,
+    "path": null,
+    "sha256": null,
+    "status": "NO_FAILURES",
+    "unapproved_failures": 0
+  },
+  "load_failure_allowlist_candidates_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "load_failure_policy": {
+    "count_within_limit": true,
+    "fraction_within_limit": true,
+    "max_count": 100,
+    "max_fraction": 0.001,
+    "observed_count": 0,
+    "observed_fraction": 0.0,
+    "status": "WITHIN_LIMITS"
+  },
+  "max_eligible_records": 15000,
+  "parent_overlap_counts": {
+    "train__test": 0,
+    "train__val": 0,
+    "val__test": 0
+  },
+  "protocol_sha256": "6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3",
+  "protocol_version": "abc-parent-isolated-v2",
+  "quarantined_pickle_members": 0,
+  "quarantined_pickle_members_file": "quarantined_pickle_members.jsonl",
+  "quarantined_pickle_members_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "records_eligible": 35847,
+  "records_rejected": 31032,
+  "records_scanned": 66879,
+  "records_selected": 15000,
+  "reject_reasons": {
+    "too_few_faces": 13627,
+    "too_many_edges_per_face": 1477,
+    "too_many_faces": 15831,
+    "too_many_global_edges": 97
+  },
+  "split_parents": {
+    "test": 1500,
+    "train": 11252,
+    "val": 1500
+  },
+  "split_pickle_sha256": "6ff0a0c3ee6a04ee056fa1ab982eb436a9f59d3d21f21f17babf34e6dc701d29",
+  "split_records": {
+    "test": 1500,
+    "train": 12000,
+    "val": 1500
+  },
+  "status": "VERIFIED"
+}
