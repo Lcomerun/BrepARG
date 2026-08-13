@@ -1,0 +1,172 @@
+{
+  "action": {
+    "backup_file": "active_hours_backup.json",
+    "backup_sha256": "9b5079e30d5bec2670aeed0bd662187f4be95617038d2183625952c005c9cd2b",
+    "mode": "set_active_hours",
+    "original": {
+      "end": 3,
+      "start": 9
+    },
+    "requested": {
+      "duration_hours": 18,
+      "end": 6,
+      "start": 12
+    },
+    "status": "applied",
+    "verified": true,
+    "written_values": 2
+  },
+  "active_hours": {
+    "effective": {
+      "duration_hours": 18,
+      "end": 6,
+      "source": "ux_settings",
+      "start": 12,
+      "valid": true
+    },
+    "policy_override_present": false,
+    "policy_settings": {
+      "status": "not_found",
+      "values": {
+        "ActiveHoursEnd": {
+          "present": false
+        },
+        "ActiveHoursStart": {
+          "present": false
+        },
+        "SetActiveHours": {
+          "present": false
+        }
+      }
+    },
+    "ux_settings": {
+      "status": "ok",
+      "values": {
+        "ActiveHoursEnd": {
+          "present": true,
+          "registry_type": "REG_DWORD",
+          "value": 6
+        },
+        "ActiveHoursStart": {
+          "present": true,
+          "registry_type": "REG_DWORD",
+          "value": 12
+        },
+        "SmartActiveHoursState": {
+          "present": false
+        }
+      }
+    }
+  },
+  "generated_at": "2026-08-13T23:04:12+08:00",
+  "gpu": {
+    "devices": [
+      {
+        "driver_version": "591.86",
+        "memory_free_mib": 11072,
+        "memory_total_mib": 12288,
+        "memory_used_mib": 1042,
+        "name": "NVIDIA GeForce RTX 3060",
+        "temperature_c": 47.0,
+        "utilization_percent": 0.0
+      }
+    ],
+    "status": "ok"
+  },
+  "pending_restart": {
+    "checks": [
+      {
+        "name": "component_based_servicing_reboot_pending",
+        "status": "ok",
+        "triggered": false
+      },
+      {
+        "name": "windows_update_reboot_required",
+        "status": "ok",
+        "triggered": false
+      },
+      {
+        "name": "pending_file_rename_operations",
+        "status": "ok",
+        "triggered": true
+      },
+      {
+        "name": "update_exe_volatile",
+        "status": "not_found",
+        "triggered": false
+      }
+    ],
+    "detected": true
+  },
+  "platform": {
+    "windows": true
+  },
+  "pre_action_active_hours": {
+    "effective": {
+      "duration_hours": 18,
+      "end": 3,
+      "source": "ux_settings",
+      "start": 9,
+      "valid": true
+    },
+    "policy_override_present": false,
+    "policy_settings": {
+      "status": "not_found",
+      "values": {
+        "ActiveHoursEnd": {
+          "present": false
+        },
+        "ActiveHoursStart": {
+          "present": false
+        },
+        "SetActiveHours": {
+          "present": false
+        }
+      }
+    },
+    "ux_settings": {
+      "status": "ok",
+      "values": {
+        "ActiveHoursEnd": {
+          "present": true,
+          "registry_type": "REG_DWORD",
+          "value": 3
+        },
+        "ActiveHoursStart": {
+          "present": true,
+          "registry_type": "REG_DWORD",
+          "value": 9
+        },
+        "SmartActiveHoursState": {
+          "present": false
+        }
+      }
+    }
+  },
+  "privacy": {
+    "absolute_paths_recorded": false,
+    "gpu_serial_or_uuid_recorded": false,
+    "hostname_recorded": false,
+    "network_identifiers_recorded": false,
+    "username_recorded": false
+  },
+  "recommendation": {
+    "duration_hours": 18,
+    "end": 6,
+    "start": 12,
+    "warning": "Active hours reduce restart risk but do not guarantee continuity."
+  },
+  "schema_version": 1,
+  "scope": "p0b_windows_training_window_preflight",
+  "storage": {
+    "volumes": [
+      {
+        "free_gib": 53.83,
+        "label": "repository_volume",
+        "status": "ok",
+        "total_gib": 631.2,
+        "used_percent": 91.5
+      }
+    ]
+  }
+}

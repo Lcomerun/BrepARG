@@ -1,0 +1,21 @@
+{
+  "artifacts": [
+    {
+      "bytes": 427,
+      "path": "active_hours_backup.json",
+      "sha256": "9b5079e30d5bec2670aeed0bd662187f4be95617038d2183625952c005c9cd2b"
+    },
+    {
+      "bytes": 3985,
+      "path": "audit.json",
+      "sha256": "32d7995631e8d21374809b816408c5669673b0382be59ae01ef43d0f24e4ea7c"
+    },
+    {
+      "bytes": 2466,
+      "path": "README.md",
+      "sha256": "14dcce715675d801bb9723e61ed50e704c61cc64506ec518f51807f48086bb9d"
+    }
+  ],
+  "privacy_policy": "No host/user/path/network/GPU-serial identifiers are archived.",
+  "schema_version": 1
+}
