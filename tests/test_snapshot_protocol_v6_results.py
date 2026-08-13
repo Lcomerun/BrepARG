@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from tools.snapshot_protocol_v6_results import snapshot, summarize_history
+from tools.snapshot_protocol_v6_results import observed_run_state, snapshot, summarize_history
 
 
 def history_row(epoch, finite=True, curved=0.01, perplexity=100.0):
@@ -58,7 +58,7 @@ def test_snapshot_copies_only_lightweight_allowlisted_artifacts(tmp_path: Path):
     }), encoding="utf-8")
     seed = run / "seed0"
     seed.mkdir()
-    history = {"config": {"target_epoch": 1}, "history": [history_row(0)]}
+    history = {"config": {"target_epoch": 2}, "history": [history_row(0)]}
     (seed / "fsq_8192_4d_history.json").write_text(json.dumps(history), encoding="utf-8")
     (seed / "fsq_8192_4d_final.pt").write_bytes(b"weight")
     arrays = run / "surface_reconstruction" / "arrays"
@@ -78,5 +78,21 @@ def test_snapshot_copies_only_lightweight_allowlisted_artifacts(tmp_path: Path):
     assert not list(report.rglob("*.npz"))
     assert (report / "surface_reconstruction" / "summary.json").is_file()
     assert not (report / "seed2_fsq_8192_4d_history.json").exists()
+    checkpoints = json.loads((report / "checkpoint_manifest.json").read_text(encoding="utf-8"))
+    assert checkpoints["checkpoints"][0]["file"] == "fsq_8192_4d_final.pt"
+    assert checkpoints["checkpoints"][0]["checkpoint_bytes_archived"] is False
     manifest = json.loads((report / "artifact_manifest.json").read_text(encoding="utf-8"))
     assert all(not item["path"].endswith((".pt", ".npz")) for item in manifest["artifacts"])
+    summary = json.loads((report / "training_health_summary.json").read_text(encoding="utf-8"))
+    active = next(row for row in summary["rows"] if row["seed"] == 0 and row["arm"] == "fsq_8192_4d")
+    assert active["status"] == "interrupted"
+    assert active["health"] == "INTERRUPTED_FINITE"
+
+
+def test_stale_running_state_is_reported_as_interrupted(tmp_path: Path):
+    (tmp_path / "launcher.pid").write_text("99999999\n", encoding="utf-8")
+    observed = observed_run_state(tmp_path, {"status": "RUNNING", "active_seed": 3})
+    assert observed["effective_status"] == "INTERRUPTED"
+    assert observed["recorded_status"] == "RUNNING"
+    assert observed["recorded_active_seed"] == 3
+    assert observed["launcher_alive"] is False

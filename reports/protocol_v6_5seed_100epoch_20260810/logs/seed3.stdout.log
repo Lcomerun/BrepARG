@@ -17,3 +17,18 @@
 [20:26:20]   fsq_4096_6d ep   0 train=0.05034 val=0.00799 best=0.00799 finite_train=2344/2344 finite_val=94/94
 [21:15:14]   fsq_4096_6d ep  10 train=0.00198 val=0.00175 best=0.00175 finite_train=2344/2344 finite_val=94/94
 [21:41:16]   fsq_4096_6d ep  20 train=inf val=inf best=0.00162 finite_train=0/2344 finite_val=0/94
+[21:57:33]   fsq_4096_6d ep  30 train=inf val=inf best=0.00162 finite_train=0/2344 finite_val=0/94
+[22:13:48]   fsq_4096_6d ep  40 train=0.00099 val=inf best=0.00162 finite_train=1/2344 finite_val=0/94
+[22:30:04]   fsq_4096_6d ep  50 train=inf val=inf best=0.00162 finite_train=0/2344 finite_val=0/94
+[22:46:20]   fsq_4096_6d ep  60 train=inf val=inf best=0.00162 finite_train=0/2344 finite_val=0/94
+[23:02:36]   fsq_4096_6d ep  70 train=inf val=inf best=0.00162 finite_train=0/2344 finite_val=0/94
+[23:18:51]   fsq_4096_6d ep  80 train=0.00103 val=inf best=0.00162 finite_train=1/2344 finite_val=0/94
+[23:35:08]   fsq_4096_6d ep  90 train=0.00137 val=inf best=0.00162 finite_train=1/2344 finite_val=0/94
+[23:49:47]   fsq_4096_6d ep  99 train=0.00141 val=inf best=0.00162 finite_train=6/2344 finite_val=0/94
+[23:49:47]   fsq_4096_6d early stop at ep 99: nonfinite_val_epochs=88 best=0.00162 best_epoch=11
+[23:49:48]   -> fsq_4096_6d: best_val_recon=0.00162
+[23:54:45]   vq_4096_64d_random ep   0 train=0.08252 val=0.00645 best=0.00645 finite_train=2344/2344 finite_val=94/94
+[00:44:17]   vq_4096_64d_random ep  10 train=0.00301 val=0.00115 best=0.00115 finite_train=2344/2344 finite_val=94/94
+[01:33:47]   vq_4096_64d_random ep  20 train=0.00245 val=0.00086 best=0.00086 finite_train=2344/2344 finite_val=94/94
+[02:23:16]   vq_4096_64d_random ep  30 train=0.00208 val=0.00080 best=0.00078 finite_train=2344/2344 finite_val=94/94
+[03:12:44]   vq_4096_64d_random ep  40 train=0.00179 val=0.00067 best=0.00067 finite_train=2344/2344 finite_val=94/94

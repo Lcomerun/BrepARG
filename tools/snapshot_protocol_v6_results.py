@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import argparse
 import csv
+import ctypes
 import hashlib
 import json
+import os
 import shutil
 import time
 from datetime import datetime, timezone
@@ -42,6 +44,47 @@ SUMMARY_FIELDS = (
     "promotion_eligible",
     "source_commit",
 )
+
+
+def process_exists(pid: Any) -> bool:
+    try:
+        pid_value = int(pid)
+    except (TypeError, ValueError):
+        return False
+    if pid_value <= 0:
+        return False
+    if os.name == "nt":
+        process_query_limited_information = 0x1000
+        handle = ctypes.windll.kernel32.OpenProcess(
+            process_query_limited_information, False, pid_value
+        )
+        if not handle:
+            return False
+        ctypes.windll.kernel32.CloseHandle(handle)
+        return True
+    try:
+        os.kill(pid_value, 0)
+        return True
+    except OSError:
+        return False
+
+
+def observed_run_state(run_root: Path, recorded: dict[str, Any]) -> dict[str, Any]:
+    pid_path = run_root / "launcher.pid"
+    pid = pid_path.read_text(encoding="utf-8").strip() if pid_path.is_file() else None
+    launcher_alive = process_exists(pid)
+    recorded_status = recorded.get("status")
+    effective_status = recorded_status
+    if recorded_status == "RUNNING" and not launcher_alive:
+        effective_status = "INTERRUPTED"
+    return {
+        "recorded_status": recorded_status,
+        "effective_status": effective_status,
+        "recorded_active_seed": recorded.get("active_seed"),
+        "launcher_pid": int(pid) if pid and pid.isdigit() else None,
+        "launcher_alive": launcher_alive,
+        "observed_at": now(),
+    }
 
 
 def now() -> str:
@@ -216,7 +259,39 @@ def artifact_manifest(report_dir: Path) -> list[dict[str, Any]]:
     ]
 
 
-def render_readme(state: dict[str, Any], rows: list[dict[str, Any]], snapshot_at: str) -> str:
+def checkpoint_manifest(run_root: Path, state: dict[str, Any]) -> list[dict[str, Any]]:
+    """Bind local checkpoints by hash without copying checkpoint bytes."""
+    recorded: dict[str, dict[str, Any]] = {}
+    for step in state.get("steps") or []:
+        validation = step.get("validation") or {}
+        for item in validation.get("checkpoints") or []:
+            source = Path(str(item.get("path") or ""))
+            if not source.name:
+                continue
+            recorded[source.name + f"@seed{step.get('seed')}"] = item
+    rows: list[dict[str, Any]] = []
+    for seed in SEEDS:
+        seed_dir = run_root / f"seed{seed}"
+        for path in sorted(seed_dir.glob("*.pt")) if seed_dir.is_dir() else []:
+            key = path.name + f"@seed{seed}"
+            item = recorded.get(key) or {}
+            expected_hash = item.get("sha256")
+            actual_hash = expected_hash or sha256_file(path)
+            rows.append({
+                "seed": seed,
+                "file": path.name,
+                "relative_path": path.relative_to(run_root).as_posix(),
+                "bytes": path.stat().st_size,
+                "sha256": actual_hash,
+                "hash_source": "cohort_state" if expected_hash else "snapshot_recomputed",
+                "checkpoint_bytes_archived": False,
+            })
+    return rows
+
+
+def render_readme(
+    state: dict[str, Any], observed: dict[str, Any], rows: list[dict[str, Any]], snapshot_at: str
+) -> str:
     completed = sorted({row["seed"] for row in rows if row["status"] == "completed"} & set(SEEDS))
     completed_seeds = [
         seed for seed in completed
@@ -225,6 +300,7 @@ def render_readme(state: dict[str, Any], rows: list[dict[str, Any]], snapshot_at
     active = state.get("active_seed")
     unstable = sum(row["health"] == "NUMERICALLY_UNSTABLE" for row in rows)
     healthy = sum(row["health"] == "HEALTHY_COMPLETE" for row in rows)
+    interrupted_finite = sum(row["health"] == "INTERRUPTED_FINITE" for row in rows)
     return f"""# Protocol V6: five-seed 100-epoch cohort
 
 This is a lightweight snapshot generated at `{snapshot_at}` from the local
@@ -234,11 +310,14 @@ Protocol V6 run. The formal matrix contains four representation arms at seeds
 
 ## Snapshot status
 
-- Launcher status: `{state.get('status')}`.
+- Effective launcher status: `{observed.get('effective_status')}`.
+- Last recorded launcher status: `{observed.get('recorded_status')}`; launcher PID
+  `{observed.get('launcher_pid')}` alive: `{observed.get('launcher_alive')}`.
 - Fully completed seeds: `{completed_seeds}`.
 - Active seed: `{active}`.
 - Numerically healthy completed arm/seed histories: `{healthy}`.
 - Histories with at least one incomplete/non-finite train or validation epoch: `{unstable}`.
+- Fully finite histories interrupted before their target epoch: `{interrupted_finite}`.
 - Surface reconstruction: `{'completed' if state.get('phase') == 'COMPLETED' else 'pending'}`.
 - Sequence regeneration and AR: blocked.
 
@@ -253,6 +332,10 @@ be promoted even when the launcher accepted checkpoint/cap integrity.
 - `seedN/`: available per-arm histories and completed sweep manifests.
 - `logs/`: stdout/stderr snapshots.
 - `tensorboard/`: small TensorBoard event snapshots.
+- `checkpoint_manifest.json`: local checkpoint sizes and SHA-256 hashes without
+  checkpoint bytes.
+- `interruption_evidence.json`: Windows restart and stale-launcher evidence.
+- `continuation_assessment.md`: recovery value, constraints, and recommended scope.
 - `artifact_manifest.json`: byte size and SHA-256 for every archived artifact.
 
 Model checkpoints (`*.pt`), reconstructed arrays (`*.npz`), raw protocol data,
@@ -265,6 +348,7 @@ def snapshot(run_root: Path, report_dir: Path) -> dict[str, Any]:
     run_root = run_root.resolve()
     report_dir = report_dir.resolve()
     state, _ = stable_json(run_root / "cohort_state.json")
+    observed = observed_run_state(run_root, state)
     archive_json(run_root / "cohort_state.json", report_dir / "cohort_state.json")
     legacy_partial = report_dir / "seed2_fsq_8192_4d_history.json"
     if legacy_partial.is_file() and (run_root / "seed2" / "fsq_8192_4d_history.json").is_file():
@@ -294,6 +378,12 @@ def snapshot(run_root: Path, report_dir: Path) -> dict[str, Any]:
         for event in iter_tensorboard_files(source_seed):
             relative = event.relative_to(source_seed / "tensorboard")
             copy_file(event, report_dir / "tensorboard" / f"seed{seed}" / relative)
+    if observed["effective_status"] == "INTERRUPTED":
+        for row in summaries:
+            if row["status"] == "running":
+                row["status"] = "interrupted"
+                if row["health"] == "RUNNING_FINITE":
+                    row["health"] = "INTERRUPTED_FINITE"
     reconstruction = run_root / "surface_reconstruction"
     if reconstruction.is_dir():
         for source in sorted(reconstruction.rglob("*")):
@@ -303,8 +393,10 @@ def snapshot(run_root: Path, report_dir: Path) -> dict[str, Any]:
     summary_payload = {
         "report": report_dir.name,
         "snapshot_at": snapshot_at,
-        "status": state.get("status"),
+        "status": observed["effective_status"],
+        "recorded_status": state.get("status"),
         "active_seed": state.get("active_seed"),
+        "observed_run_state": observed,
         "surface_reconstruction": "completed" if state.get("phase") == "COMPLETED" else "pending",
         "downstream_ar_allowed": False,
         "configuration": state.get("configuration"),
@@ -315,7 +407,18 @@ def snapshot(run_root: Path, report_dir: Path) -> dict[str, Any]:
         (json.dumps(summary_payload, indent=2, sort_keys=True) + "\n").encode("utf-8"),
     )
     write_csv(report_dir / "training_health_summary.csv", summaries)
-    write_bytes(report_dir / "README.md", render_readme(state, summaries, snapshot_at).encode("utf-8"))
+    write_bytes(
+        report_dir / "checkpoint_manifest.json",
+        (json.dumps({
+            "generated_at": snapshot_at,
+            "policy": "Checkpoint bytes remain local and are not archived in Git.",
+            "checkpoints": checkpoint_manifest(run_root, state),
+        }, indent=2) + "\n").encode("utf-8"),
+    )
+    write_bytes(
+        report_dir / "README.md",
+        render_readme(state, observed, summaries, snapshot_at).encode("utf-8"),
+    )
     manifest = artifact_manifest(report_dir)
     write_bytes(
         report_dir / "artifact_manifest.json",

@@ -17,6 +17,7 @@ The four arms are `fsq_8192_4d`, `fsq_4096_6d`, `vq_4096_64d_random`, and `conti
 - [x] (2026-08-10 00:29 +08:00) Committed and pushed the launcher, evaluator, focused tests, and plan as `d379d4b` on `experiment/protocol-v5-scaling-ladder`.
 - [x] (2026-08-10 00:36 +08:00) Started the cohort and verified the exact `train=300000 val=12000` inventory gate, an active TensorBoard event file, no stderr traceback, and sustained ~97% GPU utilization on seed 0. The first epoch is still running; the launcher is left unattended as configured.
 - [x] (2026-08-12 21:37 +08:00) Audited the live cohort: seeds 0, 1, and 2 completed all four fixed 100-epoch loops and passed checkpoint/cap integrity; seed 3 is active on `fsq_4096_6d`; GPU utilization is ~97% and all stderr logs are empty. Archived every currently available lightweight history, sweep, text log, TensorBoard event, state file, and artifact hash while excluding checkpoints and reconstruction arrays.
+- [x] (2026-08-13 10:42 +08:00) Confirmed the launcher was interrupted by a planned Windows update reboot at 03:31, not by a Python exception. Seed 3 completed both unstable FSQ arms, then learned VQ reached epoch 43 fully finite before the reboot; bypass, seed 4, and reconstruction did not start. Archived the interruption evidence and marked the effective state separately from the stale on-disk `RUNNING` state.
 - [ ] After all five seeds finish, run automatic surface reconstruction, archive lightweight evidence, compare arms, and decide the next representation gate. AR remains blocked until this item completes.
 
 ## Surprises & Discoveries
@@ -32,6 +33,12 @@ The four arms are `fsq_8192_4d`, `fsq_4096_6d`, `vq_4096_64d_random`, and `conti
 
 - Observation: The launcher validation is an artifact-integrity gate, not a numerical-health gate.
   Evidence: seeds 0-2 have `validation.valid=true` in `cohort_state.json` despite non-finite histories. No such arm is eligible for representation promotion or AR.
+
+- Observation: The cohort was terminated externally after seed 3 learned VQ epoch 43.
+  Evidence: seed3 stderr is empty, the last VQ checkpoint/history was written before 03:28, Windows Event Log records `MoUsoCoreWorker` and `TrustedInstaller` planned update restarts at 03:29 and 03:31, and the launcher PID no longer exists after the 03:32 boot.
+
+- Observation: The interrupted learned-VQ arm cannot be resumed with strict protocol equivalence.
+  Evidence: its rolling checkpoint contains model weights and validation metadata but no optimizer, AMP scaler, scheduler, or RNG state. Restarting the current launcher would rerun all four seed3 arms because no completed seed3 sweep manifest exists.
 
 ## Decision Log
 
@@ -50,6 +57,10 @@ The four arms are `fsq_8192_4d`, `fsq_4096_6d`, `vq_4096_64d_random`, and `conti
 - Decision: Store reconstructed arrays locally and only version lightweight manifests, metrics, plots, and hashes.
   Rationale: Git remains usable across machines without uploading model weights or hundreds of megabytes of arrays.
   Date/Author: 2026-08-10 / Codex
+
+- Decision: Do not restart the interrupted V6 launcher unchanged.
+  Rationale: Seed 3 has no completed sweep manifest, so the launcher would overwrite its logs and rerun both already completed FSQ arms. The epoch-43 learned-VQ checkpoint lacks optimizer, AMP-scaler, scheduler, and RNG state, so it is not a strict continuation point. Any remaining work must use an explicitly selected recovery matrix in a new output directory.
+  Date/Author: 2026-08-13 / Codex
 
 ## Outcomes & Retrospective
 

@@ -23,6 +23,15 @@
     "val_cap": 12000
   },
   "downstream_ar_allowed": false,
+  "observed_run_state": {
+    "effective_status": "INTERRUPTED",
+    "launcher_alive": false,
+    "launcher_pid": 22496,
+    "observed_at": "2026-08-13T10:55:00+08:00",
+    "recorded_active_seed": 3,
+    "recorded_status": "RUNNING"
+  },
+  "recorded_status": "RUNNING",
   "report": "protocol_v6_5seed_100epoch_20260810",
   "rows": [
     {
@@ -317,7 +326,7 @@
       "best_curved_parent_mse": 0.0035956879873422954,
       "best_epoch": 11,
       "best_val_recon": 0.0016185,
-      "epochs_ran": 24,
+      "epochs_ran": 100,
       "final_checkpoint_epoch": null,
       "final_curved_parent_mse": null,
       "final_perplexity": null,
@@ -325,35 +334,35 @@
       "fully_finite_train_epochs": 12,
       "fully_finite_val_epochs": 12,
       "health": "NUMERICALLY_UNSTABLE",
-      "last_finite_train_fraction": 0.0,
+      "last_finite_train_fraction": 0.002559726962457338,
       "last_finite_val_fraction": 0.0,
-      "latest_epoch": 23,
+      "latest_epoch": 99,
       "promotion_eligible": null,
       "seed": 3,
       "source_commit": null,
-      "status": "running"
+      "status": "completed"
     },
     {
       "arm": "vq_4096_64d_random",
-      "best_curved_parent_epoch": null,
-      "best_curved_parent_mse": null,
-      "best_epoch": null,
-      "best_val_recon": null,
-      "epochs_ran": 0,
+      "best_curved_parent_epoch": 42,
+      "best_curved_parent_mse": 0.001441284039457772,
+      "best_epoch": 40,
+      "best_val_recon": 0.00066613,
+      "epochs_ran": 44,
       "final_checkpoint_epoch": null,
-      "final_curved_parent_mse": null,
-      "final_perplexity": null,
+      "final_curved_parent_mse": 0.0014941036763001395,
+      "final_perplexity": 1276.6937591967542,
       "first_nonfinite_epoch": null,
-      "fully_finite_train_epochs": 0,
-      "fully_finite_val_epochs": 0,
-      "health": "PENDING",
-      "last_finite_train_fraction": null,
-      "last_finite_val_fraction": null,
-      "latest_epoch": null,
+      "fully_finite_train_epochs": 44,
+      "fully_finite_val_epochs": 44,
+      "health": "INTERRUPTED_FINITE",
+      "last_finite_train_fraction": 1.0,
+      "last_finite_val_fraction": 1.0,
+      "latest_epoch": 43,
       "promotion_eligible": null,
       "seed": 3,
       "source_commit": null,
-      "status": "pending"
+      "status": "interrupted"
     },
     {
       "arm": "continuous_bypass_64d",
@@ -466,7 +475,7 @@
       "status": "pending"
     }
   ],
-  "snapshot_at": "2026-08-12T21:46:36+08:00",
-  "status": "RUNNING",
+  "snapshot_at": "2026-08-13T10:55:00+08:00",
+  "status": "INTERRUPTED",
   "surface_reconstruction": "pending"
 }
