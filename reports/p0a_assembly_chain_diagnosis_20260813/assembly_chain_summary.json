@@ -1,0 +1,60 @@
+{
+  "advance_to_boundary_consistency": false,
+  "attempts": 96,
+  "attributed_cases": 16,
+  "attribution_rate": 1.0,
+  "attribution_threshold": 0.8,
+  "cases": 16,
+  "cases_with_any_both_valid_variant": 1,
+  "complete_cases": 16,
+  "expected_attempts": 96,
+  "expected_cases": 16,
+  "failure_stage_counts": {
+    "curve_fit": 18,
+    "wire_build": 12
+  },
+  "gate_passed": true,
+  "heavy_artifacts_archived": false,
+  "joint_iterations": [
+    200,
+    0
+  ],
+  "joint_sensitive_cases": 4,
+  "matrix_complete": true,
+  "partial_run": false,
+  "primary_cause_counts": {
+    "nonunit_solid_count": 1,
+    "pre_step:curve_fit": 3,
+    "pre_step:wire_build": 2,
+    "wire_self_intersection": 10
+  },
+  "raw_pickle_archived": false,
+  "runner_version": "p0a-v1",
+  "selected_case_ids": [
+    "00000444_4ed4c78d6d754aac90876fc2_step_003",
+    "00002441_179a8df075c94d0596b1f20d_step_010",
+    "00008763_affd199038524a1c8e3b7ad4_step_001",
+    "00016845_33dbc9e6ea684970be61af74_step_000",
+    "00029780_a4788d5955c04fe1886666b7_step_000",
+    "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+    "00032101_674d8fea687f4d9bbca6599b_step_000",
+    "00047472_197769bbdd814278b715d88a_step_000",
+    "00051587_446e8810d6884cae80689579_step_000",
+    "00051602_7f1947595ae247e0a4a32f43_step_000",
+    "00061931_dcdd8a95feac4121adfd341f_step_000",
+    "00063055_e309c689b9b44f0686f47966_step_000",
+    "00067160_2a27016aa44f42c69c1079f7_step_000",
+    "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+    "00087341_6a73c5e821934d3fe4d0d555_step_000",
+    "00095733_8b325d2fcb27ec9e79388602_step_000"
+  ],
+  "sewing_tolerances": [
+    0.0001,
+    0.001,
+    0.01
+  ],
+  "source_manifest": "reports/assembly_calibration_100cad_20260809/calibration_manifest.jsonl",
+  "source_manifest_sha256": "61730dd69a22f2fadc5a4cb007da6e7dc2fc03bba93f3cc64b37c09ade3de875",
+  "step_bytes_archived": false,
+  "tolerance_sensitive_cases": 1
+}

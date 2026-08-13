@@ -1,0 +1,35 @@
+{
+  "artifacts": [
+    {
+      "bytes": 11095,
+      "path": "assembly_chain_cases.json",
+      "sha256": "f5302a900e99184a288cb0e5c825185c65a29cb9bfaa37bb084963db351e5d37"
+    },
+    {
+      "bytes": 1968,
+      "path": "assembly_chain_summary.json",
+      "sha256": "1593f000df07ed9aa00764d7c72267732dd5fe574d6f5246f996033110f67f3a"
+    },
+    {
+      "bytes": 23834,
+      "path": "attempts_compact.csv",
+      "sha256": "a9c19cd6d41ea975fe6263b14f8b855eaae1dfb7fde37d2db48a99e8eac68b2f"
+    },
+    {
+      "bytes": 3469,
+      "path": "README.md",
+      "sha256": "2fa1399840084e0e3b8a0f221813e8df5b76a41e4e85a8ba5a4a96e83dea8088"
+    },
+    {
+      "bytes": 929,
+      "path": "repair_checklist.md",
+      "sha256": "14144f5638a209230267d210fc5d1798d566c7a8cae6e8d665052e5164e9d47e"
+    },
+    {
+      "bytes": 14619,
+      "path": "step_sha256.csv",
+      "sha256": "bb2b7cd0e7e3c63e79d5a876475e4cac7d24f3194ecca0ace95d852eadd3dc9f"
+    }
+  ],
+  "policy": "STEP, pickle, checkpoint, and reconstructed-array bytes remain local."
+}
