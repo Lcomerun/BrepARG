@@ -133,17 +133,25 @@ def checkpoint_protocol(task: dict) -> dict:
     }
 
 
-def patch_inventory(task: dict) -> dict:
+def patch_inventory(task: dict, *, train_count=None, val_count=None) -> dict:
     return {
         "train": {
             "schema": "vq-exact-hash-inventory-v1",
-            "count": task["signature_payload"]["train_cap"],
+            "count": (
+                task["signature_payload"]["train_cap"]
+                if train_count is None
+                else train_count
+            ),
             "ordered_sha256": "1" * 64,
             "sorted_sha256": "2" * 64,
         },
         "val": {
             "schema": "vq-exact-hash-inventory-v1",
-            "count": task["signature_payload"]["val_cap"],
+            "count": (
+                task["signature_payload"]["val_cap"]
+                if val_count is None
+                else val_count
+            ),
             "ordered_sha256": "3" * 64,
             "sorted_sha256": "4" * 64,
         },
@@ -534,6 +542,45 @@ def test_probe_disables_impossible_parent_coverage_gate(tmp_path):
         assert task["environment"]["NS_VQ_DEDUP_BEFORE_CAP"] == "0"
         assert task["environment"]["NS_VQ_REQUIRE_EXACT_CAPS"] == "0"
         assert task["environment"]["NS_VQ_MIN_PARENT_COVERAGE"] == "0.0"
+
+
+def test_probe_inventory_accepts_positive_realized_counts_below_requested_cap(tmp_path):
+    formal = make_inputs(tmp_path)
+    smoke = RunConfig(
+        repo_root=formal.repo_root,
+        protocol_dir=formal.protocol_dir,
+        breparg_root=formal.breparg_root,
+        output_root=tmp_path / "probe-realized-counts",
+        python=formal.python,
+        arms=(FORMAL_ARMS[0],),
+        seeds=(3,),
+        train_cap=128,
+        val_cap=128,
+        batch_size=8,
+        epochs=1,
+        smoke=True,
+    )
+    task = build_state(smoke)["tasks"][0]
+    observed = patch_inventory(task, train_count=116, val_count=90)
+    reasons = []
+
+    normalized = launcher._validate_inventory(
+        observed, task, prefix="probe", reasons=reasons
+    )
+
+    assert normalized == observed
+    assert reasons == []
+
+
+def test_formal_inventory_still_requires_exact_requested_counts(tmp_path):
+    task = build_state(make_inputs(tmp_path))["tasks"][0]
+    observed = patch_inventory(task, train_count=59_999, val_count=12_000)
+    reasons = []
+
+    assert launcher._validate_inventory(
+        observed, task, prefix="formal", reasons=reasons
+    ) is None
+    assert reasons == ["formal train inventory count mismatch"]
 
 
 def test_formal_protocol_verifier_checks_hash_status_and_integer_zero_overlaps(

@@ -25,6 +25,8 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
 - [x] (2026-08-14 11:50 +08:00) Hardened the formal launcher with an output-root operating-system writer lock, immutable Protocol V5 hashes, exact measured 60,000/12,000 caps, content-and-order inventory digests, four-task inventory equality, full checkpoint deserialization, and runtime resume compatibility. Read-only `status` and `validate` no longer mutate state.
 - [x] (2026-08-14 11:50 +08:00) Re-ran the implementation regressions after wiring inventory and lifecycle evidence into the 100-CAD coordinator: 131 P0-B/inventory/measurement tests and 91 assembly/V5/V6/sampling tests passed, for 222 passing tests.
 - [x] (2026-08-14 12:00 +08:00) Removed the hard-coded `require_all_paths=True` from the probe path. A full scan is now derived from the four formal cohort requirements, so formal behavior remains fail-closed while a bounded probe stops after reaching its cap. A six-source regression proves cap 1 loads one source and reports `scan_complete=false`; the two invalid probe directories remain local evidence and are never resumed. The final suites pass 132 plus 91 tests, for 223 passing tests; Python compilation and `git diff --check` pass.
+- [x] (2026-08-14 12:06 +08:00) Ran the bounded fp32 `v3` probe. Learned VQ reached GPU training immediately and completed one epoch in about five seconds with 15/15 finite train batches, 12/12 finite validation batches, finite gradients, and finite lifecycle audits. The launcher correctly stopped before bypass because its smoke validator still assumed requested caps after final deduplication produced 116 train and 90 validation patches.
+- [x] (2026-08-14 12:08 +08:00) Changed only smoke validation to accept a positive, digest-bound realized inventory no larger than the requested cap. Formal validation still requires exactly 60,000/12,000 in every artifact. Added regressions for reduced smoke inventories and formal 59,999 rejection; the full regression count is now 225.
 - [ ] Run finite forward/backward precision probes and select the stable CUDA precision for the formal P0-B retest.
 - [ ] Run learned VQ and continuous bypass at seeds 3 and 4 on the same 60,000/12,000 patch protocol for 100 epochs, requiring zero non-finite batches and resumable checkpoints.
 - [ ] Reconstruct and assemble the frozen 100 CADs with the best healthy P0-B learned-VQ checkpoint and report attempts-based strict validity beside original 84%, bypass 70%, and FSQ 49%.
@@ -83,6 +85,9 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
 
 - Observation: Exact optimizer restoration is not meaningful if the numerical runtime changes underneath it.
   Evidence: The rolling signature now binds stable Python, NumPy, PyTorch, Diffusers, CUDA, cuDNN, compute-capability, dtype, TF32, and deterministic-mode fields. Volatile timestamps, paths, process IDs, hostnames, and GPU display names remain audit-only metadata so they do not create false resume failures.
+
+- Observation: A bounded probe can legitimately materialize fewer unique tensors than its requested cap even after raw selection reaches the cap.
+  Evidence: The fp32 `v3` probe selected 128 validation records, then final exact deduplication reduced the tensor inventory to 90; train exact-overlap filtering left 116. The inventory digests correctly bound those realized tensors, but the initial smoke validator compared them to 128 and rejected an otherwise finite run. Formal mode is unaffected because deduplication occurs before selection and exact-cap enforcement is mandatory.
 
 ## Decision Log
 
@@ -148,6 +153,10 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
 
 - Decision: Permit only one writer per P0-B output root and make inspection commands read-only.
   Rationale: Concurrent launchers could race on state, logs, and rolling checkpoints. An operating-system lock fails the second writer immediately and is released by the kernel after a crash, while stale metadata remains useful recovery evidence.
+  Date/Author: 2026-08-14 / Codex.
+
+- Decision: In smoke mode, validate the positive realized inventory and its cross-artifact digests; do not require requested cap equality. In formal mode, continue requiring requested and realized counts to be exactly 60,000/12,000.
+  Rationale: A precision probe tests numerical execution, not cohort completeness, and post-selection deduplication may reduce its tiny sample. The formal arm comparison depends on exact cohort equality and therefore keeps the strict count gate.
   Date/Author: 2026-08-14 / Codex.
 
 - Decision: Treat P0-A as diagnostically complete but do not globally disable joint optimization or relax sewing tolerance.
@@ -269,3 +278,5 @@ Revision note 2026-08-14 11:20 +08:00: Updated after profiling the strict finite
 Revision note 2026-08-14 11:50 +08:00: Updated after closing the P0-B launcher and measurement evidence contracts. It records the invalid first-probe root cause, separate probe and formal sampling contracts, writer exclusion, fixed Protocol V5 hashes, exact caps, ordered and sorted patch-inventory digests, stable runtime resume binding, four-task inventory equality, the new output roots, and the final 222-test implementation baseline.
 
 Revision note 2026-08-14 12:00 +08:00: Updated after the first live replacement probe found that `_collect_protocol_inventory` still hard-coded a full source scan. It records the second invalid probe, the derived full-scan rule that preserves every formal gate, the cap-bounded regression, and the fresh `v3` probe roots.
+
+Revision note 2026-08-14 12:08 +08:00: Updated after the fp32 `v3` probe reached GPU training and exposed a smoke-only requested-versus-realized inventory validation error. It records the finite learned-VQ evidence, the 116/90 realized counts, the smoke validator correction, the unchanged formal exact-cap gate, and the 225-test baseline.

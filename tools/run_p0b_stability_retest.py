@@ -666,6 +666,9 @@ def _validate_inventory(
         "train": task["signature_payload"]["train_cap"],
         "val": task["signature_payload"]["val_cap"],
     }
+    exact_counts_required = bool(
+        task["signature_payload"].get("sampling", {}).get("require_exact_caps")
+    )
     for split_name in ("train", "val"):
         item = observed.get(split_name)
         if not isinstance(item, Mapping):
@@ -674,7 +677,11 @@ def _validate_inventory(
         normalized[split_name] = dict(item)
         if item.get("schema") != "vq-exact-hash-inventory-v1":
             reasons.append(f"{prefix} {split_name} inventory schema mismatch")
-        if item.get("count") != expected_counts[split_name]:
+        count = item.get("count")
+        cap = expected_counts[split_name]
+        if type(count) is not int or count <= 0 or count > cap:
+            reasons.append(f"{prefix} {split_name} inventory count invalid")
+        elif exact_counts_required and count != cap:
             reasons.append(f"{prefix} {split_name} inventory count mismatch")
         for field in ("ordered_sha256", "sorted_sha256"):
             if not _valid_sha256(item.get(field)):
@@ -1071,9 +1078,9 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
             )
             train_selected = (sweep_row.get("train_sampling") or {}).get("selected")
             val_selected = (sweep_row.get("val_sampling") or {}).get("selected")
-            if train_selected != task["signature_payload"]["train_cap"]:
+            if formal and train_selected != task["signature_payload"]["train_cap"]:
                 reasons.append("sweep realized train patch count mismatch")
-            if val_selected != task["signature_payload"]["val_cap"]:
+            if formal and val_selected != task["signature_payload"]["val_cap"]:
                 reasons.append("sweep realized val patch count mismatch")
             if formal and (
                 train_selected != FORMAL_TRAIN_CAP or val_selected != FORMAL_VAL_CAP
