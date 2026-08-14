@@ -992,7 +992,17 @@ def collect_se(paths, cap, return_weights=False):
     return samples
 
 
+def _requires_full_protocol_inventory_scan():
+    return bool(
+        VQ_BALANCE_BY_PARENT
+        or VQ_DEDUP_BEFORE_CAP
+        or VQ_REQUIRE_EXACT_CAPS
+        or VQ_MIN_PARENT_COVERAGE > 0
+    )
+
+
 def _collect_protocol_inventory(paths, cap, seed):
+    require_all_paths = _requires_full_protocol_inventory_scan()
     records, summary = collect_vqvae_sample_records(
         paths,
         cap,
@@ -1004,11 +1014,12 @@ def _collect_protocol_inventory(paths, cap, seed):
         max_source_faces=VQ_MAX_SOURCE_FACES,
         max_source_edges=VQ_MAX_SOURCE_EDGES,
         require_parent_id=True,
-        require_all_paths=True,
+        require_all_paths=require_all_paths,
         deduplicate_before_cap=VQ_DEDUP_BEFORE_CAP,
         balance_by_parent=VQ_BALANCE_BY_PARENT,
         min_parent_coverage=0.0,
     )
+    summary['require_all_paths'] = require_all_paths
     deduplicated, final_dedup_summary = deduplicate_patch_records(records)
     dedup_summary = summary.get('dedup_before_cap') or final_dedup_summary
     if not deduplicated:

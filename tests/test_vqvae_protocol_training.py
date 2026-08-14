@@ -99,6 +99,32 @@ def test_collect_protocol_vq_data_uses_disjoint_cad_splits_and_exact_dedup(
     assert data["val_parent_ids"] == ["b" * 24, "b" * 24]
 
 
+def test_probe_protocol_inventory_stops_after_reaching_cap(
+    tmp_path, monkeypatch, train_module
+):
+    paths = []
+    for index, suffix in enumerate("abcdef", start=1):
+        path = tmp_path / source(suffix * 24, index=index)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("wb") as handle:
+            pickle.dump(parsed(float(index), float(index)), handle)
+        paths.append(str(path))
+
+    monkeypatch.setattr(train_module, "VQ_BALANCE_BY_PARENT", False)
+    monkeypatch.setattr(train_module, "VQ_DEDUP_BEFORE_CAP", False)
+    monkeypatch.setattr(train_module, "VQ_REQUIRE_EXACT_CAPS", False)
+    monkeypatch.setattr(train_module, "VQ_MIN_PARENT_COVERAGE", 0.0)
+
+    records, summary, _dedup = train_module._collect_protocol_inventory(
+        paths, cap=1, seed=0
+    )
+
+    assert len(records) == 1
+    assert summary["require_all_paths"] is False
+    assert summary["loaded_paths"] == 1
+    assert summary["scan_complete"] is False
+
+
 @pytest.mark.parametrize(
     ("train_cap", "val_cap", "message"),
     [
