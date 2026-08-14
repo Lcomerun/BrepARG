@@ -41,11 +41,20 @@ from diffusers import VQModel
 from fsq_quantise import FSQQuantiser
 from gnn_ordering import rcm_face_ordering
 from training_stability import (
+    NonFiniteTrainingError,
     VQVAEStopConfig,
     VQVAEStopState,
+    assert_finite_training_state,
+    atomic_torch_save,
+    build_experiment_signature,
+    capture_training_checkpoint,
+    clip_gradients_strict,
     continuation_epoch_count,
     finite_average,
+    load_training_checkpoint,
     parse_env_bool,
+    resolve_precision,
+    restore_training_checkpoint,
     safe_json_number,
     summarize_vqvae_history,
     update_vqvae_stop_state,
@@ -113,6 +122,16 @@ VQ_LR = float(os.environ.get('NS_VQ_LR', '3e-4'))
 VQ_RESUME_FROM = os.environ.get('NS_VQ_RESUME_FROM', '').strip()
 VQ_HISTORY_IN = os.environ.get('NS_VQ_HISTORY_IN', '').strip()
 VQ_TARGET_EPOCH = os.environ.get('NS_VQ_TARGET_EPOCH', '').strip()
+VQ_PRECISION = os.environ.get('NS_VQ_PRECISION', '').strip().lower()
+VQ_GRAD_CLIP = float(os.environ.get('NS_VQ_GRAD_CLIP', '1.0'))
+VQ_ROLLING_CHECKPOINT = os.environ.get('NS_VQ_ROLLING_CHECKPOINT', '').strip()
+VQ_AUTO_RESUME = parse_env_bool(os.environ.get('NS_VQ_AUTO_RESUME'), False)
+VQ_STRICT_NONFINITE = parse_env_bool(os.environ.get('NS_VQ_STRICT_NONFINITE'), False)
+VQ_EXPERIMENT_SIGNATURE = os.environ.get('NS_VQ_EXPERIMENT_SIGNATURE', '').strip()
+VQ_SCHEDULER_FACTOR = float(os.environ.get('NS_VQ_SCHEDULER_FACTOR', '0.5'))
+VQ_SCHEDULER_PATIENCE = int(os.environ.get('NS_VQ_SCHEDULER_PATIENCE', '8'))
+VQ_SCHEDULER_THRESHOLD = float(os.environ.get('NS_VQ_SCHEDULER_THRESHOLD', '1e-5'))
+VQ_SCHEDULER_MIN_LR = float(os.environ.get('NS_VQ_SCHEDULER_MIN_LR', '1e-6'))
 VQ_COMPLEX_FRACTION = float(os.environ.get('NS_VQ_COMPLEX_FRACTION', '0'))
 VQ_COMPLEX_MIN_FACES = int(os.environ.get('NS_VQ_COMPLEX_MIN_FACES', '12'))
 VQ_COMPLEX_MIN_EDGES = int(os.environ.get('NS_VQ_COMPLEX_MIN_EDGES', '20'))
@@ -160,6 +179,8 @@ AR_MAX_SEQ_LEN = int(os.environ.get('NS_AR_MAX_SEQ_LEN', '1024'))
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 AMP = torch.cuda.is_available()
 VQ_AMP = AMP and not parse_env_bool(os.environ.get('NS_DISABLE_AMP_VQVAE'), False)
+if not VQ_PRECISION:
+    VQ_PRECISION = 'fp16' if VQ_AMP else 'fp32'
 if torch.cuda.is_available():
     torch.backends.cuda.matmul.allow_tf32 = True
     torch.backends.cudnn.allow_tf32 = True
@@ -183,7 +204,11 @@ def load_report():
             'ar_epochs': AR_EPOCHS, 'ar_bs': AR_BS,
             'vq_min_epochs': VQ_MIN_EPOCHS, 'vq_patience': VQ_PATIENCE,
             'vq_min_delta': VQ_MIN_DELTA, 'vq_max_nonfinite_val_epochs': VQ_MAX_NONFINITE_VAL_EPOCHS,
-            'vq_amp': VQ_AMP, 'vq_lr': VQ_LR, 'vq_resume_from': VQ_RESUME_FROM or None,
+            'vq_amp': VQ_AMP, 'vq_precision': VQ_PRECISION,
+            'vq_grad_clip': VQ_GRAD_CLIP, 'vq_strict_nonfinite': VQ_STRICT_NONFINITE,
+            'vq_auto_resume': VQ_AUTO_RESUME,
+            'vq_rolling_checkpoint': VQ_ROLLING_CHECKPOINT or None,
+            'vq_lr': VQ_LR, 'vq_resume_from': VQ_RESUME_FROM or None,
             'vq_history_in': VQ_HISTORY_IN or None, 'vq_target_epoch': VQ_TARGET_EPOCH or None,
             'vq_complex_fraction': VQ_COMPLEX_FRACTION,
             'vq_complex_min_faces': VQ_COMPLEX_MIN_FACES,
@@ -556,7 +581,8 @@ class AmpSafeLearnedVectorQuantiser(nn.Module):
 
     def forward(self, latent, *args, **kwargs):
         input_dtype = latent.dtype
-        quantized, loss, info = self.quantizer(latent.float(), *args, **kwargs)
+        with torch.autocast(device_type=latent.device.type, enabled=False):
+            quantized, loss, info = self.quantizer(latent.float(), *args, **kwargs)
         if quantized.dtype != input_dtype:
             quantized = quantized.to(dtype=input_dtype)
         return quantized, loss, info
@@ -798,6 +824,44 @@ def _vq_arm_manifest(config):
     if config.get('quantizer'):
         payload['quantizer'] = dict(config['quantizer'])
     return payload
+
+
+def vq_training_signature_configuration(run_manifest, config, *, precision=None):
+    """Bind every immutable control that makes a VQ training state resumable."""
+    experiment = dict(run_manifest.get('experiment') or {})
+    return {
+        'git': dict(run_manifest.get('git') or {}),
+        'protocol': dict(experiment.get('protocol') or {}),
+        'arm': _vq_arm_manifest(config),
+        'seed': int(experiment.get('seed', VQ_EXPERIMENT_SEED)),
+        'train_cap': int(experiment.get('train_cap')),
+        'val_cap': int(experiment.get('val_cap')),
+        'epochs': int(experiment.get('epochs')),
+        'batch_size': int(experiment.get('batch_size')),
+        'lr': float(config['lr']),
+        'precision': str(precision or VQ_PRECISION),
+        'grad_clip_norm': float(VQ_GRAD_CLIP),
+        'scheduler': {
+            'kind': 'ReduceLROnPlateau',
+            'metric': 'curved_parent_mse',
+            'factor': float(VQ_SCHEDULER_FACTOR),
+            'patience': int(VQ_SCHEDULER_PATIENCE),
+            'threshold': float(VQ_SCHEDULER_THRESHOLD),
+            'threshold_mode': 'abs',
+            'min_lr': float(VQ_SCHEDULER_MIN_LR),
+        },
+        'loss': {
+            'reconstruction': 'weighted_mse',
+            'curved_loss_weight': float(VQ_CURVED_LOSS_WEIGHT),
+            'complex_loss_weight': float(VQ_COMPLEX_LOSS_WEIGHT),
+            'curved_loss_threshold': float(VQ_CURVED_LOSS_THRESHOLD),
+        },
+        'sampling': {
+            key: experiment.get(key) for key in (
+                'curved_fraction', 'complex_fraction', 'min_parent_coverage'
+            )
+        },
+    }
 
 
 _LAST_VQVAE_SAMPLING_SUMMARY = None
@@ -1215,17 +1279,51 @@ def _train_vqvae(
         tb_log_dir=None,
         fsq_levels=None,
         quantizer_metadata=None,
-        checkpoint_context=None):
+        checkpoint_context=None,
+        precision=None,
+        grad_clip_norm=1.0,
+        strict_nonfinite=False,
+        rolling_checkpoint_path=None,
+        resume_from=None,
+        auto_resume=False,
+        experiment_signature=None,
+        signature_configuration=None,
+        scheduler_factor=0.5,
+        scheduler_patience=8,
+        scheduler_threshold=1e-5,
+        scheduler_min_lr=1e-6):
     model = model.to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-6)
-    amp_enabled = VQ_AMP if amp_enabled is None else bool(amp_enabled)
+    if precision is None:
+        if amp_enabled is None:
+            precision = VQ_PRECISION
+        else:
+            precision = 'fp16' if bool(amp_enabled) else 'fp32'
+    precision_policy = resolve_precision(precision)
+    amp_enabled = precision_policy.autocast_dtype is not None
+    grad_clip_norm = float(grad_clip_norm)
+    if grad_clip_norm <= 0:
+        raise ValueError("grad_clip_norm must be positive")
     stop_config = stop_config or VQVAEStopConfig(
         min_epochs=VQ_MIN_EPOCHS,
         patience=VQ_PATIENCE,
         max_nonfinite_val_epochs=VQ_MAX_NONFINITE_VAL_EPOCHS,
         min_delta=VQ_MIN_DELTA,
     )
-    scaler = torch.cuda.amp.GradScaler(enabled=amp_enabled)
+    scaler = (
+        torch.cuda.amp.GradScaler(enabled=True)
+        if precision_policy.grad_scaler_enabled
+        else None
+    )
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        opt,
+        mode='min',
+        factor=float(scheduler_factor),
+        patience=int(scheduler_patience),
+        threshold=float(scheduler_threshold),
+        threshold_mode='abs',
+        min_lr=float(scheduler_min_lr),
+    )
     Xtr = torch.tensor(Xtr); Xva = torch.tensor(Xva)
     val_buckets = list(val_buckets or [])
     if val_buckets and len(val_buckets) != len(Xva):
@@ -1246,7 +1344,40 @@ def _train_vqvae(
         'codebook_size': int(codebook_size or np.prod(fsq_levels)),
         'downstream_compatible': True,
     })
-    start_epoch = int(start_epoch)
+    signature_configuration = dict(signature_configuration or {
+        'tag': tag,
+        'checkpoint_context': checkpoint_context,
+        'quantizer': quantizer_metadata,
+        'train_samples': len(Xtr),
+        'val_samples': len(Xva),
+        'epochs': int(epochs),
+        'start_epoch': int(start_epoch),
+        'batch_size': int(bs),
+        'lr': float(lr),
+        'precision': precision_policy.as_dict(),
+        'grad_clip_norm': grad_clip_norm,
+        'scheduler': {
+            'kind': 'ReduceLROnPlateau',
+            'metric': 'curved_parent_mse',
+            'factor': float(scheduler_factor),
+            'patience': int(scheduler_patience),
+            'threshold': float(scheduler_threshold),
+            'threshold_mode': 'abs',
+            'min_lr': float(scheduler_min_lr),
+        },
+        'loss': {
+            'reconstruction': 'weighted_mse',
+            'complex_loss_weight': VQ_COMPLEX_LOSS_WEIGHT,
+            'curved_loss_weight': VQ_CURVED_LOSS_WEIGHT,
+            'curved_loss_threshold': VQ_CURVED_LOSS_THRESHOLD,
+        },
+        'seed': VQ_EXPERIMENT_SEED,
+    })
+    derived_signature = build_experiment_signature(signature_configuration)
+    experiment_signature = str(experiment_signature or derived_signature)
+    requested_start_epoch = int(start_epoch)
+    target_epoch = requested_start_epoch + int(epochs)
+    start_epoch = requested_start_epoch
     initial_best = float(initial_best_val) if initial_best_val is not None else float('inf')
     stop_state = VQVAEStopState(best_val=initial_best, best_epoch=int(initial_best_epoch))
     plateau_state = VQVAEStopState()
@@ -1263,6 +1394,15 @@ def _train_vqvae(
         'stopped_early': False,
         'stop_reason': '',
         'amp': amp_enabled,
+        'precision': precision_policy.as_dict(),
+        'grad_clip_norm': grad_clip_norm,
+        'strict_nonfinite': bool(strict_nonfinite),
+        'rolling_checkpoint_path': rolling_checkpoint_path,
+        'experiment_signature': experiment_signature,
+        'derived_experiment_signature': derived_signature,
+        'resumed': False,
+        'resume_from': None,
+        'resume_from_epoch': None,
         'history_path': history_path,
         'save_final_path': save_final_path,
         'train_weight_mean': float(torch.mean(Wtr).item()) if Wtr is not None and len(Wtr) else None,
@@ -1273,33 +1413,131 @@ def _train_vqvae(
         'checkpoint_epoch': -1,
         'checkpoint_val_recon': None,
     }
+    resume_path = resume_from
+    if not resume_path and auto_resume and rolling_checkpoint_path:
+        if os.path.exists(rolling_checkpoint_path):
+            resume_path = rolling_checkpoint_path
+    if resume_path:
+        resume_payload = load_training_checkpoint(
+            resume_path,
+            expected_signature=experiment_signature,
+            map_location=DEVICE,
+        )
+        restored = restore_training_checkpoint(
+            resume_payload,
+            model=model,
+            optimizer=opt,
+            scaler=scaler,
+            scheduler=scheduler,
+            expected_signature=experiment_signature,
+        )
+        start_epoch = int(restored['next_epoch'])
+        if start_epoch < requested_start_epoch or start_epoch > target_epoch:
+            raise ValueError(
+                f"resume epoch {start_epoch} is outside requested range "
+                f"[{requested_start_epoch}, {target_epoch}]"
+            )
+        history = list(restored['history'])
+        stop_state = restored['stop_state']
+        plateau_state = restored['plateau_state']
+        best_val = stop_state.best_val
+        resume_extra = restored.get('extra') or {}
+        if resume_extra.get('signature_configuration') != signature_configuration:
+            raise ValueError("training checkpoint signature configuration mismatch")
+        selector_state = resume_extra.get('selector_state') or {}
+        best_curved_parent_mse = float(
+            selector_state.get('best_curved_parent_mse', float('inf'))
+        )
+        prior_perplexities = list(selector_state.get('prior_perplexities') or [])
+        prior_coverages = list(selector_state.get('prior_coverages') or [])
+        restored_meta = resume_extra.get('meta') or {}
+        for key in (
+                'best_val_metrics', 'checkpoint_epoch', 'checkpoint_val_recon',
+                'global_best_epoch', 'last_val_metrics'):
+            if key in restored_meta:
+                meta[key] = restored_meta[key]
+        meta.update({
+            'epochs_ran': start_epoch - requested_start_epoch,
+            'best_epoch': stop_state.best_epoch,
+            'resumed': True,
+            'resume_from': str(resume_path),
+            'resume_from_epoch': int(restored['epoch']),
+            'start_epoch': start_epoch,
+            'end_epoch': int(restored['epoch']),
+        })
+        log(
+            f"  {tag} resumed full state from {resume_path} "
+            f"after epoch={restored['epoch']}"
+        )
+    assert_finite_training_state(model, opt)
     writer = None
     if tb_log_dir:
         from torch.utils.tensorboard import SummaryWriter
         writer = SummaryWriter(log_dir=tb_log_dir)
     try:
-      for ep in range(epochs):
-        absolute_epoch = start_epoch + ep
+      for absolute_epoch in range(start_epoch, target_epoch):
         model.train(); perm = torch.randperm(len(Xtr)); tot = nb = 0
         train_batches = skipped_train_batches = 0
+        nonfinite_loss_batches = nonfinite_gradient_batches = nonfinite_state_batches = 0
+        preclip_grad_norms = []
+        epoch_lr = float(opt.param_groups[0]['lr'])
         for i in range(0, len(Xtr), bs):
             train_batches += 1
             batch_index = perm[i:i + bs]
             xb = Xtr[batch_index].to(DEVICE)
             wb = Wtr[batch_index].to(DEVICE) if Wtr is not None else None
-            with torch.cuda.amp.autocast(enabled=amp_enabled):
+            opt.zero_grad(set_to_none=True)
+            with precision_policy.autocast():
                 h = model.encoder(xb); h = model.quant_conv(h)
                 zq, vq_loss, _ = model.quantize(h)
                 recon = model.decoder(model.post_quant_conv(zq))
                 loss = weighted_reconstruction_loss(recon, xb, wb) + vq_loss
             if not torch.isfinite(loss):
+                nonfinite_loss_batches += 1
                 skipped_train_batches += 1
-                opt.zero_grad()
+                opt.zero_grad(set_to_none=True)
+                if strict_nonfinite:
+                    raise NonFiniteTrainingError(
+                        f"non-finite training loss at epoch={absolute_epoch} batch={train_batches - 1}"
+                    )
                 continue
-            opt.zero_grad(); scaler.scale(loss).backward()
-            scaler.unscale_(opt)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            scaler.step(opt); scaler.update()
+            try:
+                assert_finite_training_state(model, opt)
+            except NonFiniteTrainingError:
+                nonfinite_state_batches += 1
+                skipped_train_batches += 1
+                opt.zero_grad(set_to_none=True)
+                if strict_nonfinite:
+                    raise
+                continue
+            if scaler is not None:
+                scaler.scale(loss).backward()
+                scaler.unscale_(opt)
+            else:
+                loss.backward()
+            try:
+                preclip_grad_norm = clip_gradients_strict(model, grad_clip_norm)
+            except NonFiniteTrainingError:
+                nonfinite_gradient_batches += 1
+                skipped_train_batches += 1
+                opt.zero_grad(set_to_none=True)
+                if strict_nonfinite:
+                    raise
+                continue
+            if scaler is not None:
+                scaler.step(opt)
+                scaler.update()
+            else:
+                opt.step()
+            try:
+                assert_finite_training_state(model, opt)
+            except NonFiniteTrainingError:
+                nonfinite_state_batches += 1
+                if strict_nonfinite:
+                    raise
+                skipped_train_batches += 1
+                continue
+            preclip_grad_norms.append(preclip_grad_norm)
             tot += loss.item(); nb += 1
         model.eval(); vtot = vcount = vnb = 0; val_batches = 0
         nonfinite_val_samples = nonfinite_val_batches = 0
@@ -1311,16 +1549,21 @@ def _train_vqvae(
             for i in range(0, len(Xva), bs):
                 val_batches += 1
                 xb = Xva[i:i + bs].to(DEVICE)
-                with torch.cuda.amp.autocast(enabled=amp_enabled):
+                with precision_policy.autocast():
                     h = model.encoder(xb); h = model.quant_conv(h)
                     zq, _, quantizer_info = model.quantize(h)
                     recon = model.decoder(model.post_quant_conv(zq))
                     per_sample = (recon - xb).pow(2).flatten(1).mean(dim=1)
-                if val_accumulator is not None:
-                    val_accumulator.update(per_sample, quantizer_info[2])
                 finite_mask = torch.isfinite(per_sample)
                 finite_samples = int(finite_mask.sum().item())
                 nonfinite_samples = int(len(per_sample) - finite_samples)
+                if nonfinite_samples and strict_nonfinite:
+                    raise NonFiniteTrainingError(
+                        f"validation batch contains {nonfinite_samples} non-finite samples "
+                        f"at epoch={absolute_epoch} batch={val_batches - 1}"
+                    )
+                if val_accumulator is not None:
+                    val_accumulator.update(per_sample, quantizer_info[2])
                 if finite_samples:
                     vtot += float(per_sample[finite_mask].sum().item())
                     vcount += finite_samples
@@ -1329,6 +1572,12 @@ def _train_vqvae(
                     nonfinite_val_batches += 1
                 else:
                     vnb += 1
+        try:
+            assert_finite_training_state(model, opt)
+        except NonFiniteTrainingError:
+            nonfinite_state_batches += 1
+            if strict_nonfinite:
+                raise
         tr = finite_average(tot, nb)
         va = (
             finite_average(vtot, vcount)
@@ -1379,6 +1628,19 @@ def _train_vqvae(
                 active_stop_reason = f'curved_parent_mse:{plateau_state.stop_reason}'
         elif VQ_PLATEAU_METRIC != 'global_val':
             raise ValueError(f'unsupported VQ plateau metric: {VQ_PLATEAU_METRIC!r}')
+        scheduler_value = (
+            float(plateau_value)
+            if VQ_PLATEAU_METRIC == 'curved_parent_mse'
+            else float(va)
+        )
+        if safe_json_number(scheduler_value) is None:
+            if strict_nonfinite:
+                raise NonFiniteTrainingError(
+                    f"ReduceLROnPlateau metric is non-finite at epoch={absolute_epoch}"
+                )
+        else:
+            scheduler.step(scheduler_value)
+        lr_after_scheduler = float(opt.param_groups[0]['lr'])
         checkpoint_payload = {
             'model_state_dict': model.state_dict(),
             'fsq_levels': list(fsq_levels),
@@ -1418,6 +1680,22 @@ def _train_vqvae(
             'train_batches': train_batches,
             'finite_train_batches': nb,
             'skipped_train_batches': skipped_train_batches,
+            'nonfinite_loss_batches': nonfinite_loss_batches,
+            'nonfinite_gradient_batches': nonfinite_gradient_batches,
+            'nonfinite_state_batches': nonfinite_state_batches,
+            'gradients_finite': nonfinite_gradient_batches == 0,
+            'training_state_finite': nonfinite_state_batches == 0,
+            'preclip_grad_norm': (
+                max(preclip_grad_norms) if preclip_grad_norms else None
+            ),
+            'mean_preclip_grad_norm': (
+                float(np.mean(preclip_grad_norms)) if preclip_grad_norms else None
+            ),
+            'grad_clip_norm': grad_clip_norm,
+            'grad_clip_active': bool(preclip_grad_norms),
+            'grad_clip_was_effective': any(
+                value > grad_clip_norm for value in preclip_grad_norms
+            ),
             'val_batches': val_batches,
             'finite_val_batches': vnb,
             'finite_val_samples': vcount,
@@ -1428,6 +1706,16 @@ def _train_vqvae(
             'plateau_metric': VQ_PLATEAU_METRIC,
             'plateau_value': metric_for_report(plateau_value),
             'plateau_improved': plateau_improved,
+            'lr': epoch_lr,
+            'lr_after_scheduler': lr_after_scheduler,
+            'scheduler_metric': metric_for_report(scheduler_value),
+            'precision': precision_policy.name,
+            'autocast_dtype': precision_policy.as_dict()['autocast_dtype'],
+            'grad_scaler_enabled': precision_policy.grad_scaler_enabled,
+            'strict_nonfinite': bool(strict_nonfinite),
+            'experiment_signature': experiment_signature,
+            'resumed': bool(meta['resumed']),
+            'resume_from_epoch': meta['resume_from_epoch'],
             'plateau_epochs_without_improvement': (
                 plateau_state.epochs_without_improvement
                 if VQ_PLATEAU_METRIC == 'curved_parent_mse'
@@ -1445,7 +1733,7 @@ def _train_vqvae(
                 ]
         history.append(record)
         meta.update({
-            'epochs_ran': ep + 1,
+            'epochs_ran': absolute_epoch - requested_start_epoch + 1,
             'best_epoch': stop_state.best_epoch,
             'global_best_epoch': stop_state.best_epoch,
             'checkpoint_epoch': meta['checkpoint_epoch'],
@@ -1478,11 +1766,24 @@ def _train_vqvae(
                 'tag': tag,
                 'config': {
                     'epochs_requested': epochs,
-                    'start_epoch': start_epoch,
-                    'target_epoch': start_epoch + epochs,
+                    'start_epoch': requested_start_epoch,
+                    'target_epoch': target_epoch,
                     'batch_size': bs,
                     'lr': lr,
                     'amp': amp_enabled,
+                    'precision': precision_policy.as_dict(),
+                    'grad_clip_norm': grad_clip_norm,
+                    'strict_nonfinite': bool(strict_nonfinite),
+                    'scheduler': {
+                        'metric': 'curved_parent_mse',
+                        'factor': float(scheduler_factor),
+                        'patience': int(scheduler_patience),
+                        'threshold': float(scheduler_threshold),
+                        'threshold_mode': 'abs',
+                        'min_lr': float(scheduler_min_lr),
+                    },
+                    'experiment_signature': experiment_signature,
+                    'rolling_checkpoint_path': rolling_checkpoint_path,
                     'min_epochs': stop_config.min_epochs,
                     'patience': stop_config.patience,
                     'min_delta': stop_config.min_delta,
@@ -1495,7 +1796,36 @@ def _train_vqvae(
                 'best_epoch': stop_state.best_epoch,
                 'stop_reason': active_stop_reason,
             }, open(history_path, 'w'), indent=2)
-        if ep % 10 == 0 or ep == epochs - 1:
+        if rolling_checkpoint_path:
+            rolling_payload = capture_training_checkpoint(
+                model=model,
+                optimizer=opt,
+                scaler=scaler,
+                scheduler=scheduler,
+                epoch=absolute_epoch,
+                history=history,
+                stop_state=stop_state,
+                plateau_state=plateau_state,
+                experiment_signature=experiment_signature,
+                extra={
+                    'signature_configuration': signature_configuration,
+                    'precision': precision_policy.as_dict(),
+                    'selector_state': {
+                        'best_curved_parent_mse': best_curved_parent_mse,
+                        'prior_perplexities': prior_perplexities,
+                        'prior_coverages': prior_coverages,
+                    },
+                    'meta': {
+                        'best_val_metrics': meta.get('best_val_metrics'),
+                        'checkpoint_epoch': meta.get('checkpoint_epoch'),
+                        'checkpoint_val_recon': meta.get('checkpoint_val_recon'),
+                        'global_best_epoch': meta.get('global_best_epoch'),
+                        'last_val_metrics': meta.get('last_val_metrics'),
+                    },
+                },
+            )
+            atomic_torch_save(rolling_payload, rolling_checkpoint_path)
+        if absolute_epoch % 10 == 0 or absolute_epoch == target_epoch - 1:
             log(f"  {tag} ep {absolute_epoch:3d} train={format_metric(tr)} val={format_metric(va)} best={format_metric(best_val)} finite_train={nb}/{train_batches} finite_val={vnb}/{val_batches}")
         if should_stop:
             meta['stopped_early'] = True
@@ -1542,6 +1872,15 @@ def stage_vqsweep():
         arm_final_checkpoint = (
             os.path.join(OUT, f"{c['name']}_final.pt") if VQ_SAVE_FINAL else None
         )
+        arm_rolling_checkpoint = (
+            VQ_ROLLING_CHECKPOINT
+            if VQ_ROLLING_CHECKPOINT and len(configs) == 1
+            else os.path.join(OUT, f"{c['name']}_rolling.pt")
+        )
+        signature_configuration = vq_training_signature_configuration(run_manifest, c)
+        arm_signature = VQ_EXPERIMENT_SIGNATURE or build_experiment_signature(
+            signature_configuration
+        )
         hist, bv, arm_meta = _train_vqvae(
             m, Xtr, Xva, epochs=VQ_SWEEP_EPOCHS, bs=VQ_BS, lr=c['lr'], tag=c['name'],
             val_buckets=protocol_data['val_buckets'],
@@ -1553,6 +1892,17 @@ def stage_vqsweep():
             fsq_levels=c['levels'],
             quantizer_metadata=c.get('quantizer'),
             checkpoint_context=checkpoint_context,
+            precision=VQ_PRECISION,
+            grad_clip_norm=VQ_GRAD_CLIP,
+            strict_nonfinite=VQ_STRICT_NONFINITE,
+            rolling_checkpoint_path=arm_rolling_checkpoint,
+            auto_resume=VQ_AUTO_RESUME,
+            experiment_signature=arm_signature,
+            signature_configuration=signature_configuration,
+            scheduler_factor=VQ_SCHEDULER_FACTOR,
+            scheduler_patience=VQ_SCHEDULER_PATIENCE,
+            scheduler_threshold=VQ_SCHEDULER_THRESHOLD,
+            scheduler_min_lr=VQ_SCHEDULER_MIN_LR,
         )
         final_metrics = arm_meta.get('last_val_metrics') or {}
         checkpoint_payload = torch.load(arm_checkpoint, map_location='cpu')
@@ -1577,6 +1927,10 @@ def stage_vqsweep():
             'checkpoint_val_recon': arm_meta.get('checkpoint_val_recon'),
             'checkpoint_best': arm_checkpoint,
             'checkpoint_final': arm_final_checkpoint,
+            'checkpoint_rolling': arm_rolling_checkpoint,
+            'experiment_signature': arm_signature,
+            'precision': arm_meta.get('precision'),
+            'resumed': arm_meta.get('resumed'),
             'final_checkpoint_epoch': arm_meta.get('end_epoch'),
             'train_sampling': protocol_data['train_sampling'],
             'val_sampling': protocol_data['val_sampling'],
@@ -1655,11 +2009,24 @@ def stage_vqvae():
     Wtr = protocol_data['train_weights']
     log(f"  data train={len(Xtr)} val={len(Xva)} epochs={epochs_to_run} start_epoch={start_epoch} bs={VQ_BS} lr={VQ_LR} device={DEVICE}")
     m = build_fsq_vqvae(FSQ_LEVELS)
-    if VQ_RESUME_FROM:
+    legacy_resume_from = VQ_RESUME_FROM
+    if legacy_resume_from and VQ_AUTO_RESUME and VQ_ROLLING_CHECKPOINT:
+        raise RuntimeError(
+            "NS_VQ_RESUME_FROM cannot be combined with automatic full-state resume"
+        )
+    if legacy_resume_from:
         ckpt = torch.load(VQ_RESUME_FROM, map_location=DEVICE)
         m.load_state_dict(ckpt['model_state_dict'])
         log(f"  resume from {VQ_RESUME_FROM}")
     t0 = time.time()
+    vq_config = configs[0]
+    rolling_checkpoint_path = VQ_ROLLING_CHECKPOINT or os.path.join(
+        OUT, 'vqvae_rolling.pt'
+    )
+    signature_configuration = vq_training_signature_configuration(run_manifest, vq_config)
+    vq_signature = VQ_EXPERIMENT_SIGNATURE or build_experiment_signature(
+        signature_configuration
+    )
     hist, bv, meta = _train_vqvae(
         m,
         Xtr,
@@ -1681,6 +2048,17 @@ def stage_vqvae():
         tb_log_dir=VQ_TB_LOG_DIR or None,
         fsq_levels=FSQ_LEVELS,
         checkpoint_context=checkpoint_context,
+        precision=VQ_PRECISION,
+        grad_clip_norm=VQ_GRAD_CLIP,
+        strict_nonfinite=VQ_STRICT_NONFINITE,
+        rolling_checkpoint_path=rolling_checkpoint_path,
+        auto_resume=VQ_AUTO_RESUME and not legacy_resume_from,
+        experiment_signature=vq_signature,
+        signature_configuration=signature_configuration,
+        scheduler_factor=VQ_SCHEDULER_FACTOR,
+        scheduler_patience=VQ_SCHEDULER_PATIENCE,
+        scheduler_threshold=VQ_SCHEDULER_THRESHOLD,
+        scheduler_min_lr=VQ_SCHEDULER_MIN_LR,
     )
     first_val = hist[0][1] if hist else float('inf')
     baseline_best = initial_best_val if initial_best_val is not None else first_val
@@ -1713,6 +2091,13 @@ def stage_vqvae():
         'stopped_early': meta.get('stopped_early', False),
         'early_stop_reason': meta.get('stop_reason') or None,
         'amp': meta.get('amp'),
+        'precision': meta.get('precision'),
+        'grad_clip_norm': meta.get('grad_clip_norm'),
+        'strict_nonfinite': meta.get('strict_nonfinite'),
+        'experiment_signature': meta.get('experiment_signature'),
+        'checkpoint_rolling': rolling_checkpoint_path,
+        'full_state_resumed': meta.get('resumed'),
+        'full_state_resume_from': meta.get('resume_from'),
         'lr': VQ_LR,
         'train_weight_mean': meta.get('train_weight_mean'),
         'train_weight_max': meta.get('train_weight_max'),

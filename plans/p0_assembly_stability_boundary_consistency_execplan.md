@@ -18,7 +18,8 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
 - [x] (2026-08-13 15:30 +08:00) Identified P0-B defects: the formal loop unscales before clipping but does not validate or record the returned gradient norm; its non-finite stop is delayed by `min_epochs=100`; VQ checkpoints omit optimizer/scaler/scheduler/RNG state; and skipped non-finite batches can leave a nominally completed but unusable history.
 - [x] (2026-08-13 22:10 +08:00) Implemented and tested the P0-A stage-aware runner, compact snapshot generator, classification gate, and repair checklist; the focused P0-A and snapshot suite passes 29 tests.
 - [x] (2026-08-13 22:10 +08:00) Completed all 96 P0-A attempts for the frozen 16 cases. All 16 received concrete attribution: ten wire self-intersections, three curve-fit failures, two wire-build failures, and one non-unit solid. The 100-percent attribution rate passes the 80-percent gate.
-- [ ] Implement and test explicit fp32/fp16/bf16 handling, effective gradient clipping, plateau LR decay, strict non-finite fuse, atomic full-state checkpoints, and automatic resume (completed: reusable stability primitives and focused tests; remaining: formal training-loop and launcher integration).
+- [x] (2026-08-14 00:20 +08:00) Implemented explicit fp32/fp16/bf16 handling, effective gradient clipping, plateau LR decay, strict non-finite fuse, atomic full-state checkpoints, exact automatic resume, the immutable four-task launcher, and the gated learned-VQ 100-CAD measurement coordinator. The combined P0-B/VQ suite passes 105 tests; assembly/P0-A regression passes 30 tests; sampling and V5/V6 launcher regression passes 78 tests.
+- [x] (2026-08-13 23:04 +08:00) Changed Windows Update active hours from `09:00-03:00` to `12:00-06:00`, verified the write by re-reading the registry, archived the reversible original values, and confirmed that Windows Update and CBS do not report a pending reboot. A generic pending-file-rename signal remains documented, so automatic resume is still mandatory.
 - [ ] Run finite forward/backward precision probes and select the stable CUDA precision for the formal P0-B retest.
 - [ ] Run learned VQ and continuous bypass at seeds 3 and 4 on the same 60,000/12,000 patch protocol for 100 epochs, requiring zero non-finite batches and resumable checkpoints.
 - [ ] Reconstruct and assemble the frozen 100 CADs with the best healthy P0-B learned-VQ checkpoint and report attempts-based strict validity beside original 84%, bypass 70%, and FSQ 49%.
@@ -60,6 +61,12 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
 - Observation: Raw edge-to-surface Chamfer has a non-zero ground-truth floor at the stored 32-by-32 sampling resolution.
   Evidence: On the frozen 100 CADs, 6,024 shared edges had mean ground-truth nearest-surface squared distance about `3.503e-4`, with a long tail up to about `0.221`. Optimizing raw distance would move otherwise correct geometry toward the coarse UV grid.
 
+- Observation: An exact resume needs a stable total-epoch interval in both execution and evidence, not merely a restored optimizer.
+  Evidence: The first integrated implementation correctly resumed the loop at the next epoch but wrote `target_epoch = resumed_start + requested_epochs` to `history.json`, overstating the formal target after interruption. The history contract now records the original requested start and fixed target, and a regression test proves a checkpoint at epoch 0 resumes through epochs 1 and 2 while retaining `start_epoch=0` and `target_epoch=3`.
+
+- Observation: Learned-VQ validation does not mutate the codebook or FeaturePool when the model is in evaluation mode.
+  Evidence: The upstream quantizer wraps its EMA, random-anchor FeaturePool query, codebook restart, and contrastive term in `if self.training`; `model.eval()` recursively disables that block while preserving index and reconstruction measurement.
+
 ## Decision Log
 
 - Decision: Freeze P0-A to exactly the 16 original-control invalid CAD identities from the completed 100-CAD calibration.
@@ -90,6 +97,14 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
   Rationale: This is the minimum state required to survive another Windows restart without silently changing the experiment.
   Date/Author: 2026-08-13 / Codex.
 
+- Decision: Keep strict non-finite mode and automatic full-state resume disabled by default in historical entry points, and enable both explicitly in the P0-B launcher.
+  Rationale: Existing experiment scripts keep their prior behavior, while every formal P0-B task binds the stricter behavior into its signed environment and rejects configuration drift.
+  Date/Author: 2026-08-14 / Codex.
+
+- Decision: Validate all four P0-B histories before selecting the learned-VQ seed with the lowest finite curved parent-cluster MSE, then run only that learned-VQ checkpoint through the frozen 100-CAD assembly measurement.
+  Rationale: Stability requires both VQ and bypass controls, but the missing measurement requested by the user is the learned-VQ strict/native/both-valid result. Re-running GT, bypass, and FSQ would waste compute and risk changing the historical 84/70/49 denominator.
+  Date/Author: 2026-08-14 / Codex.
+
 - Decision: Use learned VQ and continuous bypass only for the 60k P0-B stability retest at seeds 3 and 4, with a fixed 100-epoch budget and the same validation cohort.
   Rationale: Both FSQ arms already failed in all eight completed attempts. P0-B tests the viable quantized arm and its continuous lower bound without spending time reproducing a known FSQ failure.
   Date/Author: 2026-08-13 / Codex.
@@ -114,7 +129,7 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
 
 P0-A is complete. The frozen 16-case, 96-attempt diagnosis reached 100-percent concrete attribution, exceeding the 80-percent gate. Its dominant cause was wire self-intersection in ten cases, followed by three curve fits, two wire builds, and one non-unit solid. Only one case recovered under any joint/tolerance treatment, so the outcome supports targeted assembly repair rather than a global tolerance change. The normalized Git snapshot is in `reports/p0a_assembly_chain_diagnosis_20260813`; generated STEP bytes remain local and 66 saved STEP files are bound by size and SHA-256.
 
-P0-B remains active. Reusable precision, finite-state, checkpoint, RNG, and resume primitives are implemented and tested, but the formal training loop, dedicated launcher, CUDA precision probe, four 100-epoch runs, and healthy learned-VQ 100-CAD assembly measurement are not yet complete. Boundary consistency therefore remains blocked.
+P0-B remains active, but its implementation phase is complete. The formal training loop, immutable four-task launcher, full-state resume contract, fail-closed validator, Windows training-window audit, and learned-VQ 100-CAD measurement coordinator are implemented and covered by focused and compatibility regressions. The remaining P0-B work is runtime evidence: CUDA precision probes, four 100-epoch 60k/12k runs, and the selected healthy learned-VQ fixed-cohort assembly measurement. Boundary consistency therefore remains blocked until those runtime gates pass.
 
 ## Context and Orientation
 
@@ -205,3 +220,5 @@ If the gate opens, the boundary dataset yields topology-preserving shared-edge t
 Revision note 2026-08-13: Created after the user prioritized assembly-chain attribution, stable resumable VQ/bypass retesting, and a hard gate before boundary consistency. It records the frozen cohorts, exact acceptance gates, the validity-definition mismatch, and the non-destructive Git/runtime artifact policy.
 
 Revision note 2026-08-13 22:20 +08:00: Updated after completing P0-A. It records the 16/16 attribution result, distinguishes sensitivity from recovery, marks P0-A complete, and incorporates the topology-preserving relation-loader and ground-truth-baseline boundary-loss decisions discovered during the gated design audit.
+
+Revision note 2026-08-14 00:20 +08:00: Updated after completing P0-B implementation and compatibility regression. It records the immutable launcher and measurement coordinator, reversible Windows active-hours change, exact resume evidence contract, explicit compatibility defaults, current test evidence, and the remaining CUDA/formal-runtime gate.
