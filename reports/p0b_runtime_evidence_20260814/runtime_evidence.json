@@ -1,0 +1,361 @@
+{
+  "boundary_consistency_allowed": false,
+  "formal_training_started": false,
+  "generated_at": "2026-08-14T12:19:30+08:00",
+  "precision_probes": {
+    "bf16": {
+      "inventory_consistent": true,
+      "status": "COMPLETED",
+      "tasks": [
+        {
+          "arm": "vq_4096_64d_random",
+          "attempts": [
+            {
+              "attempt": 1,
+              "auto_resume": true,
+              "finished_at": "2026-08-14T12:08:52+08:00",
+              "returncode": 0,
+              "started_at": "2026-08-14T12:08:47+08:00"
+            }
+          ],
+          "epochs": [
+            {
+              "coverage": 0.029052734375,
+              "curved_parent_mse": 0.21523940252761048,
+              "entropy_perplexity": 87.2394195707786,
+              "epoch": 0,
+              "finite_state_audit_elements": 172444374,
+              "finite_state_audit_status": "finite",
+              "finite_state_audit_tensors": 1206,
+              "finite_train_batches": 15,
+              "finite_val_batches": 12,
+              "nonfinite_gradient_batches": 0,
+              "nonfinite_loss_batches": 0,
+              "nonfinite_state_audits": 0,
+              "nonfinite_val_batches": 0,
+              "nonfinite_val_samples": 0,
+              "preclip_grad_norm": 1633051.875,
+              "resume_from_epoch": null,
+              "resumed": false,
+              "train_batches": 15,
+              "train_loss": 0.29012888,
+              "training_state_finite": true,
+              "val_batches": 12,
+              "val_loss": 0.19077438
+            }
+          ],
+          "experiment_signature": "21113a7bbbdd54bc5d4b7e8f9626fa179d4695712c4e196338ba60a7f289ddbd",
+          "inventory": {
+            "train": {
+              "count": 116,
+              "ordered_sha256": "e63c77946897295f576a04dd2e7203c12cf75375269eb7d0971318e71c6332f4",
+              "schema": "vq-exact-hash-inventory-v1",
+              "sorted_sha256": "4ca522a4cead5adf73f5ae8958291a2074dc5117d0433ef449a65ddf53493859"
+            },
+            "val": {
+              "count": 90,
+              "ordered_sha256": "da50f44a4d1ad1682bd22d189f700e62e12c99ebce3401e76e3dc1ea0bad31fc",
+              "schema": "vq-exact-hash-inventory-v1",
+              "sorted_sha256": "866217e377497577f02f18ea4141cc2a3707243fc1ec451f639a7235d4be88f6"
+            }
+          },
+          "precision": "bf16",
+          "seed": 3,
+          "source_commit": "ddf653040b20876f8b2e2a73cb4977969b75c147",
+          "status": "COMPLETED",
+          "task_id": "vq_4096_64d_random:seed3"
+        },
+        {
+          "arm": "continuous_bypass_64d",
+          "attempts": [
+            {
+              "attempt": 1,
+              "auto_resume": true,
+              "finished_at": "2026-08-14T12:08:58+08:00",
+              "returncode": 0,
+              "started_at": "2026-08-14T12:08:53+08:00"
+            }
+          ],
+          "epochs": [
+            {
+              "coverage": 1.0,
+              "curved_parent_mse": 0.2244932024429242,
+              "entropy_perplexity": 1.0,
+              "epoch": 0,
+              "finite_state_audit_elements": 171391701,
+              "finite_state_audit_status": "finite",
+              "finite_state_audit_tensors": 1200,
+              "finite_train_batches": 15,
+              "finite_val_batches": 12,
+              "nonfinite_gradient_batches": 0,
+              "nonfinite_loss_batches": 0,
+              "nonfinite_state_audits": 0,
+              "nonfinite_val_batches": 0,
+              "nonfinite_val_samples": 0,
+              "preclip_grad_norm": 8.875350952148438,
+              "resume_from_epoch": null,
+              "resumed": false,
+              "train_batches": 15,
+              "train_loss": 0.22629945,
+              "training_state_finite": true,
+              "val_batches": 12,
+              "val_loss": 0.19419789
+            }
+          ],
+          "experiment_signature": "0c74acf46716d0ee294bbf49d01cc1e9bdb75ba537ac2dc636ccbc245d2b9a5d",
+          "inventory": {
+            "train": {
+              "count": 116,
+              "ordered_sha256": "e63c77946897295f576a04dd2e7203c12cf75375269eb7d0971318e71c6332f4",
+              "schema": "vq-exact-hash-inventory-v1",
+              "sorted_sha256": "4ca522a4cead5adf73f5ae8958291a2074dc5117d0433ef449a65ddf53493859"
+            },
+            "val": {
+              "count": 90,
+              "ordered_sha256": "da50f44a4d1ad1682bd22d189f700e62e12c99ebce3401e76e3dc1ea0bad31fc",
+              "schema": "vq-exact-hash-inventory-v1",
+              "sorted_sha256": "866217e377497577f02f18ea4141cc2a3707243fc1ec451f639a7235d4be88f6"
+            }
+          },
+          "precision": "bf16",
+          "seed": 3,
+          "source_commit": "ddf653040b20876f8b2e2a73cb4977969b75c147",
+          "status": "COMPLETED",
+          "task_id": "continuous_bypass_64d:seed3"
+        }
+      ]
+    },
+    "fp32": {
+      "inventory_consistent": true,
+      "status": "COMPLETED",
+      "tasks": [
+        {
+          "arm": "vq_4096_64d_random",
+          "attempts": [
+            {
+              "attempt": 1,
+              "auto_resume": true,
+              "finished_at": "2026-08-14T12:03:23+08:00",
+              "returncode": 0,
+              "started_at": "2026-08-14T12:03:18+08:00"
+            },
+            {
+              "attempt": 2,
+              "auto_resume": true,
+              "finished_at": "2026-08-14T12:05:36+08:00",
+              "returncode": 1,
+              "started_at": "2026-08-14T12:05:34+08:00"
+            }
+          ],
+          "epochs": [
+            {
+              "coverage": 0.031494140625,
+              "curved_parent_mse": 0.22356835007667542,
+              "entropy_perplexity": 97.61325346547147,
+              "epoch": 0,
+              "finite_state_audit_elements": 172444374,
+              "finite_state_audit_status": "finite",
+              "finite_state_audit_tensors": 1206,
+              "finite_train_batches": 15,
+              "finite_val_batches": 12,
+              "nonfinite_gradient_batches": 0,
+              "nonfinite_loss_batches": 0,
+              "nonfinite_state_audits": 0,
+              "nonfinite_val_batches": 0,
+              "nonfinite_val_samples": 0,
+              "preclip_grad_norm": 1736452.5,
+              "resume_from_epoch": null,
+              "resumed": false,
+              "train_batches": 15,
+              "train_loss": 0.28476089,
+              "training_state_finite": true,
+              "val_batches": 12,
+              "val_loss": 0.19429285
+            }
+          ],
+          "experiment_signature": "20d7f1ee7ddab104b591ebbb29ea569362a1371664d54d3000fa164f3f4d1c37",
+          "inventory": {
+            "train": {
+              "count": 116,
+              "ordered_sha256": "e63c77946897295f576a04dd2e7203c12cf75375269eb7d0971318e71c6332f4",
+              "schema": "vq-exact-hash-inventory-v1",
+              "sorted_sha256": "4ca522a4cead5adf73f5ae8958291a2074dc5117d0433ef449a65ddf53493859"
+            },
+            "val": {
+              "count": 90,
+              "ordered_sha256": "da50f44a4d1ad1682bd22d189f700e62e12c99ebce3401e76e3dc1ea0bad31fc",
+              "schema": "vq-exact-hash-inventory-v1",
+              "sorted_sha256": "866217e377497577f02f18ea4141cc2a3707243fc1ec451f639a7235d4be88f6"
+            }
+          },
+          "precision": "fp32",
+          "seed": 3,
+          "source_commit": "7ac8feb13a9deb7e15ccd821a8eb8f1e6cd0058d",
+          "status": "COMPLETED",
+          "task_id": "vq_4096_64d_random:seed3"
+        },
+        {
+          "arm": "continuous_bypass_64d",
+          "attempts": [
+            {
+              "attempt": 1,
+              "auto_resume": true,
+              "finished_at": "2026-08-14T12:08:31+08:00",
+              "returncode": 0,
+              "started_at": "2026-08-14T12:08:26+08:00"
+            }
+          ],
+          "epochs": [
+            {
+              "coverage": 1.0,
+              "curved_parent_mse": 0.22343113273382187,
+              "entropy_perplexity": 1.0,
+              "epoch": 0,
+              "finite_state_audit_elements": 171391701,
+              "finite_state_audit_status": "finite",
+              "finite_state_audit_tensors": 1200,
+              "finite_train_batches": 15,
+              "finite_val_batches": 12,
+              "nonfinite_gradient_batches": 0,
+              "nonfinite_loss_batches": 0,
+              "nonfinite_state_audits": 0,
+              "nonfinite_val_batches": 0,
+              "nonfinite_val_samples": 0,
+              "preclip_grad_norm": 8.863420486450195,
+              "resume_from_epoch": null,
+              "resumed": false,
+              "train_batches": 15,
+              "train_loss": 0.22636393,
+              "training_state_finite": true,
+              "val_batches": 12,
+              "val_loss": 0.19344001
+            }
+          ],
+          "experiment_signature": "4a70518162970b34833f696cb9bd55f9b20d9c8873d30e2feed8af46ed665d50",
+          "inventory": {
+            "train": {
+              "count": 116,
+              "ordered_sha256": "e63c77946897295f576a04dd2e7203c12cf75375269eb7d0971318e71c6332f4",
+              "schema": "vq-exact-hash-inventory-v1",
+              "sorted_sha256": "4ca522a4cead5adf73f5ae8958291a2074dc5117d0433ef449a65ddf53493859"
+            },
+            "val": {
+              "count": 90,
+              "ordered_sha256": "da50f44a4d1ad1682bd22d189f700e62e12c99ebce3401e76e3dc1ea0bad31fc",
+              "schema": "vq-exact-hash-inventory-v1",
+              "sorted_sha256": "866217e377497577f02f18ea4141cc2a3707243fc1ec451f639a7235d4be88f6"
+            }
+          },
+          "precision": "fp32",
+          "seed": 3,
+          "source_commit": "ddf653040b20876f8b2e2a73cb4977969b75c147",
+          "status": "COMPLETED",
+          "task_id": "continuous_bypass_64d:seed3"
+        }
+      ]
+    }
+  },
+  "resume_smoke": {
+    "history_epochs": [
+      0,
+      1
+    ],
+    "lock_released": true,
+    "rolling_epoch": 1,
+    "second_writer_rejected": true,
+    "stale_lock_recovered": true,
+    "status": "COMPLETED",
+    "task": {
+      "arm": "vq_4096_64d_random",
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": true,
+          "finished_at": null,
+          "returncode": null,
+          "started_at": "2026-08-14T12:12:06+08:00"
+        },
+        {
+          "attempt": 2,
+          "auto_resume": true,
+          "finished_at": "2026-08-14T12:13:35+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-14T12:13:27+08:00"
+        }
+      ],
+      "epochs": [
+        {
+          "coverage": 0.03662109375,
+          "curved_parent_mse": 0.1928909874624676,
+          "entropy_perplexity": 89.31809673596257,
+          "epoch": 0,
+          "finite_state_audit_elements": 172444374,
+          "finite_state_audit_status": "finite",
+          "finite_state_audit_tensors": 1206,
+          "finite_train_batches": 44,
+          "finite_val_batches": 20,
+          "nonfinite_gradient_batches": 0,
+          "nonfinite_loss_batches": 0,
+          "nonfinite_state_audits": 0,
+          "nonfinite_val_batches": 0,
+          "nonfinite_val_samples": 0,
+          "preclip_grad_norm": 1569798.375,
+          "resume_from_epoch": null,
+          "resumed": false,
+          "train_batches": 44,
+          "train_loss": 0.22740307,
+          "training_state_finite": true,
+          "val_batches": 20,
+          "val_loss": 0.17994743
+        },
+        {
+          "coverage": 0.00390625,
+          "curved_parent_mse": 0.19688123116890588,
+          "entropy_perplexity": 8.063201411769313,
+          "epoch": 1,
+          "finite_state_audit_elements": 172444374,
+          "finite_state_audit_status": "finite",
+          "finite_state_audit_tensors": 1206,
+          "finite_train_batches": 44,
+          "finite_val_batches": 20,
+          "nonfinite_gradient_batches": 0,
+          "nonfinite_loss_batches": 0,
+          "nonfinite_state_audits": 0,
+          "nonfinite_val_batches": 0,
+          "nonfinite_val_samples": 0,
+          "preclip_grad_norm": 1739.4429931640625,
+          "resume_from_epoch": 0,
+          "resumed": true,
+          "train_batches": 44,
+          "train_loss": 0.19783074,
+          "training_state_finite": true,
+          "val_batches": 20,
+          "val_loss": 0.18147064
+        }
+      ],
+      "experiment_signature": "2e9f2898207be19bb7cb5ad6362a21eab689a8db10d0036850591c556f063f4b",
+      "inventory": {
+        "train": {
+          "count": 350,
+          "ordered_sha256": "4f24617012a4126ca4de7aa6a41300287e2a367502a8b23e87bd973189f8da58",
+          "schema": "vq-exact-hash-inventory-v1",
+          "sorted_sha256": "fb530eefb6a8d0d3ab3e8c335678624468eabb0ca281669e9dc28781888e656e"
+        },
+        "val": {
+          "count": 156,
+          "ordered_sha256": "557abc04de8895e5c13f84d11507ca8347d6b4714a5f665bf94b8a7f64e51df2",
+          "schema": "vq-exact-hash-inventory-v1",
+          "sorted_sha256": "13311a60d5a330447c73f35ecd28ece8615fda1e7734fc99f3663a335e9c0192"
+        }
+      },
+      "precision": "bf16",
+      "seed": 3,
+      "source_commit": "ddf653040b20876f8b2e2a73cb4977969b75c147",
+      "status": "COMPLETED",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    "unreleased_lock_recovered": true
+  },
+  "schema": "p0b-runtime-evidence-v1",
+  "selected_precision": "bf16"
+}

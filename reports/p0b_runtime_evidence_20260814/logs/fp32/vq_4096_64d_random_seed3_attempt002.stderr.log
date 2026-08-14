@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "D:\luolin\V13\v6git\breparg_improvements\train.py", line 2512, in <module>
+    ok = STAGES[s](); res[s] = ok
+  File "D:\luolin\V13\v6git\breparg_improvements\train.py", line 1974, in stage_vqsweep
+    require_clean_vq_run(run_manifest)
+  File "D:\luolin\V13\v6git\breparg_improvements\train.py", line 430, in require_clean_vq_run
+    raise RuntimeError("formal VQ run requires a clean committed worktree")
+RuntimeError: formal VQ run requires a clean committed worktree

@@ -1,0 +1,4 @@
+[12:12:08] ===== STAGE vqsweep =====
+[12:12:08] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[12:12:08]   sweep 数据: train=350 val=156  (短训 15 ep)
+[12:12:12]   vq_4096_64d_random ep   0 train=0.22740 val=0.17995 best=0.17995 finite_train=44/44 finite_val=20/20

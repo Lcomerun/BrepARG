@@ -1,0 +1,8 @@
+[12:13:29] ===== STAGE vqsweep =====
+[12:13:29] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[12:13:30]   sweep 数据: train=350 val=156  (短训 15 ep)
+[12:13:30]   vq_4096_64d_random resumed full state from D:\luolin\V13\local_runs\p0b_resume_smoke_bf16_v2_20260814\tasks\vq_4096_64d_random\seed3\vq_4096_64d_random_rolling.pt after epoch=0
+[12:13:34]   vq_4096_64d_random ep   1 train=0.19783 val=0.18147 best=0.17995 finite_train=44/44 finite_val=20/20
+[12:13:34]   -> vq_4096_64d_random: best_val_recon=0.17995
+[12:13:34]   NO PROMOTED ARM: MSE ranking is diagnostic only
+[12:13:34] DONE {'vqsweep': 'PASS'} in 0.1min

@@ -127,6 +127,7 @@ events.out.tfevents.*
 !/reports/training_results/**
 !/reports/**/logs/
 !/reports/**/logs/*.log
+!/reports/**/logs/**/*.log
 !/reports/**/tensorboard/
 !/reports/**/tensorboard/**
 

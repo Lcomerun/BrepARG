@@ -1,0 +1,141 @@
+{
+  "checkpoints": [
+    {
+      "bytes": 229716214,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_best.pt",
+      "role": "best_checkpoint",
+      "run": "p0b_precision_probe_fp32_v3_20260814",
+      "sha256": "457bbf6a7b37b190eac47339abaee424f40046fdddcc3b3ba5b7432980de1e9d",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "bytes": 229716520,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_final.pt",
+      "role": "final_checkpoint",
+      "run": "p0b_precision_probe_fp32_v3_20260814",
+      "sha256": "b5ee7cf5e44446fcd0ca4f8577ad970974bed42d94d4ddf956d678fec3ae2bff",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "bytes": 690208082,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_rolling.pt",
+      "role": "rolling_checkpoint",
+      "run": "p0b_precision_probe_fp32_v3_20260814",
+      "sha256": "b74cd5ac642da45bca5d4eff4aabb165d5cb1e35a22e16f012b2fc30915ceb41",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "bytes": 228651178,
+      "checkpoint_bytes_archived": false,
+      "file": "continuous_bypass_64d_best.pt",
+      "role": "best_checkpoint",
+      "run": "p0b_precision_probe_fp32_v3_20260814",
+      "sha256": "03eda163124030fb5d3fd0b5f202425b4003f7155d21b431418c3bdf5b757459",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "bytes": 228651482,
+      "checkpoint_bytes_archived": false,
+      "file": "continuous_bypass_64d_final.pt",
+      "role": "final_checkpoint",
+      "run": "p0b_precision_probe_fp32_v3_20260814",
+      "sha256": "39831174766d6cfa205cd5e2e1d1f597057d1be4ca91e683ec61d2f7c322f986",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "bytes": 685998714,
+      "checkpoint_bytes_archived": false,
+      "file": "continuous_bypass_64d_rolling.pt",
+      "role": "rolling_checkpoint",
+      "run": "p0b_precision_probe_fp32_v3_20260814",
+      "sha256": "4470905bb73dd9d6ea29d9482434cac74521ee08c3f353bf278b2d4c85012aa7",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "bytes": 229716214,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_best.pt",
+      "role": "best_checkpoint",
+      "run": "p0b_precision_probe_bf16_v3_20260814",
+      "sha256": "9ba0dabdbc57b6f96b2204f5d6e341158da515f0e4c06cd28e3cbcb0abd782db",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "bytes": 229716520,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_final.pt",
+      "role": "final_checkpoint",
+      "run": "p0b_precision_probe_bf16_v3_20260814",
+      "sha256": "1a701be84a0681ecc0799f8a0b590f713189be63f42a4b475f9b6cbc0ed11d36",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "bytes": 690208146,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_rolling.pt",
+      "role": "rolling_checkpoint",
+      "run": "p0b_precision_probe_bf16_v3_20260814",
+      "sha256": "c63aaf9d3d0c95a47f96d884f5128ffea2a6c8f4a417ce4a585327196f8f26de",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "bytes": 228651114,
+      "checkpoint_bytes_archived": false,
+      "file": "continuous_bypass_64d_best.pt",
+      "role": "best_checkpoint",
+      "run": "p0b_precision_probe_bf16_v3_20260814",
+      "sha256": "83bd0af0f3f8933ce89d7e880b79cbc693544641a12e73e563886560d8eb7765",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "bytes": 228651418,
+      "checkpoint_bytes_archived": false,
+      "file": "continuous_bypass_64d_final.pt",
+      "role": "final_checkpoint",
+      "run": "p0b_precision_probe_bf16_v3_20260814",
+      "sha256": "5f305771b242198d813f4f7e53ebe0e1ccfc33bd38218ac4ca8c17c4d010ef77",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "bytes": 685998714,
+      "checkpoint_bytes_archived": false,
+      "file": "continuous_bypass_64d_rolling.pt",
+      "role": "rolling_checkpoint",
+      "run": "p0b_precision_probe_bf16_v3_20260814",
+      "sha256": "e6ba2b0ad545920cdec346f29f6a48050db3050b3efba0bd78193ea891fd874c",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "bytes": 229716214,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_best.pt",
+      "role": "best_checkpoint",
+      "run": "p0b_resume_smoke_bf16_v2_20260814",
+      "sha256": "459ee56327db2efe74f0e7d1a20fe8567dfeb863174bb6114370b6f59acc9a15",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "bytes": 229716776,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_final.pt",
+      "role": "final_checkpoint",
+      "run": "p0b_resume_smoke_bf16_v2_20260814",
+      "sha256": "1681b7713acdd8d3bebd9eb01c35252dbf150d73fcf6e0ddbaec90c88b6eb60c",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "bytes": 690214738,
+      "checkpoint_bytes_archived": false,
+      "file": "vq_4096_64d_random_rolling.pt",
+      "role": "rolling_checkpoint",
+      "run": "p0b_resume_smoke_bf16_v2_20260814",
+      "sha256": "84aa87710ec4b06e44634380b74a00e586268dceacfabd5c9610c5db0f9ce268",
+      "task_id": "vq_4096_64d_random:seed3"
+    }
+  ],
+  "generated_at": "2026-08-14T12:19:30+08:00",
+  "policy": "Checkpoint bytes remain local and are not archived in Git."
+}

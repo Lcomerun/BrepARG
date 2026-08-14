@@ -1,0 +1,21 @@
+Traceback (most recent call last):
+  File "D:\luolin\V13\v6git\tools\run_p0b_stability_retest.py", line 266, in output_root_writer_lock
+    _acquire_os_lock(handle)
+  File "D:\luolin\V13\v6git\tools\run_p0b_stability_retest.py", line 230, in _acquire_os_lock
+    msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+PermissionError: [Errno 13] Permission denied
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\luolin\V13\v6git\tools\run_p0b_stability_retest.py", line 1417, in <module>
+    raise SystemExit(main())
+  File "D:\luolin\V13\v6git\tools\run_p0b_stability_retest.py", line 1402, in main
+    result = run_cohort(
+  File "D:\luolin\V13\v6git\tools\run_p0b_stability_retest.py", line 1304, in run_cohort
+    with output_root_writer_lock(config.output_root, command=lock_command):
+  File "C:\Users\YU\.conda\envs\brepgen_env\lib\contextlib.py", line 119, in __enter__
+    return next(self.gen)
+  File "D:\luolin\V13\v6git\tools\run_p0b_stability_retest.py", line 270, in output_root_writer_lock
+    raise RuntimeError(
+RuntimeError: P0-B output root already has an active writer; lock=D:\luolin\V13\local_runs\p0b_resume_smoke_bf16_v2_20260814\.p0b_writer.lock owner={"acquired_at": "2026-08-14T12:12:06+08:00", "command": ["C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe", "D:\\luolin\\V13\\v6git\\tools\\run_p0b_stability_retest.py", "probe", "--repo-root", "D:\\luolin\\V13\\v6git", "--protocol-dir", "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol", "--breparg-root", "D:\\luolin\\V13\\BrepARG", "--output-root", "D:\\luolin\\V13\\local_runs\\p0b_resume_smoke_bf16_v2_20260814", "--python", "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe", "--precision", "bf16", "--arms", "vq_4096_64d_random", "--seeds", "3", "--train-cap", "512", "--val-cap", "256", "--batch-size", "8", "--epochs", "2"], "command_line": "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe D:\\luolin\\V13\\v6git\\tools\\run_p0b_stability_retest.py probe --repo-root D:\\luolin\\V13\\v6git --protocol-dir D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol --breparg-root D:\\luolin\\V13\\BrepARG --output-root D:\\luolin\\V13\\local_runs\\p0b_resume_smoke_bf16_v2_20260814 --python C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe --precision bf16 --arms vq_4096_64d_random --seeds 3 --train-cap 512 --val-cap 256 --batch-size 8 --epochs 2", "lock_path": "D:\\luolin\\V13\\local_runs\\p0b_resume_smoke_bf16_v2_20260814\\.p0b_writer.lock", "owner": {"pid": 17236, "process_creation_identity": {"kind": "windows_filetime_100ns", "value": "134311543261779388"}}, "previous_lock": null, "previous_owner_identity_matches": false, "previous_owner_identity_now": null, "schema": "p0b-output-writer-lock-v1", "stale_lock_recovered": false, "unreleased_lock_recovered": false}
