@@ -76,6 +76,38 @@ def rounded_patch_hash(kind, array):
     return hashlib.sha256(_canonical_patch_bytes(kind, array, decimals=4)).hexdigest()
 
 
+def summarize_exact_hash_inventory(records):
+    """Bind both the selected patch set and its training order without storing data."""
+    hashes = []
+    for record in records:
+        exact_hash = record.get("exact_hash")
+        if not isinstance(exact_hash, str):
+            exact_hash = canonical_patch_hash(record.get("kind"), record.get("array"))
+        try:
+            digest = bytes.fromhex(exact_hash)
+        except (TypeError, ValueError) as exc:
+            raise ValueError(f"invalid exact patch hash: {exact_hash!r}") from exc
+        if len(digest) != hashlib.sha256().digest_size:
+            raise ValueError(f"invalid exact patch hash length: {exact_hash!r}")
+        hashes.append(digest)
+
+    count_prefix = len(hashes).to_bytes(8, "big")
+
+    def inventory_digest(values):
+        digest = hashlib.sha256()
+        digest.update(count_prefix)
+        for value in values:
+            digest.update(value)
+        return digest.hexdigest()
+
+    return {
+        "schema": "vq-exact-hash-inventory-v1",
+        "count": len(hashes),
+        "ordered_sha256": inventory_digest(hashes),
+        "sorted_sha256": inventory_digest(sorted(hashes)),
+    }
+
+
 def _stable_value_key(value):
     if value is None:
         return ("none",)

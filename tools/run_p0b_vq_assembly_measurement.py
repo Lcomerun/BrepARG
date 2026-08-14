@@ -149,6 +149,36 @@ def _finite_number(value: Any, label: str, *, nonnegative: bool = False) -> floa
     return result
 
 
+def _validate_inventory(value: Any, task_id: str) -> dict[str, Any]:
+    _require(
+        isinstance(value, Mapping) and set(value) == {"train", "val"},
+        f"{task_id}: inventory must contain exactly train and val",
+    )
+    normalized: dict[str, Any] = {}
+    for split_name, expected_count in (("train", FORMAL_TRAIN_CAP), ("val", FORMAL_VAL_CAP)):
+        item = value.get(split_name)
+        _require(isinstance(item, Mapping), f"{task_id}: {split_name} inventory missing")
+        _require(
+            item.get("schema") == "vq-exact-hash-inventory-v1",
+            f"{task_id}: {split_name} inventory schema mismatch",
+        )
+        _require(
+            item.get("count") == expected_count,
+            f"{task_id}: {split_name} inventory count mismatch",
+        )
+        for field in ("ordered_sha256", "sorted_sha256"):
+            digest = item.get(field)
+            _require(
+                isinstance(digest, str)
+                and len(digest) == 64
+                and digest == digest.lower()
+                and all(character in "0123456789abcdef" for character in digest),
+                f"{task_id}: {split_name} inventory {field} invalid",
+            )
+        normalized[split_name] = dict(item)
+    return normalized
+
+
 def _is_relative_to(path: Path, root: Path) -> bool:
     try:
         path.relative_to(root)
@@ -209,6 +239,7 @@ def _validate_run_manifest(
     task: Mapping[str, Any],
     protocol_sha256: str,
     split_pickle_sha256: str,
+    expected_inventory: Mapping[str, Any],
 ) -> str:
     task_id = str(task["task_id"])
     git_state = run_manifest.get("git") or {}
@@ -221,6 +252,10 @@ def _validate_run_manifest(
     _require(experiment.get("val_cap") == FORMAL_VAL_CAP, f"{task_id}: val cap mismatch")
     _require(experiment.get("epochs") == FORMAL_EPOCHS, f"{task_id}: epoch budget mismatch")
     _require(experiment.get("batch_size") == FORMAL_BATCH_SIZE, f"{task_id}: batch size mismatch")
+    _require(
+        experiment.get("inventory") == expected_inventory,
+        f"{task_id}: run inventory binding mismatch",
+    )
     protocol = experiment.get("protocol") or {}
     _require(
         protocol.get("protocol_sha256") == protocol_sha256,
@@ -331,6 +366,24 @@ def _validate_task_evidence(
         for field in TRUE_FIELDS:
             _require(row.get(field) is True, f"{task_id}: epoch {epoch} {field} is not true")
         _require(
+            row.get("nonfinite_state_audits") == 0,
+            f"{task_id}: epoch {epoch} nonfinite_state_audits is not zero",
+        )
+        _require(
+            row.get("finite_state_audit_cadence") == "lifecycle_v1",
+            f"{task_id}: epoch {epoch} finite-state cadence mismatch",
+        )
+        _require(
+            row.get("full_state_audits") == 1
+            and row.get("per_batch_full_state_audits") == 0,
+            f"{task_id}: epoch {epoch} full-state audit count mismatch",
+        )
+        _require(
+            isinstance(row.get("finite_state_audit"), Mapping)
+            and row["finite_state_audit"].get("status") == "finite",
+            f"{task_id}: epoch {epoch} finite-state audit missing",
+        )
+        _require(
             row.get("experiment_signature") == signature,
             f"{task_id}: epoch {epoch} signature mismatch",
         )
@@ -351,6 +404,16 @@ def _validate_task_evidence(
         f"{task_id}: sweep must contain only its own arm",
     )
     sweep_row = ranking[0]
+    task_inventory = _validate_inventory(sweep_row.get("inventory"), task_id)
+    _require(
+        validation.get("inventory") == task_inventory,
+        f"{task_id}: stored validation inventory binding mismatch",
+    )
+    _require(
+        (history_config.get("signature_configuration") or {}).get("inventory")
+        == task_inventory,
+        f"{task_id}: history inventory binding mismatch",
+    )
     _require(sweep_row.get("epochs_ran") == 100, f"{task_id}: sweep epoch count mismatch")
     _require(sweep_row.get("final_checkpoint_epoch") == 99, f"{task_id}: final epoch is not 99")
     _require(
@@ -449,6 +512,10 @@ def _validate_task_evidence(
     split_pickle_sha256 = str(protocol_summary.get("split_pickle_sha256"))
     checkpoint_context = payload.get("checkpoint_context") or {}
     _require(
+        checkpoint_context.get("inventory") == task_inventory,
+        f"{task_id}: checkpoint inventory binding mismatch",
+    )
+    _require(
         checkpoint_context.get("protocol_sha256") == protocol_sha256,
         f"{task_id}: checkpoint protocol binding mismatch",
     )
@@ -467,6 +534,7 @@ def _validate_task_evidence(
         task=task,
         protocol_sha256=protocol_sha256,
         split_pickle_sha256=split_pickle_sha256,
+        expected_inventory=task_inventory,
     )
 
     checkpoint_sha256 = sha256_file(checkpoint_path)
@@ -510,6 +578,7 @@ def _validate_task_evidence(
         "git_commit": git_commit,
         "protocol_sha256": protocol_sha256,
         "split_pickle_sha256": split_pickle_sha256,
+        "inventory": task_inventory,
         "nonfinite_events": 0,
     }
 
@@ -573,6 +642,13 @@ def validate_p0b_evidence(
         )
         for task in tasks
     ]
+    inventory_signatures = {
+        canonical_signature(task["inventory"]) for task in validated
+    }
+    _require(
+        len(inventory_signatures) == 1,
+        "P0-B task inventories differ across arm/seed tasks",
+    )
     return {
         "state_path": str(state_path),
         "configuration_signature": state["configuration_signature"],
@@ -580,6 +656,8 @@ def validate_p0b_evidence(
         "protocol_sha256": protocol_summary["protocol_sha256"],
         "split_pickle_sha256": protocol_summary["split_pickle_sha256"],
         "tasks": sorted(validated, key=lambda item: (item["arm"], item["seed"])),
+        "inventory": validated[0]["inventory"],
+        "inventory_consistent": True,
         "zero_nonfinite": True,
     }
 

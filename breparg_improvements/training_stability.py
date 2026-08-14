@@ -79,8 +79,14 @@ def resolve_precision(name, *, cuda_available=None, bf16_supported=None):
     )
 
 
+def _is_finite_auditable_tensor(value):
+    return torch.is_tensor(value) and (
+        value.is_floating_point() or value.is_complex()
+    )
+
+
 def _nonfinite_tensor_count(value):
-    if not torch.is_tensor(value) or not value.is_floating_point():
+    if not _is_finite_auditable_tensor(value):
         return 0
     return int(torch.count_nonzero(~torch.isfinite(value.detach())).item())
 
@@ -108,8 +114,6 @@ def clip_gradients_strict(model, max_norm):
         for name, parameter in model.named_parameters()
         if parameter.grad is not None
     ]
-    for name, gradient in named_gradients:
-        _assert_finite_tensor(gradient, f"gradient:{name}")
     if not named_gradients:
         raise NonFiniteTrainingError("no gradients were produced for this batch")
     try:
@@ -119,6 +123,10 @@ def clip_gradients_strict(model, max_norm):
             error_if_nonfinite=True,
         )
     except RuntimeError as exc:
+        # The normal path lets clip_grad_norm_ reduce all gradients together.
+        # Only pay for per-tensor synchronization when a failure needs a name.
+        for name, gradient in named_gradients:
+            _assert_finite_tensor(gradient, f"gradient:{name}")
         raise NonFiniteTrainingError(f"gradient norm is non-finite: {exc}") from exc
     norm_value = float(norm.detach().cpu()) if torch.is_tensor(norm) else float(norm)
     if not math.isfinite(norm_value):
@@ -126,9 +134,9 @@ def clip_gradients_strict(model, max_norm):
     return norm_value
 
 
-def assert_finite_training_state(model, optimizer=None):
+def _finite_state_entries(model, optimizer=None):
     for name, value in model.state_dict().items():
-        _assert_finite_tensor(value, f"model:{name}")
+        yield "model", f"model:{name}", value
     seen_pools = set()
     for module_name, module in model.named_modules():
         pool = getattr(module, "pool", None)
@@ -138,10 +146,73 @@ def assert_finite_training_state(model, optimizer=None):
         features = getattr(pool, "features", None)
         if features is not None:
             prefix = f"{module_name}." if module_name else ""
-            _assert_finite_tensor(features, f"model:{prefix}pool.features")
+            yield (
+                "feature_pool",
+                f"model:{prefix}pool.features",
+                features,
+            )
     if optimizer is not None:
         for name, value in _iter_optimizer_tensors(optimizer.state_dict(), "optimizer"):
-            _assert_finite_tensor(value, name)
+            yield "optimizer", name, value
+
+
+def audit_finite_training_state(model, optimizer=None):
+    """Audit complete floating-point training state with one scalar check per device.
+
+    The finite path launches a reduction for every tensor but combines the scalar
+    results on-device before reading them on the host. A detailed per-tensor scan
+    is reserved for the failure path, where naming the corrupt tensor matters more
+    than throughput.
+    """
+    entries = [
+        (source, name, value)
+        for source, name, value in _finite_state_entries(model, optimizer)
+        if _is_finite_auditable_tensor(value)
+    ]
+    source_counts = {
+        source: {"tensors": 0, "elements": 0}
+        for source in ("model", "feature_pool", "optimizer")
+    }
+    device_checks = {}
+    for source, _name, value in entries:
+        detached = value.detach()
+        source_counts[source]["tensors"] += 1
+        source_counts[source]["elements"] += int(detached.numel())
+        device = str(detached.device)
+        tensor_finite = torch.isfinite(detached).all()
+        if device in device_checks:
+            device_checks[device] = torch.logical_and(
+                device_checks[device], tensor_finite
+            )
+        else:
+            device_checks[device] = tensor_finite
+
+    failing_devices = {
+        device
+        for device, finite in device_checks.items()
+        if not bool(finite.item())
+    }
+    if failing_devices:
+        for _source, name, value in entries:
+            if str(value.device) in failing_devices:
+                _assert_finite_tensor(value, name)
+        raise NonFiniteTrainingError(
+            "training state contains non-finite values on "
+            + ", ".join(sorted(failing_devices))
+        )
+
+    return {
+        "status": "finite",
+        "tensors": sum(item["tensors"] for item in source_counts.values()),
+        "elements": sum(item["elements"] for item in source_counts.values()),
+        "devices": sorted(device_checks),
+        "scalar_device_checks": len(device_checks),
+        "sources": source_counts,
+    }
+
+
+def assert_finite_training_state(model, optimizer=None):
+    audit_finite_training_state(model, optimizer)
     return True
 
 
@@ -212,8 +283,17 @@ def restore_feature_pools(model, states):
 
 def capture_training_checkpoint(
         *, model, optimizer, scaler, scheduler, epoch, history,
-        stop_state, plateau_state, experiment_signature, extra=None):
-    assert_finite_training_state(model, optimizer)
+        stop_state, plateau_state, experiment_signature, extra=None,
+        prevalidated_state_audit=None):
+    state_audit = (
+        audit_finite_training_state(model, optimizer)
+        if prevalidated_state_audit is None
+        else dict(prevalidated_state_audit)
+    )
+    if state_audit.get("status") != "finite":
+        raise NonFiniteTrainingError(
+            "prevalidated checkpoint state audit is not finite"
+        )
     return {
         "checkpoint_schema": CHECKPOINT_SCHEMA,
         "experiment_signature": str(experiment_signature),
@@ -227,6 +307,7 @@ def capture_training_checkpoint(
         "history": list(history),
         "rng_state": capture_rng_state(),
         "feature_pool_state": capture_feature_pools(model),
+        "finite_state_audit": state_audit,
         "extra": dict(extra or {}),
     }
 
@@ -294,7 +375,7 @@ def restore_training_checkpoint(
     elif scheduler_state is not None:
         raise ValueError("training checkpoint has LR-scheduler state but runtime does not")
     restore_feature_pools(model, payload["feature_pool_state"])
-    assert_finite_training_state(model, optimizer)
+    state_audit = audit_finite_training_state(model, optimizer)
     restore_rng_state(payload["rng_state"])
     return {
         "epoch": int(payload["epoch"]),
@@ -302,6 +383,7 @@ def restore_training_checkpoint(
         "history": list(payload["history"]),
         "stop_state": VQVAEStopState(**payload["stop_state"]),
         "plateau_state": VQVAEStopState(**payload["plateau_state"]),
+        "finite_state_audit": state_audit,
         "extra": dict(payload.get("extra") or {}),
     }
 

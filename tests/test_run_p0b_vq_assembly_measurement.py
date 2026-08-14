@@ -47,13 +47,35 @@ def _healthy_epoch(epoch: int, signature: str) -> dict:
         "nonfinite_loss_batches": 0,
         "nonfinite_gradient_batches": 0,
         "nonfinite_state_batches": 0,
+        "nonfinite_state_audits": 0,
         "nonfinite_val_batches": 0,
         "nonfinite_val_samples": 0,
         "gradients_finite": True,
         "training_state_finite": True,
+        "finite_state_audit_cadence": "lifecycle_v1",
+        "finite_state_audit": {"status": "finite"},
+        "full_state_audits": 1,
+        "per_batch_full_state_audits": 0,
         "grad_clip_active": True,
         "preclip_grad_norm": 1.25,
         "experiment_signature": signature,
+    }
+
+
+def _patch_inventory() -> dict:
+    return {
+        "train": {
+            "schema": "vq-exact-hash-inventory-v1",
+            "count": 60_000,
+            "ordered_sha256": "1" * 64,
+            "sorted_sha256": "2" * 64,
+        },
+        "val": {
+            "schema": "vq-exact-hash-inventory-v1",
+            "count": 12_000,
+            "ordered_sha256": "3" * 64,
+            "sorted_sha256": "4" * 64,
+        },
     }
 
 
@@ -191,6 +213,7 @@ def make_evidence(tmp_path: Path) -> dict:
                     "val_cap": 12_000,
                     "epochs": 100,
                     "batch_size": 128,
+                    "inventory": _patch_inventory(),
                     "protocol": {
                         "protocol_sha256": protocol_sha,
                         "split_pickle_sha256": split_sha,
@@ -220,6 +243,7 @@ def make_evidence(tmp_path: Path) -> dict:
                 "checkpoint_context": {
                     "protocol_sha256": protocol_sha,
                     "split_pickle_sha256": split_sha,
+                    "inventory": _patch_inventory(),
                     "run_manifest": run_manifest,
                 },
             }
@@ -229,6 +253,9 @@ def make_evidence(tmp_path: Path) -> dict:
                     "config": {
                         "experiment_signature": signature,
                         "precision": {"name": "fp32"},
+                        "signature_configuration": {
+                            "inventory": _patch_inventory()
+                        },
                     },
                     "history": [_healthy_epoch(epoch, signature) for epoch in range(100)],
                 },
@@ -239,6 +266,7 @@ def make_evidence(tmp_path: Path) -> dict:
                 "epochs_ran": 100,
                 "final_checkpoint_epoch": 99,
                 "experiment_signature": signature,
+                "inventory": _patch_inventory(),
                 "checkpoint_best": str(best_path),
                 "checkpoint_final": str(final_path),
                 "checkpoint_epoch": checkpoint_epoch,
@@ -295,6 +323,7 @@ def make_evidence(tmp_path: Path) -> dict:
                         "valid": True,
                         "epochs_observed": 100,
                         "last_epoch": 99,
+                        "inventory": _patch_inventory(),
                         "reasons": [],
                     },
                 }
@@ -304,6 +333,7 @@ def make_evidence(tmp_path: Path) -> dict:
         "status": "COMPLETED",
         "mode": "FORMAL",
         "formal_result_eligible": True,
+        "inventory_consistent": True,
         "configuration": configuration,
         "configuration_signature": canonical_signature(configuration),
         "tasks": tasks,

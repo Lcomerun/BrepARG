@@ -10,11 +10,13 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).parents[1] / "breparg_improvements"))
 
+import training_stability as stability_module
 from training_stability import (
     NonFiniteTrainingError,
     VQVAEStopConfig,
     VQVAEStopState,
     assert_finite_training_state,
+    audit_finite_training_state,
     atomic_torch_save,
     build_experiment_signature,
     capture_training_checkpoint,
@@ -106,6 +108,31 @@ def test_finite_state_check_includes_feature_pool_and_optimizer():
         assert_finite_training_state(model, optimizer)
 
 
+def test_finite_state_audit_aggregates_normal_path_to_one_scalar_check_per_device(
+    monkeypatch,
+):
+    model = PoolModule()
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
+    model(torch.ones(1, 2)).sum().backward()
+    optimizer.step()
+
+    def unexpected_detailed_scan(*_args, **_kwargs):
+        raise AssertionError("finite audit used the per-tensor failure path")
+
+    monkeypatch.setattr(
+        stability_module, "_assert_finite_tensor", unexpected_detailed_scan
+    )
+    report = audit_finite_training_state(model, optimizer)
+
+    assert report["status"] == "finite"
+    assert report["devices"] == ["cpu"]
+    assert report["scalar_device_checks"] == 1
+    assert report["tensors"] > report["scalar_device_checks"]
+    assert report["sources"]["model"]["tensors"] == 2
+    assert report["sources"]["feature_pool"]["tensors"] == 1
+    assert report["sources"]["optimizer"]["tensors"] == 6
+
+
 def test_full_checkpoint_round_trip_restores_rng_pool_and_training_state(tmp_path):
     random.seed(7)
     np.random.seed(7)
@@ -131,6 +158,8 @@ def test_full_checkpoint_round_trip_restores_rng_pool_and_training_state(tmp_pat
         experiment_signature=signature,
         extra={"precision": "fp32"},
     )
+    assert payload["finite_state_audit"]["status"] == "finite"
+    assert payload["finite_state_audit"]["scalar_device_checks"] == 1
     expected_parameters = {
         name: value.detach().clone() for name, value in model.state_dict().items()
     }
@@ -161,6 +190,7 @@ def test_full_checkpoint_round_trip_restores_rng_pool_and_training_state(tmp_pat
     assert restored["epoch"] == 4
     assert restored["history"] == [{"epoch": 4, "val_loss": 0.5}]
     assert restored["stop_state"] == VQVAEStopState(best_val=0.5, best_epoch=4)
+    assert restored["finite_state_audit"]["status"] == "finite"
     assert model.pool.nums_features == 1
     assert torch.equal(
         model.pool.features, torch.tensor([[1.0, 2.0], [3.0, 4.0]])

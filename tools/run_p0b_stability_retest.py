@@ -10,6 +10,7 @@ changing any signed input fails closed.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -17,13 +18,17 @@ import os
 import subprocess
 import sys
 import tempfile
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Iterator, Mapping, Sequence
 
 
 SCHEMA = "p0b-stability-retest-v1"
+WRITER_LOCK_SCHEMA = "p0b-output-writer-lock-v1"
+WRITER_LOCK_NAME = ".p0b_writer.lock"
+ROLLING_CHECKPOINT_SCHEMA = "vq_training_state_v1"
 FORMAL_ARMS = ("vq_4096_64d_random", "continuous_bypass_64d")
 FORMAL_SEEDS = (3, 4)
 FORMAL_TRAIN_CAP = 60_000
@@ -32,6 +37,14 @@ FORMAL_BATCH_SIZE = 128
 FORMAL_EPOCHS = 100
 FORMAL_LEARNING_RATE = "3e-4"
 FORMAL_GRAD_CLIP = "1.0"
+FORMAL_MIN_PARENT_COVERAGE = 0.9
+FORMAL_PROTOCOL_SHA256 = (
+    "6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3"
+)
+FORMAL_SPLIT_PICKLE_SHA256 = (
+    "6ff0a0c3ee6a04ee056fa1ab982eb436a9f59d3d21f21f17babf34e6dc701d29"
+)
+REQUIRED_PARENT_OVERLAPS = ("train__val", "train__test", "val__test")
 ALLOWED_FORMAL_PRECISIONS = ("fp32", "bf16")
 MAX_SMOKE_TRAIN_CAP = 2_048
 MAX_SMOKE_VAL_CAP = 512
@@ -87,6 +100,221 @@ def read_json(path: Path) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ValueError(f"expected JSON object: {path}")
     return payload
+
+
+def protocol_binding(config: "RunConfig") -> dict[str, Any]:
+    """Read the protocol identity embedded in task and checkpoint signatures."""
+    summary_path = config.protocol_dir / "protocol_summary.json"
+    split_path = config.protocol_dir / "split.pkl"
+    summary = read_json(summary_path)
+    overlaps = summary.get("parent_overlap_counts")
+    return {
+        "status": summary.get("status"),
+        "protocol_sha256": summary.get("protocol_sha256"),
+        "split_pickle_sha256": sha256_file(split_path),
+        "summary_split_pickle_sha256": summary.get("split_pickle_sha256"),
+        "parent_overlap_counts": dict(overlaps) if isinstance(overlaps, Mapping) else overlaps,
+        "protocol_summary_sha256": sha256_file(summary_path),
+    }
+
+
+def verify_protocol(config: "RunConfig") -> dict[str, Any]:
+    """Fail closed unless the protocol is internally valid and formally frozen."""
+    binding = protocol_binding(config)
+    reasons: list[str] = []
+    if binding["status"] != "VERIFIED":
+        reasons.append("status must be VERIFIED")
+    overlaps = binding["parent_overlap_counts"]
+    if not isinstance(overlaps, Mapping) or set(overlaps) != set(REQUIRED_PARENT_OVERLAPS):
+        reasons.append("parent_overlap_counts must contain exactly the three split pairs")
+    elif any(type(overlaps[name]) is not int or overlaps[name] != 0 for name in REQUIRED_PARENT_OVERLAPS):
+        reasons.append("all parent overlap counts must be JSON integer zero")
+    if binding["summary_split_pickle_sha256"] != binding["split_pickle_sha256"]:
+        reasons.append("split.pkl SHA-256 does not match protocol_summary.json")
+    if config.smoke:
+        if not isinstance(binding["protocol_sha256"], str) or not binding["protocol_sha256"]:
+            reasons.append("protocol_sha256 is missing")
+    else:
+        if binding["protocol_sha256"] != FORMAL_PROTOCOL_SHA256:
+            reasons.append("protocol_sha256 is not the frozen Protocol V5 hash")
+        if binding["split_pickle_sha256"] != FORMAL_SPLIT_PICKLE_SHA256:
+            reasons.append("split_pickle_sha256 is not the frozen Protocol V5 split")
+    if reasons:
+        mode = "formal Protocol V5" if not config.smoke else "probe protocol"
+        raise ValueError(f"{mode} verification failed: " + "; ".join(reasons))
+    return binding
+
+
+def _process_creation_identity(pid: int) -> dict[str, Any] | None:
+    """Return a PID-reuse-resistant process identity when the OS exposes one."""
+    if type(pid) is not int or pid <= 0:
+        return None
+    if os.name == "nt":
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            process_query_limited_information = 0x1000
+            kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+            kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+            kernel32.OpenProcess.restype = wintypes.HANDLE
+            kernel32.GetProcessTimes.argtypes = [
+                wintypes.HANDLE,
+                ctypes.POINTER(wintypes.FILETIME),
+                ctypes.POINTER(wintypes.FILETIME),
+                ctypes.POINTER(wintypes.FILETIME),
+                ctypes.POINTER(wintypes.FILETIME),
+            ]
+            kernel32.GetProcessTimes.restype = wintypes.BOOL
+            kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+            handle = kernel32.OpenProcess(process_query_limited_information, False, pid)
+            if not handle:
+                return None
+            try:
+                creation = wintypes.FILETIME()
+                exit_time = wintypes.FILETIME()
+                kernel = wintypes.FILETIME()
+                user = wintypes.FILETIME()
+                if not kernel32.GetProcessTimes(
+                    handle,
+                    ctypes.byref(creation),
+                    ctypes.byref(exit_time),
+                    ctypes.byref(kernel),
+                    ctypes.byref(user),
+                ):
+                    return None
+                ticks = (int(creation.dwHighDateTime) << 32) | int(creation.dwLowDateTime)
+                return {"kind": "windows_filetime_100ns", "value": str(ticks)}
+            finally:
+                kernel32.CloseHandle(handle)
+        except (AttributeError, OSError, ValueError):
+            return None
+    try:
+        stat_text = Path(f"/proc/{pid}/stat").read_text(encoding="ascii")
+        close_paren = stat_text.rfind(")")
+        fields = stat_text[close_paren + 2 :].split()
+        start_ticks = fields[19]
+        boot_id_path = Path("/proc/sys/kernel/random/boot_id")
+        boot_id = boot_id_path.read_text(encoding="ascii").strip() if boot_id_path.is_file() else None
+        return {"kind": "proc_start_ticks", "value": start_ticks, "boot_id": boot_id}
+    except (IndexError, OSError, ValueError):
+        return None
+
+
+def _read_lock_payload(handle: Any) -> dict[str, Any] | None:
+    try:
+        handle.seek(1)
+        raw = handle.read()
+        if not raw:
+            return None
+        payload = json.loads(raw.decode("utf-8"))
+        return payload if isinstance(payload, dict) else None
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+
+
+def _write_lock_payload(handle: Any, payload: Mapping[str, Any]) -> None:
+    encoded = json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=True).encode("utf-8")
+    handle.seek(0)
+    handle.write(b"\0" + encoded + b"\n")
+    handle.truncate()
+    handle.flush()
+    os.fsync(handle.fileno())
+
+
+def _acquire_os_lock(handle: Any) -> None:
+    handle.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        return
+    import fcntl
+
+    fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+
+def _release_os_lock(handle: Any) -> None:
+    handle.seek(0)
+    if os.name == "nt":
+        import msvcrt
+
+        msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+        return
+    import fcntl
+
+    fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+
+
+@contextmanager
+def output_root_writer_lock(
+    output_root: Path, *, command: Sequence[str] | None = None
+) -> Iterator[dict[str, Any]]:
+    """Serialize output writers; OS locks are released even after process death."""
+    root = Path(output_root).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    lock_path = root / WRITER_LOCK_NAME
+    descriptor = os.open(lock_path, os.O_RDWR | os.O_CREAT, 0o600)
+    handle = os.fdopen(descriptor, "r+b", buffering=0)
+    acquired = False
+    payload: dict[str, Any] = {}
+    try:
+        if os.fstat(handle.fileno()).st_size == 0:
+            handle.write(b"\0")
+            handle.flush()
+        try:
+            _acquire_os_lock(handle)
+            acquired = True
+        except OSError as exc:
+            owner = _read_lock_payload(handle) or {"metadata": "unreadable"}
+            raise RuntimeError(
+                "P0-B output root already has an active writer; "
+                f"lock={lock_path} owner={json.dumps(owner, sort_keys=True, ensure_ascii=True)}"
+            ) from exc
+
+        previous = _read_lock_payload(handle)
+        argv = [str(item) for item in (command or (sys.executable, *sys.argv))]
+        owner_identity = _process_creation_identity(os.getpid())
+        previous_owner = previous.get("owner") if isinstance(previous, Mapping) else None
+        previous_identity = (
+            _process_creation_identity(previous_owner.get("pid"))
+            if isinstance(previous_owner, Mapping) and type(previous_owner.get("pid")) is int
+            else None
+        )
+        previous_unreleased = bool(previous) and not previous.get("released_at")
+        # Acquiring the kernel lock proves that no writer still owns it. An
+        # unreleased record is therefore stale even if Windows temporarily
+        # keeps a terminated process object queryable after exit.
+        stale_recovered = previous_unreleased
+        payload = {
+            "schema": WRITER_LOCK_SCHEMA,
+            "lock_path": str(lock_path),
+            "acquired_at": now(),
+            "owner": {
+                "pid": os.getpid(),
+                "process_creation_identity": owner_identity,
+            },
+            "command": argv,
+            "command_line": subprocess.list2cmdline(argv),
+            "stale_lock_recovered": stale_recovered,
+            "unreleased_lock_recovered": previous_unreleased,
+            "previous_owner_identity_now": previous_identity,
+            "previous_owner_identity_matches": bool(
+                isinstance(previous_owner, Mapping)
+                and previous_owner.get("process_creation_identity") == previous_identity
+            ),
+            "previous_lock": previous,
+        }
+        _write_lock_payload(handle, payload)
+        yield payload
+    finally:
+        if acquired:
+            payload["released_at"] = now()
+            try:
+                _write_lock_payload(handle, payload)
+            finally:
+                _release_os_lock(handle)
+        handle.close()
 
 
 @dataclass(frozen=True)
@@ -174,6 +402,7 @@ def required_inputs(config: RunConfig) -> tuple[Path, ...]:
         config.python,
         config.repo_root / "breparg_improvements" / "train.py",
         config.repo_root / "breparg_improvements" / "training_stability.py",
+        config.repo_root / "breparg_improvements" / "vqvae_sampling.py",
         config.protocol_dir / "protocol_summary.json",
         config.protocol_dir / "split.pkl",
         config.breparg_root / "quantise.py",
@@ -198,6 +427,7 @@ def verify_inputs(config: RunConfig) -> None:
         raise ValueError(
             f"train.py will discover BrepARG at {discovered}, not {config.breparg_root}"
         )
+    verify_protocol(config)
 
 
 def task_root(config: RunConfig, arm: str, seed: int) -> Path:
@@ -207,6 +437,9 @@ def task_root(config: RunConfig, arm: str, seed: int) -> Path:
 def task_signature_payload(config: RunConfig, arm: str, seed: int) -> dict[str, Any]:
     train_source = config.repo_root / "breparg_improvements" / "train.py"
     stability_source = config.repo_root / "breparg_improvements" / "training_stability.py"
+    sampling_source = config.repo_root / "breparg_improvements" / "vqvae_sampling.py"
+    protocol = protocol_binding(config)
+    formal_sampling = not config.smoke
     return {
         "schema": SCHEMA,
         "arm": arm,
@@ -219,6 +452,16 @@ def task_signature_payload(config: RunConfig, arm: str, seed: int) -> dict[str, 
         "precision": config.precision,
         "gradient_clip": FORMAL_GRAD_CLIP,
         "strict_nonfinite_fuse": True,
+        "sampling": {
+            "balance_by_parent": formal_sampling,
+            "deduplicate_before_cap": formal_sampling,
+            "require_exact_caps": formal_sampling,
+            "min_parent_coverage": (
+                0.0 if config.smoke else FORMAL_MIN_PARENT_COVERAGE
+            ),
+            "curved_fraction": 0.0,
+            "complex_fraction": 0.0,
+        },
         "scheduler": {
             "kind": "ReduceLROnPlateau",
             "factor": 0.5,
@@ -227,10 +470,14 @@ def task_signature_payload(config: RunConfig, arm: str, seed: int) -> dict[str, 
             "threshold_mode": "abs",
             "min_lr": 1e-6,
         },
-        "protocol_summary_sha256": sha256_file(config.protocol_dir / "protocol_summary.json"),
-        "split_pickle_sha256": sha256_file(config.protocol_dir / "split.pkl"),
+        "protocol_status": protocol["status"],
+        "protocol_sha256": protocol["protocol_sha256"],
+        "protocol_summary_sha256": protocol["protocol_summary_sha256"],
+        "split_pickle_sha256": protocol["split_pickle_sha256"],
+        "parent_overlap_counts": protocol["parent_overlap_counts"],
         "train_source_sha256": sha256_file(train_source),
         "training_stability_source_sha256": sha256_file(stability_source),
+        "vqvae_sampling_source_sha256": sha256_file(sampling_source),
         "breparg_quantise_sha256": sha256_file(config.breparg_root / "quantise.py"),
     }
 
@@ -256,13 +503,17 @@ def build_task(config: RunConfig, arm: str, seed: int) -> dict[str, Any]:
         "NS_PROTOCOL_DIR": str(config.protocol_dir),
         "NS_PROTOCOL_V2": "1",
         "NS_VQ_AUTO_RESUME": "1",
-        "NS_VQ_BALANCE_BY_PARENT": "1",
+        "NS_VQ_BALANCE_BY_PARENT": (
+            "1" if signature_payload["sampling"]["balance_by_parent"] else "0"
+        ),
         "NS_VQ_BS": str(config.batch_size),
         "NS_VQ_COMPLEX_FRACTION": "0",
         "NS_VQ_COMPLEX_LOSS_WEIGHT": "1",
         "NS_VQ_CURVED_FRACTION": "0",
         "NS_VQ_CURVED_LOSS_WEIGHT": "1",
-        "NS_VQ_DEDUP_BEFORE_CAP": "1",
+        "NS_VQ_DEDUP_BEFORE_CAP": (
+            "1" if signature_payload["sampling"]["deduplicate_before_cap"] else "0"
+        ),
         "NS_VQ_EPOCHS": str(config.epochs),
         "NS_VQ_EXPERIMENT_SEED": str(seed),
         "NS_VQ_EXPERIMENT_SIGNATURE": signature,
@@ -271,10 +522,15 @@ def build_task(config: RunConfig, arm: str, seed: int) -> dict[str, Any]:
         "NS_VQ_MAX_NONFINITE_VAL_EPOCHS": "1",
         "NS_VQ_MIN_DELTA": "1e-5",
         "NS_VQ_MIN_EPOCHS": str(config.epochs),
-        "NS_VQ_MIN_PARENT_COVERAGE": "0.9",
+        "NS_VQ_MIN_PARENT_COVERAGE": str(
+            signature_payload["sampling"]["min_parent_coverage"]
+        ),
         "NS_VQ_PATIENCE": str(config.epochs),
         "NS_VQ_PLATEAU_METRIC": "curved_parent_mse",
         "NS_VQ_PRECISION": config.precision,
+        "NS_VQ_REQUIRE_EXACT_CAPS": (
+            "1" if signature_payload["sampling"]["require_exact_caps"] else "0"
+        ),
         "NS_VQ_ROLLING_CHECKPOINT": str(root / f"{arm}_rolling.pt"),
         "NS_VQ_SAMPLES": str(config.train_cap),
         "NS_VQ_SAVE_FINAL": "1",
@@ -327,6 +583,369 @@ def build_state(config: RunConfig) -> dict[str, Any]:
     }
 
 
+def _checkpoint_protocol(task: Mapping[str, Any]) -> dict[str, Any]:
+    signature = task["signature_payload"]
+    return {
+        "protocol_sha256": signature.get("protocol_sha256"),
+        "split_pickle_sha256": signature.get("split_pickle_sha256"),
+        "parent_overlap_counts": signature.get("parent_overlap_counts"),
+    }
+
+
+def _arm_checkpoint_contract(arm: str) -> dict[str, Any]:
+    if arm == "vq_4096_64d_random":
+        return {
+            "kind": "learned_vq",
+            "codebook_size": 4096,
+            "embedding_dim": 64,
+            "anchor": "random",
+        }
+    if arm == "continuous_bypass_64d":
+        return {
+            "kind": "continuous_bypass",
+            "embedding_dim": 64,
+        }
+    raise ValueError(f"unsupported P0-B arm: {arm}")
+
+
+def _arm_codebook_size(arm: str) -> int:
+    return 4096 if arm == "vq_4096_64d_random" else 1
+
+
+def _validate_quantizer(
+    quantizer: Any, task: Mapping[str, Any], *, prefix: str, reasons: list[str]
+) -> None:
+    if not isinstance(quantizer, Mapping):
+        reasons.append(f"{prefix} quantizer metadata missing")
+        return
+    expected = _arm_checkpoint_contract(str(task["arm"]))
+    for field, value in expected.items():
+        if quantizer.get(field) != value:
+            reasons.append(f"{prefix} quantizer {field} mismatch")
+
+
+def _validate_protocol_context(
+    observed: Any, task: Mapping[str, Any], *, prefix: str, reasons: list[str]
+) -> None:
+    if not isinstance(observed, Mapping):
+        reasons.append(f"{prefix} protocol context missing")
+        return
+    expected = _checkpoint_protocol(task)
+    for field in ("protocol_sha256", "split_pickle_sha256"):
+        if observed.get(field) != expected[field]:
+            reasons.append(f"{prefix} {field} mismatch")
+    observed_overlaps = observed.get("parent_overlap_counts")
+    if observed_overlaps is not None and observed_overlaps != expected["parent_overlap_counts"]:
+        reasons.append(f"{prefix} parent_overlap_counts mismatch")
+
+
+def _valid_sha256(value: Any) -> bool:
+    if not isinstance(value, str) or len(value) != 64:
+        return False
+    try:
+        int(value, 16)
+    except ValueError:
+        return False
+    return value == value.lower()
+
+
+def _validate_inventory(
+    observed: Any,
+    task: Mapping[str, Any],
+    *,
+    prefix: str,
+    reasons: list[str],
+    expected: Mapping[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    start_reasons = len(reasons)
+    if not isinstance(observed, Mapping) or set(observed) != {"train", "val"}:
+        reasons.append(f"{prefix} inventory must contain exactly train and val")
+        return None
+    normalized: dict[str, Any] = {}
+    expected_counts = {
+        "train": task["signature_payload"]["train_cap"],
+        "val": task["signature_payload"]["val_cap"],
+    }
+    for split_name in ("train", "val"):
+        item = observed.get(split_name)
+        if not isinstance(item, Mapping):
+            reasons.append(f"{prefix} {split_name} inventory missing")
+            continue
+        normalized[split_name] = dict(item)
+        if item.get("schema") != "vq-exact-hash-inventory-v1":
+            reasons.append(f"{prefix} {split_name} inventory schema mismatch")
+        if item.get("count") != expected_counts[split_name]:
+            reasons.append(f"{prefix} {split_name} inventory count mismatch")
+        for field in ("ordered_sha256", "sorted_sha256"):
+            if not _valid_sha256(item.get(field)):
+                reasons.append(f"{prefix} {split_name} inventory {field} invalid")
+    if expected is not None and normalized != dict(expected):
+        reasons.append(f"{prefix} inventory binding mismatch")
+    return normalized if len(reasons) == start_reasons else None
+
+
+def _validate_run_manifest(
+    manifest: Any,
+    task: Mapping[str, Any],
+    *,
+    prefix: str,
+    reasons: list[str],
+    expected_inventory: Mapping[str, Any] | None = None,
+) -> None:
+    if not isinstance(manifest, Mapping):
+        reasons.append(f"{prefix} run_manifest missing")
+        return
+    experiment = manifest.get("experiment")
+    if not isinstance(experiment, Mapping):
+        reasons.append(f"{prefix} run_manifest experiment missing")
+        return
+    expected = task["signature_payload"]
+    checks = {
+        "seed": task["seed"],
+        "train_cap": expected["train_cap"],
+        "val_cap": expected["val_cap"],
+        "epochs": expected["epochs"],
+        "batch_size": expected["batch_size"],
+    }
+    for field, value in checks.items():
+        if experiment.get(field) != value:
+            reasons.append(f"{prefix} run_manifest {field} mismatch")
+    arms = experiment.get("arms")
+    if (
+        not isinstance(arms, list)
+        or len(arms) != 1
+        or not isinstance(arms[0], Mapping)
+        or arms[0].get("name") != task["arm"]
+    ):
+        reasons.append(f"{prefix} run_manifest arm mismatch")
+    else:
+        if arms[0].get("codebook") != _arm_codebook_size(str(task["arm"])):
+            reasons.append(f"{prefix} run_manifest codebook mismatch")
+        _validate_quantizer(
+            arms[0].get("quantizer"), task, prefix=prefix, reasons=reasons
+        )
+    _validate_protocol_context(
+        experiment.get("protocol"), task, prefix=f"{prefix} run_manifest", reasons=reasons
+    )
+    _validate_inventory(
+        experiment.get("inventory"),
+        task,
+        prefix=f"{prefix} run_manifest",
+        reasons=reasons,
+        expected=expected_inventory,
+    )
+
+
+def _load_checkpoint(
+    path: Path, *, label: str, reasons: list[str]
+) -> Mapping[str, Any] | None:
+    if not path.is_file():
+        reasons.append(f"{label} missing")
+        return None
+    try:
+        import torch
+
+        payload = torch.load(path, map_location="cpu", weights_only=False)
+    except Exception as exc:
+        reasons.append(f"{label} unreadable: {type(exc).__name__}")
+        return None
+    if not isinstance(payload, Mapping):
+        reasons.append(f"{label} must contain a mapping")
+        return None
+    return payload
+
+
+def _validate_model_state(
+    payload: Mapping[str, Any], *, label: str, reasons: list[str]
+) -> None:
+    state = payload.get("model_state_dict")
+    if not isinstance(state, Mapping) or not state:
+        reasons.append(f"{label} model_state_dict must be a non-empty mapping")
+
+
+def _validate_normal_checkpoint(
+    path: Path,
+    task: Mapping[str, Any],
+    *,
+    label: str,
+    expected_epoch: int | None,
+    terminal_epoch: int,
+    expected_inventory: Mapping[str, Any] | None,
+    reasons: list[str],
+) -> None:
+    payload = _load_checkpoint(path, label=label, reasons=reasons)
+    if payload is None:
+        return
+    _validate_model_state(payload, label=label, reasons=reasons)
+    checkpoint_epoch = payload.get("checkpoint_epoch")
+    if type(checkpoint_epoch) is not int or not 0 <= checkpoint_epoch <= terminal_epoch:
+        reasons.append(f"{label} checkpoint_epoch is invalid")
+    elif expected_epoch is not None and checkpoint_epoch != expected_epoch:
+        reasons.append(f"{label} checkpoint_epoch mismatch")
+    if list(payload.get("fsq_levels") or []) != []:
+        reasons.append(f"{label} fsq_levels must be empty for P0-B arms")
+    _validate_quantizer(payload.get("quantizer"), task, prefix=label, reasons=reasons)
+    context = payload.get("checkpoint_context")
+    if not isinstance(context, Mapping):
+        reasons.append(f"{label} checkpoint_context missing")
+        return
+    _validate_protocol_context(context, task, prefix=label, reasons=reasons)
+    _validate_inventory(
+        context.get("inventory"),
+        task,
+        prefix=label,
+        reasons=reasons,
+        expected=expected_inventory,
+    )
+    _validate_run_manifest(
+        context.get("run_manifest"),
+        task,
+        prefix=label,
+        reasons=reasons,
+        expected_inventory=expected_inventory,
+    )
+    for coverage_name in ("train_parent_coverage", "val_parent_coverage"):
+        coverage = context.get(coverage_name)
+        if not isinstance(coverage, (int, float)) or not math.isfinite(float(coverage)):
+            reasons.append(f"{label} {coverage_name} must be finite")
+
+
+def _validate_signature_configuration(
+    configuration: Any,
+    task: Mapping[str, Any],
+    *,
+    label: str,
+    reasons: list[str],
+    expected_inventory: Mapping[str, Any] | None,
+) -> None:
+    if not isinstance(configuration, Mapping):
+        reasons.append(f"{label} signature_configuration missing")
+        return
+    expected = task["signature_payload"]
+    checks = {
+        "seed": task["seed"],
+        "train_cap": expected["train_cap"],
+        "val_cap": expected["val_cap"],
+        "epochs": expected["epochs"],
+        "batch_size": expected["batch_size"],
+        "precision": expected["precision"],
+    }
+    for field, value in checks.items():
+        if configuration.get(field) != value:
+            reasons.append(f"{label} signature_configuration {field} mismatch")
+    try:
+        observed_lr = float(configuration.get("lr"))
+    except (TypeError, ValueError):
+        observed_lr = math.nan
+    if not math.isfinite(observed_lr) or observed_lr != float(expected["learning_rate"]):
+        reasons.append(f"{label} signature_configuration lr mismatch")
+    arm = configuration.get("arm")
+    if not isinstance(arm, Mapping) or arm.get("name") != task["arm"]:
+        reasons.append(f"{label} signature_configuration arm mismatch")
+    else:
+        if arm.get("codebook") != _arm_codebook_size(str(task["arm"])):
+            reasons.append(f"{label} signature_configuration codebook mismatch")
+        _validate_quantizer(arm.get("quantizer"), task, prefix=label, reasons=reasons)
+    _validate_protocol_context(
+        configuration.get("protocol"), task, prefix=label, reasons=reasons
+    )
+    _validate_inventory(
+        configuration.get("inventory"),
+        task,
+        prefix=label,
+        reasons=reasons,
+        expected=expected_inventory,
+    )
+
+
+def _validate_rolling_checkpoint(
+    path: Path,
+    task: Mapping[str, Any],
+    *,
+    records: list[Any],
+    terminal_epoch: int,
+    expected_inventory: Mapping[str, Any] | None,
+    reasons: list[str],
+) -> None:
+    label = "rolling_checkpoint"
+    payload = _load_checkpoint(path, label=label, reasons=reasons)
+    if payload is None:
+        return
+    required = {
+        "checkpoint_schema",
+        "experiment_signature",
+        "epoch",
+        "model_state_dict",
+        "optimizer_state_dict",
+        "scaler_state_dict",
+        "scheduler_state_dict",
+        "stop_state",
+        "plateau_state",
+        "history",
+        "rng_state",
+        "feature_pool_state",
+        "finite_state_audit",
+        "extra",
+    }
+    missing = sorted(required - set(payload))
+    if missing:
+        reasons.append(f"{label} incomplete: {', '.join(missing)}")
+    if payload.get("checkpoint_schema") != ROLLING_CHECKPOINT_SCHEMA:
+        reasons.append(f"{label} checkpoint_schema mismatch")
+    if payload.get("experiment_signature") != task["signature"]:
+        reasons.append(f"{label} experiment signature mismatch")
+    if payload.get("epoch") != terminal_epoch:
+        reasons.append(f"{label} terminal epoch mismatch")
+    _validate_model_state(payload, label=label, reasons=reasons)
+    if not isinstance(payload.get("optimizer_state_dict"), Mapping) or not payload.get(
+        "optimizer_state_dict"
+    ):
+        reasons.append(f"{label} optimizer_state_dict must be complete")
+    if not isinstance(payload.get("scheduler_state_dict"), Mapping) or not payload.get(
+        "scheduler_state_dict"
+    ):
+        reasons.append(f"{label} scheduler_state_dict must be complete")
+    if not isinstance(payload.get("stop_state"), Mapping):
+        reasons.append(f"{label} stop_state missing")
+    if not isinstance(payload.get("plateau_state"), Mapping):
+        reasons.append(f"{label} plateau_state missing")
+    embedded_history = payload.get("history")
+    if not isinstance(embedded_history, list) or embedded_history != records:
+        reasons.append(f"{label} embedded history mismatch")
+    rng_state = payload.get("rng_state")
+    if not isinstance(rng_state, Mapping) or not {
+        "python",
+        "numpy",
+        "torch_cpu",
+        "torch_cuda",
+    }.issubset(rng_state):
+        reasons.append(f"{label} rng_state incomplete")
+    if not isinstance(payload.get("feature_pool_state"), Mapping):
+        reasons.append(f"{label} feature_pool_state missing")
+    checkpoint_audit = payload.get("finite_state_audit")
+    if not isinstance(checkpoint_audit, Mapping) or checkpoint_audit.get("status") != "finite":
+        reasons.append(f"{label} finite_state_audit missing or non-finite")
+    extra = payload.get("extra")
+    if not isinstance(extra, Mapping):
+        reasons.append(f"{label} extra state missing")
+        return
+    _validate_signature_configuration(
+        extra.get("signature_configuration"),
+        task,
+        label=label,
+        reasons=reasons,
+        expected_inventory=expected_inventory,
+    )
+    precision = extra.get("precision")
+    if not isinstance(precision, Mapping) or precision.get("name") != task["signature_payload"][
+        "precision"
+    ]:
+        reasons.append(f"{label} precision context mismatch")
+    for field in ("selector_state", "meta"):
+        if not isinstance(extra.get(field), Mapping):
+            reasons.append(f"{label} extra {field} missing")
+
+
 def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
     reasons: list[str] = []
     history_path = Path(str(task["history"]))
@@ -362,6 +981,17 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
         for field in TRUE_FIELDS:
             if row.get(field) is not True:
                 reasons.append(f"epoch {epoch}: {field} must be true")
+        if row.get("nonfinite_state_audits") != 0:
+            reasons.append(f"epoch {epoch}: nonfinite_state_audits must be integer zero")
+        if row.get("finite_state_audit_cadence") != "lifecycle_v1":
+            reasons.append(f"epoch {epoch}: finite-state audit cadence mismatch")
+        if row.get("full_state_audits") != 1:
+            reasons.append(f"epoch {epoch}: exactly one full state audit is required")
+        if row.get("per_batch_full_state_audits") != 0:
+            reasons.append(f"epoch {epoch}: per-batch full state audits must be zero")
+        state_audit = row.get("finite_state_audit")
+        if not isinstance(state_audit, Mapping) or state_audit.get("status") != "finite":
+            reasons.append(f"epoch {epoch}: finite-state audit evidence missing")
         if row.get("experiment_signature") != expected_signature:
             reasons.append(f"epoch {epoch}: experiment signature mismatch")
         grad_norm = row.get("preclip_grad_norm")
@@ -389,33 +1019,101 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
         reasons.append("history strict_nonfinite must be true")
     if config_record.get("grad_clip_norm") != float(FORMAL_GRAD_CLIP):
         reasons.append("history grad_clip_norm mismatch")
+    expected_audit_cadence = {
+        "policy": "lifecycle_v1",
+        "startup_or_post_resume": True,
+        "epoch_end_pre_save": True,
+        "per_train_batch": False,
+    }
+    if config_record.get("finite_state_audit_cadence") != expected_audit_cadence:
+        reasons.append("history finite-state audit cadence mismatch")
     scheduler = config_record.get("scheduler") or {}
     expected_scheduler = task["signature_payload"]["scheduler"]
     for field in ("factor", "patience", "threshold", "threshold_mode", "min_lr"):
         if scheduler.get(field) != expected_scheduler[field]:
             reasons.append(f"history scheduler {field} mismatch")
+    sweep_row: Mapping[str, Any] = {}
+    sweep_payload: Mapping[str, Any] = {}
+    task_inventory: dict[str, Any] | None = None
     if not sweep_path.is_file():
         reasons.append("sweep summary missing")
     else:
         try:
-            sweep = read_json(sweep_path)
-            rows = sweep.get("mse_ranking") or []
+            sweep_payload = read_json(sweep_path)
+            rows = sweep_payload.get("mse_ranking") or []
             by_arm = {row.get("name"): row for row in rows if isinstance(row, dict)}
             if set(by_arm) != {task["arm"]}:
                 reasons.append("sweep arm set mismatch")
-            row = by_arm.get(task["arm"], {})
-            if row.get("epochs_ran") != expected_epochs:
+            sweep_row = by_arm.get(task["arm"], {})
+            if sweep_row.get("epochs_ran") != expected_epochs:
                 reasons.append("sweep epochs_ran mismatch")
-            if row.get("final_checkpoint_epoch") != expected_epochs - 1:
+            if sweep_row.get("final_checkpoint_epoch") != expected_epochs - 1:
                 reasons.append("sweep final checkpoint epoch mismatch")
+            if sweep_row.get("experiment_signature") != expected_signature:
+                reasons.append("sweep experiment signature mismatch")
+            sweep_precision = sweep_row.get("precision")
+            if isinstance(sweep_precision, Mapping):
+                sweep_precision = sweep_precision.get("name")
+            if sweep_precision != task["signature_payload"]["precision"]:
+                reasons.append("sweep precision mismatch")
+            task_inventory = _validate_inventory(
+                sweep_row.get("inventory"),
+                task,
+                prefix="sweep",
+                reasons=reasons,
+            )
+            _validate_run_manifest(
+                sweep_payload.get("run_manifest"),
+                task,
+                prefix="sweep",
+                reasons=reasons,
+                expected_inventory=task_inventory,
+            )
+            train_selected = (sweep_row.get("train_sampling") or {}).get("selected")
+            val_selected = (sweep_row.get("val_sampling") or {}).get("selected")
+            if train_selected != task["signature_payload"]["train_cap"]:
+                reasons.append("sweep realized train patch count mismatch")
+            if val_selected != task["signature_payload"]["val_cap"]:
+                reasons.append("sweep realized val patch count mismatch")
+            if formal and (
+                train_selected != FORMAL_TRAIN_CAP or val_selected != FORMAL_VAL_CAP
+            ):
+                reasons.append("formal realized patch counts must be exactly 60000/12000")
         except (OSError, ValueError, json.JSONDecodeError) as exc:
             reasons.append(f"sweep unreadable: {type(exc).__name__}")
-    # stage_vqsweep reads the selected checkpoint before it can emit a
-    # completed sweep summary, so all three artifacts are part of operational
-    # completion.  Bypass promotion eligibility remains irrelevant here.
-    for field in ("best_checkpoint", "final_checkpoint", "rolling_checkpoint"):
-        if not Path(str(task[field])).is_file():
-            reasons.append(f"{field} missing")
+    # stage_vqsweep reads the selected checkpoint before it can emit a completed
+    # summary. Bypass promotion eligibility is irrelevant, but all artifacts
+    # must be structurally complete and bound to this arm, seed, and protocol.
+    best_epoch = sweep_row.get("checkpoint_epoch")
+    if type(best_epoch) is not int:
+        reasons.append("sweep checkpoint_epoch must be an integer")
+        best_epoch = None
+    _validate_normal_checkpoint(
+        Path(str(task["best_checkpoint"])),
+        task,
+        label="best_checkpoint",
+        expected_epoch=best_epoch,
+        terminal_epoch=expected_epochs - 1,
+        expected_inventory=task_inventory,
+        reasons=reasons,
+    )
+    _validate_normal_checkpoint(
+        Path(str(task["final_checkpoint"])),
+        task,
+        label="final_checkpoint",
+        expected_epoch=expected_epochs - 1,
+        terminal_epoch=expected_epochs - 1,
+        expected_inventory=task_inventory,
+        reasons=reasons,
+    )
+    _validate_rolling_checkpoint(
+        Path(str(task["rolling_checkpoint"])),
+        task,
+        records=records,
+        terminal_epoch=expected_epochs - 1,
+        expected_inventory=task_inventory,
+        reasons=reasons,
+    )
     if formal and expected_epochs != FORMAL_EPOCHS:
         reasons.append("formal task does not request 100 epochs")
     return {
@@ -424,14 +1122,29 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
         "formal": formal,
         "epochs_observed": len(records),
         "last_epoch": epochs[-1] if epochs else None,
+        "inventory": task_inventory,
         "reasons": reasons,
     }
 
 
+def _inventory_consistency(validations: Sequence[Mapping[str, Any]]) -> bool:
+    inventory_signatures = {
+        canonical_signature(result["inventory"])
+        for result in validations
+        if isinstance(result.get("inventory"), Mapping)
+    }
+    return bool(validations) and (
+        len(inventory_signatures) == 1
+        and all(isinstance(result.get("inventory"), Mapping) for result in validations)
+    )
+
+
 def refresh_state(state: dict[str, Any]) -> dict[str, Any]:
     formal = state.get("mode") == "FORMAL"
+    validations = []
     for task in state.get("tasks", []):
         validation = validate_task(task, formal=formal)
+        validations.append(validation)
         task["validation"] = validation
         if validation["valid"]:
             task["status"] = "COMPLETED"
@@ -445,7 +1158,11 @@ def refresh_state(state: dict[str, Any]) -> dict[str, Any]:
             task["status"] = "INCOMPLETE"
     statuses = [task.get("status") for task in state.get("tasks", [])]
     if statuses and all(status == "COMPLETED" for status in statuses):
-        state["status"] = "COMPLETED"
+        inventory_consistent = _inventory_consistency(validations)
+        state["inventory_consistent"] = inventory_consistent
+        state["status"] = (
+            "COMPLETED" if not formal or inventory_consistent else "FAILED"
+        )
     elif any(status == "FAILED" for status in statuses):
         state["status"] = "FAILED"
     elif any(status == "RUNNING" for status in statuses):
@@ -478,7 +1195,12 @@ def ensure_state(config: RunConfig) -> tuple[Path, dict[str, Any]]:
             if task.get("signature") != expected_tasks[task_id]["signature"]:
                 raise ValueError(f"existing task signature mismatch: {task_id}")
         return state_path, state
-    if config.output_root.exists() and any(config.output_root.iterdir()):
+    existing_entries = (
+        [entry for entry in config.output_root.iterdir() if entry.name != WRITER_LOCK_NAME]
+        if config.output_root.exists()
+        else []
+    )
+    if existing_entries:
         raise ValueError("new P0-B output root is non-empty and has no matching state")
     config.output_root.mkdir(parents=True, exist_ok=True)
     atomic_json(state_path, expected)
@@ -509,15 +1231,7 @@ def write_task_manifest(task: Mapping[str, Any]) -> None:
     })
 
 
-def run_cohort(config: RunConfig, *, dry_run: bool = False) -> dict[str, Any]:
-    verify_inputs(config)
-    if dry_run:
-        plan = build_state(config)
-        for task in plan["tasks"]:
-            task["status"] = "PLANNED"
-        plan["status"] = "DRY_RUN"
-        plan["note"] = "No directories, checkpoints, or training processes were created."
-        return plan
+def _run_cohort_locked(config: RunConfig) -> dict[str, Any]:
     state_path, state = ensure_state(config)
     refresh_state(state)
     for task in state["tasks"]:
@@ -566,6 +1280,24 @@ def run_cohort(config: RunConfig, *, dry_run: bool = False) -> dict[str, Any]:
     return state
 
 
+def run_cohort(
+    config: RunConfig,
+    *,
+    dry_run: bool = False,
+    lock_command: Sequence[str] | None = None,
+) -> dict[str, Any]:
+    verify_inputs(config)
+    if dry_run:
+        plan = build_state(config)
+        for task in plan["tasks"]:
+            task["status"] = "PLANNED"
+        plan["status"] = "DRY_RUN"
+        plan["note"] = "No directories, checkpoints, locks, or training processes were created."
+        return plan
+    with output_root_writer_lock(config.output_root, command=lock_command):
+        return _run_cohort_locked(config)
+
+
 def load_and_refresh(output_root: Path) -> tuple[Path, dict[str, Any]]:
     state_path = Path(output_root).resolve() / "p0b_state.json"
     if not state_path.is_file():
@@ -573,9 +1305,9 @@ def load_and_refresh(output_root: Path) -> tuple[Path, dict[str, Any]]:
     state = read_json(state_path)
     if state.get("schema") != SCHEMA:
         raise ValueError("unsupported P0-B state schema")
-    refresh_state(state)
-    atomic_json(state_path, state)
-    return state_path, state
+    inspected = copy.deepcopy(state)
+    refresh_state(inspected)
+    return state_path, inspected
 
 
 def validation_summary(state: Mapping[str, Any]) -> dict[str, Any]:
@@ -589,11 +1321,15 @@ def validation_summary(state: Mapping[str, Any]) -> dict[str, Any]:
     validations = [validate_task(task, formal=formal) for task in tasks]
     for result in validations:
         reasons.extend(f"{result['task_id']}: {reason}" for reason in result["reasons"])
+    inventory_consistent = _inventory_consistency(validations)
+    if formal and not inventory_consistent:
+        reasons.append("formal task inventories are missing or differ across arm/seed tasks")
     return {
         "schema": SCHEMA,
         "formal": formal,
         "formal_result_eligible": formal and not reasons,
         "valid": not reasons,
+        "inventory_consistent": inventory_consistent,
         "validated_at": now(),
         "tasks": validations,
         "reasons": reasons,
@@ -655,7 +1391,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command in {"run", "probe"}:
         config = config_from_args(args)
-        result = run_cohort(config, dry_run=args.dry_run)
+        command = [sys.executable, str(Path(__file__).resolve()), *(argv or sys.argv[1:])]
+        result = run_cohort(
+            config, dry_run=args.dry_run, lock_command=command
+        )
         print(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=True))
         return 0 if args.dry_run or result.get("status") == "COMPLETED" else 1
     _, state = load_and_refresh(args.output_root)
@@ -663,7 +1402,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(json.dumps(state, indent=2, sort_keys=True, ensure_ascii=True))
         return 0
     summary = validation_summary(state)
-    atomic_json(Path(args.output_root).resolve() / "p0b_validation.json", summary)
     print(json.dumps(summary, indent=2, sort_keys=True, ensure_ascii=True))
     return 0 if summary["valid"] else 1
 

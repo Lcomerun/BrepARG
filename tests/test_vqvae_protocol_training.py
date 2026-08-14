@@ -29,6 +29,31 @@ def parsed(surface_value, edge_value):
     }
 
 
+def test_exact_hash_inventory_binds_order_and_content(monkeypatch):
+    monkeypatch.syspath_prepend(str(IMPROVEMENTS_DIR))
+    sampling = importlib.import_module("vqvae_sampling")
+    records = [
+        {
+            "kind": "surface",
+            "array": np.full((32, 32, 3), value, dtype=np.float32),
+        }
+        for value in (0.0, 1.0, 2.0)
+    ]
+
+    original = sampling.summarize_exact_hash_inventory(records)
+    reordered = sampling.summarize_exact_hash_inventory(list(reversed(records)))
+    changed = sampling.summarize_exact_hash_inventory(
+        [*records[:2], {"kind": "surface", "array": records[2]["array"] + 1.0}]
+    )
+
+    assert original["schema"] == "vq-exact-hash-inventory-v1"
+    assert original["count"] == 3
+    assert original["ordered_sha256"] != reordered["ordered_sha256"]
+    assert original["sorted_sha256"] == reordered["sorted_sha256"]
+    assert original["ordered_sha256"] != changed["ordered_sha256"]
+    assert original["sorted_sha256"] != changed["sorted_sha256"]
+
+
 @pytest.fixture
 def train_module(tmp_path, monkeypatch):
     monkeypatch.setenv("NS_OUTBASE", str(tmp_path / "out"))
@@ -67,8 +92,38 @@ def test_collect_protocol_vq_data_uses_disjoint_cad_splits_and_exact_dedup(
     assert data["val_dedup"]["duplicates_removed"] == 0
     assert data["cross_split_exact"]["train_records_removed"] == 0
     assert data["integrity"]["status"] == "VERIFIED"
+    assert data["inventory"]["train"]["count"] == 2
+    assert data["inventory"]["val"]["count"] == 2
+    assert data["inventory"]["train"]["schema"] == "vq-exact-hash-inventory-v1"
     assert data["val_buckets"] == ["edge", "surface_planar_like"]
     assert data["val_parent_ids"] == ["b" * 24, "b" * 24]
+
+
+@pytest.mark.parametrize(
+    ("train_cap", "val_cap", "message"),
+    [
+        (2, 3, "validation inventory did not meet"),
+        (3, 2, "train inventory did not meet"),
+    ],
+)
+def test_collect_protocol_vq_data_exact_cap_gate_fails_closed(
+    tmp_path, monkeypatch, train_module, train_cap, val_cap, message
+):
+    train_path = tmp_path / source("a" * 24)
+    val_path = tmp_path / source("b" * 24)
+    train_path.parent.mkdir(parents=True, exist_ok=True)
+    with train_path.open("wb") as handle:
+        pickle.dump(parsed(0.0, 0.0), handle)
+    with val_path.open("wb") as handle:
+        pickle.dump(parsed(1.0, 1.0), handle)
+    monkeypatch.setattr(train_module, "VQ_REQUIRE_EXACT_CAPS", True)
+
+    with pytest.raises(RuntimeError, match=message):
+        train_module.collect_protocol_vq_data(
+            {"train": [str(train_path)], "val": [str(val_path)], "test": []},
+            train_cap=train_cap,
+            val_cap=val_cap,
+        )
 
 
 def test_collect_protocol_vq_data_enforces_configured_parent_coverage(

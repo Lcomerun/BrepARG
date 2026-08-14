@@ -44,7 +44,7 @@ from training_stability import (
     NonFiniteTrainingError,
     VQVAEStopConfig,
     VQVAEStopState,
-    assert_finite_training_state,
+    audit_finite_training_state,
     atomic_torch_save,
     build_experiment_signature,
     capture_training_checkpoint,
@@ -76,6 +76,7 @@ from vqvae_sampling import (
     records_to_chw_array,
     records_to_patch_weights,
     select_patch_records,
+    summarize_exact_hash_inventory,
     validate_inventory_identities,
 )
 from vqvae_metrics import VQValidationAccumulator, patch_bucket
@@ -148,6 +149,9 @@ PROTOCOL_V2 = parse_env_bool(os.environ.get('NS_PROTOCOL_V2'), True)
 VQ_BALANCE_BY_PARENT = parse_env_bool(os.environ.get('NS_VQ_BALANCE_BY_PARENT'), PROTOCOL_V2)
 VQ_DEDUP_BEFORE_CAP = parse_env_bool(os.environ.get('NS_VQ_DEDUP_BEFORE_CAP'), True)
 VQ_MIN_PARENT_COVERAGE = float(os.environ.get('NS_VQ_MIN_PARENT_COVERAGE', '0'))
+VQ_REQUIRE_EXACT_CAPS = parse_env_bool(
+    os.environ.get('NS_VQ_REQUIRE_EXACT_CAPS'), False
+)
 VQ_TB_LOG_DIR = os.environ.get('NS_VQ_TB_LOG_DIR', '').strip()
 VQ_SWEEP_TRAIN_CAP = int(os.environ.get('NS_VQ_SWEEP_TRAIN_CAP', '12000'))
 VQ_SWEEP_EPOCHS = int(os.environ.get('NS_VQ_SWEEP_EPOCHS', '15'))
@@ -225,6 +229,7 @@ def load_report():
             'vq_balance_by_parent': VQ_BALANCE_BY_PARENT,
             'vq_dedup_before_cap': VQ_DEDUP_BEFORE_CAP,
             'vq_min_parent_coverage': VQ_MIN_PARENT_COVERAGE,
+            'vq_require_exact_caps': VQ_REQUIRE_EXACT_CAPS,
             'vq_experiment_seed': VQ_EXPERIMENT_SEED,
             'vq_promotion_min_perplexity': VQ_PROMOTION_MIN_PERPLEXITY,
             'vq_promotion_max_curved_parent_mse': VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
@@ -536,6 +541,10 @@ def checkpoint_context_from_run(run_manifest, protocol_data):
             'final_parent_coverage'
         ),
         'val_parent_coverage': protocol_data['val_sampling'].get('parent_coverage'),
+        'inventory': dict(protocol_data.get('inventory') or {}),
+        'runtime_resume_compatibility': dict(
+            run_manifest.get('runtime_resume_compatibility') or {}
+        ),
         'run_manifest': run_manifest,
     }
 
@@ -771,6 +780,27 @@ def build_vq_run_manifest(
     """Capture the immutable source, runtime, protocol, and sweep controls."""
     git_state = current_git_state()
     gpu = torch.cuda.get_device_name(0) if torch.cuda.is_available() else None
+    runtime_resume_compatibility = {
+        'python_implementation': platform.python_implementation(),
+        'python_version': list(sys.version_info[:3]),
+        'numpy': np.__version__,
+        'pytorch': torch.__version__,
+        'diffusers': getattr(sys.modules.get('diffusers'), '__version__', None),
+        'cuda': torch.version.cuda,
+        'cudnn': torch.backends.cudnn.version(),
+        'device_type': 'cuda' if torch.cuda.is_available() else 'cpu',
+        'gpu_compute_capability': (
+            list(torch.cuda.get_device_capability(0))
+            if torch.cuda.is_available()
+            else None
+        ),
+        'torch_default_dtype': str(torch.get_default_dtype()),
+        'tf32_matmul': torch.backends.cuda.matmul.allow_tf32,
+        'tf32_cudnn': torch.backends.cudnn.allow_tf32,
+        'cudnn_deterministic': torch.backends.cudnn.deterministic,
+        'cudnn_benchmark': torch.backends.cudnn.benchmark,
+        'deterministic_algorithms': torch.are_deterministic_algorithms_enabled(),
+    }
     return {
         'created_at': time.strftime('%Y-%m-%dT%H:%M:%S%z'),
         'git': git_state,
@@ -795,6 +825,7 @@ def build_vq_run_manifest(
             'deterministic_algorithms': torch.are_deterministic_algorithms_enabled(),
             'amp': VQ_AMP,
         },
+        'runtime_resume_compatibility': runtime_resume_compatibility,
         'experiment': {
             'seed': VQ_EXPERIMENT_SEED,
             'protocol': dict(split_metadata),
@@ -807,6 +838,9 @@ def build_vq_run_manifest(
             'curved_loss_weight': VQ_CURVED_LOSS_WEIGHT,
             'complex_loss_weight': VQ_COMPLEX_LOSS_WEIGHT,
             'min_parent_coverage': VQ_MIN_PARENT_COVERAGE,
+            'balance_by_parent': bool(VQ_BALANCE_BY_PARENT),
+            'deduplicate_before_cap': bool(VQ_DEDUP_BEFORE_CAP),
+            'require_exact_caps': bool(VQ_REQUIRE_EXACT_CAPS),
             'plateau_metric': VQ_PLATEAU_METRIC,
             'arms': [_vq_arm_manifest(config) for config in configs],
         },
@@ -832,6 +866,10 @@ def vq_training_signature_configuration(run_manifest, config, *, precision=None)
     return {
         'git': dict(run_manifest.get('git') or {}),
         'protocol': dict(experiment.get('protocol') or {}),
+        'inventory': dict(experiment.get('inventory') or {}),
+        'runtime_resume_compatibility': dict(
+            run_manifest.get('runtime_resume_compatibility') or {}
+        ),
         'arm': _vq_arm_manifest(config),
         'seed': int(experiment.get('seed', VQ_EXPERIMENT_SEED)),
         'train_cap': int(experiment.get('train_cap')),
@@ -858,7 +896,8 @@ def vq_training_signature_configuration(run_manifest, config, *, precision=None)
         },
         'sampling': {
             key: experiment.get(key) for key in (
-                'curved_fraction', 'complex_fraction', 'min_parent_coverage'
+                'curved_fraction', 'complex_fraction', 'min_parent_coverage',
+                'balance_by_parent', 'deduplicate_before_cap', 'require_exact_caps'
             )
         },
     }
@@ -987,6 +1026,11 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
     val_records, val_sampling, val_dedup = _collect_protocol_inventory(
         split.get('val', []), val_cap, seed=1
     )
+    if VQ_REQUIRE_EXACT_CAPS and len(val_records) != int(val_cap):
+        raise RuntimeError(
+            "VQ validation inventory did not meet the exact requested cap: "
+            f"{len(val_records)} != {int(val_cap)}"
+        )
     train_candidate_cap = train_cap + len(val_records)
     train_records, train_sampling, train_dedup = _collect_protocol_inventory(
         split.get('train', []), train_candidate_cap, seed=0
@@ -1027,6 +1071,11 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
         seed=2,
         curved_fraction=VQ_CURVED_FRACTION,
     )
+    if VQ_REQUIRE_EXACT_CAPS and len(train_records) != int(train_cap):
+        raise RuntimeError(
+            "VQ train inventory did not meet the exact requested cap after "
+            f"cross-split filtering: {len(train_records)} != {int(train_cap)}"
+        )
     train_sampling['candidate_cap_with_val_reserve'] = train_candidate_cap
     train_sampling['candidates_after_exact_filter'] = available_after_exact_filter
     train_sampling['requested'] = int(train_cap)
@@ -1053,6 +1102,24 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
             f"{final_train_coverage:.6f} < {VQ_MIN_PARENT_COVERAGE:.6f}"
         )
     integrity = audit_train_val_inventories(train_records, val_records)
+    inventory = {
+        'train': summarize_exact_hash_inventory(train_records),
+        'val': summarize_exact_hash_inventory(val_records),
+    }
+    if VQ_REQUIRE_EXACT_CAPS:
+        expected_counts = {'train': int(train_cap), 'val': int(val_cap)}
+        for split_name, expected_count in expected_counts.items():
+            if inventory[split_name]['count'] != expected_count:
+                raise RuntimeError(
+                    f"VQ {split_name} inventory digest count mismatch: "
+                    f"{inventory[split_name]['count']} != {expected_count}"
+                )
+            integrity_count = integrity.get(f'{split_name}_exact_hashes')
+            if integrity_count != expected_count:
+                raise RuntimeError(
+                    f"VQ {split_name} integrity exact-hash count mismatch: "
+                    f"{integrity_count} != {expected_count}"
+                )
     return {
         'X_train': records_to_chw_array(train_records),
         'X_val': records_to_chw_array(val_records),
@@ -1078,6 +1145,7 @@ def collect_protocol_vq_data(split, train_cap=VQ_SAMPLES, val_cap=VQ_VAL_SAMPLES
         'val_dedup': val_dedup,
         'cross_split_exact': cross_split_exact,
         'integrity': integrity,
+        'inventory': inventory,
     }
 
 
@@ -1292,6 +1360,12 @@ def _train_vqvae(
         scheduler_patience=8,
         scheduler_threshold=1e-5,
         scheduler_min_lr=1e-6):
+    state_audit_cadence = {
+        'policy': 'lifecycle_v1',
+        'startup_or_post_resume': True,
+        'epoch_end_pre_save': True,
+        'per_train_batch': False,
+    }
     model = model.to(DEVICE)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-6)
     if precision is None:
@@ -1412,6 +1486,9 @@ def _train_vqvae(
         'global_best_epoch': int(initial_best_epoch),
         'checkpoint_epoch': -1,
         'checkpoint_val_recon': None,
+        'finite_state_audit_cadence': dict(state_audit_cadence),
+        'startup_finite_state_audit': None,
+        'full_state_audits': 0,
     }
     resume_path = resume_from
     if not resume_path and auto_resume and rolling_checkpoint_path:
@@ -1465,11 +1542,19 @@ def _train_vqvae(
             'start_epoch': start_epoch,
             'end_epoch': int(restored['epoch']),
         })
+        startup_state_audit = dict(restored['finite_state_audit'])
+        startup_state_audit['phase'] = 'post_resume'
+        prior_full_state_audits = int(restored_meta.get('full_state_audits', 0))
         log(
             f"  {tag} resumed full state from {resume_path} "
             f"after epoch={restored['epoch']}"
         )
-    assert_finite_training_state(model, opt)
+    else:
+        startup_state_audit = audit_finite_training_state(model, opt)
+        startup_state_audit['phase'] = 'startup'
+        prior_full_state_audits = 0
+    meta['startup_finite_state_audit'] = startup_state_audit
+    meta['full_state_audits'] = prior_full_state_audits + 1
     writer = None
     if tb_log_dir:
         from torch.utils.tensorboard import SummaryWriter
@@ -1501,15 +1586,6 @@ def _train_vqvae(
                         f"non-finite training loss at epoch={absolute_epoch} batch={train_batches - 1}"
                     )
                 continue
-            try:
-                assert_finite_training_state(model, opt)
-            except NonFiniteTrainingError:
-                nonfinite_state_batches += 1
-                skipped_train_batches += 1
-                opt.zero_grad(set_to_none=True)
-                if strict_nonfinite:
-                    raise
-                continue
             if scaler is not None:
                 scaler.scale(loss).backward()
                 scaler.unscale_(opt)
@@ -1529,14 +1605,6 @@ def _train_vqvae(
                 scaler.update()
             else:
                 opt.step()
-            try:
-                assert_finite_training_state(model, opt)
-            except NonFiniteTrainingError:
-                nonfinite_state_batches += 1
-                if strict_nonfinite:
-                    raise
-                skipped_train_batches += 1
-                continue
             preclip_grad_norms.append(preclip_grad_norm)
             tot += loss.item(); nb += 1
         model.eval(); vtot = vcount = vnb = 0; val_batches = 0
@@ -1572,12 +1640,6 @@ def _train_vqvae(
                     nonfinite_val_batches += 1
                 else:
                     vnb += 1
-        try:
-            assert_finite_training_state(model, opt)
-        except NonFiniteTrainingError:
-            nonfinite_state_batches += 1
-            if strict_nonfinite:
-                raise
         tr = finite_average(tot, nb)
         va = (
             finite_average(vtot, vcount)
@@ -1641,6 +1703,29 @@ def _train_vqvae(
         else:
             scheduler.step(scheduler_value)
         lr_after_scheduler = float(opt.param_groups[0]['lr'])
+        try:
+            epoch_state_audit = audit_finite_training_state(model, opt)
+            epoch_state_audit['phase'] = 'epoch_end_pre_save'
+        except NonFiniteTrainingError as exc:
+            nonfinite_state_batches += 1
+            epoch_state_audit = {
+                'phase': 'epoch_end_pre_save',
+                'status': 'nonfinite',
+                'error': str(exc),
+            }
+            if strict_nonfinite:
+                raise
+        state_audit_finite = epoch_state_audit['status'] == 'finite'
+        meta['full_state_audits'] += 1
+        if not state_audit_finite:
+            checkpoint_decision = {
+                **checkpoint_decision,
+                'selected': False,
+                'reasons': [
+                    'epoch-end training state audit was non-finite',
+                    *checkpoint_decision['reasons'],
+                ],
+            }
         checkpoint_payload = {
             'model_state_dict': model.state_dict(),
             'fsq_levels': list(fsq_levels),
@@ -1666,7 +1751,7 @@ def _train_vqvae(
                 prior_perplexities.append(float(code_usage['entropy_perplexity']))
             if safe_json_number(code_usage.get('coverage')) is not None:
                 prior_coverages.append(float(code_usage['coverage']))
-        if save_final_path:
+        if save_final_path and state_audit_finite:
             torch.save(checkpoint_payload, save_final_path)
         record = {
             'epoch': absolute_epoch,
@@ -1683,8 +1768,13 @@ def _train_vqvae(
             'nonfinite_loss_batches': nonfinite_loss_batches,
             'nonfinite_gradient_batches': nonfinite_gradient_batches,
             'nonfinite_state_batches': nonfinite_state_batches,
+            'nonfinite_state_audits': nonfinite_state_batches,
             'gradients_finite': nonfinite_gradient_batches == 0,
-            'training_state_finite': nonfinite_state_batches == 0,
+            'training_state_finite': state_audit_finite,
+            'finite_state_audit_cadence': state_audit_cadence['policy'],
+            'finite_state_audit': epoch_state_audit,
+            'full_state_audits': 1,
+            'per_batch_full_state_audits': 0,
             'preclip_grad_norm': (
                 max(preclip_grad_norms) if preclip_grad_norms else None
             ),
@@ -1740,6 +1830,7 @@ def _train_vqvae(
             'end_epoch': absolute_epoch,
             'stop_reason': active_stop_reason,
             'last_val_metrics': val_metrics,
+            'last_finite_state_audit': epoch_state_audit,
         })
         if writer is not None:
             writer.add_scalar('train/loss', tr, absolute_epoch)
@@ -1774,6 +1865,7 @@ def _train_vqvae(
                     'precision': precision_policy.as_dict(),
                     'grad_clip_norm': grad_clip_norm,
                     'strict_nonfinite': bool(strict_nonfinite),
+                    'finite_state_audit_cadence': state_audit_cadence,
                     'scheduler': {
                         'metric': 'curved_parent_mse',
                         'factor': float(scheduler_factor),
@@ -1782,6 +1874,7 @@ def _train_vqvae(
                         'threshold_mode': 'abs',
                         'min_lr': float(scheduler_min_lr),
                     },
+                    'signature_configuration': signature_configuration,
                     'experiment_signature': experiment_signature,
                     'rolling_checkpoint_path': rolling_checkpoint_path,
                     'min_epochs': stop_config.min_epochs,
@@ -1795,8 +1888,13 @@ def _train_vqvae(
                 'best_val_recon': metric_for_report(best_val),
                 'best_epoch': stop_state.best_epoch,
                 'stop_reason': active_stop_reason,
+                'finite_state_audit_summary': {
+                    'cadence': state_audit_cadence,
+                    'startup_or_post_resume': meta['startup_finite_state_audit'],
+                    'full_state_audits': meta['full_state_audits'],
+                },
             }, open(history_path, 'w'), indent=2)
-        if rolling_checkpoint_path:
+        if rolling_checkpoint_path and state_audit_finite:
             rolling_payload = capture_training_checkpoint(
                 model=model,
                 optimizer=opt,
@@ -1807,6 +1905,7 @@ def _train_vqvae(
                 stop_state=stop_state,
                 plateau_state=plateau_state,
                 experiment_signature=experiment_signature,
+                prevalidated_state_audit=epoch_state_audit,
                 extra={
                     'signature_configuration': signature_configuration,
                     'precision': precision_policy.as_dict(),
@@ -1821,6 +1920,11 @@ def _train_vqvae(
                         'checkpoint_val_recon': meta.get('checkpoint_val_recon'),
                         'global_best_epoch': meta.get('global_best_epoch'),
                         'last_val_metrics': meta.get('last_val_metrics'),
+                        'last_finite_state_audit': meta.get('last_finite_state_audit'),
+                        'startup_finite_state_audit': meta.get(
+                            'startup_finite_state_audit'
+                        ),
+                        'full_state_audits': meta.get('full_state_audits'),
                     },
                 },
             )
@@ -1858,6 +1962,7 @@ def stage_vqsweep():
     )
     require_clean_vq_run(run_manifest)
     protocol_data = collect_protocol_vq_data(split, train_cap=VQ_SWEEP_TRAIN_CAP, val_cap=VQ_VAL_SAMPLES)
+    run_manifest['experiment']['inventory'] = dict(protocol_data['inventory'])
     checkpoint_context = checkpoint_context_from_run(run_manifest, protocol_data)
     Xtr = protocol_data['X_train']; Xva = protocol_data['X_val']
     log(f"  sweep 数据: train={len(Xtr)} val={len(Xva)}  (短训 15 ep)")
@@ -1936,6 +2041,7 @@ def stage_vqsweep():
             'val_sampling': protocol_data['val_sampling'],
             'cross_split_exact': protocol_data['cross_split_exact'],
             'integrity': protocol_data['integrity'],
+            'inventory': protocol_data['inventory'],
             'promotion': promotion,
         })
         log(f"  -> {c['name']}: best_val_recon={bv:.5f}")
@@ -2004,6 +2110,7 @@ def stage_vqvae():
     )
     require_clean_vq_run(run_manifest)
     protocol_data = collect_protocol_vq_data(split)
+    run_manifest['experiment']['inventory'] = dict(protocol_data['inventory'])
     checkpoint_context = checkpoint_context_from_run(run_manifest, protocol_data)
     Xtr = protocol_data['X_train']; Xva = protocol_data['X_val']
     Wtr = protocol_data['train_weights']
