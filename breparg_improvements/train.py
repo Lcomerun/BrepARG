@@ -127,7 +127,6 @@ VQ_PRECISION = os.environ.get('NS_VQ_PRECISION', '').strip().lower()
 VQ_GRAD_CLIP = float(os.environ.get('NS_VQ_GRAD_CLIP', '1.0'))
 VQ_ROLLING_CHECKPOINT = os.environ.get('NS_VQ_ROLLING_CHECKPOINT', '').strip()
 VQ_AUTO_RESUME = parse_env_bool(os.environ.get('NS_VQ_AUTO_RESUME'), False)
-VQ_STRICT_NONFINITE = parse_env_bool(os.environ.get('NS_VQ_STRICT_NONFINITE'), False)
 VQ_EXPERIMENT_SIGNATURE = os.environ.get('NS_VQ_EXPERIMENT_SIGNATURE', '').strip()
 VQ_SCHEDULER_FACTOR = float(os.environ.get('NS_VQ_SCHEDULER_FACTOR', '0.5'))
 VQ_SCHEDULER_PATIENCE = int(os.environ.get('NS_VQ_SCHEDULER_PATIENCE', '8'))
@@ -146,6 +145,8 @@ VQ_COMPLEX_LOSS_WEIGHT = float(os.environ.get('NS_VQ_COMPLEX_LOSS_WEIGHT', '1'))
 VQ_CURVED_LOSS_WEIGHT = float(os.environ.get('NS_VQ_CURVED_LOSS_WEIGHT', '1'))
 VQ_CURVED_LOSS_THRESHOLD = float(os.environ.get('NS_VQ_CURVED_LOSS_THRESHOLD', '0.02'))
 PROTOCOL_V2 = parse_env_bool(os.environ.get('NS_PROTOCOL_V2'), True)
+# 协议模式下默认启用 fail-closed 非有限保护;可用 NS_VQ_STRICT_NONFINITE=0 显式关闭。
+VQ_STRICT_NONFINITE = parse_env_bool(os.environ.get('NS_VQ_STRICT_NONFINITE'), PROTOCOL_V2)
 VQ_BALANCE_BY_PARENT = parse_env_bool(os.environ.get('NS_VQ_BALANCE_BY_PARENT'), PROTOCOL_V2)
 VQ_DEDUP_BEFORE_CAP = parse_env_bool(os.environ.get('NS_VQ_DEDUP_BEFORE_CAP'), True)
 VQ_MIN_PARENT_COVERAGE = float(os.environ.get('NS_VQ_MIN_PARENT_COVERAGE', '0'))
@@ -460,6 +461,47 @@ def build_checkpoint_promotion(
         'protocol_sha256': context.get('protocol_sha256'),
     }
     return promotion
+
+
+def build_run_checkpoint_promotion(checkpoint_path, run_meta):
+    """仅当本次运行确实选出过 best checkpoint 时才做晋级评定。
+
+    防止两类事故:①本次运行未选出 checkpoint 且路径无旧文件时,在训练收尾处
+    FileNotFoundError 崩溃;②路径残留上一次运行的旧 checkpoint 时,旧权重被
+    静默评定晋级并进入 sequence/AR。
+    """
+    def _ineligible(reason):
+        return {
+            'eligible': False,
+            'reasons': [reason],
+            'observed': {},
+            'thresholds': {
+                'min_perplexity': float(VQ_PROMOTION_MIN_PERPLEXITY),
+                'max_curved_parent_mse': float(VQ_PROMOTION_MAX_CURVED_PARENT_MSE),
+                'min_parent_coverage': float(VQ_PROMOTION_MIN_PARENT_COVERAGE),
+            },
+            'binding': {},
+        }
+
+    checkpoint_epoch = run_meta.get('checkpoint_epoch')
+    if not isinstance(checkpoint_epoch, int) or checkpoint_epoch < 0:
+        return _ineligible('no best checkpoint was selected during this run')
+    if not os.path.exists(checkpoint_path):
+        return _ineligible(f'selected checkpoint is missing on disk: {checkpoint_path}')
+    checkpoint_payload = torch.load(checkpoint_path, map_location='cpu')
+    saved_epoch = checkpoint_payload.get('checkpoint_epoch')
+    if saved_epoch != checkpoint_epoch:
+        return _ineligible(
+            'checkpoint on disk does not belong to this run: '
+            f'epoch {saved_epoch!r} != selected {checkpoint_epoch!r}'
+        )
+    return build_checkpoint_promotion(
+        checkpoint_path,
+        checkpoint_payload,
+        min_perplexity=VQ_PROMOTION_MIN_PERPLEXITY,
+        max_curved_parent_mse=VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
+        min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
+    )
 
 
 def verify_vq_promotion_binding(
@@ -1608,6 +1650,11 @@ def _train_vqvae(
                 nonfinite_gradient_batches += 1
                 skipped_train_batches += 1
                 opt.zero_grad(set_to_none=True)
+                if scaler is not None:
+                    # 跳过 scaler.step 的同时必须手动回退 loss scale:
+                    # 否则 scale 偏高时后续每个 batch 都溢出→被跳过→scale
+                    # 不变,整段 epoch 预算被静默烧掉、模型零更新。
+                    scaler.update(scaler.get_scale() * scaler.get_backoff_factor())
                 if strict_nonfinite:
                     raise
                 continue
@@ -2021,14 +2068,7 @@ def stage_vqsweep():
             scheduler_min_lr=VQ_SCHEDULER_MIN_LR,
         )
         final_metrics = arm_meta.get('last_val_metrics') or {}
-        checkpoint_payload = torch.load(arm_checkpoint, map_location='cpu')
-        promotion = build_checkpoint_promotion(
-            arm_checkpoint,
-            checkpoint_payload,
-            min_perplexity=VQ_PROMOTION_MIN_PERPLEXITY,
-            max_curved_parent_mse=VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
-            min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
-        )
+        promotion = build_run_checkpoint_promotion(arm_checkpoint, arm_meta)
         results.append({'name': c['name'], 'levels': list(c['levels']),
                         'codebook': int(c.get('codebook_size') or np.prod(c['levels'])),
                         'quantizer': c.get('quantizer'),
@@ -2182,14 +2222,7 @@ def stage_vqvae():
     baseline_best = initial_best_val if initial_best_val is not None else first_val
     ok = bool(hist) and np.isfinite(bv) and np.isfinite(first_val) and bv <= baseline_best
     last_val_metrics = meta.get('last_val_metrics') or {}
-    checkpoint_payload = torch.load(VQVAE_PT, map_location='cpu')
-    promotion = build_checkpoint_promotion(
-        VQVAE_PT,
-        checkpoint_payload,
-        min_perplexity=VQ_PROMOTION_MIN_PERPLEXITY,
-        max_curved_parent_mse=VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
-        min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
-    )
+    promotion = build_run_checkpoint_promotion(VQVAE_PT, meta)
     r = load_report(); r['stages']['vqvae'] = {
         'samples': len(Xtr) + len(Xva), 'train_samples': len(Xtr), 'val_samples': len(Xva),
         'epochs': epochs_to_run, 'target_epoch': int(VQ_TARGET_EPOCH) if VQ_TARGET_EPOCH else None,

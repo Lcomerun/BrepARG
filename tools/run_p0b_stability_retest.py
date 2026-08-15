@@ -15,6 +15,7 @@ import hashlib
 import json
 import math
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -752,7 +753,21 @@ def _load_checkpoint(
     try:
         import torch
 
-        payload = torch.load(path, map_location="cpu", weights_only=False)
+        # 复制到私有临时文件后再 torch.load:避免在反序列化的数秒内持有
+        # live rolling checkpoint 的读句柄(Windows 上会让训练端的
+        # os.replace 原子保存抛 PermissionError 并中止训练)。
+        with tempfile.NamedTemporaryFile(
+            prefix=f".{path.name}.", suffix=".read.tmp", delete=False
+        ) as handle:
+            temporary = Path(handle.name)
+        try:
+            shutil.copy2(path, temporary)
+            payload = torch.load(temporary, map_location="cpu", weights_only=False)
+        finally:
+            try:
+                temporary.unlink()
+            except OSError:
+                pass
     except Exception as exc:
         reasons.append(f"{label} unreadable: {type(exc).__name__}")
         return None

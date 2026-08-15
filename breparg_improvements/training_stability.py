@@ -6,6 +6,7 @@ import math
 import os
 import random
 import tempfile
+import time
 from contextlib import nullcontext
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -323,7 +324,19 @@ def atomic_torch_save(payload, path):
     os.close(descriptor)
     try:
         torch.save(payload, temporary)
-        os.replace(temporary, path)
+        replace_error = None
+        for _attempt in range(50):
+            try:
+                os.replace(temporary, path)
+                replace_error = None
+                break
+            except PermissionError as exc:
+                # Windows: 其他进程(status/validate/snapshot)可能正持有目标
+                # checkpoint 的读句柄;退避重试而不是让训练进程直接中止。
+                replace_error = exc
+                time.sleep(0.2)
+        if replace_error is not None:
+            raise replace_error
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
