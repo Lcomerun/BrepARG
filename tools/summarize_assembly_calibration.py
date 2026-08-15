@@ -119,10 +119,28 @@ def summarize_calibration(
     min_cads: int = 100,
     strong_association: float = 0.35,
 ) -> dict[str, Any]:
-    normalized = [dict(row) for row in rows]
+    ordered = [dict(row) for row in rows]
+    # manifest 是 append-only:断点续跑/换 checkpoint 重跑会追加新行。
+    # 同一 (arm, cad_id) 只保留最后一次尝试,旧行不得混入统计。
+    latest: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in ordered:
+        latest[(str(row["arm"]), str(row["cad_id"]))] = row
+    normalized = list(latest.values())
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in normalized:
         grouped[str(row["arm"])].append(row)
+    for name, group in sorted(grouped.items()):
+        checkpoint_shas = {
+            str(row.get("checkpoint_sha256"))
+            for row in group
+            if row.get("checkpoint_sha256")
+        }
+        if len(checkpoint_shas) > 1:
+            raise RuntimeError(
+                f"arm {name!r} mixes rows from different checkpoints: "
+                f"{sorted(checkpoint_shas)}; re-run the oracle into a fresh "
+                "output dir (or prune stale manifest rows) before summarizing"
+            )
     arms = {name: _arm_summary(group) for name, group in sorted(grouped.items())}
     by_cad: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
     for row in normalized:
