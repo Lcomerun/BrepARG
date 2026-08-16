@@ -1,0 +1,91 @@
+{
+  "artifact_policy": {
+    "attempts_denominator_includes_all_failures": true,
+    "checkpoint_step_and_npz_bytes_archived": false
+  },
+  "cohort": {
+    "attempts_per_arm": 100,
+    "identical_order_verified": true,
+    "identity_sha256": "646693dbfde083bf16ae63f917658cc0c3b3eb71cedaeddfeea55007bd741474",
+    "selection_seed": 20260809
+  },
+  "completed_at": "2026-08-17T00:59:16+08:00",
+  "current_60k_dual_validity": {
+    "continuous_bypass_64d": {
+      "attempts": 100,
+      "both_valid": 64,
+      "both_valid_rate": 0.64,
+      "native_brep_valid": 73,
+      "native_brep_valid_rate": 0.73,
+      "native_only": 9,
+      "neither_valid": 16,
+      "no_step": 5,
+      "status_counts": {
+        "audited": 95,
+        "no_step": 5
+      },
+      "step_saved": 95,
+      "step_saved_rate": 0.95,
+      "strict_brep_valid": 70,
+      "strict_brep_valid_rate": 0.7,
+      "strict_only": 6
+    },
+    "vq_4096_64d_random": {
+      "attempts": 100,
+      "both_valid": 49,
+      "both_valid_rate": 0.49,
+      "native_brep_valid": 55,
+      "native_brep_valid_rate": 0.55,
+      "native_only": 6,
+      "neither_valid": 32,
+      "no_step": 5,
+      "status_counts": {
+        "audited": 95,
+        "no_step": 5
+      },
+      "step_saved": 95,
+      "step_saved_rate": 0.95,
+      "strict_brep_valid": 57,
+      "strict_brep_valid_rate": 0.57,
+      "strict_only": 8
+    }
+  },
+  "gates_percentage_points": {
+    "boundary_loss_trigger_delta_r_gt_8": true,
+    "capacity_ab_trigger_delta_q_gt_5": true,
+    "decision": "CAPACITY_AB_FIRST",
+    "delta_q_bypass60k_minus_vq60k": 13,
+    "delta_r_gt_minus_bypass60k": 14,
+    "five_point_noise_band": false
+  },
+  "measurement_signature": "ffe611ae962490aa374820f66c7348436c6a154dc98e98947ca3b8f851a5bceb",
+  "schema": "p0b-paired-assembly-measurement-v1",
+  "selected_checkpoints": {
+    "continuous_bypass_64d": {
+      "best_val_mse": 0.00050906,
+      "checkpoint_epoch": 98,
+      "checkpoint_role": "best",
+      "checkpoint_sha256": "0be5396fe98f1e05b775b2a41485136470d6e6dadba6a3492fa6eed8cd8ff5df",
+      "curved_parent_mse": 0.0011781043666996044,
+      "seed": 3,
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    "vq_4096_64d_random": {
+      "best_val_mse": 0.00115389,
+      "checkpoint_epoch": 99,
+      "checkpoint_role": "best",
+      "checkpoint_sha256": "01a8be31d9b6632617fe75cac59400cdc42b3d95b5b257d41c9003dcdb888827",
+      "curved_parent_mse": 0.0026052966608714184,
+      "seed": 3,
+      "task_id": "vq_4096_64d_random:seed3"
+    }
+  },
+  "status": "COMPLETED",
+  "strict_comparison_counts": {
+    "bypass_300k_historical": 70,
+    "bypass_60k": 70,
+    "fsq_300k_historical": 49,
+    "gt_historical_300k_reference": 84,
+    "vq_60k": 57
+  }
+}

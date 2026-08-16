@@ -1,0 +1,63 @@
+{
+  "schema": "p0b-paired-assembly-runtime-v1",
+  "status": "COMPLETED",
+  "completed_at": "2026-08-17T00:59:16+08:00",
+  "measurement_signature": "ffe611ae962490aa374820f66c7348436c6a154dc98e98947ca3b8f851a5bceb",
+  "cohort_identity_sha256": "646693dbfde083bf16ae63f917658cc0c3b3eb71cedaeddfeea55007bd741474",
+  "protocol_sha256": "6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3",
+  "split_pickle_sha256": "6ff0a0c3ee6a04ee056fa1ab982eb436a9f59d3d21f21f17babf34e6dc701d29",
+  "selected_tasks": {
+    "continuous_bypass_64d": "continuous_bypass_64d:seed3",
+    "vq_4096_64d_random": "vq_4096_64d_random:seed3"
+  },
+  "selected_checkpoint_sha256": {
+    "continuous_bypass_64d": "0be5396fe98f1e05b775b2a41485136470d6e6dadba6a3492fa6eed8cd8ff5df",
+    "vq_4096_64d_random": "01a8be31d9b6632617fe75cac59400cdc42b3d95b5b257d41c9003dcdb888827"
+  },
+  "commands": [
+    {
+      "stage": "calibration_vq_4096_64d_random",
+      "started_at": "2026-08-17T00:47:08+08:00",
+      "finished_at": "2026-08-17T00:53:06+08:00",
+      "returncode": 0
+    },
+    {
+      "stage": "validity_audit_vq_4096_64d_random",
+      "started_at": "2026-08-17T00:53:06+08:00",
+      "finished_at": "2026-08-17T00:53:21+08:00",
+      "returncode": 0
+    },
+    {
+      "stage": "calibration_continuous_bypass_64d",
+      "started_at": "2026-08-17T00:53:21+08:00",
+      "finished_at": "2026-08-17T00:59:04+08:00",
+      "returncode": 0
+    },
+    {
+      "stage": "validity_audit_continuous_bypass_64d",
+      "started_at": "2026-08-17T00:59:04+08:00",
+      "finished_at": "2026-08-17T00:59:16+08:00",
+      "returncode": 0
+    }
+  ],
+  "log_manifest": [
+    {"stage": "calibration_vq_4096_64d_random", "stream": "stdout", "bytes": 80441, "sha256": "e4955ab63e8922ad40d962da9c611b9cc0b095c52d4d90110e60974840e59c59", "nonempty_lines": 980},
+    {"stage": "calibration_vq_4096_64d_random", "stream": "stderr", "bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "nonempty_lines": 0},
+    {"stage": "validity_audit_vq_4096_64d_random", "stream": "stdout", "bytes": 1059, "sha256": "5e502de1becc3640983a9721c5afc6121f123c1ca157354fa304e6e05e7bbb11", "nonempty_lines": 44},
+    {"stage": "validity_audit_vq_4096_64d_random", "stream": "stderr", "bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "nonempty_lines": 0},
+    {"stage": "calibration_continuous_bypass_64d", "stream": "stdout", "bytes": 77077, "sha256": "a6885d6bb59ff344055fb852f74ac742ded01b75a3ac799ae75c7953c8edc283", "nonempty_lines": 891},
+    {"stage": "calibration_continuous_bypass_64d", "stream": "stderr", "bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "nonempty_lines": 0},
+    {"stage": "validity_audit_continuous_bypass_64d", "stream": "stdout", "bytes": 1060, "sha256": "9be75f903d566ca8e0956a5b1fc8cb741b9919c72ae0d8f5156f24707d681b03", "nonempty_lines": 44},
+    {"stage": "validity_audit_continuous_bypass_64d", "stream": "stderr", "bytes": 0, "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "nonempty_lines": 0}
+  ],
+  "validity_counts": {
+    "bypass_60k": {"attempts": 100, "step_saved": 95, "native": 73, "strict": 70, "both": 64},
+    "vq_60k": {"attempts": 100, "step_saved": 95, "native": 55, "strict": 57, "both": 49}
+  },
+  "gates_percentage_points": {
+    "delta_q_bypass60k_minus_vq60k": 13,
+    "delta_r_gt_minus_bypass60k": 14,
+    "decision": "CAPACITY_AB_FIRST"
+  },
+  "policy": {"checkpoint_bytes_archived": false, "step_bytes_archived": false, "raw_cad_archived": false}
+}

@@ -997,7 +997,11 @@ def _ensure_measurement_state(output_dir: Path, intent: Mapping[str, Any]) -> tu
     signature = canonical_signature(intent)
     if state_path.is_file():
         state = read_json(state_path)
-        _require(state.get("schema") == SCHEMA, "existing measurement state schema mismatch")
+        expected_schema = str(intent.get("schema") or SCHEMA)
+        _require(
+            state.get("schema") in {SCHEMA, expected_schema},
+            "existing measurement state schema mismatch",
+        )
         _require(state.get("signature") == signature, "existing measurement intent signature mismatch")
         _require(state.get("intent") == intent, "existing measurement intent is dirty")
         return state_path, state
@@ -1006,7 +1010,7 @@ def _ensure_measurement_state(output_dir: Path, intent: Mapping[str, Any]) -> tu
         _require(not unexpected, "measurement output is non-empty and has no matching state")
     output_dir.mkdir(parents=True, exist_ok=True)
     state = {
-        "schema": SCHEMA,
+        "schema": str(intent.get("schema") or SCHEMA),
         "signature": signature,
         "status": "PREPARED",
         "created_at": now(),
@@ -1235,17 +1239,20 @@ def _render_paired_reports(
     report_dir.mkdir(parents=True, exist_ok=True)
     attempt_rows: list[dict[str, Any]] = []
     summaries: dict[str, Any] = {}
-    expected_ids = [str(identity["cad_id"]) for identity in cohort["identities"]]
+    expected_ids = {str(identity["cad_id"]) for identity in cohort["identities"]}
+    identity_by_id = {str(identity["cad_id"]): identity for identity in cohort["identities"]}
+    arm_orders: dict[str, list[str]] = {}
     for arm in FORMAL_ARMS:
         calibration_rows = list(calibration_by_arm[arm])
         audit_rows = list(audit_by_arm[arm])
         calibration_map = {str(row["cad_id"]): row for row in calibration_rows}
         audit_map = {str(row["cad_id"]): row for row in audit_rows}
-        _require(list(calibration_map) == expected_ids, f"{arm}: calibration identity order mismatch")
-        _require(list(audit_map) == expected_ids, f"{arm}: audit identity order mismatch")
+        arm_orders[arm] = [str(row["cad_id"]) for row in calibration_rows]
+        _require(set(calibration_map) == expected_ids, f"{arm}: calibration identity set mismatch")
+        _require(set(audit_map) == expected_ids, f"{arm}: audit identity set mismatch")
         summaries[arm] = _validity_summary(audit_rows)
-        for identity in cohort["identities"]:
-            cad_id = str(identity["cad_id"])
+        for cad_id in arm_orders[arm]:
+            identity = identity_by_id[cad_id]
             calibration = calibration_map[cad_id]
             audit = audit_map[cad_id]
             native = audit.get("native_brep_valid")
@@ -1269,6 +1276,11 @@ def _render_paired_reports(
                     "nonfinite_patches": calibration.get("nonfinite_patches"),
                 }
             )
+
+    _require(
+        arm_orders[VQ_ARM] == arm_orders[BYPASS_ARM],
+        "paired arms do not retain the same CAD order",
+    )
 
     bypass_strict = int(summaries[BYPASS_ARM]["strict_brep_valid"])
     vq_strict = int(summaries[VQ_ARM]["strict_brep_valid"])
