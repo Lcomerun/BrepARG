@@ -33,9 +33,9 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
 - [x] (2026-08-17 01:05 +08:00) Archived and pushed the four formal P0-B histories, stdout/stderr summaries, TensorBoard events, compact statistics, checkpoint size/SHA-256 bindings, and the expanded Git-safe P0-A per-case/per-attempt evidence package. No checkpoint, STEP, pickle, or raw CAD bytes were included.
 - [x] (2026-08-17 01:01 +08:00) Reconstructed and assembled the frozen 100 CADs with both the learned-VQ seed-3 best checkpoint (epoch 99) and continuous-bypass seed-3 best checkpoint (epoch 98). Each arm retained all 100 attempts and used the same ordered cohort, assembly chain, and OCC audit.
 - [x] (2026-08-17 01:05 +08:00) Published the strict comparison `GT 84% | bypass@300k 70% | FSQ@300k 49% | bypass@60k 70% | VQ@60k 57%`. The measured gates are `Delta_q=13 pp` and `Delta_r=14 pp`; the predeclared decision is `CAPACITY_AB_FIRST`.
-- [ ] Evaluate both P0 gates. Implement the boundary-consistency experiment only if P0-A attribution is at least 80 percent, P0-B has zero non-finite batches, and the VQ assembly measurement is complete.
+- [x] (2026-08-17 01:06 +08:00) Evaluated both P0 gates. P0-A attribution is 16/16 (100%), P0-B has zero non-finite events across all 400 epochs, and paired VQ/bypass assembly evidence covers 100 attempts per arm. The measured `Delta_q=13 pp` takes precedence, so boundary consistency is intentionally not started; capacity A/B is the next experiment.
 - [x] (2026-08-14 12:18 +08:00) Generated `reports/p0b_runtime_evidence_20260814` with compact metrics, inventory digests, stdout/stderr, small TensorBoard events, resume/writer-lock evidence, and SHA-256 manifests for 15 local checkpoints without checkpoint bytes. Added a fail-closed reusable snapshot tool and three tests. Final pre-formal regression is 137 plus 91 tests, for 228 passing tests.
-- [ ] Archive the formal 100-epoch histories and later 100-CAD assembly evidence to GitHub while excluding checkpoints, raw data, reconstructed arrays, and upstream `BrepARG/` source.
+- [x] (2026-08-17 01:05 +08:00) Archived and pushed the formal histories, logs, TensorBoard events, paired 100-CAD reports, P0-A per-case/per-attempt evidence, and SHA-256 manifests. No checkpoint, STEP, raw CAD, pickle, reconstructed array, or upstream `BrepARG/` bytes are tracked.
 
 ## Surprises & Discoveries
 
@@ -92,6 +92,12 @@ Only after both P0 gates pass may the project add a shared-boundary consistency 
 
 - Observation: A bounded probe can legitimately materialize fewer unique tensors than its requested cap even after raw selection reaches the cap.
   Evidence: The fp32 `v3` probe selected 128 validation records, then final exact deduplication reduced the tensor inventory to 90; train exact-overlap filtering left 116. The inventory digests correctly bound those realized tensors, but the initial smoke validator compared them to 128 and rejected an otherwise finite run. Formal mode is unaffected because deduplication occurs before selection and exact-cap enforcement is mandatory.
+
+- Observation: The same-scale bypass control is materially stronger than learned VQ on assembly validity, even though both use the same 60k cohort and the same unmodified assembly chain.
+  Evidence: The paired 100-CAD audit produced bypass@60k = 70 strict / 73 native / 64 both-valid and VQ@60k = 57 strict / 55 native / 49 both-valid, with 95 STEP-readable attempts for each arm. The strict gap is `Delta_q=13 pp`, exceeding the registered five-point noise band.
+
+- Observation: Reconstruction loss remains a separate assembly bottleneck after removing the quantizer.
+  Evidence: The 60k bypass strict rate is 70/100 against the historical GT reference of 84/100, giving `Delta_r=14 pp`. Both gates numerically fire, but the pre-registered precedence rule selects capacity A/B before boundary consistency so the two effects are not changed simultaneously.
 
 ## Decision Log
 
@@ -296,3 +302,5 @@ Revision note 2026-08-14 12:18 +08:00: Updated after both precision probes and t
 Revision note 2026-08-17 00:15 +08:00: Updated after all four formal P0-B tasks completed. It replaces the single-VQ measurement with a paired fixed-seed-3 VQ/bypass 100-CAD measurement, removes the historical 300k data-scale confound, records the five-column comparison and Delta gates, and adds the formal P0-A/P0-B Git-safe archive milestone.
 
 Revision note 2026-08-17 01:05 +08:00: Completed and archived the paired 60k assembly measurement. The VQ arm produced 95 STEP-readable, 55 native-valid, 57 strict-valid, and 49 both-valid attempts; bypass produced 95, 73, 70, and 64 respectively. The measured `Delta_q=13 pp` selects capacity A/B before boundary consistency.
+
+Revision note 2026-08-17 01:06 +08:00: Closed the archive and gate milestones after independent JSON/CSV recomputation and 44 focused regression tests. The full task is complete through the paired diagnostic measurement; the next experiment is deliberately outside this plan: VQ-8192 versus RVQ capacity A/B.
