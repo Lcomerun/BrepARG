@@ -59,6 +59,7 @@ ZERO_FIELDS = (
 )
 TRUE_FIELDS = ("gradients_finite", "training_state_finite", "grad_clip_active")
 REPORT_BASENAME = "p0b_vq_assembly_measurement"
+PAIRED_REPORT_BASENAME = "p0b_paired_assembly_measurement"
 
 
 class EvidenceError(RuntimeError):
@@ -432,41 +433,30 @@ def _validate_task_evidence(
         root=output_root,
         label=f"{task_id} rolling checkpoint",
     )
-    if arm == VQ_ARM:
-        checkpoint_role = "best"
-        checkpoint_path = _bound_path(
-            task.get("best_checkpoint"),
-            root=output_root,
-            label=f"{task_id} best checkpoint",
-        )
-        _require(
-            Path(str(sweep_row.get("checkpoint_best"))).resolve() == checkpoint_path,
-            f"{task_id}: sweep best checkpoint path mismatch",
-        )
-    else:
-        checkpoint_role = "final"
-        checkpoint_path = final_path
-        _require(
-            Path(str(sweep_row.get("checkpoint_final"))).resolve() == checkpoint_path,
-            f"{task_id}: sweep final checkpoint path mismatch",
-        )
+    checkpoint_role = "best"
+    checkpoint_path = _bound_path(
+        task.get("best_checkpoint"),
+        root=output_root,
+        label=f"{task_id} best checkpoint",
+    )
+    _require(
+        Path(str(sweep_row.get("checkpoint_best"))).resolve() == checkpoint_path,
+        f"{task_id}: sweep best checkpoint path mismatch",
+    )
 
     payload = checkpoint_loader(checkpoint_path)
     _require(isinstance(payload, Mapping), f"{task_id}: checkpoint payload is not a mapping")
     model_state = payload.get("model_state_dict")
     _require(isinstance(model_state, Mapping) and bool(model_state), f"{task_id}: model state missing")
     checkpoint_epoch = payload.get("checkpoint_epoch")
-    if checkpoint_role == "best":
-        _require(
-            type(checkpoint_epoch) is int and 0 <= checkpoint_epoch <= 99,
-            f"{task_id}: checkpoint epoch is invalid",
-        )
-        _require(
-            sweep_row.get("checkpoint_epoch") == checkpoint_epoch,
-            f"{task_id}: sweep/checkpoint epoch mismatch",
-        )
-    else:
-        _require(checkpoint_epoch == 99, f"{task_id}: final checkpoint epoch is not 99")
+    _require(
+        type(checkpoint_epoch) is int and 0 <= checkpoint_epoch <= 99,
+        f"{task_id}: checkpoint epoch is invalid",
+    )
+    _require(
+        sweep_row.get("checkpoint_epoch") == checkpoint_epoch,
+        f"{task_id}: sweep/checkpoint epoch mismatch",
+    )
     quantizer = payload.get("quantizer") or {}
     expected_kind = "learned_vq" if arm == VQ_ARM else "continuous_bypass"
     _require(quantizer.get("kind") == expected_kind, f"{task_id}: quantizer kind mismatch")
@@ -493,20 +483,19 @@ def _validate_task_evidence(
         f"{task_id}: {checkpoint_role} checkpoint validation MSE",
         nonnegative=True,
     )
-    if checkpoint_role == "best":
-        _require(
-            sweep_row.get("best_val_metrics") == metrics,
-            f"{task_id}: sweep best metrics do not match checkpoint",
+    _require(
+        sweep_row.get("best_val_metrics") == metrics,
+        f"{task_id}: sweep best metrics do not match checkpoint",
+    )
+    _require(
+        _finite_number(
+            sweep_row.get("checkpoint_val_recon"),
+            f"{task_id}: sweep best validation MSE",
+            nonnegative=True,
         )
-        _require(
-            _finite_number(
-                sweep_row.get("checkpoint_val_recon"),
-                f"{task_id}: sweep best validation MSE",
-                nonnegative=True,
-            )
-            == checkpoint_val_mse,
-            f"{task_id}: sweep best validation MSE mismatch",
-        )
+        == checkpoint_val_mse,
+        f"{task_id}: sweep best validation MSE mismatch",
+    )
 
     protocol_sha256 = str(protocol_summary.get("protocol_sha256"))
     split_pickle_sha256 = str(protocol_summary.get("split_pickle_sha256"))
@@ -538,29 +527,28 @@ def _validate_task_evidence(
     )
 
     checkpoint_sha256 = sha256_file(checkpoint_path)
-    if checkpoint_role == "best":
-        promotion = sweep_row.get("promotion") or {}
-        binding = promotion.get("binding") or {}
-        _require(
-            binding.get("checkpoint_sha256") == checkpoint_sha256,
-            f"{task_id}: checkpoint SHA binding mismatch",
-        )
-        _require(
-            binding.get("checkpoint_epoch") == checkpoint_epoch,
-            f"{task_id}: checkpoint epoch binding mismatch",
-        )
-        _require(
-            binding.get("protocol_sha256") == protocol_sha256,
-            f"{task_id}: protocol promotion binding mismatch",
-        )
-        _require(
-            binding.get("split_pickle_sha256") == split_pickle_sha256,
-            f"{task_id}: split promotion binding mismatch",
-        )
-        _require(
-            binding.get("git_commit") == git_commit,
-            f"{task_id}: Git promotion binding mismatch",
-        )
+    promotion = sweep_row.get("promotion") or {}
+    binding = promotion.get("binding") or {}
+    _require(
+        binding.get("checkpoint_sha256") == checkpoint_sha256,
+        f"{task_id}: checkpoint SHA binding mismatch",
+    )
+    _require(
+        binding.get("checkpoint_epoch") == checkpoint_epoch,
+        f"{task_id}: checkpoint epoch binding mismatch",
+    )
+    _require(
+        binding.get("protocol_sha256") == protocol_sha256,
+        f"{task_id}: protocol promotion binding mismatch",
+    )
+    _require(
+        binding.get("split_pickle_sha256") == split_pickle_sha256,
+        f"{task_id}: split promotion binding mismatch",
+    )
+    _require(
+        binding.get("git_commit") == git_commit,
+        f"{task_id}: Git promotion binding mismatch",
+    )
 
     return {
         "task_id": task_id,
@@ -573,7 +561,7 @@ def _validate_task_evidence(
         "curved_parent_mse": curved_parent_mse,
         "parent_mse": parent_mse,
         "checkpoint_val_mse": checkpoint_val_mse,
-        "best_val_mse": checkpoint_val_mse if checkpoint_role == "best" else None,
+        "best_val_mse": checkpoint_val_mse,
         "experiment_signature": signature,
         "git_commit": git_commit,
         "protocol_sha256": protocol_sha256,
@@ -709,6 +697,28 @@ def select_healthy_vq_checkpoint(evidence: Mapping[str, Any]) -> dict[str, Any]:
     return selected
 
 
+def select_fixed_seed3_checkpoints(evidence: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
+    """Bind the predeclared seed-3 best checkpoint for both 60k arms."""
+    selected: dict[str, dict[str, Any]] = {}
+    for arm in FORMAL_ARMS:
+        candidates = [
+            dict(task)
+            for task in evidence.get("tasks", [])
+            if task.get("arm") == arm and task.get("seed") == 3
+        ]
+        _require(len(candidates) == 1, f"exactly one seed-3 task is required for {arm}")
+        candidate = candidates[0]
+        _require(candidate.get("checkpoint_role") == "best", f"{arm}: best checkpoint required")
+        _require(candidate.get("nonfinite_events") == 0, f"{arm}: nonfinite seed-3 task")
+        for key in ("curved_parent_mse", "parent_mse", "best_val_mse"):
+            _finite_number(candidate.get(key), f"{arm}: {key}", nonnegative=True)
+        candidate["selection_metric"] = "predeclared arm and seed; best validation checkpoint"
+        candidate["deterministic_tie_break"] = []
+        candidate["candidate_ranking"] = []
+        selected[arm] = candidate
+    return selected
+
+
 def _cohort_identity(row: Mapping[str, Any], label: str) -> tuple[str, str]:
     cad_id = row.get("cad_id")
     parent_id = row.get("parent_id")
@@ -779,6 +789,7 @@ def _validate_calibration_rows(
     cohort: Mapping[str, Any],
     selected: Mapping[str, Any],
     protocol_sha256: str,
+    arm: str = VQ_ARM,
     allow_partial: bool,
     verify_steps: bool,
 ) -> None:
@@ -791,7 +802,7 @@ def _validate_calibration_rows(
         _require(cad_id not in observed, f"calibration row {index}: duplicate CAD")
         observed.add(str(cad_id))
         _require(row.get("parent_id") == expected[cad_id], f"calibration row {index}: parent mismatch")
-        _require(row.get("arm") == VQ_ARM, f"calibration row {index}: unexpected arm")
+        _require(row.get("arm") == arm, f"calibration row {index}: unexpected arm")
         _require(row.get("selection_seed") == SELECTION_SEED, f"calibration row {index}: seed mismatch")
         _require(row.get("protocol_sha256") == protocol_sha256, f"calibration row {index}: protocol mismatch")
         _require(
@@ -817,6 +828,7 @@ def _calibration_is_complete(
     cohort: Mapping[str, Any],
     selected: Mapping[str, Any],
     protocol_sha256: str,
+    arm: str = VQ_ARM,
 ) -> bool:
     manifest_path = calibration_dir / "calibration_manifest.jsonl"
     state_path = calibration_dir / "calibration_state.json"
@@ -829,6 +841,7 @@ def _calibration_is_complete(
         cohort=cohort,
         selected=selected,
         protocol_sha256=protocol_sha256,
+        arm=arm,
         allow_partial=True,
         verify_steps=True,
     )
@@ -844,9 +857,9 @@ def _calibration_is_complete(
     _require(state.get("selected_cads") == MAX_CADS, "calibration selected_cads mismatch")
     _require(state.get("expected_rows") == MAX_CADS, "calibration expected_rows mismatch")
     _require(state.get("manifest_rows") == MAX_CADS, "calibration manifest_rows mismatch")
-    _require(state.get("arms") == [VQ_ARM], "calibration state contains another arm")
+    _require(state.get("arms") == [arm], "calibration state contains another arm")
     _require(state.get("protocol_sha256") == protocol_sha256, "calibration state protocol mismatch")
-    checkpoint = (state.get("checkpoints") or {}).get(VQ_ARM) or {}
+    checkpoint = (state.get("checkpoints") or {}).get(arm) or {}
     _require(
         checkpoint.get("sha256") == selected["checkpoint_sha256"],
         "calibration state checkpoint mismatch",
@@ -856,6 +869,7 @@ def _calibration_is_complete(
         cohort=cohort,
         selected=selected,
         protocol_sha256=protocol_sha256,
+        arm=arm,
         allow_partial=False,
         verify_steps=True,
     )
@@ -868,6 +882,7 @@ def _validate_audit_rows(
     cohort: Mapping[str, Any],
     calibration_rows: Sequence[Mapping[str, Any]],
     allow_partial: bool,
+    arm: str = VQ_ARM,
 ) -> None:
     expected = _expected_identity_map(cohort)
     calibration_by_cad = {str(row["cad_id"]): row for row in calibration_rows}
@@ -878,7 +893,7 @@ def _validate_audit_rows(
         _require(cad_id in expected, f"validity row {index}: CAD is outside frozen cohort")
         _require(cad_id not in observed, f"validity row {index}: duplicate CAD")
         observed.add(str(cad_id))
-        _require(row.get("arm") == VQ_ARM, f"validity row {index}: unexpected arm")
+        _require(row.get("arm") == arm, f"validity row {index}: unexpected arm")
         native = row.get("native_brep_valid")
         strict = row.get("strict_brep_valid")
         _require(native in (None, True, False), f"validity row {index}: invalid native value")
@@ -931,6 +946,7 @@ def _audit_is_complete(
     *,
     cohort: Mapping[str, Any],
     calibration_rows: Sequence[Mapping[str, Any]],
+    arm: str = VQ_ARM,
 ) -> bool:
     manifest_path = audit_dir / "step_validity_audit.jsonl"
     summary_path = audit_dir / "step_validity_summary.json"
@@ -939,10 +955,10 @@ def _audit_is_complete(
     if not manifest_path.exists() or not summary_path.exists():
         return False
     rows = read_jsonl(manifest_path)
-    _validate_audit_rows(rows, cohort=cohort, calibration_rows=calibration_rows, allow_partial=True)
+    _validate_audit_rows(rows, cohort=cohort, calibration_rows=calibration_rows, allow_partial=True, arm=arm)
     if len(rows) < MAX_CADS:
         return False
-    _validate_audit_rows(rows, cohort=cohort, calibration_rows=calibration_rows, allow_partial=False)
+    _validate_audit_rows(rows, cohort=cohort, calibration_rows=calibration_rows, allow_partial=False, arm=arm)
     observed = read_json(summary_path)
     expected = _validity_summary(rows)
     for key, value in expected.items():
@@ -1205,6 +1221,142 @@ Only this Markdown report and its JSON/CSV companions are suitable for Git. Chec
     }
 
 
+def _render_paired_reports(
+    report_dir: Path,
+    *,
+    state: Mapping[str, Any],
+    evidence: Mapping[str, Any],
+    selected: Mapping[str, Mapping[str, Any]],
+    cohort: Mapping[str, Any],
+    calibration_by_arm: Mapping[str, Sequence[Mapping[str, Any]]],
+    audit_by_arm: Mapping[str, Sequence[Mapping[str, Any]]],
+) -> tuple[dict[str, str], dict[str, Any]]:
+    report_dir = Path(report_dir)
+    report_dir.mkdir(parents=True, exist_ok=True)
+    attempt_rows: list[dict[str, Any]] = []
+    summaries: dict[str, Any] = {}
+    expected_ids = [str(identity["cad_id"]) for identity in cohort["identities"]]
+    for arm in FORMAL_ARMS:
+        calibration_rows = list(calibration_by_arm[arm])
+        audit_rows = list(audit_by_arm[arm])
+        calibration_map = {str(row["cad_id"]): row for row in calibration_rows}
+        audit_map = {str(row["cad_id"]): row for row in audit_rows}
+        _require(list(calibration_map) == expected_ids, f"{arm}: calibration identity order mismatch")
+        _require(list(audit_map) == expected_ids, f"{arm}: audit identity order mismatch")
+        summaries[arm] = _validity_summary(audit_rows)
+        for identity in cohort["identities"]:
+            cad_id = str(identity["cad_id"])
+            calibration = calibration_map[cad_id]
+            audit = audit_map[cad_id]
+            native = audit.get("native_brep_valid")
+            strict = audit.get("strict_brep_valid") is True
+            attempt_rows.append(
+                {
+                    "arm": arm,
+                    "cad_id": cad_id,
+                    "parent_id": identity["parent_id"],
+                    "calibration_status": calibration.get("status"),
+                    "audit_status": audit.get("status"),
+                    "step_saved": calibration.get("step_saved") is True,
+                    "native_brep_valid": native,
+                    "strict_brep_valid": strict,
+                    "both_valid": native is True and strict,
+                    "global_patch_mse": calibration.get("global_patch_mse"),
+                    "surface_mse": calibration.get("surface_mse"),
+                    "curved_mse": calibration.get("curved_mse"),
+                    "planar_mse": calibration.get("planar_mse"),
+                    "edge_mse": calibration.get("edge_mse"),
+                    "nonfinite_patches": calibration.get("nonfinite_patches"),
+                }
+            )
+
+    bypass_strict = int(summaries[BYPASS_ARM]["strict_brep_valid"])
+    vq_strict = int(summaries[VQ_ARM]["strict_brep_valid"])
+    delta_q = bypass_strict - vq_strict
+    delta_r = int(HISTORICAL_STRICT_ONLY["original_gt"]) - bypass_strict
+    if delta_q > 5:
+        decision = "CAPACITY_AB_FIRST"
+    elif delta_r > 8:
+        decision = "START_BOUNDARY_CONSISTENCY"
+    elif abs(delta_q) <= 5 and abs(delta_r) <= 5:
+        decision = "REPRESENTATION_RELEASED_PRIORITIZE_P0A_REPAIR"
+    else:
+        decision = "REVIEW_NO_AUTOMATIC_GATE"
+    payload = {
+        "schema": "p0b-paired-assembly-measurement-v1",
+        "status": "COMPLETED",
+        "completed_at": state["completed_at"],
+        "measurement_signature": state["signature"],
+        "cohort": {
+            "selection_seed": cohort["selection_seed"],
+            "attempts_per_arm": MAX_CADS,
+            "identity_sha256": cohort["identity_sha256"],
+            "identical_order_verified": True,
+        },
+        "selected_checkpoints": {
+            arm: {key: selected[arm][key] for key in ("task_id", "seed", "checkpoint_role", "checkpoint_sha256", "checkpoint_epoch", "curved_parent_mse", "best_val_mse")}
+            for arm in FORMAL_ARMS
+        },
+        "current_60k_dual_validity": summaries,
+        "strict_comparison_counts": {
+            "gt_historical_300k_reference": HISTORICAL_STRICT_ONLY["original_gt"],
+            "bypass_300k_historical": HISTORICAL_STRICT_ONLY["continuous_bypass_64d"],
+            "fsq_300k_historical": HISTORICAL_STRICT_ONLY["fsq_8192_4d"],
+            "bypass_60k": bypass_strict,
+            "vq_60k": vq_strict,
+        },
+        "gates_percentage_points": {
+            "delta_q_bypass60k_minus_vq60k": delta_q,
+            "delta_r_gt_minus_bypass60k": delta_r,
+            "capacity_ab_trigger_delta_q_gt_5": delta_q > 5,
+            "boundary_loss_trigger_delta_r_gt_8": delta_r > 8,
+            "five_point_noise_band": abs(delta_q) <= 5 and abs(delta_r) <= 5,
+            "decision": decision,
+        },
+        "artifact_policy": {
+            "checkpoint_step_and_npz_bytes_archived": False,
+            "attempts_denominator_includes_all_failures": True,
+        },
+    }
+    json_path = report_dir / f"{PAIRED_REPORT_BASENAME}.json"
+    markdown_path = report_dir / f"{PAIRED_REPORT_BASENAME}.md"
+    csv_path = report_dir / f"{PAIRED_REPORT_BASENAME}.csv"
+    atomic_json(json_path, payload)
+
+    def metric_row(label: str, summary: Mapping[str, Any]) -> str:
+        return (
+            f"| {label} | {summary['step_saved']} | {summary['native_brep_valid']} | "
+            f"{summary['strict_brep_valid']} | {summary['both_valid']} | {summary['attempts']} |"
+        )
+
+    markdown = f"""# P0-B fixed-100-CAD paired assembly measurement
+
+Both 60k arms use their predeclared seed-3 best checkpoint, the identical ordered 100-CAD cohort, and the unchanged assembly and OCC audit chain. Every failure remains in the 100-attempt denominator.
+
+| Arm | STEP readable | Native valid | Strict valid | Both valid | Attempts |
+| --- | ---: | ---: | ---: | ---: | ---: |
+{metric_row('bypass@60k', summaries[BYPASS_ARM])}
+{metric_row('VQ@60k', summaries[VQ_ARM])}
+
+| Strict comparison | GT | bypass@300k | FSQ@300k | bypass@60k | VQ@60k |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Valid / 100 | 84 | 70 | 49 | {bypass_strict} | {vq_strict} |
+
+- `Delta_q = bypass@60k - VQ@60k = {delta_q} pp`.
+- `Delta_r = GT - bypass@60k = {delta_r} pp`.
+- Gate decision: `{decision}`. Capacity A/B has precedence when `Delta_q > 5 pp`; otherwise boundary consistency starts when `Delta_r > 8 pp`.
+
+The GT, bypass@300k, and FSQ@300k values are historical strict-only references. The two current 60k rows separately report STEP readability, OCC native validity, project strict validity, and their conjunction. Checkpoints, STEP files, and reconstruction arrays remain local.
+"""
+    _atomic_text(markdown_path, markdown)
+    columns = list(attempt_rows[0])
+    buffer = io.StringIO(newline="")
+    writer = csv.DictWriter(buffer, fieldnames=columns, lineterminator="\n")
+    writer.writeheader(); writer.writerows(attempt_rows)
+    _atomic_text(csv_path, buffer.getvalue())
+    return ({"json": str(json_path), "markdown": str(markdown_path), "csv": str(csv_path)}, payload)
+
+
 def run_measurement(
     *,
     repo_root: Path,
@@ -1387,6 +1539,88 @@ def run_measurement(
         raise
 
 
+def run_paired_measurement(
+    *,
+    repo_root: Path,
+    p0b_output_root: Path,
+    historical_calibration_manifest: Path,
+    breparg_root: Path,
+    output_dir: Path,
+    report_dir: Path,
+    python: Path = Path(sys.executable),
+    device: str = "auto",
+    batch_size: int = 64,
+    checkpoint_loader: Callable[[Path], Mapping[str, Any]] = default_checkpoint_loader,
+    selector: Callable[..., Sequence[Mapping[str, Any]]] | None = None,
+    command_runner: Callable[..., int] = run_external,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Run both seed-3 best checkpoints over one frozen cohort."""
+    repo_root = Path(repo_root).resolve()
+    p0b_output_root = Path(p0b_output_root).resolve()
+    breparg_root = Path(breparg_root).resolve()
+    output_dir = Path(output_dir).resolve()
+    report_dir = Path(report_dir).resolve()
+    python = Path(python).resolve()
+    _require((repo_root / "tools" / "run_assembly_calibration_oracle.py").is_file(), "calibration oracle missing")
+    _require((repo_root / "tools" / "audit_assembly_step_validity.py").is_file(), "validity audit missing")
+    _require((breparg_root / "utils.py").is_file(), "BrepARG utils.py missing")
+    _require(python.is_file(), f"Python executable missing: {python}")
+    evidence = validate_p0b_evidence(p0b_output_root, checkpoint_loader=checkpoint_loader)
+    selected = select_fixed_seed3_checkpoints(evidence)
+    cohort = verify_fixed_cohort(
+        Path(evidence["protocol_dir"]), historical_calibration_manifest,
+        protocol_sha256=evidence["protocol_sha256"], selector=selector,
+    )
+    intent = {
+        "schema": "p0b-paired-assembly-measurement-v1",
+        "p0b_configuration_signature": evidence["configuration_signature"],
+        "selected_checkpoint_sha256": {arm: selected[arm]["checkpoint_sha256"] for arm in FORMAL_ARMS},
+        "selected_task_ids": {arm: selected[arm]["task_id"] for arm in FORMAL_ARMS},
+        "protocol_sha256": evidence["protocol_sha256"],
+        "split_pickle_sha256": evidence["split_pickle_sha256"],
+        "cohort_identity_sha256": cohort["identity_sha256"],
+        "arms": list(FORMAL_ARMS),
+        "seeds": [3],
+        "selection_seed": SELECTION_SEED,
+        "max_cads": MAX_CADS,
+        "joint_iterations": JOINT_ITERATIONS,
+        "preserve_all_failures_denominator": True,
+    }
+    if dry_run:
+        return {"schema": intent["schema"], "status": "DRY_RUN", "intent": intent, "selected_checkpoints": selected, "cohort": {key: value for key, value in cohort.items() if key != "identities"}}
+    state_path, state = _ensure_measurement_state(output_dir, intent)
+    calibration_by_arm: dict[str, list[dict[str, Any]]] = {}
+    audit_by_arm: dict[str, list[dict[str, Any]]] = {}
+    logs_dir = output_dir / "logs"
+    try:
+        for arm in FORMAL_ARMS:
+            arm_output = output_dir / arm
+            calibration_dir = arm_output / "calibration"
+            audit_dir = arm_output / "validity_audit"
+            if not _calibration_is_complete(calibration_dir, cohort=cohort, selected=selected[arm], protocol_sha256=evidence["protocol_sha256"], arm=arm):
+                command = [str(python), str(repo_root / "tools" / "run_assembly_calibration_oracle.py"), "--protocol-dir", evidence["protocol_dir"], "--max-cads", str(MAX_CADS), "--seed", str(SELECTION_SEED), "--breparg-root", str(breparg_root), "--checkpoint", f"{arm}={selected[arm]['checkpoint_path']}", "--output-dir", str(calibration_dir), "--device", device, "--batch-size", str(batch_size), "--joint-iterations", str(JOINT_ITERATIONS)]
+                _record_command(state_path, state, stage=f"calibration_{arm}", command=command, command_runner=command_runner, cwd=repo_root, logs_dir=logs_dir)
+            _require(_calibration_is_complete(calibration_dir, cohort=cohort, selected=selected[arm], protocol_sha256=evidence["protocol_sha256"], arm=arm), f"{arm}: calibration incomplete")
+            calibration_rows = read_jsonl(calibration_dir / "calibration_manifest.jsonl")
+            calibration_by_arm[arm] = calibration_rows
+            if not _audit_is_complete(audit_dir, cohort=cohort, calibration_rows=calibration_rows, arm=arm):
+                command = [str(python), str(repo_root / "tools" / "audit_assembly_step_validity.py"), "--manifest", str(calibration_dir / "calibration_manifest.jsonl"), "--breparg-root", str(breparg_root), "--step-root", str(calibration_dir / "steps"), "--output-dir", str(audit_dir)]
+                _record_command(state_path, state, stage=f"validity_audit_{arm}", command=command, command_runner=command_runner, cwd=repo_root, logs_dir=logs_dir)
+            _require(_audit_is_complete(audit_dir, cohort=cohort, calibration_rows=calibration_rows, arm=arm), f"{arm}: validity audit incomplete")
+            audit_by_arm[arm] = read_jsonl(audit_dir / "step_validity_audit.jsonl")
+        state.update(status="COMPLETED", completed_at=state.get("completed_at") or now(), updated_at=now(), error=None)
+        reports, payload = _render_paired_reports(report_dir, state=state, evidence=evidence, selected=selected, cohort=cohort, calibration_by_arm=calibration_by_arm, audit_by_arm=audit_by_arm)
+        state["reports"] = {name: {"path": path, "sha256": sha256_file(Path(path))} for name, path in reports.items()}
+        state["summary"] = payload["current_60k_dual_validity"]
+        atomic_json(state_path, state)
+        return {"schema": intent["schema"], "status": "COMPLETED", "measurement_signature": state["signature"], "selected_checkpoints": selected, "summary": payload["current_60k_dual_validity"], "gates_percentage_points": payload["gates_percentage_points"], "reports": state["reports"]}
+    except Exception as exc:
+        state.update(status="FAILED", updated_at=now(), error=f"{type(exc).__name__}: {exc}")
+        atomic_json(state_path, state)
+        raise
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[1])
@@ -1411,7 +1645,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     report_dir = args.report_dir or (args.output_dir / "lightweight_reports")
     try:
-        result = run_measurement(
+        result = run_paired_measurement(
             repo_root=args.repo_root,
             p0b_output_root=args.p0b_output_root,
             historical_calibration_manifest=args.historical_calibration_manifest,

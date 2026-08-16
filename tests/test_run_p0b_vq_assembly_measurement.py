@@ -16,6 +16,8 @@ from tools.run_p0b_vq_assembly_measurement import (
     _validity_summary,
     canonical_signature,
     run_measurement,
+    run_paired_measurement,
+    select_fixed_seed3_checkpoints,
     select_healthy_vq_checkpoint,
     sha256_file,
     validate_p0b_evidence,
@@ -176,11 +178,10 @@ def make_evidence(tmp_path: Path) -> dict:
             rolling_path = task_root / f"{arm}_rolling.pt"
             manifest_path = task_root / "task_manifest.json"
             artifacts = [
+                (best_path, f"best-{task_id}".encode()),
                 (final_path, f"final-{task_id}".encode()),
                 (rolling_path, f"rolling-{task_id}".encode()),
             ]
-            if arm == VQ_ARM:
-                artifacts.append((best_path, f"best-{task_id}".encode()))
             for path, data in artifacts:
                 path.write_bytes(data)
             metrics = {
@@ -221,7 +222,7 @@ def make_evidence(tmp_path: Path) -> dict:
                     "arms": [{"name": arm}],
                 },
             }
-            checkpoint_epoch = 40 + seed if arm == VQ_ARM else 99
+            checkpoint_epoch = 40 + seed
             validation_loss = curved[(arm, seed)] / 3
             quantizer = (
                 {
@@ -233,7 +234,7 @@ def make_evidence(tmp_path: Path) -> dict:
                 if arm == VQ_ARM
                 else {"kind": "continuous_bypass", "embedding_dim": 64}
             )
-            evaluated_checkpoint = best_path if arm == VQ_ARM else final_path
+            evaluated_checkpoint = best_path
             checkpoint_payloads[str(evaluated_checkpoint.resolve())] = {
                 "model_state_dict": {"weight": object()},
                 "checkpoint_epoch": checkpoint_epoch,
@@ -282,18 +283,6 @@ def make_evidence(tmp_path: Path) -> dict:
                     }
                 },
             }
-            if arm == BYPASS_ARM:
-                sweep_row.update(
-                    checkpoint_epoch=-1,
-                    best_val_metrics=None,
-                    checkpoint_val_recon=None,
-                    promotion={
-                        "eligible": False,
-                        "reasons": [
-                            "usage metric is not meaningful for continuous bypass"
-                        ],
-                    },
-                )
             _write_json(sweep_path, {"run_manifest": run_manifest, "mse_ranking": [sweep_row]})
             _write_json(
                 manifest_path,
@@ -387,16 +376,16 @@ def test_validates_all_four_tasks_and_selects_lowest_curved_vq_deterministically
     assert [row["seed"] for row in selected["candidate_ranking"]] == [4, 3]
 
 
-def test_bypass_tasks_bind_final_without_best_or_promotion_binding(tmp_path):
+def test_bypass_tasks_bind_best_with_promotion_binding(tmp_path):
     fixture = make_evidence(tmp_path)
     bypass_tasks = [
         task for task in fixture["state"]["tasks"] if task["arm"] == BYPASS_ARM
     ]
     assert len(bypass_tasks) == 2
     for task in bypass_tasks:
-        assert not Path(task["best_checkpoint"]).exists()
+        assert Path(task["best_checkpoint"]).exists()
         sweep = json.loads(Path(task["sweep"]).read_text(encoding="utf-8"))
-        assert "binding" not in sweep["mse_ranking"][0]["promotion"]
+        assert "binding" in sweep["mse_ranking"][0]["promotion"]
 
     evidence = validate_p0b_evidence(
         fixture["output_root"], checkpoint_loader=fixture["checkpoint_loader"]
@@ -405,13 +394,15 @@ def test_bypass_tasks_bind_final_without_best_or_promotion_binding(tmp_path):
     validated_vq = [task for task in evidence["tasks"] if task["arm"] == VQ_ARM]
 
     assert len(validated_bypass) == 2
-    assert all(task["checkpoint_role"] == "final" for task in validated_bypass)
-    assert all(task["checkpoint_epoch"] == 99 for task in validated_bypass)
+    assert all(task["checkpoint_role"] == "best" for task in validated_bypass)
     assert {
         Path(task["checkpoint_path"]).name for task in validated_bypass
-    } == {f"{BYPASS_ARM}_final.pt"}
+    } == {f"{BYPASS_ARM}_best.pt"}
     assert all(task["checkpoint_role"] == "best" for task in validated_vq)
     assert select_healthy_vq_checkpoint(evidence)["task_id"] == f"{VQ_ARM}:seed4"
+    selected = select_fixed_seed3_checkpoints(evidence)
+    assert selected[VQ_ARM]["task_id"] == f"{VQ_ARM}:seed3"
+    assert selected[BYPASS_ARM]["task_id"] == f"{BYPASS_ARM}:seed3"
 
 
 @pytest.mark.parametrize("corruption", ["nonfinite", "checkpoint_sha", "dirty_git"])
@@ -716,3 +707,75 @@ def test_dry_run_validates_without_creating_measurement_output(tmp_path):
     )
     assert result["status"] == "DRY_RUN"
     assert not output_dir.exists()
+
+
+def test_paired_coordinator_uses_seed3_best_and_reports_delta_gates(tmp_path):
+    fixture = make_evidence(tmp_path)
+    repo, breparg, python = _make_runtime_inputs(tmp_path)
+    evidence = validate_p0b_evidence(
+        fixture["output_root"], checkpoint_loader=fixture["checkpoint_loader"]
+    )
+    selected = select_fixed_seed3_checkpoints(evidence)
+    commands = []
+
+    def runner(command, *, cwd, stdout_path, stderr_path):
+        commands.append(list(command))
+        stdout_path.parent.mkdir(parents=True, exist_ok=True)
+        stdout_path.write_text("ok\n", encoding="utf-8")
+        stderr_path.write_text("", encoding="utf-8")
+        output = Path(command[command.index("--output-dir") + 1])
+        if "run_assembly_calibration_oracle.py" in command[1]:
+            arm, checkpoint = command[command.index("--checkpoint") + 1].split("=", 1)
+            assert checkpoint == selected[arm]["checkpoint_path"]
+            assert selected[arm]["seed"] == 3
+            rows = []
+            for index, identity in enumerate(fixture["selected_rows"]):
+                step_saved = index < (88 if arm == BYPASS_ARM else 83)
+                row = {
+                    "cad_id": identity["cad_id"], "parent_id": identity["parent_id"],
+                    "source_path": identity["path"], "arm": arm,
+                    "selection_seed": SELECTION_SEED, "protocol_sha256": fixture["protocol_sha"],
+                    "checkpoint_sha256": selected[arm]["checkpoint_sha256"],
+                    "status": "saved" if step_saved else "construct_brep_failed",
+                    "step_saved": step_saved, "brep_valid": index < 70, "nonfinite_patches": 0,
+                }
+                if step_saved:
+                    step = output / "steps" / arm / f"{identity['cad_id']}.step"
+                    step.parent.mkdir(parents=True, exist_ok=True); step.write_bytes(b"STEP")
+                    row.update(step_path=str(step), step_sha256=sha256_file(step), step_bytes=4)
+                rows.append(row)
+            _write_jsonl(output / "calibration_manifest.jsonl", rows)
+            _write_json(output / "calibration_state.json", {
+                "status": "COMPLETED", "selected_cads": 100, "expected_rows": 100,
+                "manifest_rows": 100, "arms": [arm], "protocol_sha256": fixture["protocol_sha"],
+                "checkpoints": {arm: {"sha256": selected[arm]["checkpoint_sha256"]}},
+            })
+        else:
+            sources = [json.loads(line) for line in Path(command[command.index("--manifest") + 1]).read_text().splitlines()]
+            arm = sources[0]["arm"]
+            strict_limit = 72 if arm == BYPASS_ARM else 64
+            audit = [{
+                "cad_id": source["cad_id"], "arm": arm, "source_status": source["status"],
+                "native_brep_valid": (index < strict_limit + 3) if source["step_saved"] else None,
+                "strict_brep_valid": index < strict_limit,
+                "status": "audited" if source["step_saved"] else "no_step",
+            } for index, source in enumerate(sources)]
+            _write_jsonl(output / "step_validity_audit.jsonl", audit)
+            _write_json(output / "step_validity_summary.json", _validity_summary(audit))
+        return 0
+
+    result = run_paired_measurement(
+        repo_root=repo, p0b_output_root=fixture["output_root"],
+        historical_calibration_manifest=fixture["historical_manifest"], breparg_root=breparg,
+        output_dir=tmp_path / "paired", report_dir=tmp_path / "paired_reports", python=python,
+        checkpoint_loader=fixture["checkpoint_loader"], selector=fixture["selector"], command_runner=runner,
+    )
+
+    assert len(commands) == 4
+    assert result["summary"][BYPASS_ARM]["strict_brep_valid"] == 72
+    assert result["summary"][VQ_ARM]["strict_brep_valid"] == 64
+    assert result["gates_percentage_points"]["delta_q_bypass60k_minus_vq60k"] == 8
+    assert result["gates_percentage_points"]["delta_r_gt_minus_bypass60k"] == 12
+    assert result["gates_percentage_points"]["decision"] == "CAPACITY_AB_FIRST"
+    csv_rows = (tmp_path / "paired_reports" / "p0b_paired_assembly_measurement.csv").read_text().splitlines()
+    assert len(csv_rows) == 201
