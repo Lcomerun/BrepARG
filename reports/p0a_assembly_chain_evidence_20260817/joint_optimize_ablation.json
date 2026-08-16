@@ -1,0 +1,122 @@
+{
+  "ablation_joint_iterations": 0,
+  "baseline_joint_iterations": 200,
+  "by_tolerance": [
+    {
+      "compared_cases": 16,
+      "joint_0": {
+        "attempts": 16,
+        "both_valid": 1,
+        "construction_native_brep_valid": 3,
+        "failure_stage_counts": {
+          "curve_fit": 3,
+          "wire_build": 2
+        },
+        "native_brep_valid": 5,
+        "step_saved": 11,
+        "strict_brep_valid": 2
+      },
+      "joint_200": {
+        "attempts": 16,
+        "both_valid": 0,
+        "construction_native_brep_valid": 2,
+        "failure_stage_counts": {
+          "curve_fit": 3,
+          "wire_build": 2
+        },
+        "native_brep_valid": 4,
+        "step_saved": 11,
+        "strict_brep_valid": 0
+      },
+      "sewing_tolerance": 0.0001,
+      "signature_changed_case_ids": [
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
+        "00047472_197769bbdd814278b715d88a_step_000",
+        "00051587_446e8810d6884cae80689579_step_000"
+      ],
+      "signature_changed_cases": 4
+    },
+    {
+      "compared_cases": 16,
+      "joint_0": {
+        "attempts": 16,
+        "both_valid": 1,
+        "construction_native_brep_valid": 3,
+        "failure_stage_counts": {
+          "curve_fit": 3,
+          "wire_build": 2
+        },
+        "native_brep_valid": 5,
+        "step_saved": 11,
+        "strict_brep_valid": 2
+      },
+      "joint_200": {
+        "attempts": 16,
+        "both_valid": 0,
+        "construction_native_brep_valid": 2,
+        "failure_stage_counts": {
+          "curve_fit": 3,
+          "wire_build": 2
+        },
+        "native_brep_valid": 4,
+        "step_saved": 11,
+        "strict_brep_valid": 0
+      },
+      "sewing_tolerance": 0.001,
+      "signature_changed_case_ids": [
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
+        "00047472_197769bbdd814278b715d88a_step_000",
+        "00051587_446e8810d6884cae80689579_step_000"
+      ],
+      "signature_changed_cases": 4
+    },
+    {
+      "compared_cases": 16,
+      "joint_0": {
+        "attempts": 16,
+        "both_valid": 1,
+        "construction_native_brep_valid": 3,
+        "failure_stage_counts": {
+          "curve_fit": 3,
+          "wire_build": 2
+        },
+        "native_brep_valid": 5,
+        "step_saved": 11,
+        "strict_brep_valid": 2
+      },
+      "joint_200": {
+        "attempts": 16,
+        "both_valid": 0,
+        "construction_native_brep_valid": 2,
+        "failure_stage_counts": {
+          "curve_fit": 3,
+          "wire_build": 2
+        },
+        "native_brep_valid": 4,
+        "step_saved": 11,
+        "strict_brep_valid": 0
+      },
+      "sewing_tolerance": 0.01,
+      "signature_changed_case_ids": [
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
+        "00047472_197769bbdd814278b715d88a_step_000",
+        "00051587_446e8810d6884cae80689579_step_000"
+      ],
+      "signature_changed_cases": 4
+    }
+  ],
+  "case_ids_with_any_signature_change_across_tolerances": [
+    "00002441_179a8df075c94d0596b1f20d_step_010",
+    "00008763_affd199038524a1c8e3b7ad4_step_001",
+    "00047472_197769bbdd814278b715d88a_step_000",
+    "00051587_446e8810d6884cae80689579_step_000"
+  ],
+  "cases_recovered_to_both_valid_only_with_joint_disabled": [
+    "00051587_446e8810d6884cae80689579_step_000"
+  ],
+  "cases_with_any_signature_change_across_tolerances": 4,
+  "comparison_definition": "Paired by CAD and sewing tolerance; signature includes failure stage, STEP/native/strict/both flags, and decomposed wire/shell/solid counts."
+}

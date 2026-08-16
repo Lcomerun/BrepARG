@@ -1,0 +1,17 @@
+[14:16:10] ===== STAGE vqsweep =====
+[14:16:10] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[14:19:21]   sweep 数据: train=60000 val=12000  (短训 15 ep)
+[14:20:25]   vq_4096_64d_random ep   0 train=0.27082 val=0.07691 best=0.07691 finite_train=469/469 finite_val=94/94
+[14:31:00]   vq_4096_64d_random ep  10 train=0.00907 val=0.00706 best=0.00703 finite_train=469/469 finite_val=94/94
+[14:41:35]   vq_4096_64d_random ep  20 train=0.00486 val=0.00382 best=0.00359 finite_train=469/469 finite_val=94/94
+[14:52:09]   vq_4096_64d_random ep  30 train=0.00327 val=0.00266 best=0.00261 finite_train=469/469 finite_val=94/94
+[15:02:44]   vq_4096_64d_random ep  40 train=0.00349 val=0.00202 best=0.00202 finite_train=469/469 finite_val=94/94
+[15:13:19]   vq_4096_64d_random ep  50 train=0.00193 val=0.00185 best=0.00173 finite_train=469/469 finite_val=94/94
+[15:23:53]   vq_4096_64d_random ep  60 train=0.00168 val=0.00177 best=0.00156 finite_train=469/469 finite_val=94/94
+[15:34:28]   vq_4096_64d_random ep  70 train=0.00149 val=0.00143 best=0.00143 finite_train=469/469 finite_val=94/94
+[15:45:02]   vq_4096_64d_random ep  80 train=0.00106 val=0.00129 best=0.00129 finite_train=469/469 finite_val=94/94
+[15:55:36]   vq_4096_64d_random ep  90 train=0.00094 val=0.00124 best=0.00123 finite_train=469/469 finite_val=94/94
+[16:05:05]   vq_4096_64d_random ep  99 train=0.00078 val=0.00118 best=0.00116 finite_train=469/469 finite_val=94/94
+[16:05:05]   -> vq_4096_64d_random: best_val_recon=0.00116
+[16:05:05]   NO PROMOTED ARM: MSE ranking is diagnostic only
+[16:05:05] DONE {'vqsweep': 'PASS'} in 108.9min

@@ -52,6 +52,9 @@ STEP_FIELDS = (
     "step_bytes_archived",
 )
 
+BASELINE_JOINT_ITERATIONS = 200
+BASELINE_SEWING_TOLERANCE = 1e-4
+
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
@@ -76,6 +79,13 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
 def write_json(path: Path, payload: Any) -> None:
     Path(path).write_text(
         json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=True) + "\n",
+        encoding="utf-8",
+    )
+
+
+def write_jsonl(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
+    Path(path).write_text(
+        "".join(json.dumps(dict(row), sort_keys=True, ensure_ascii=True) + "\n" for row in rows),
         encoding="utf-8",
     )
 
@@ -188,6 +198,117 @@ def compact_attempt(row: Mapping[str, Any], *, run_root: Path) -> dict[str, Any]
         "step_relative_path": relative,
         "step_bytes": row.get("step_bytes"),
         "step_sha256": row.get("step_sha256"),
+    }
+
+
+def detailed_attempt(row: Mapping[str, Any], *, run_root: Path) -> dict[str, Any]:
+    """Retain stage evidence while removing machine-local source and STEP paths."""
+    archived = dict(row)
+    step_path = archived.pop("step_path", None)
+    archived.pop("source_path", None)
+    archived.pop("source_manifest", None)
+    if step_path:
+        path = Path(str(step_path))
+        try:
+            relative = path.resolve().relative_to(Path(run_root).resolve()).as_posix()
+        except ValueError:
+            relative = (Path("steps") / path.parent.name / path.name).as_posix()
+        archived["step_relative_path"] = relative
+    archived["source_path_archived"] = False
+    archived["step_bytes_archived"] = False
+    return archived
+
+
+def _outcome_signature(row: Mapping[str, Any]) -> tuple[Any, ...]:
+    components = dict(row.get("validity_components") or {})
+    return (
+        row.get("failure_stage"), bool(row.get("step_saved")),
+        row.get("construction_native_brep_valid"), row.get("native_brep_valid"),
+        bool(row.get("strict_brep_valid")), bool(row.get("both_valid")),
+        components.get("wire_order_failures"), components.get("wire_self_intersections"),
+        components.get("shells_with_bad_edges"), components.get("free_edges"),
+        components.get("shell_count"), components.get("solid_count"),
+    )
+
+
+def _aggregate_attempts(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    rows = list(rows)
+    stages: dict[str, int] = {}
+    for row in rows:
+        if row.get("failure_stage"):
+            stage = str(row["failure_stage"])
+            stages[stage] = stages.get(stage, 0) + 1
+    return {
+        "attempts": len(rows),
+        "step_saved": sum(bool(row.get("step_saved")) for row in rows),
+        "construction_native_brep_valid": sum(row.get("construction_native_brep_valid") is True for row in rows),
+        "native_brep_valid": sum(row.get("native_brep_valid") is True for row in rows),
+        "strict_brep_valid": sum(bool(row.get("strict_brep_valid")) for row in rows),
+        "both_valid": sum(bool(row.get("both_valid")) for row in rows),
+        "failure_stage_counts": dict(sorted(stages.items())),
+    }
+
+
+def build_ablation_summary(attempts: Sequence[Mapping[str, Any]], cases: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    by_key = {(str(row.get("cad_id")), int(row.get("joint_iterations", -1)), format(float(row.get("sewing_tolerance", -1)), ".12g")): dict(row) for row in attempts}
+    cad_ids = sorted(str(case.get("cad_id")) for case in cases)
+    tolerances = (1e-4, 1e-3, 1e-2)
+    joint_rows = []
+    any_joint_changed: set[str] = set()
+    recovered_with_joint_disabled: set[str] = set()
+    for tolerance in tolerances:
+        changed, arm_200, arm_0 = [], [], []
+        for cad_id in cad_ids:
+            row_200 = by_key[(cad_id, 200, format(tolerance, ".12g"))]
+            row_0 = by_key[(cad_id, 0, format(tolerance, ".12g"))]
+            arm_200.append(row_200); arm_0.append(row_0)
+            if _outcome_signature(row_200) != _outcome_signature(row_0):
+                changed.append(cad_id); any_joint_changed.add(cad_id)
+            if bool(row_0.get("both_valid")) and not bool(row_200.get("both_valid")):
+                recovered_with_joint_disabled.add(cad_id)
+        joint_rows.append({
+            "sewing_tolerance": tolerance, "compared_cases": len(cad_ids),
+            "signature_changed_cases": len(changed), "signature_changed_case_ids": changed,
+            "joint_200": _aggregate_attempts(arm_200), "joint_0": _aggregate_attempts(arm_0),
+        })
+    tolerance_rows = []
+    for joint_iterations in (200, 0):
+        baseline = {cad_id: by_key[(cad_id, joint_iterations, format(BASELINE_SEWING_TOLERANCE, ".12g"))] for cad_id in cad_ids}
+        for tolerance in tolerances:
+            rows = [by_key[(cad_id, joint_iterations, format(tolerance, ".12g"))] for cad_id in cad_ids]
+            changed = [cad_id for cad_id, row in zip(cad_ids, rows) if _outcome_signature(baseline[cad_id]) != _outcome_signature(row)]
+            tolerance_rows.append({
+                "joint_iterations": joint_iterations, "sewing_tolerance": tolerance,
+                "compared_to_tolerance": BASELINE_SEWING_TOLERANCE,
+                "signature_changed_cases": len(changed), "signature_changed_case_ids": changed,
+                "outcomes": _aggregate_attempts(rows),
+            })
+    return {
+        "joint_optimize_ablation": {
+            "baseline_joint_iterations": 200, "ablation_joint_iterations": 0,
+            "comparison_definition": "Paired by CAD and sewing tolerance; signature includes failure stage, STEP/native/strict/both flags, and decomposed wire/shell/solid counts.",
+            "cases_with_any_signature_change_across_tolerances": len(any_joint_changed),
+            "case_ids_with_any_signature_change_across_tolerances": sorted(any_joint_changed),
+            "cases_recovered_to_both_valid_only_with_joint_disabled": sorted(recovered_with_joint_disabled),
+            "by_tolerance": joint_rows,
+        },
+        "tolerance_scan": {
+            "baseline_tolerance": BASELINE_SEWING_TOLERANCE, "scan_tolerances": list(tolerances),
+            "comparison_definition": "Within each joint arm, paired by CAD against sewing tolerance 1e-4 using the same outcome signature.",
+            "cases_marked_sensitive_at_joint_200": sorted(str(case.get("cad_id")) for case in cases if bool(case.get("tolerance_sensitive"))),
+            "by_joint_and_tolerance": tolerance_rows,
+        },
+    }
+
+
+def build_failure_taxonomy(cases: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    grouped: dict[str, list[str]] = {}
+    for case in cases:
+        grouped.setdefault(str(case.get("primary_cause")), []).append(str(case.get("cad_id")))
+    return {
+        "cases": len(cases),
+        "attributed_cases": sum(bool(case.get("attributed")) for case in cases),
+        "taxonomy": [{"primary_cause": cause, "count": len(ids), "cad_ids": sorted(ids)} for cause, ids in sorted(grouped.items())],
     }
 
 

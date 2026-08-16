@@ -5,7 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from tools.snapshot_p0a_assembly_chain import snapshot, validate_evidence
+from tools.snapshot_p0a_assembly_chain import (
+    build_ablation_summary,
+    detailed_attempt,
+    snapshot,
+    validate_evidence,
+)
 
 
 def _sha256(path: Path) -> str:
@@ -144,3 +149,39 @@ def test_validate_evidence_rejects_incomplete_matrix():
 
     with pytest.raises(RuntimeError, match="96 attempts"):
         validate_evidence(summary, cases, [])
+
+
+def test_git_safe_detailed_attempt_removes_machine_local_paths(tmp_path):
+    run = _fixture_run(tmp_path)
+    row = json.loads(
+        (run / "assembly_chain_attempts.jsonl").read_text(encoding="utf-8").splitlines()[0]
+    )
+    row["source_path"] = str(tmp_path / "source.pkl")
+    row["source_manifest"] = str(tmp_path / "manifest.jsonl")
+
+    archived = detailed_attempt(row, run_root=run)
+
+    assert "source_path" not in archived
+    assert "source_manifest" not in archived
+    assert "step_path" not in archived
+    assert archived["step_relative_path"].startswith("steps/")
+    assert archived["source_path_archived"] is False
+    assert archived["step_bytes_archived"] is False
+
+
+def test_ablation_summary_is_paired_by_all_six_variants(tmp_path):
+    run = _fixture_run(tmp_path)
+    cases = json.loads((run / "assembly_chain_cases.json").read_text(encoding="utf-8"))
+    attempts = [
+        json.loads(line)
+        for line in (run / "assembly_chain_attempts.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+
+    result = build_ablation_summary(attempts, cases)
+
+    joint = result["joint_optimize_ablation"]
+    assert len(joint["by_tolerance"]) == 3
+    assert all(row["compared_cases"] == 16 for row in joint["by_tolerance"])
+    assert joint["cases_recovered_to_both_valid_only_with_joint_disabled"] == ["cad-00"]
+    tolerance = result["tolerance_scan"]
+    assert len(tolerance["by_joint_and_tolerance"]) == 6

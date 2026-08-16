@@ -1,0 +1,127 @@
+{
+  "checkpoints": [
+    {
+      "arm": "continuous_bypass_64d",
+      "bytes": 228651242,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/continuous_bypass_64d/seed3/continuous_bypass_64d_best.pt",
+      "role": "best_checkpoint",
+      "seed": 3,
+      "sha256": "0be5396fe98f1e05b775b2a41485136470d6e6dadba6a3492fa6eed8cd8ff5df",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "arm": "continuous_bypass_64d",
+      "bytes": 228651610,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/continuous_bypass_64d/seed3/continuous_bypass_64d_final.pt",
+      "role": "final_checkpoint",
+      "seed": 3,
+      "sha256": "fd624d119f8419d0c55b4ccbb22b9867e82d96e682adf4f25adcf3fb7341d51f",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "arm": "continuous_bypass_64d",
+      "bytes": 686117050,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/continuous_bypass_64d/seed3/continuous_bypass_64d_rolling.pt",
+      "role": "rolling_checkpoint",
+      "seed": 3,
+      "sha256": "e4926b7b9012484536912402f5dcbb62e0bdee4887a8027597142470fc702e70",
+      "task_id": "continuous_bypass_64d:seed3"
+    },
+    {
+      "arm": "continuous_bypass_64d",
+      "bytes": 228651242,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/continuous_bypass_64d/seed4/continuous_bypass_64d_best.pt",
+      "role": "best_checkpoint",
+      "seed": 4,
+      "sha256": "dc74289fb063ed8839c92acb192b62cd84c39d0e3a71bd0ef1e8e5f853291d30",
+      "task_id": "continuous_bypass_64d:seed4"
+    },
+    {
+      "arm": "continuous_bypass_64d",
+      "bytes": 228651610,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/continuous_bypass_64d/seed4/continuous_bypass_64d_final.pt",
+      "role": "final_checkpoint",
+      "seed": 4,
+      "sha256": "f20477c8d20810de9501b20fd47f898a4bb404e1a6134758f739bb7f73d9fb33",
+      "task_id": "continuous_bypass_64d:seed4"
+    },
+    {
+      "arm": "continuous_bypass_64d",
+      "bytes": 686116602,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/continuous_bypass_64d/seed4/continuous_bypass_64d_rolling.pt",
+      "role": "rolling_checkpoint",
+      "seed": 4,
+      "sha256": "e45e96a7e48d060b8d428a9c955b30d306f11b619f891f90bb11a190851ecb3e",
+      "task_id": "continuous_bypass_64d:seed4"
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "bytes": 229716278,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/vq_4096_64d_random/seed3/vq_4096_64d_random_best.pt",
+      "role": "best_checkpoint",
+      "seed": 3,
+      "sha256": "01a8be31d9b6632617fe75cac59400cdc42b3d95b5b257d41c9003dcdb888827",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "bytes": 229716584,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/vq_4096_64d_random/seed3/vq_4096_64d_random_final.pt",
+      "role": "final_checkpoint",
+      "seed": 3,
+      "sha256": "f3b99c7b10e66873807c1c082a7a84e1a1d0c614454ce36ad8a2a815a75ae969",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "bytes": 690326610,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/vq_4096_64d_random/seed3/vq_4096_64d_random_rolling.pt",
+      "role": "rolling_checkpoint",
+      "seed": 3,
+      "sha256": "0593d7623736b8f6c68228fa17f6c3ff3c44e177dcaf12dd557025bd00545168",
+      "task_id": "vq_4096_64d_random:seed3"
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "bytes": 229716278,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/vq_4096_64d_random/seed4/vq_4096_64d_random_best.pt",
+      "role": "best_checkpoint",
+      "seed": 4,
+      "sha256": "7c2db8a475fb48b4e6598a503f52072142fc2ca29139453f5f60c0f06ef18edc",
+      "task_id": "vq_4096_64d_random:seed4"
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "bytes": 229716648,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/vq_4096_64d_random/seed4/vq_4096_64d_random_final.pt",
+      "role": "final_checkpoint",
+      "seed": 4,
+      "sha256": "6d3c9a42fe81d1969a00aa84592b13ac79d4c0874d3eebb942f7e9a263032e94",
+      "task_id": "vq_4096_64d_random:seed4"
+    },
+    {
+      "arm": "vq_4096_64d_random",
+      "bytes": 690325970,
+      "checkpoint_bytes_archived": false,
+      "relative_path": "tasks/vq_4096_64d_random/seed4/vq_4096_64d_random_rolling.pt",
+      "role": "rolling_checkpoint",
+      "seed": 4,
+      "sha256": "ee0b1dda46bbbd06ae6ac02337e2f71b04d93e0ac60249ef22e6e3655ab33dc5",
+      "task_id": "vq_4096_64d_random:seed4"
+    }
+  ],
+  "generated_at": "2026-08-17T00:27:01+08:00",
+  "policy": "Checkpoint bytes remain local and are not archived in Git.",
+  "total_checkpoint_bytes": 4586357724
+}

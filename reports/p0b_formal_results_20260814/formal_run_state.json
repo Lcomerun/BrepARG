@@ -1,0 +1,153 @@
+{
+  "active_task": null,
+  "configuration_signature": "cf4874c3798f77ff64039a0666ddb4d2c445168a467fa2ca638b9d9fafdcb80e",
+  "created_at": "2026-08-14T12:25:44+08:00",
+  "formal_result_eligible": true,
+  "inventory_consistent": true,
+  "mode": "FORMAL",
+  "schema": "p0b-stability-retest-v1",
+  "status": "COMPLETED",
+  "task_validations": [
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": true,
+          "finished_at": "2026-08-14T17:51:07+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-14T16:05:06+08:00"
+        }
+      ],
+      "signature": "6b02501165f3692c78e95c30f9f4c04ec64e8b3ce4a5a470cf760d11b26c9503",
+      "task_id": "continuous_bypass_64d:seed3",
+      "validation": {
+        "epochs_observed": 100,
+        "formal": true,
+        "inventory": {
+          "train": {
+            "count": 60000,
+            "ordered_sha256": "b58198fa4f09220207ca58ba5da24d2a1116e23619cf276e822a055cc7aecfdc",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "505e3820212f9464606a1f2f48d6a21fa5684bb843ce5784dfb21d08a2f5c2db"
+          },
+          "val": {
+            "count": 12000,
+            "ordered_sha256": "cb76aa74ca07de1a23a8906d7a2326cce6b3c927a46b1f8893472f43ab9c750e",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "899493d7e74e504f4ae5cebd260398cef216dbd174eab38989fcdc36bca13dd5"
+          }
+        },
+        "last_epoch": 99,
+        "reasons": [],
+        "task_id": "continuous_bypass_64d:seed3",
+        "valid": true
+      }
+    },
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": true,
+          "finished_at": "2026-08-14T19:37:13+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-14T17:51:07+08:00"
+        }
+      ],
+      "signature": "e7202e85bccaf90fb45c16dfa5a8df0e67159cd3dc40f8b9eaa5733e6a54b88e",
+      "task_id": "continuous_bypass_64d:seed4",
+      "validation": {
+        "epochs_observed": 100,
+        "formal": true,
+        "inventory": {
+          "train": {
+            "count": 60000,
+            "ordered_sha256": "b58198fa4f09220207ca58ba5da24d2a1116e23619cf276e822a055cc7aecfdc",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "505e3820212f9464606a1f2f48d6a21fa5684bb843ce5784dfb21d08a2f5c2db"
+          },
+          "val": {
+            "count": 12000,
+            "ordered_sha256": "cb76aa74ca07de1a23a8906d7a2326cce6b3c927a46b1f8893472f43ab9c750e",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "899493d7e74e504f4ae5cebd260398cef216dbd174eab38989fcdc36bca13dd5"
+          }
+        },
+        "last_epoch": 99,
+        "reasons": [],
+        "task_id": "continuous_bypass_64d:seed4",
+        "valid": true
+      }
+    },
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": true,
+          "finished_at": "2026-08-14T14:16:06+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-14T12:25:44+08:00"
+        }
+      ],
+      "signature": "de93614d0bdace4dcb93a629db1eeab10dbe2e9af7d9f818cdf370fb57c6ec66",
+      "task_id": "vq_4096_64d_random:seed3",
+      "validation": {
+        "epochs_observed": 100,
+        "formal": true,
+        "inventory": {
+          "train": {
+            "count": 60000,
+            "ordered_sha256": "b58198fa4f09220207ca58ba5da24d2a1116e23619cf276e822a055cc7aecfdc",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "505e3820212f9464606a1f2f48d6a21fa5684bb843ce5784dfb21d08a2f5c2db"
+          },
+          "val": {
+            "count": 12000,
+            "ordered_sha256": "cb76aa74ca07de1a23a8906d7a2326cce6b3c927a46b1f8893472f43ab9c750e",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "899493d7e74e504f4ae5cebd260398cef216dbd174eab38989fcdc36bca13dd5"
+          }
+        },
+        "last_epoch": 99,
+        "reasons": [],
+        "task_id": "vq_4096_64d_random:seed3",
+        "valid": true
+      }
+    },
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": true,
+          "finished_at": "2026-08-14T16:05:06+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-14T14:16:08+08:00"
+        }
+      ],
+      "signature": "da66f970de19450b9400e19019e569547f042ac54c56eb293acb41ec30d3cbb7",
+      "task_id": "vq_4096_64d_random:seed4",
+      "validation": {
+        "epochs_observed": 100,
+        "formal": true,
+        "inventory": {
+          "train": {
+            "count": 60000,
+            "ordered_sha256": "b58198fa4f09220207ca58ba5da24d2a1116e23619cf276e822a055cc7aecfdc",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "505e3820212f9464606a1f2f48d6a21fa5684bb843ce5784dfb21d08a2f5c2db"
+          },
+          "val": {
+            "count": 12000,
+            "ordered_sha256": "cb76aa74ca07de1a23a8906d7a2326cce6b3c927a46b1f8893472f43ab9c750e",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "899493d7e74e504f4ae5cebd260398cef216dbd174eab38989fcdc36bca13dd5"
+          }
+        },
+        "last_epoch": 99,
+        "reasons": [],
+        "task_id": "vq_4096_64d_random:seed4",
+        "valid": true
+      }
+    }
+  ],
+  "updated_at": "2026-08-17T00:26:59+08:00"
+}
