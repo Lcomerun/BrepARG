@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import importlib
 import json
+import pickle
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -147,6 +149,10 @@ def test_stage_tracker_reports_exact_usage_and_collapse_fail_closed(train_module
         {"stage1": usage["stage1"]}, require_stage2=True
     ) == {"healthy": False, "reasons": ["stage2 usage is missing"]}
 
+    restored = pickle.loads(pickle.dumps(info))
+    assert len(restored) == 3
+    assert len(restored.stage_indices) == 2
+
 
 def test_stage_tracker_rejects_missing_streams_and_out_of_range_indices(train_module):
     tracker = train_module.QuantizerStageUsageTracker((4, 4))
@@ -246,13 +252,68 @@ def test_train_loop_records_separate_stage_usage_and_health(train_module, tmp_pa
         val_parent_ids=["p0", "p1"],
         codebook_size=4,
         quantizer_metadata={"kind": "residual_vq"},
+        tb_log_dir=str(tmp_path / "tensorboard"),
     )
 
     assert len(history) == 1
-    record = json.loads(history_path.read_text(encoding="utf-8"))["history"][0]
+    history_payload = json.loads(history_path.read_text(encoding="utf-8"))
+    record = history_payload["history"][0]
+    assert history_payload["config"]["scheduler"]["kind"] == "ReduceLROnPlateau"
     assert record["train_stage_code_usage"]["stage1"]["tokens"] == 8
     assert record["val_stage_code_usage"]["stage2"]["tokens"] == 8
     assert record["stage_usage_health"] == {"healthy": True, "reasons": []}
     assert meta["last_val_metrics"]["stage_code_usage"] == record["val_stage_code_usage"]
     payload = torch.load(rolling, map_location="cpu", weights_only=False)
     assert payload["extra"]["selector_state"]["stage_usage_health"]["healthy"] is True
+    from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+
+    tags = set(EventAccumulator(str(tmp_path / "tensorboard")).Reload().Tags()["scalars"])
+    assert "train/stage1/code_usage/entropy_perplexity" in tags
+    assert "validation/stage2/code_usage/coverage" in tags
+    assert "validation/stage_usage_health/healthy" in tags
+
+
+class PoolOwner(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.pool = types.SimpleNamespace(
+            features=torch.ones(2, 3, dtype=torch.float32),
+            nums_features=2,
+        )
+
+
+def test_resume_requires_exact_independent_feature_pool_set(train_module):
+    stability = sys.modules["training_stability"]
+    model = nn.Module()
+    model.stage1 = PoolOwner()
+    model.stage2 = PoolOwner()
+    states = stability.capture_feature_pools(model)
+
+    assert set(states) == {"stage1", "stage2"}
+    stability.restore_feature_pools(model, states)
+    states.pop("stage2")
+    with pytest.raises(ValueError, match="feature-pool module set mismatch"):
+        stability.restore_feature_pools(model, states)
+
+
+def test_checkpoint_context_preserves_parent_overlap_evidence(train_module):
+    overlaps = {"train__val": 0, "train__test": 0, "val__test": 0}
+    run_manifest = {
+        "git": {"commit": "abc123"},
+        "experiment": {
+            "protocol": {
+                "protocol_sha256": "protocol",
+                "split_pickle_sha256": "split",
+                "parent_overlap_counts": overlaps,
+            }
+        },
+    }
+    protocol_data = {
+        "train_sampling": {"final_parent_coverage": 1.0},
+        "val_sampling": {"parent_coverage": 1.0},
+        "inventory": {},
+    }
+
+    context = train_module.checkpoint_context_from_run(run_manifest, protocol_data)
+
+    assert context["parent_overlap_counts"] == overlaps

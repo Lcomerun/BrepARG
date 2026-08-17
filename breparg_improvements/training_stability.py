@@ -267,6 +267,27 @@ def capture_feature_pools(model):
 
 def restore_feature_pools(model, states):
     modules = dict(model.named_modules())
+    expected = []
+    seen_pools = set()
+    for module_name, module in modules.items():
+        pool = getattr(module, "pool", None)
+        features = getattr(pool, "features", None)
+        if pool is None or features is None or id(pool) in seen_pools:
+            continue
+        seen_pools.add(id(pool))
+        expected.append(module_name)
+    observed = set((states or {}).keys())
+    if observed != set(expected):
+        missing = sorted(set(expected) - observed)
+        unexpected = sorted(observed - set(expected))
+        details = []
+        if missing:
+            details.append("missing=" + ",".join(missing))
+        if unexpected:
+            details.append("unexpected=" + ",".join(unexpected))
+        raise ValueError(
+            "checkpoint feature-pool module set mismatch: " + "; ".join(details)
+        )
     for module_name, state in (states or {}).items():
         if module_name not in modules:
             raise ValueError(f"checkpoint feature-pool module is missing: {module_name!r}")

@@ -23,6 +23,7 @@ def make_inputs(tmp_path, monkeypatch, *, smoke=False):
     for name in ("train.py", "training_stability.py", "vqvae_sampling.py", "vqvae_metrics.py"):
         (improvements / name).write_text(f"# {name}\n", encoding="utf-8")
     (breparg / "quantise.py").write_text("# quantise\n", encoding="utf-8")
+    (breparg / "model.py").write_text("# model\n", encoding="utf-8")
     split = b"test split"
     split_hash = hashlib.sha256(split).hexdigest()
     (protocol / "split.pkl").write_bytes(split)
@@ -41,6 +42,21 @@ def make_inputs(tmp_path, monkeypatch, *, smoke=False):
         python=python,
         smoke=smoke,
     )
+
+
+def test_signed_scheduler_contract_includes_selection_metric(tmp_path, monkeypatch):
+    config = make_inputs(tmp_path, monkeypatch)
+    task = launcher.build_task(config, "vq_8192_64d_random", 3)
+
+    assert task["signature_payload"]["scheduler"] == {
+        "kind": "ReduceLROnPlateau",
+        "metric": "curved_parent_mse",
+        "factor": 0.5,
+        "patience": 8,
+        "threshold": 1e-5,
+        "threshold_mode": "abs",
+        "min_lr": 1e-6,
+    }
 
 
 def inventory(task):
@@ -117,7 +133,7 @@ def signature_configuration(task, inv):
         "protocol": {key: task["signature_payload"][key] for key in ("protocol_sha256", "split_pickle_sha256", "parent_overlap_counts")},
         "inventory": inv, "runtime_resume_compatibility": runtime(),
         "arm": {"name": task["arm"], "quantizer": launcher.arm_metadata(task["arm"])},
-        "scheduler": {**task["signature_payload"]["scheduler"], "metric": "curved_parent_mse"},
+        "scheduler": task["signature_payload"]["scheduler"],
         "sampling": {**task["signature_payload"]["sampling"], "curved_fraction": 0.0, "complex_fraction": 0.0},
     }
 
@@ -160,6 +176,10 @@ def materialize_success(task):
         pools = {
             "quantize.stage1.quantizer": {"features": torch.zeros(2, 2, dtype=torch.float32), "nums_features": 2},
             "quantize.stage2.quantizer": {"features": torch.zeros(2, 2, dtype=torch.float32), "nums_features": 2},
+        }
+    else:
+        pools = {
+            "quantize": {"features": torch.zeros(2, 2, dtype=torch.float32), "nums_features": 2},
         }
     torch.save({
         "checkpoint_schema": "vq_training_state_v1", "experiment_signature": task["signature"], "epoch": 99,
@@ -243,3 +263,42 @@ def test_summary_requires_identical_exact_inventory_across_all_four_tasks(tmp_pa
     summary = launcher.validation_summary(state)
     assert summary["valid"] is False
     assert summary["inventory_consistent"] is False
+
+
+def test_validator_rehashes_sources_and_existing_state_rejects_task_drift(tmp_path, monkeypatch):
+    config = make_inputs(tmp_path, monkeypatch)
+    task = launcher.build_task(config, "vq_8192_64d_random", 3)
+    materialize_success(task)
+    assert launcher.validate_task(task, formal=True)["valid"] is True
+
+    train_source = config.repo_root / "breparg_improvements" / "train.py"
+    train_source.write_text("# changed after signing\n", encoding="utf-8")
+    result = launcher.validate_task(task, formal=True)
+    assert result["valid"] is False
+    assert "signed source SHA-256 set mismatch" in result["reasons"]
+
+    # Restore the signed bytes, create state, then prove that a rewritten task
+    # signature cannot be resumed from the same output root.
+    train_source.write_text("# train.py\n", encoding="utf-8")
+    state_config = launcher.RunConfig(
+        repo_root=config.repo_root,
+        protocol_dir=config.protocol_dir,
+        breparg_root=config.breparg_root,
+        output_root=tmp_path / "state-output",
+        python=config.python,
+    )
+    state_path, state = launcher.ensure_state(state_config)
+    state["tasks"][0]["signature"] = "0" * 64
+    launcher.atomic_json(state_path, state)
+    with pytest.raises(ValueError, match="task signature mismatch"):
+        launcher.ensure_state(state_config)
+
+
+def test_verify_inputs_rejects_breparg_path_that_train_will_not_discover(tmp_path, monkeypatch):
+    config = make_inputs(tmp_path, monkeypatch)
+    discoverable = config.repo_root / "breparg_improvements" / "BrepARG"
+    discoverable.mkdir()
+    (discoverable / "model.py").write_text("# model\n", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="train.py will discover BrepARG"):
+        launcher.verify_inputs(config)

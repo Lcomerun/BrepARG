@@ -18,6 +18,7 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 11:09 +08:00) Implemented and tested VQ-8192/64D and two-stage RVQ-4096/64D, including independent RVQ stage usage, perplexity, coverage, and collapse evidence. Preserved the legacy three-item quantizer-info contract and forced RVQ residual subtraction to fp32 under bf16 input.
 - [x] (2026-08-17 11:09 +08:00) Implemented the fail-closed capacity launcher for seeds 3 and 4, 100 epochs, bf16, batch 128, LR `3e-4`, gradient clip 1.0, plateau decay, zero-nonfinite fuse, atomic resume, identical inventory digests, and output on E:. A non-mutating formal dry run produced exactly four signed tasks.
 - [x] (2026-08-17 11:09 +08:00) Passed 176 focused and compatibility tests covering the capacity quantizers, launcher, stability lifecycle, prior P0-B behavior, fixed-cohort measurement, and P0-A snapshot/diagnostic paths.
+- [x] (2026-08-17 11:36 +08:00) Ran a first CUDA smoke. VQ-8192 was numerically finite, but fail-closed evidence validation exposed two producer omissions before RVQ started: scheduler metric and checkpoint parent-overlap counts. Corrected both at the producer, added contract regressions, and passed the 157-test capacity/stability/assembly compatibility suite.
 - [ ] Run bounded CUDA forward/backward and interruption/resume probes for both arms, then run all four formal 100-epoch tasks.
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
@@ -38,6 +39,9 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Observation: Extending a `NamedTuple` with stage metadata changed `len(info)` from three to five even though positional indices zero through two still worked.
   Evidence: The legacy-contract regression requires `len(info) == 3`. `QuantizerInfo` is now a three-item tuple subclass whose `stage_indices` and `stage_perplexities` are attributes, so old positional unpacking remains exact.
+
+- Observation: The first CUDA smoke proved the model path finite but was deliberately rejected as evidence because two signed facts were not repeated in downstream artifacts.
+  Evidence: VQ-8192 completed all three train and two validation batches with no non-finite event. Validation reasons were limited to scheduler-schema and checkpoint parent-overlap mismatches. The failed root remains local diagnostic evidence; a new root is required after producer-side fixes.
 
 ## Decision Log
 
@@ -144,3 +148,5 @@ The capacity launcher must be a standalone Python CLI in `tools/` and use the fr
 Revision note 2026-08-17 10:25 +08:00: Created this plan after the paired VQ/bypass gate selected capacity A/B. It freezes the capacity candidates, P0-B recipe, paired assembly decision, independent repair design, storage policy, final merge gate, and Git-safe evidence contract.
 
 Revision note 2026-08-17 11:09 +08:00: Recorded completion of the capacity implementation, the three-item quantizer-info compatibility fix, fp32 residual handling under bf16, the 176-test regression, and the non-mutating four-task formal dry run. The next capacity milestone is a clean-commit CUDA smoke followed by the resumable formal matrix.
+
+Revision note 2026-08-17 11:36 +08:00: Recorded the bounded CUDA smoke result and the evidence-schema repair. The next step remains a clean-commit two-arm CUDA smoke in a new output root, followed only on success by formal training.

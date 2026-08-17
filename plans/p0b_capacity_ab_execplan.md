@@ -15,7 +15,9 @@ This plan implements and tests the experiment but does not start formal GPU trai
 - [x] (2026-08-17 10:38 +08:00) Added device-side stage histogram tracking, JSON-serializable train/validation stage usage, TensorBoard scalars, and a fail-closed stage-2 health gate. Invalid, missing, non-finite, one-code, or perplexity-at-most-one stage-2 evidence cannot select a checkpoint.
 - [x] (2026-08-17 10:49 +08:00) Added `tools/run_capacity_ab_60k.py` with independent schema `capacity-ab-60k-v1`, immutable formal matrix, Protocol V5/source/inventory signatures, automatic resume, and rolling FeaturePool validation.
 - [x] (2026-08-17 10:55 +08:00) Added quantizer and launcher tests covering construction, forward/backward, detached residual semantics, exact stage statistics, collapse rejection, immutable bf16 task matrix, dry-run non-mutation, RVQ FeaturePool evidence, and cross-task inventory equality.
-- [ ] Run the full regression suite, document the exact formal command and resource estimate, and leave the worktree uncommitted without launching formal training.
+- [x] (2026-08-17 11:18 +08:00) Ran the focused and regression suites (`155 passed`), compiled all changed Python modules, passed `git diff --check` for tracked capacity files, and executed a real Protocol V5 dry-run that returned four bf16 tasks without creating its output root.
+- [x] (2026-08-17 11:36 +08:00) Closed the final artifact-validation gap: history now names `ReduceLROnPlateau`, the launcher proves its requested upstream root is exactly the one `train.py` will discover, and FeaturePool recovery remains exact for one-stage VQ and two-stage RVQ. The expanded suite passes `157 passed in 9.29s`; compilation and `git diff --check` pass; a second real Protocol V5 dry-run planned the same four tasks and left `E:/V13_experiments/capacity_ab_60k_20260817` absent. Formal training remains unstarted and the worktree remains uncommitted.
+- [x] (2026-08-17 11:36 +08:00) Diagnosed the first real-CUDA smoke as an evidence-schema failure rather than a numerical failure. The VQ-8192 train and validation passes were finite, but the task signature omitted the scheduler metric and the checkpoint context omitted `parent_overlap_counts`; the fail-closed launcher correctly stopped before RVQ. The producers now emit both fields, focused and compatibility tests pass (`157 passed`), and dedicated regressions freeze the corrected contract.
 
 ## Surprises & Discoveries
 
@@ -30,6 +32,24 @@ This plan implements and tests the experiment but does not start formal GPU trai
 
 - Observation: The existing P0-B writer lock uses `.p0b_writer.lock`; capacity output roots must exclude that same file when checking for unexpected pre-existing artifacts.
   Evidence: `tools/run_capacity_ab_60k.py` reuses the P0-B lock helper and its lock-file name, while every capacity run is isolated under a new output root.
+
+- Observation: RVQ stage 2 must receive an fp32 residual even though the encoder and decoder run under bf16 autocast.
+  Evidence: `ResidualLearnedVectorQuantiser.forward` casts the latent to fp32 before stage 1, subtracts the detached fp32 stage-1 reconstruction, executes stage 2 through the AMP-safe fp32 adapter, and casts only the final aggregate straight-through value back to the incoming dtype. A bf16 behavior test observes fp32 at the stage-2 boundary and finite gradients.
+
+- Observation: Restoring only model/optimizer state is not an exact continuation when a learned quantizer's historical FeaturePool is missing.
+  Evidence: `training_stability.restore_feature_pools` now requires the checkpoint module set to equal the live model's pool module set. The formal validator additionally requires one fp32 pool for VQ and two independent fp32 pools for RVQ.
+
+- Observation: The prior VQ-4096 60k job took about 110 minutes on the local RTX 3060 and retained approximately 1.07 GiB across best, final, and rolling checkpoints per arm/seed task.
+  Evidence: `p0b_stability_vq_bypass_60k_20260814` logs span 12:25 through 14:16, and its learned-VQ checkpoints are approximately 0.214, 0.214, and 0.643 GiB. The two capacity arms perform roughly twice the codebook lookup work, so the conservative scheduling estimate is 2-3 hours per task, 8-12 hours sequential, and about 4.5 GiB retained across four tasks.
+
+- Observation: The signed scheduler contract included its implementation kind, but the human-readable history configuration initially omitted that field.
+  Evidence: The formal validator requires `kind=ReduceLROnPlateau`; adding the same field to `_train_vqvae` history prevents a healthy real run from being rejected after all 100 epochs.
+
+- Observation: Signing an arbitrary `--breparg-root` is insufficient if `train.py` will discover a different nearer `BrepARG/` directory at runtime.
+  Evidence: The capacity launcher now mirrors `train.py`'s six-level discovery walk and rejects any requested root that is not exactly the discovered root; a focused test places a conflicting nearer directory and observes the fail-closed error.
+
+- Observation: A numerically healthy task can still be scientifically unusable when producer and validator disagree about evidence fields.
+  Evidence: the first CUDA smoke completed VQ-8192 with three finite train batches, two finite validation batches, and best validation reconstruction near `0.26301`, but validation rejected it because history lacked scheduler `kind` relative to the signed schema and best/final checkpoint contexts lacked parent-overlap evidence. Producer-side schema fixes and regression tests were chosen instead of relaxing validation.
 
 ## Decision Log
 
@@ -53,9 +73,21 @@ This plan implements and tests the experiment but does not start formal GPU trai
   Rationale: The stage-2 collapse gate is specific to RVQ. Adding a synthetic stage to ordinary VQ would change its checkpoint selection semantics and make historical single-level runs incomparable.
   Date/Author: 2026-08-17 / Codex.
 
+- Decision: Expose `run`, bounded `probe`, read-only `status`, and fail-closed `validate` launcher actions, but execute only `run --dry-run` in this implementation turn.
+  Rationale: The checked-in capacity/repair plan requires explicit probe and validation entry points. Keeping probe bounded by the smoke caps makes later CUDA preflight reproducible without weakening the immutable formal command.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Treat both the scheduler kind and the actually discovered upstream source root as formal evidence, not optional descriptive metadata.
+  Rationale: Either mismatch would make a run non-reproducible: the validator could reject a correct schedule after completion, or the process could execute unsigned upstream code. Both checks are cheap to enforce before allocating GPU time.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Add `metric=curved_parent_mse` to the signed scheduler object and copy `parent_overlap_counts` into every checkpoint context.
+  Rationale: These facts already govern checkpoint selection and data-isolation validity. They must be produced and signed consistently at every evidence layer; accepting their absence in the validator would weaken the experiment after observing a failure.
+  Date/Author: 2026-08-17 / Codex.
+
 ## Outcomes & Retrospective
 
-Implementation and focused validation are complete. Formal training remains intentionally unstarted. The worktree contains concurrent P0-B assembly measurement edits from the parent task; they were preserved and were not rewritten by this plan.
+Implementation, fail-closed validation, and dry-run preflight are complete. The formal four-task run remains intentionally unstarted. The capacity code now includes VQ-8192 and fp32-residual RVQ, per-stage history/TensorBoard evidence, exact FeaturePool resume, an immutable four-task launcher, and paired assembly coordinator support. The final regression result is 157 passing tests, and the real Protocol V5 dry-run proves the four formal task signatures without creating the E: output root. No assembly-repair source was rewritten by this plan.
 
 ## Context and Orientation
 
@@ -93,6 +125,12 @@ After implementation, a non-mutating formal dry run has this shape:
 
 The dry run must print four planned tasks and must not create the output directory. The same command without `--dry-run` is the later formal launch command, but this implementation task must not execute it.
 
+For the later formal run, use E: for the heavy output rather than the D: dry-run path:
+
+    C:/Users/YU/.conda/envs/brepgen_env/python.exe tools/run_capacity_ab_60k.py run --repo-root D:/luolin/V13/v6git --protocol-dir D:/luolin/V13/local_runs/protocol_v5_scaling_run_20260806/protocol --breparg-root D:/luolin/V13/BrepARG --output-root E:/V13_experiments/capacity_ab_60k_20260817 --python C:/Users/YU/.conda/envs/brepgen_env/python.exe
+
+Do not run that command until the capacity implementation and its concurrently developed assembly coordinator are committed, because formal `train.py` requires a clean committed worktree and signs the commit plus source hashes. On the local RTX 3060, budget approximately 8-12 hours for the four tasks in serial and approximately 4.5 GiB for their retained best/final/rolling checkpoints.
+
 ## Validation and Acceptance
 
 The 8,192 VQ arm must construct an 8,192 by 64 embedding and complete a finite forward/backward pass. The RVQ arm must own two distinct 4,096 by 64 embeddings and FeaturePools, quantize stage 2 from the detached stage-1 residual, return the original latent shape, produce a finite summed quantizer loss, and backpropagate finite gradients.
@@ -116,3 +154,7 @@ In `breparg_improvements/train.py`, `ResidualLearnedVectorQuantiser.forward(late
 In `tools/run_capacity_ab_60k.py`, `CapacityRunConfig` validates formal arguments, `build_state(config)` produces the signed four-task plan, `validate_task(task, formal)` validates one arm/seed artifact set, `validation_summary(state)` enforces matrix and inventory equality, and `run_cohort(config, dry_run=False)` runs or resumes under one output-root writer lock.
 
 Revision note 2026-08-17 01:25 +08:00: Created after the paired fixed-cohort measurement reported `Delta_q=13 pp`, activating the predeclared capacity A/B branch. It freezes the VQ-8192 versus RVQ-2x4096 design, stage-2 collapse gate, formal matrix, recovery contract, and no-launch boundary for this implementation task.
+
+Revision note 2026-08-17 11:36 +08:00: Recorded the final scheduler-history and upstream-discovery hardening, the 157-test regression result, and the repeated non-mutating Protocol V5 dry-run so a later formal launcher has no known evidence-contract gap.
+
+Revision note 2026-08-17 11:36 +08:00: Recorded the first CUDA smoke's producer/validator schema mismatch, the producer-side correction, and the regression evidence. The failed smoke root is diagnostic-only and will not be reused as formal evidence.

@@ -553,6 +553,7 @@ def checkpoint_context_from_run(run_manifest, protocol_data):
         'git_commit': (run_manifest.get('git') or {}).get('commit'),
         'split_pickle_sha256': split_metadata.get('split_pickle_sha256'),
         'protocol_sha256': split_metadata.get('protocol_sha256'),
+        'parent_overlap_counts': split_metadata.get('parent_overlap_counts'),
         'train_parent_coverage': protocol_data['train_sampling'].get(
             'final_parent_coverage'
         ),
@@ -2131,6 +2132,12 @@ def _train_vqvae(
                             value,
                             absolute_epoch,
                         )
+                if val_stage_usage is not None:
+                    writer.add_scalar(
+                        'validation/stage_usage_health/healthy',
+                        1.0 if stage_health.get('healthy') else 0.0,
+                        absolute_epoch,
+                    )
                 for name, bucket in val_metrics['reconstruction_mse'].items():
                     if bucket['mse'] is not None:
                         writer.add_scalar(
@@ -2160,6 +2167,7 @@ def _train_vqvae(
                     'strict_nonfinite': bool(strict_nonfinite),
                     'finite_state_audit_cadence': state_audit_cadence,
                     'scheduler': {
+                        'kind': 'ReduceLROnPlateau',
                         'metric': 'curved_parent_mse',
                         'factor': float(scheduler_factor),
                         'patience': int(scheduler_patience),

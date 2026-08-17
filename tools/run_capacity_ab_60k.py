@@ -216,6 +216,20 @@ def verify_inputs(config: RunConfig) -> None:
     missing = [str(path) for path in required_inputs(config) if not path.is_file()]
     if missing:
         raise FileNotFoundError("capacity A/B inputs missing: " + ", ".join(missing))
+    discovered = None
+    cursor = config.repo_root / "breparg_improvements"
+    for _ in range(6):
+        candidate = cursor / "BrepARG"
+        if (candidate / "model.py").is_file():
+            discovered = candidate.resolve()
+            break
+        if cursor.parent == cursor:
+            break
+        cursor = cursor.parent
+    if discovered != config.breparg_root:
+        raise ValueError(
+            f"train.py will discover BrepARG at {discovered}, not {config.breparg_root}"
+        )
     verify_protocol(config)
 
 
@@ -243,7 +257,11 @@ def arm_metadata(arm: str) -> dict[str, Any]:
 
 
 def arm_codebook_size(arm: str) -> int:
-    return 8192 if arm == "vq_8192_64d_random" else 4096
+    if arm == "vq_8192_64d_random":
+        return 8192
+    if arm == "rvq_2x4096_64d_random":
+        return 4096
+    raise ValueError(f"unsupported capacity arm: {arm}")
 
 
 def task_root(config: RunConfig, arm: str, seed: int) -> Path:
@@ -263,7 +281,9 @@ def task_signature_payload(config: RunConfig, arm: str, seed: int) -> dict[str, 
         "batch_size": int(config.batch_size), "epochs": int(config.epochs),
         "learning_rate": config.learning_rate, "precision": config.precision,
         "gradient_clip": FORMAL_GRAD_CLIP, "strict_nonfinite": True,
-        "scheduler": {"kind": "ReduceLROnPlateau", "factor": 0.5, "patience": 8,
+        "scheduler": {"kind": "ReduceLROnPlateau",
+                       "metric": "curved_parent_mse",
+                       "factor": 0.5, "patience": 8,
                        "threshold": 1e-5, "threshold_mode": "abs", "min_lr": 1e-6},
         "sampling": {"balance_by_parent": not config.smoke,
                      "deduplicate_before_cap": not config.smoke,
@@ -365,7 +385,11 @@ def _validate_quantizer(value: Any, task: Mapping[str, Any], reasons: list[str],
     if not isinstance(value, Mapping):
         reasons.append(f"{prefix} quantizer metadata missing")
         return
-    expected = arm_metadata(str(task["arm"]))
+    try:
+        expected = arm_metadata(str(task["arm"]))
+    except ValueError:
+        reasons.append(f"{prefix} unsupported capacity arm")
+        return
     for key, expected_value in expected.items():
         if value.get(key) != expected_value:
             reasons.append(f"{prefix} quantizer {key} mismatch")
@@ -397,10 +421,12 @@ def _validate_formal_task_contract(task: Mapping[str, Any], reasons: list[str]) 
         reasons.append("formal signature arm mismatch")
     if task.get("seed") not in FORMAL_SEEDS or payload.get("seed") != task.get("seed"):
         reasons.append("formal signature seed mismatch")
-    if payload.get("quantizer") != arm_metadata(str(task.get("arm"))):
-        reasons.append("formal signature quantizer mismatch")
+    if task.get("arm") in FORMAL_ARMS:
+        if payload.get("quantizer") != arm_metadata(str(task.get("arm"))):
+            reasons.append("formal signature quantizer mismatch")
     if payload.get("scheduler") != {
         "kind": "ReduceLROnPlateau",
+        "metric": "curved_parent_mse",
         "factor": 0.5,
         "patience": 8,
         "threshold": 1e-5,
@@ -453,15 +479,25 @@ def _validate_signed_inputs(task: Mapping[str, Any], reasons: list[str]) -> None
 
 
 def _validate_protocol_context(
-    value: Any, task: Mapping[str, Any], reasons: list[str], prefix: str
+    value: Any,
+    task: Mapping[str, Any],
+    reasons: list[str],
+    prefix: str,
+    *,
+    require_parent_overlaps: bool = False,
 ) -> None:
     if not isinstance(value, Mapping):
         reasons.append(f"{prefix} protocol context missing")
         return
     expected = task["signature_payload"]
-    for field in ("protocol_sha256", "split_pickle_sha256", "parent_overlap_counts"):
+    for field in ("protocol_sha256", "split_pickle_sha256"):
         if value.get(field) != expected.get(field):
             reasons.append(f"{prefix} {field} mismatch")
+    observed_overlaps = value.get("parent_overlap_counts")
+    if require_parent_overlaps and observed_overlaps != expected.get("parent_overlap_counts"):
+        reasons.append(f"{prefix} parent_overlap_counts mismatch")
+    elif observed_overlaps is not None and observed_overlaps != expected.get("parent_overlap_counts"):
+        reasons.append(f"{prefix} parent_overlap_counts mismatch")
 
 
 def _validate_run_manifest(
@@ -499,7 +535,10 @@ def _validate_run_manifest(
         if arm.get("name") != task["arm"] or arm.get("codebook") != arm_codebook_size(task["arm"]):
             reasons.append(f"{prefix} run_manifest arm mismatch")
         _validate_quantizer(arm.get("quantizer"), task, reasons, prefix)
-    _validate_protocol_context(experiment.get("protocol"), task, reasons, prefix)
+    _validate_protocol_context(
+        experiment.get("protocol"), task, reasons, prefix,
+        require_parent_overlaps=True,
+    )
     if inventory is not None and experiment.get("inventory") != inventory:
         reasons.append(f"{prefix} run_manifest inventory mismatch")
     runtime = value.get("runtime_resume_compatibility")
@@ -533,14 +572,15 @@ def _validate_signature_configuration(
         reasons.append(f"{prefix} signature_configuration arm mismatch")
     else:
         _validate_quantizer(arm.get("quantizer"), task, reasons, prefix)
-    _validate_protocol_context(value.get("protocol"), task, reasons, prefix)
+    _validate_protocol_context(
+        value.get("protocol"), task, reasons, prefix,
+        require_parent_overlaps=True,
+    )
     if inventory is not None and value.get("inventory") != inventory:
         reasons.append(f"{prefix} signature_configuration inventory mismatch")
     if runtime is not None and value.get("runtime_resume_compatibility") != runtime:
         reasons.append(f"{prefix} signature_configuration runtime mismatch")
-    expected_scheduler = dict(expected["scheduler"])
-    expected_scheduler["metric"] = "curved_parent_mse"
-    if value.get("scheduler") != expected_scheduler:
+    if value.get("scheduler") != expected["scheduler"]:
         reasons.append(f"{prefix} signature_configuration scheduler mismatch")
     observed_sampling = value.get("sampling") or {}
     for field, expected_value in expected["sampling"].items():
@@ -635,6 +675,21 @@ def _validate_rvq_feature_pools(value: Any, reasons: list[str], prefix: str) -> 
         nums_features = matches[0].get("nums_features")
         if type(nums_features) is not int or nums_features < 0:
             reasons.append(f"{prefix} {stage} FeaturePool nums_features invalid")
+
+
+def _validate_single_feature_pool(value: Any, reasons: list[str], prefix: str) -> None:
+    if not isinstance(value, Mapping) or len(value) != 1:
+        reasons.append(f"{prefix} must contain exactly one learned-VQ FeaturePool")
+        return
+    state = next(iter(value.values()))
+    if not isinstance(state, Mapping):
+        reasons.append(f"{prefix} learned-VQ FeaturePool state missing")
+        return
+    features = state.get("features")
+    if getattr(features, "dtype", None) is None or str(features.dtype) != "torch.float32":
+        reasons.append(f"{prefix} learned-VQ FeaturePool features must be fp32")
+    if type(state.get("nums_features")) is not int or state["nums_features"] < 0:
+        reasons.append(f"{prefix} learned-VQ FeaturePool nums_features invalid")
 
 
 def _validate_checkpoint(path: Path, task: Mapping[str, Any], reasons: list[str], label: str, expected_epoch: int | None, terminal: int, inventory: Mapping[str, Any] | None) -> None:
@@ -788,8 +843,10 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
             reasons.append("rolling checkpoint RNG state incomplete")
         if task["arm"] == "rvq_2x4096_64d_random":
             _validate_rvq_feature_pools(rolling.get("feature_pool_state"), reasons, "rolling checkpoint")
-        elif not isinstance(rolling.get("feature_pool_state"), Mapping):
-            reasons.append("rolling checkpoint feature_pool_state missing")
+        else:
+            _validate_single_feature_pool(
+                rolling.get("feature_pool_state"), reasons, "rolling checkpoint"
+            )
         extra = rolling.get("extra")
         if not isinstance(extra, Mapping):
             reasons.append("rolling checkpoint extra state missing")
