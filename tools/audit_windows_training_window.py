@@ -101,6 +101,8 @@ class WindowsRegistry:
                         "registry_type": _registry_type_name(value_type),
                     }
         except BaseException as exc:
+            if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+                raise
             return {"status": _error_category(exc), "values": values}
         return {"status": "ok", "values": values}
 
@@ -116,6 +118,8 @@ class WindowsRegistry:
         except FileNotFoundError:
             return {"status": "ok", "present": False}
         except BaseException as exc:
+            if isinstance(exc, (KeyboardInterrupt, SystemExit)):
+                raise
             return {"status": _error_category(exc), "present": None}
         return {"status": "ok", "present": True}
 
@@ -837,6 +841,16 @@ def _artifact_manifest(report_dir: Path) -> dict[str, Any]:
 def write_report(report_dir: Path, audit: Mapping[str, Any]) -> None:
     report_dir.mkdir(parents=True, exist_ok=True)
     _atomic_write_json(report_dir / "audit.json", audit)
+    with (report_dir / "actions.log.jsonl").open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(
+            {
+                "generated_at": audit.get("generated_at"),
+                "mode": (audit.get("action") or {}).get("mode"),
+                "status": (audit.get("action") or {}).get("status"),
+                "action": audit.get("action"),
+            },
+            ensure_ascii=True, default=str,
+        ) + "\n")
     (report_dir / "README.md").write_text(
         render_readme(audit, report_dir_name=report_dir.name), encoding="utf-8"
     )

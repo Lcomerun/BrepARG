@@ -103,15 +103,26 @@ check("FSQQ index 可 reshape(N,4)", tuple(reshaped.shape) == (7, 4))
 try:
     _ = FSQQuantiser(num_embed=4096, embed_dim=64, fsq_levels=(8,8,8,5))  # 2560≠4096
     check("FSQQ num_embed 不一致应报错", False)
-except AssertionError:
+except (AssertionError, ValueError):
     check("FSQQ num_embed 不一致应报错", True)
 
 # --- 占位 embedding 物化正确(供需要 .embedding.weight 的外部代码) ---
 q._update_placeholder_embedding()
 ids_all = torch.arange(q.fsq.codebook_size)
 codes_all = q.fsq.indices_to_codes(ids_all)
-check("FSQQ 占位 embedding 物化正确",
-      bool(torch.allclose(q.embedding.weight.data, codes_all, atol=1e-5)))
+with torch.no_grad():
+    expected_emb = q.proj_out(codes_all.view(-1, q.fsq.dim, 1, 1)).view(
+        q.fsq.codebook_size, q.in_dim)
+check("FSQQ 占位 embedding 物化正确(proj_out 后 in_dim 维)",
+      bool(torch.allclose(q.embedding.weight.data, expected_emb, atol=1e-5)))
+# 端到端:外部解码路径 F.embedding 查表结果必须与前向 z_q 一致
+zin_rt = torch.randn(3, 64, 2, 2)
+with torch.no_grad():
+    zq_rt, _, (_, _, idx_rt) = q(zin_rt)
+    looked_up = torch.nn.functional.embedding(
+        idx_rt.view(3, 2, 2), q.embedding.weight).permute(0, 3, 1, 2)
+check("FSQQ embedding 查表 == 前向 z_q(解码链一致)",
+      bool(torch.allclose(looked_up, zq_rt, atol=1e-4)))
 
 # --- 与真实 diffusers VQModel 集成:encoder->quant_conv->FSQ->post_quant_conv->decoder ---
 try:
