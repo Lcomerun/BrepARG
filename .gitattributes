@@ -13,3 +13,5 @@ reports/training_results/**/events.out.tfevents.* -text
 reports/tensorboard/**/events.out.tfevents.* -text
 reports/**/logs/*.log -text
 reports/**/tensorboard/**/events.out.tfevents.* -text
+# Exported upstream patches preserve source whitespace for direct git apply.
+patches/upstream/*.patch -whitespace

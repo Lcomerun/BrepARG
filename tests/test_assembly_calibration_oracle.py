@@ -7,6 +7,7 @@ import pytest
 
 
 from tools.run_assembly_calibration_oracle import (
+    cpu_joint_optimize,
     edge_patches_from_model_output,
     evaluate_cad_arm,
     evaluate_cad_model_arm,
@@ -88,6 +89,43 @@ def test_edge_model_output_matches_breparg_width_mean_semantics():
     tiled[0, 0, 1, 0] += 1.0
     recovered = edge_patches_from_model_output(tiled)
     assert recovered[0, 0, 0] == pytest.approx(edges[0, 0, 0] + 1.0 / 32.0)
+
+
+def test_cpu_joint_can_delegate_closed_edge_scaling_to_production_rule():
+    surface = np.zeros((1, 32, 32, 3), dtype=np.float32)
+    edge = np.zeros((1, 32, 3), dtype=np.float32)
+    edge[0, :, 0] = np.linspace(0.0, 1.0, 32)
+    observed = {}
+
+    def resolver(target_scale, ncs_scale, curve, bbox):
+        observed.update(
+            target_scale=target_scale,
+            ncs_scale=ncs_scale,
+            curve_shape=curve.shape,
+            bbox=np.asarray(bbox).tolist(),
+        )
+        return 1.0
+
+    surfaces, edges = cpu_joint_optimize(
+        surface,
+        edge,
+        np.asarray([[0, 0, 0, 2, 2, 2]], dtype=np.float32),
+        np.asarray([[0, 0, 0], [1, 0, 0]], dtype=np.float32),
+        np.asarray([[0, 1]], dtype=np.int64),
+        [[0]],
+        iterations=0,
+        edge_bboxes=np.asarray([[0, 0, 0, 1, 0, 0]], dtype=np.float32),
+        edge_scale_resolver=resolver,
+    )
+
+    assert surfaces.shape == (1, 32, 32, 3)
+    assert edges.shape == (1, 32, 3)
+    assert observed == {
+        "target_scale": pytest.approx(1.0),
+        "ncs_scale": pytest.approx(1.0),
+        "curve_shape": (32, 3),
+        "bbox": [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+    }
 
 
 def test_cad_error_summary_uses_curved_surfaces_and_counts_nonfinite():

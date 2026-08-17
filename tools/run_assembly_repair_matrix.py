@@ -135,6 +135,7 @@ def assembly_source_hashes(repo_root: Path) -> dict[str, str]:
         "tools/directed_trim_assembly.py",
         "tools/local_wire_topology_repair.py",
         "tools/solid_topology_repair.py",
+        "tools/run_assembly_calibration_oracle.py",
         "tools/run_assembly_repair_matrix.py",
     )
     result: dict[str, str] = {}
@@ -187,6 +188,7 @@ def build_run_payload(
             for profile in profiles
         ],
         "joint_iterations": int(args.joint_iterations),
+        "assembly_backend": str(args.assembly_backend),
         "historical_invalid_only": bool(args.historical_invalid_only),
         "max_cads": args.max_cads,
         "isolate_cad_workers": bool(args.isolate_cad_workers),
@@ -301,7 +303,7 @@ def strict_validate_step(path: Path, *, breparg_root: Path) -> dict[str, Any]:
 
 def run_one(
     source: Mapping[str, Any], profile: RepairProfile, *, output_dir: Path,
-    breparg_root: Path, joint_iterations: int,
+    breparg_root: Path, joint_iterations: int, assembly_backend: str = "directed",
 ) -> dict[str, Any]:
     cad_id = str(source["cad_id"])
     row: dict[str, Any] = {
@@ -318,17 +320,48 @@ def run_one(
             parsed = pickle.load(handle)
         face_edge_adj = [list(map(int, values)) for values in parsed["faceEdge_adj"]]
         edge_vertex_adj = np.asarray(parsed["edgeCorner_adj"], dtype=np.int64)
-        surf_wcs, edge_wcs = cpu_joint_optimize(
-            np.asarray(parsed["surf_ncs"], dtype=np.float32),
-            np.asarray(parsed["edge_ncs"], dtype=np.float32),
-            np.asarray(parsed["surf_bbox_wcs"], dtype=np.float32),
-            np.asarray(parsed["corner_unique"], dtype=np.float32),
-            edge_vertex_adj, face_edge_adj, iterations=joint_iterations,
-        )
-        solid, diagnostics = construct_brep_directed(
-            surf_wcs, edge_wcs, face_edge_adj, edge_vertex_adj,
-            breparg_root=breparg_root, **profile_kwargs(profile),
-        )
+        if assembly_backend == "production":
+            root = Path(breparg_root).resolve()
+            if str(root) not in sys.path:
+                sys.path.insert(0, str(root))
+            import utils as brep_utils
+
+            if not callable(getattr(brep_utils, "resolve_edge_scale", None)):
+                raise RuntimeError(
+                    "production backend requires utils.resolve_edge_scale"
+                )
+            surf_wcs, edge_wcs = cpu_joint_optimize(
+                np.asarray(parsed["surf_ncs"], dtype=np.float32),
+                np.asarray(parsed["edge_ncs"], dtype=np.float32),
+                np.asarray(parsed["surf_bbox_wcs"], dtype=np.float32),
+                np.asarray(parsed["corner_unique"], dtype=np.float32),
+                edge_vertex_adj,
+                face_edge_adj,
+                iterations=joint_iterations,
+                edge_bboxes=np.asarray(parsed["edge_bbox_wcs"], dtype=np.float32),
+                edge_scale_resolver=brep_utils.resolve_edge_scale,
+            )
+            solid = brep_utils.construct_brep(
+                surf_wcs, edge_wcs, face_edge_adj, edge_vertex_adj
+            )
+            diagnostics = {
+                "assembly_backend": "production",
+                "utils_sha256": sha256_file(root / "utils.py"),
+            }
+        elif assembly_backend == "directed":
+            surf_wcs, edge_wcs = cpu_joint_optimize(
+                np.asarray(parsed["surf_ncs"], dtype=np.float32),
+                np.asarray(parsed["edge_ncs"], dtype=np.float32),
+                np.asarray(parsed["surf_bbox_wcs"], dtype=np.float32),
+                np.asarray(parsed["corner_unique"], dtype=np.float32),
+                edge_vertex_adj, face_edge_adj, iterations=joint_iterations,
+            )
+            solid, diagnostics = construct_brep_directed(
+                surf_wcs, edge_wcs, face_edge_adj, edge_vertex_adj,
+                breparg_root=breparg_root, **profile_kwargs(profile),
+            )
+        else:
+            raise ValueError(f"unknown assembly backend: {assembly_backend!r}")
         from OCC.Extend.DataExchange import write_step_file
 
         step_path = Path(output_dir) / "steps" / profile.name / f"{cad_id}.step"
@@ -466,6 +499,7 @@ def run_one_isolated(
     breparg_root: Path,
     joint_iterations: int,
     timeout_seconds: float,
+    assembly_backend: str = "directed",
 ) -> dict[str, Any]:
     """Run one OCC attempt in a child so a native exit cannot lose the matrix."""
     cad_id = str(source["cad_id"])
@@ -485,6 +519,8 @@ def run_one_isolated(
         "--breparg-root", str(Path(breparg_root).resolve()),
         "--output-dir", str(attempt_dir.resolve()),
         "--joint-iterations", str(int(joint_iterations)),
+        "--isolate-cad-workers",
+        "--assembly-backend", str(assembly_backend),
         "--worker-profile", profile.name,
         "--worker-cad-id", cad_id,
     ]
@@ -613,6 +649,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--profile", action="append", default=None)
     parser.add_argument("--joint-iterations", type=int, default=200)
+    parser.add_argument(
+        "--assembly-backend",
+        choices=("directed", "production"),
+        default="directed",
+        help="Use the experimental directed assembler or the isolated production utils.py path.",
+    )
     parser.add_argument("--max-cads", type=int, default=None)
     parser.add_argument("--isolate-cad-workers", action="store_true")
     parser.add_argument("--worker-timeout-seconds", type=float, default=600.0)
@@ -626,6 +668,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.worker_timeout_seconds <= 0:
         parser.error("--worker-timeout-seconds must be positive")
+    if args.assembly_backend == "production" and not args.isolate_cad_workers:
+        parser.error(
+            "production backend requires --isolate-cad-workers to contain OCC native exits"
+        )
     full_source_rows = frozen_original_rows(args.calibration_manifest)
     if bool(args.worker_profile) != bool(args.worker_cad_id):
         parser.error("--worker-profile and --worker-cad-id must be provided together")
@@ -639,7 +685,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             parser.error(f"worker CAD id is not unique in frozen cohort: {args.worker_cad_id}")
         row = run_one(
             selected[0], profile, output_dir=args.output_dir,
-            breparg_root=args.breparg_root, joint_iterations=args.joint_iterations,
+            breparg_root=args.breparg_root,
+            joint_iterations=args.joint_iterations,
+            assembly_backend=args.assembly_backend,
         )
         print(WORKER_MARKER + json.dumps(row, sort_keys=True), flush=True)
         return 0
@@ -677,7 +725,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                     key = (profile.name, str(source["cad_id"]))
                     if key in done:
                         continue
-                    if requires_isolated_worker(profile):
+                    if (
+                        args.assembly_backend == "production"
+                        or requires_isolated_worker(profile)
+                    ):
                         row = run_one_isolated(
                             source, profile,
                             calibration_manifest=args.calibration_manifest,
@@ -685,12 +736,14 @@ def main(argv: Sequence[str] | None = None) -> int:
                             breparg_root=args.breparg_root,
                             joint_iterations=args.joint_iterations,
                             timeout_seconds=args.worker_timeout_seconds,
+                            assembly_backend=args.assembly_backend,
                         )
                     else:
                         row = run_one(
                             source, profile, output_dir=args.output_dir,
                             breparg_root=args.breparg_root,
                             joint_iterations=args.joint_iterations,
+                            assembly_backend=args.assembly_backend,
                         )
                     validate_attempt_row(row, source, profile)
                     append_jsonl(manifest_path, row)

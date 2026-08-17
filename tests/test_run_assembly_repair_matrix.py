@@ -9,6 +9,7 @@ from tools.assembly_repair import RepairProfile, parse_profiles
 from tools.run_assembly_repair_matrix import (
     RUN_SCHEMA,
     WORKER_MARKER,
+    build_run_payload,
     bind_run_manifest,
     main,
     parse_worker_result,
@@ -301,6 +302,36 @@ def test_run_manifest_allows_exact_resume_and_rejects_drift(tmp_path):
         bind_run_manifest(root, payload | {"joint_iterations": 0})
 
 
+def test_run_payload_records_selected_assembly_backend(tmp_path):
+    manifest = tmp_path / "calibration_manifest.jsonl"
+    manifest.write_text("{}\n", encoding="utf-8")
+    breparg_root = tmp_path / "BrepARG"
+    breparg_root.mkdir()
+    (breparg_root / "utils.py").write_text("# utility\n", encoding="utf-8")
+    args = SimpleNamespace(
+        calibration_manifest=manifest,
+        breparg_root=breparg_root,
+        joint_iterations=0,
+        assembly_backend="production",
+        historical_invalid_only=True,
+        max_cads=None,
+        isolate_cad_workers=True,
+        worker_timeout_seconds=3.0,
+    )
+
+    payload = build_run_payload(
+        args=args,
+        full_rows=[],
+        selected_rows=[],
+        profiles=[RepairProfile("baseline")],
+    )
+
+    assert payload["assembly_backend"] == "production"
+    assert payload["breparg_runtime"]["utils_sha256"] == sha256_file(
+        breparg_root / "utils.py"
+    )
+
+
 def test_run_manifest_rejects_unsigned_existing_artifacts(tmp_path):
     root = tmp_path / "unsigned"
     root.mkdir()
@@ -317,6 +348,19 @@ def test_cli_rejects_nonpositive_worker_timeout_before_reading_inputs(tmp_path):
                 "--breparg-root", str(tmp_path / "BrepARG"),
                 "--output-dir", str(tmp_path / "output"),
                 "--worker-timeout-seconds", "0",
+            ]
+        )
+    assert caught.value.code == 2
+
+
+def test_cli_requires_isolated_workers_for_production_backend(tmp_path):
+    with pytest.raises(SystemExit) as caught:
+        main(
+            [
+                "--calibration-manifest", str(tmp_path / "missing.jsonl"),
+                "--breparg-root", str(tmp_path / "BrepARG"),
+                "--output-dir", str(tmp_path / "output"),
+                "--assembly-backend", "production",
             ]
         )
     assert caught.value.code == 2

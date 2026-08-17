@@ -12,7 +12,7 @@ import random
 import sys
 import time
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
 
@@ -336,21 +336,43 @@ def cpu_joint_optimize(
     face_edge_adj: list[list[int]],
     *,
     iterations: int = 200,
+    edge_bboxes: np.ndarray | None = None,
+    edge_scale_resolver: Callable[..., float] | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Place reconstructed NCS patches using BrepARG-equivalent CPU fitting."""
+    """Place reconstructed NCS patches using BrepARG-equivalent CPU fitting.
+
+    The optional resolver lets an isolated production-source evaluation share
+    the production closed-edge scaling rule without changing any existing
+    calibration path.
+    """
     import torch
 
     edge_ncs = np.asarray(edge_ncs, dtype=np.float32)
+    if edge_bboxes is not None:
+        edge_bboxes = np.asarray(edge_bboxes, dtype=np.float32)
+        if edge_bboxes.shape != (len(edge_ncs), 6):
+            raise ValueError(
+                f"edge_bboxes must have shape ({len(edge_ncs)}, 6), got {edge_bboxes.shape}"
+            )
     edge_vertex_se = np.asarray(unique_vertices, dtype=np.float32)[
         np.asarray(edge_vertex_adj, dtype=np.int64)
     ]
     edge_wcs_chunks: list[np.ndarray] = []
-    for curve, vertex_se in zip(edge_ncs, edge_vertex_se):
+    for edge_index, (curve, vertex_se) in enumerate(zip(edge_ncs, edge_vertex_se)):
         endpoints = curve[[0, -1]]
         target_scale = float(np.linalg.norm(vertex_se[0] - vertex_se[1]))
-        ncs_scale = max(float(np.linalg.norm(endpoints[0] - endpoints[1])), 1e-8)
-        updated = curve * (target_scale / ncs_scale)
-        scaled_endpoints = endpoints * (target_scale / ncs_scale)
+        ncs_scale = float(np.linalg.norm(endpoints[0] - endpoints[1]))
+        if edge_scale_resolver is None:
+            edge_scale = target_scale / max(ncs_scale, 1e-8)
+        else:
+            bbox = edge_bboxes[edge_index] if edge_bboxes is not None else None
+            edge_scale = float(
+                edge_scale_resolver(target_scale, ncs_scale, curve, bbox)
+            )
+        if not np.isfinite(edge_scale) or edge_scale < 0:
+            raise ValueError(f"edge {edge_index} has invalid scale {edge_scale!r}")
+        updated = curve * edge_scale
+        scaled_endpoints = endpoints * edge_scale
         offset = vertex_se - scaled_endpoints
         reversed_offset = vertex_se - scaled_endpoints[::-1]
         if np.abs(reversed_offset[0] - reversed_offset[1]).mean() < np.abs(offset[0] - offset[1]).mean():

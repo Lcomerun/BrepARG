@@ -1,0 +1,1035 @@
+From 835ed0d25c2ffd85f9a878879063de4cbb10dba4 Mon Sep 17 00:00:00 2001
+From: unknown <1872544187@qq.com>
+Date: Mon, 17 Aug 2026 19:17:56 +0800
+Subject: [PATCH] fix: harden production assembly topology
+
+---
+ test_utils_topology.py | 161 ++++++++++
+ utils.py               | 688 +++++++++++++++++++++++++++++++++--------
+ 2 files changed, 728 insertions(+), 121 deletions(-)
+ create mode 100644 test_utils_topology.py
+
+diff --git a/test_utils_topology.py b/test_utils_topology.py
+new file mode 100644
+index 0000000..edb9d25
+--- /dev/null
++++ b/test_utils_topology.py
+@@ -0,0 +1,161 @@
++import unittest
++from unittest import mock
++
++import numpy as np
++
++import utils
++
++
++class FaceEdgeAdjacencyTests(unittest.TestCase):
++    def test_declared_sparse_face_ids_are_preserved(self):
++        adjacency = utils.build_face_edge_adjacency(
++            [19, 3, 50],
++            [(3, 50), (19, 19), (50, 19)],
++            num_edges=3,
++        )
++
++        self.assertEqual(adjacency, [[1, 2], [0], [0, 2]])
++
++    def test_self_edge_is_not_appended_twice(self):
++        adjacency = utils.build_face_edge_adjacency(
++            [8],
++            [(8, 8)],
++            num_edges=1,
++        )
++
++        self.assertEqual(adjacency, [[0]])
++
++    def test_duplicate_face_id_is_rejected(self):
++        with self.assertRaisesRegex(ValueError, "duplicate face ids"):
++            utils.build_face_edge_adjacency([1, 1], [], num_edges=0)
++
++    def test_unknown_face_reference_is_rejected(self):
++        with self.assertRaisesRegex(ValueError, "undeclared face ids"):
++            utils.build_face_edge_adjacency([1], [(1, 2)], num_edges=1)
++
++    def test_topology_count_mismatch_is_rejected(self):
++        with self.assertRaisesRegex(ValueError, "topology count"):
++            utils.build_face_edge_adjacency([1], [], num_edges=1)
++
++
++class SequenceParsingTests(unittest.TestCase):
++    def test_parser_returns_declared_face_ids_in_face_order(self):
++        vocab = {
++            "face_index_offset": 10,
++            "face_index_size": 20,
++            "se_token_offset": 20,
++            "se_codebook_size": 10,
++            "bbox_token_offset": 30,
++            "bbox_index_size": 10,
++            "START_TOKEN": 0,
++            "SEP_TOKEN": 1,
++            "END_TOKEN": 2,
++            "se_tokens_per_element": 1,
++            "bbox_tokens_per_element": 1,
++        }
++        sequence = [
++            0,
++            30, 20, 17,
++            31, 21, 13,
++            1,
++            17, 13, 32, 22,
++            2,
++        ]
++
++        with mock.patch.object(
++            utils,
++            "decode_tokens_to_ncs",
++            side_effect=lambda tokens, *_args: list(tokens),
++        ), mock.patch.object(
++            utils,
++            "dequantize_bbox",
++            side_effect=lambda values, **_kwargs: values.astype(float),
++        ):
++            parsed = utils.parse_sequence_to_cad_data(sequence, vocab, object())
++
++        self.assertEqual(parsed["face_ids"], [7, 3])
++        self.assertEqual(parsed["edgeFace_adj"], [(7, 3)])
++
++
++class TrimLoopTests(unittest.TestCase):
++    def test_one_edge_closed_loop_is_retained(self):
++        loops = utils.build_trim_loops([0], np.asarray([[7, 7]], dtype=np.int64))
++
++        self.assertEqual(loops, [[(0, False)]])
++
++    def test_open_or_branching_loop_falls_back_to_legacy_grouping(self):
++        loops = utils.build_trim_loops(
++            [0, 1, 2],
++            np.asarray([[0, 1], [1, 2], [1, 3]], dtype=np.int64),
++        )
++
++        self.assertEqual(sorted(edge_id for loop in loops for edge_id, _ in loop), [0, 1, 2])
++
++    def test_empty_face_is_rejected(self):
++        with self.assertRaisesRegex(ValueError, "no incident edge"):
++            utils.build_trim_loops([], np.empty((0, 2), dtype=np.int64))
++
++
++class EdgeScaleTests(unittest.TestCase):
++    def test_closed_edge_uses_decoded_bbox_extent(self):
++        points = np.asarray(
++            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 0.0], [0.0, 0.0, 0.0]]
++        )
++        scale = utils.resolve_edge_scale(
++            0.0,
++            0.0,
++            points,
++            edge_bbox=np.asarray([0.0, 0.0, 0.0, 4.0, 0.0, 0.0]),
++        )
++
++        self.assertTrue(np.isfinite(scale))
++        self.assertAlmostEqual(scale, 4.0 / np.sqrt(2.0))
++
++    def test_fully_degenerate_closed_edge_stays_finite(self):
++        scale = utils.resolve_edge_scale(
++            0.0,
++            0.0,
++            np.zeros((32, 3)),
++            edge_bbox=np.zeros(6),
++        )
++
++        self.assertEqual(scale, 1.0)
++
++    def test_unmatched_degenerate_endpoint_scale_is_rejected(self):
++        with self.assertRaisesRegex(ValueError, "degenerate endpoint scale"):
++            utils.resolve_edge_scale(
++                1.0,
++                0.0,
++                np.zeros((32, 3)),
++                edge_bbox=np.zeros(6),
++            )
++
++
++class CurveSanitizationTests(unittest.TestCase):
++    def test_consecutive_duplicate_points_are_removed_without_reordering(self):
++        cleaned = utils._sanitize_curve_points(
++            np.asarray(
++                [
++                    [0.0, 0.0, 0.0],
++                    [0.0, 0.0, 0.0],
++                    [1.0, 0.0, 0.0],
++                    [1.0, 0.0, 0.0],
++                    [2.0, 0.0, 0.0],
++                ]
++            )
++        )
++
++        np.testing.assert_array_equal(
++            cleaned,
++            np.asarray(
++                [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [2.0, 0.0, 0.0]]
++            ),
++        )
++
++    def test_collapsed_curve_is_rejected(self):
++        with self.assertRaisesRegex(ValueError, "collapses|negligible"):
++            utils._sanitize_curve_points(np.zeros((32, 3)))
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/utils.py b/utils.py
+index 7183f94..6eb731b 100644
+--- a/utils.py
++++ b/utils.py
+@@ -3,7 +3,7 @@ import os
+ import numpy as np
+ import torch
+ import torch.nn as nn
+-from typing import List, Tuple, Dict
++from typing import List, Tuple, Dict, Optional, Sequence
+ from diffusers import VQModel
+ from chamferdist import ChamferDistance
+ from OCC.Core.gp import gp_Pnt
+@@ -21,7 +21,7 @@ from OCC.Core.ShapeAnalysis import ShapeAnalysis_Wire, ShapeAnalysis_Shell, Shap
+ from OCC.Core.ShapeExtend import ShapeExtend_WireData
+ from OCC.Core.TopoDS import TopoDS_Shape, TopoDS_Face, TopoDS_Wire, TopoDS_Shell, TopoDS_Edge, TopoDS_Solid, topods_Shell, topods_Wire, topods_Face, topods_Edge
+ from OCC.Core.TopExp import TopExp_Explorer
+-from OCC.Core.TopAbs import TopAbs_FACE, TopAbs_WIRE, TopAbs_SHELL, TopAbs_EDGE
++from OCC.Core.TopAbs import TopAbs_FACE, TopAbs_WIRE, TopAbs_SHELL, TopAbs_EDGE, TopAbs_SOLID
+ from OCC.Core.STEPControl import STEPControl_Reader
+ from OCC.Core.IFSelect import IFSelect_RetDone
+ from OCC.Extend.TopologyUtils import TopologyExplorer, WireExplorer
+@@ -677,7 +677,8 @@ def parse_sequence_to_cad_data(sequence, vocab_info, se_vqvae_model, device="cpu
+     bbox_tokens_per_element = vocab_info['bbox_tokens_per_element']
+     
+     i = 0
+-    faces, face_bboxes, edges, edge_bboxes, edge_face_pairs = [], [], [], [], []
++    faces, face_ids, face_bboxes = [], [], []
++    edges, edge_bboxes, edge_face_pairs = [], [], []
+     
+     if i < len(sequence) and sequence[i] == START_TOKEN:
+         i += 1
+@@ -701,10 +702,16 @@ def parse_sequence_to_cad_data(sequence, vocab_info, se_vqvae_model, device="cpu
+         if i < len(sequence) and face_index_offset <= sequence[i] < face_index_offset + vocab_info['face_index_size']:
+             face_idx = sequence[i] - face_index_offset
+             i += 1
+-            if len(bbox_tokens) == bbox_tokens_per_element: face_bboxes.append(bbox_tokens)
+-            else: print(f"Warning: Face {face_idx} bbox token count mismatch, expected {bbox_tokens_per_element}, got {len(bbox_tokens)}")
+-            if len(face_tokens) == se_tokens_per_element: faces.append(face_tokens)
+-            else: print(f"Warning: Face {face_idx} feature token count mismatch, expected {se_tokens_per_element}, got {len(face_tokens)}")
++            valid_bbox = len(bbox_tokens) == bbox_tokens_per_element
++            valid_features = len(face_tokens) == se_tokens_per_element
++            if not valid_bbox:
++                print(f"Warning: Face {face_idx} bbox token count mismatch, expected {bbox_tokens_per_element}, got {len(bbox_tokens)}")
++            if not valid_features:
++                print(f"Warning: Face {face_idx} feature token count mismatch, expected {se_tokens_per_element}, got {len(face_tokens)}")
++            if valid_bbox and valid_features:
++                face_ids.append(face_idx)
++                face_bboxes.append(bbox_tokens)
++                faces.append(face_tokens)
+         else:
+             if i < len(sequence): print(f"Warning: Expected face index token at position {i}, but found {sequence[i]}")
+             i += 1
+@@ -721,7 +728,6 @@ def parse_sequence_to_cad_data(sequence, vocab_info, se_vqvae_model, device="cpu
+             src_face = sequence[i] - face_index_offset
+             dst_face = sequence[i+1] - face_index_offset
+             i += 2
+-            edge_face_pairs.append((src_face, dst_face))
+             
+             bbox_tokens = []
+             for _ in range(bbox_tokens_per_element):
+@@ -729,8 +735,9 @@ def parse_sequence_to_cad_data(sequence, vocab_info, se_vqvae_model, device="cpu
+                     bbox_tokens.append(sequence[i] - bbox_token_offset)
+                     i += 1
+                 else: break
+-            if len(bbox_tokens) == bbox_tokens_per_element: edge_bboxes.append(bbox_tokens)
+-            else: print(f"Warning: Edge {len(edge_bboxes)} bbox token count mismatch, expected {bbox_tokens_per_element}, got {len(bbox_tokens)}")
++            valid_bbox = len(bbox_tokens) == bbox_tokens_per_element
++            if not valid_bbox:
++                print(f"Warning: Edge {len(edge_bboxes)} bbox token count mismatch, expected {bbox_tokens_per_element}, got {len(bbox_tokens)}")
+             
+             # REMOVED: Block for parsing vertex tokens is completely removed.
+             
+@@ -740,8 +747,13 @@ def parse_sequence_to_cad_data(sequence, vocab_info, se_vqvae_model, device="cpu
+                     edge_tokens.append(sequence[i] - se_token_offset)
+                     i += 1
+                 else: break
+-            if len(edge_tokens) == se_tokens_per_element: edges.append(edge_tokens)
+-            else: print(f"Warning: Edge {len(edges)} feature token count mismatch, expected {se_tokens_per_element}, got {len(edge_tokens)}")
++            valid_features = len(edge_tokens) == se_tokens_per_element
++            if not valid_features:
++                print(f"Warning: Edge {len(edges)} feature token count mismatch, expected {se_tokens_per_element}, got {len(edge_tokens)}")
++            if valid_bbox and valid_features:
++                edge_face_pairs.append((src_face, dst_face))
++                edge_bboxes.append(bbox_tokens)
++                edges.append(edge_tokens)
+         else:
+             if i < len(sequence): print(f"Warning: Expected source/target face index, but found token {sequence[i]} at position {i}")
+             i += 1
+@@ -762,10 +774,50 @@ def parse_sequence_to_cad_data(sequence, vocab_info, se_vqvae_model, device="cpu
+         'edge_ncs': edge_ncs,
+         'surf_bbox_wcs': surf_bbox_wcs,
+         'edge_bbox_wcs': edge_bbox_wcs,
++        'face_ids': face_ids,
+         'edgeFace_adj': edge_face_pairs,
+         'graph_edges': ( [p[0] for p in edge_face_pairs], [p[1] for p in edge_face_pairs] )
+     }
+ 
++
++def build_face_edge_adjacency(
++    face_ids: Sequence[int],
++    edge_face_pairs: Sequence[tuple[int, int]],
++    *,
++    num_edges: Optional[int] = None,
++) -> list[list[int]]:
++    """Map declared face IDs to decoded-face positions without truncation.
++
++    A malformed sequence is rejected rather than silently remapping or
++    dropping topology. A self-edge belongs to its face exactly once.
++    """
++    normalized_ids = [int(face_id) for face_id in face_ids]
++    if len(set(normalized_ids)) != len(normalized_ids):
++        raise ValueError("decoded sequence contains duplicate face ids")
++    if num_edges is not None and len(edge_face_pairs) != int(num_edges):
++        raise ValueError(
++            f"edge topology count ({len(edge_face_pairs)}) does not match decoded edge count ({num_edges})"
++        )
++
++    face_id_to_index = {face_id: index for index, face_id in enumerate(normalized_ids)}
++    adjacency = [[] for _ in normalized_ids]
++    for edge_index, pair in enumerate(edge_face_pairs):
++        if len(pair) != 2:
++            raise ValueError(f"edge {edge_index} must reference exactly two faces")
++        source_id, target_id = (int(pair[0]), int(pair[1]))
++        missing = [
++            face_id for face_id in (source_id, target_id)
++            if face_id not in face_id_to_index
++        ]
++        if missing:
++            raise ValueError(
++                f"edge {edge_index} references undeclared face ids {missing}"
++            )
++        adjacency[face_id_to_index[source_id]].append(edge_index)
++        if target_id != source_id:
++            adjacency[face_id_to_index[target_id]].append(edge_index)
++    return adjacency
++
+ def reconstruct_cad_from_sequence(sequence, vocab_info, se_vqvae_model, device="cpu", scale_factor=1.0, verbose=True):
+     """Reconstruct CAD model from autoregressive sequence (no explicit vertex data)"""
+     # print("=== Starting CAD Reconstruction from Sequence (No Vertex Data) ===")
+@@ -779,55 +831,36 @@ def reconstruct_cad_from_sequence(sequence, vocab_info, se_vqvae_model, device="
+         edge_ncs_vqvae = np.array(cad_data['edge_ncs'])
+         surf_bbox_vqvae = np.array(cad_data['surf_bbox_wcs'])
+         edge_bbox_vqvae = np.array(cad_data['edge_bbox_wcs'])
+-        graph_edges = cad_data['graph_edges']
+ 
++        if len(surf_bbox_vqvae) != len(surf_ncs_vqvae):
++            print(f"Face bbox count ({len(surf_bbox_vqvae)}) does not match NCS data count ({len(surf_ncs_vqvae)}). Cannot continue.")
++            return None
+         if len(edge_bbox_vqvae) != len(edge_ncs_vqvae):
+             print(f"Edge bbox count ({len(edge_bbox_vqvae)}) does not match NCS data count ({len(edge_ncs_vqvae)}). Cannot continue.")
+             return None
+ 
+-        # # 1. Build face-edge adjacency relationship
+-        # src_nodes, dst_nodes = graph_edges
+-        # FaceEdgeAdj = []
+-        # face_adj = [[] for _ in range(len(surf_ncs_vqvae))]
+-        # for edge_idx, (node1, node2) in enumerate(zip(graph_edges[0], graph_edges[1])):
+-        #     face_adj[node1].append(edge_idx)
+-        #     face_adj[node2].append(edge_idx)
+-        # FaceEdgeAdj.extend(face_adj)
+-        
+-        # 1. Intelligently reverse derive index mapping
+-        src_nodes, dst_nodes = graph_edges
+-        all_face_ids_in_sequence = sorted(list(set(src_nodes) | set(dst_nodes)))
+-        num_actual_faces = len(surf_ncs_vqvae)
+-
+-        # 2. Check if derived ID count matches actual decoded face count
+-        if len(all_face_ids_in_sequence) != num_actual_faces:
+-            print(f"Warning: Derived unique face ID count ({len(all_face_ids_in_sequence)}) does not match actual decoded face count ({num_actual_faces}).")
+-            # If counts don't match, create a truncated mapping
+-            if len(all_face_ids_in_sequence) > num_actual_faces:
+-                face_id_to_idx_map = {all_face_ids_in_sequence[i]: i for i in range(num_actual_faces)}
+-            else:
+-                 face_id_to_idx_map = {face_id: i for i, face_id in enumerate(all_face_ids_in_sequence)}
+-        else:
+-            # Counts match, create complete mapping
+-            face_id_to_idx_map = {face_id: i for i, face_id in enumerate(all_face_ids_in_sequence)}
+-
+-        # 3. Use mapping to safely build face-edge adjacency relationship
+-        FaceEdgeAdj = []
+-        face_adj = [[] for _ in range(num_actual_faces)]
+-        
+-        for edge_idx, (node1_id, node2_id) in enumerate(zip(src_nodes, dst_nodes)):
+-            if node1_id in face_id_to_idx_map and node2_id in face_id_to_idx_map:
+-                internal_idx1 = face_id_to_idx_map[node1_id]
+-                internal_idx2 = face_id_to_idx_map[node2_id]
+-                
+-                face_adj[internal_idx1].append(edge_idx)
+-                face_adj[internal_idx2].append(edge_idx)
+-            else:
+-                if verbose:
+-                    print(f"Warning: Edge {edge_idx} references unknown face indices ({node1_id}, {node2_id}). This edge will be ignored.")
+-        
+-        # 4. Assign the built adjacency list
+-        FaceEdgeAdj.extend(face_adj)
++        try:
++            FaceEdgeAdj = build_face_edge_adjacency(
++                cad_data['face_ids'],
++                cad_data['edgeFace_adj'],
++                num_edges=len(edge_ncs_vqvae),
++            )
++        except ValueError as error:
++            if verbose:
++                print(f"Invalid face-edge topology: {error}")
++            return None
++        if len(FaceEdgeAdj) != len(surf_ncs_vqvae):
++            if verbose:
++                print("Face topology count does not match decoded face count. Cannot continue.")
++            return None
++        empty_faces = [
++            face_index for face_index, edge_indices in enumerate(FaceEdgeAdj)
++            if not edge_indices
++        ]
++        if empty_faces:
++            if verbose:
++                print(f"Faces without incident edges cannot be trimmed: {empty_faces}")
++            return None
+ 
+         # Convert NCS edge data to WCS coordinates
+         edge_wcs_list = []
+@@ -1067,7 +1100,17 @@ def reconstruct_cad_from_sequence(sequence, vocab_info, se_vqvae_model, device="
+ 
+         try:
+             # print("Step 2: Joint Optimization...")
+-            surf_wcs, edge_wcs = joint_optimize(surf_ncs_vqvae, edge_ncs_vqvae, surf_bbox_vqvae, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, len(edge_ncs_vqvae), len(surf_ncs_vqvae))
++            surf_wcs, edge_wcs = joint_optimize(
++                surf_ncs_vqvae,
++                edge_ncs_vqvae,
++                surf_bbox_vqvae,
++                unique_vertices,
++                EdgeVertexAdj,
++                FaceEdgeAdj,
++                len(edge_ncs_vqvae),
++                len(surf_ncs_vqvae),
++                edge_bboxes=edge_bbox_vqvae,
++            )
+         except Exception as e:
+             import traceback
+             print(f'Joint optimization failed: {e}'); traceback.print_exc(); return None
+@@ -1257,10 +1300,64 @@ def edge2loop(face_edges):
+     print(f"  edge2loop: Found {len(merged_vertex_id)} unique merged vertices: {merged_vertex_id}")
+     return merged_vertex_id
+ 
+-def joint_optimize(surf_ncs, edge_ncs, surfPos, unique_vertices, EdgeVertexAdj, FaceEdgeAdj, num_edge, num_surf):
++
++def resolve_edge_scale(scale_target, scale_ncs, edge_points, edge_bbox=None):
++    """Choose an edge scale without dividing by a closed-edge endpoint span."""
++    epsilon = 1e-9
++    if scale_target > epsilon and scale_ncs > epsilon:
++        return scale_target / scale_ncs
++
++    if edge_bbox is not None:
++        bbox = np.asarray(edge_bbox, dtype=np.float64)
++        if bbox.shape != (6,):
++            raise ValueError(f"edge bbox must have shape (6,), got {bbox.shape}")
++        curve_span = get_bbox_norm(np.asarray(edge_points).reshape(-1, 3))
++        bbox_span = np.linalg.norm(bbox[3:] - bbox[:3])
++        if curve_span > epsilon and bbox_span > epsilon:
++            return bbox_span / curve_span
++
++    if scale_target <= epsilon and scale_ncs <= epsilon:
++        # No physical extent remains to infer a scale. Preserve the decoded
++        # closed curve instead of producing inf or NaN.
++        return 1.0
++    raise ValueError("edge has a degenerate endpoint scale without usable bbox extent")
++
++
++def joint_optimize(
++    surf_ncs,
++    edge_ncs,
++    surfPos,
++    unique_vertices,
++    EdgeVertexAdj,
++    FaceEdgeAdj,
++    num_edge,
++    num_surf,
++    edge_bboxes=None,
++):
+     """
+     Jointly optimize the face/edge/vertex based on topology
+     """
++    if len(FaceEdgeAdj) != num_surf:
++        raise ValueError(
++            f"face adjacency count ({len(FaceEdgeAdj)}) does not match surface count ({num_surf})"
++        )
++    empty_faces = [
++        face_index for face_index, edge_indices in enumerate(FaceEdgeAdj)
++        if not edge_indices
++    ]
++    if empty_faces:
++        raise ValueError(f"faces without incident edges: {empty_faces}")
++    if len(EdgeVertexAdj) != num_edge:
++        raise ValueError(
++            f"edge vertex count ({len(EdgeVertexAdj)}) does not match edge count ({num_edge})"
++        )
++    if edge_bboxes is not None:
++        edge_bboxes = np.asarray(edge_bboxes, dtype=np.float64)
++        if edge_bboxes.shape != (num_edge, 6):
++            raise ValueError(
++                f"edge_bboxes must have shape ({num_edge}, 6), got {edge_bboxes.shape}"
++            )
++
+     loss_func = ChamferDistance()
+ 
+     model = STModel(num_edge, num_surf)
+@@ -1283,7 +1380,10 @@ def joint_optimize(surf_ncs, edge_ncs, surfPos, unique_vertices, EdgeVertexAdj,
+         # scale
+         scale_target = np.linalg.norm(vertex_se[0] - vertex_se[1])
+         scale_ncs = np.linalg.norm(ncs_se[0] - ncs_se[1])
+-        edge_scale = scale_target / scale_ncs
++        edge_bbox = edge_bboxes[len(edge_wcs)] if edge_bboxes is not None else None
++        edge_scale = resolve_edge_scale(
++            scale_target, scale_ncs, wcs, edge_bbox=edge_bbox
++        )
+ 
+         edge_updated = wcs*edge_scale
+         edge_se = ncs_se*edge_scale  
+@@ -1416,14 +1516,375 @@ def get_bbox_norm(point_cloud):
+     max_point = np.array([max_x, max_y, max_z])
+     return np.linalg.norm(max_point - min_point)
+ 
++
++def _edge_endpoints(edge_vertex_adj, edge_id):
++    row = np.asarray(edge_vertex_adj, dtype=np.int64)[int(edge_id)]
++    if row.shape != (2,):
++        raise ValueError(f"edge {edge_id} does not have exactly two endpoint ids")
++    return int(row[0]), int(row[1])
++
++
++def _historical_face_loops(face_edge_ids, edge_vertex_adj):
++    """Keep the existing grouping as a narrow fallback for uncertain topology."""
++    edge_ids = [int(edge_id) for edge_id in face_edge_ids]
++    if not edge_ids:
++        raise ValueError("face has no incident edge")
++    if len(set(edge_ids)) != len(edge_ids):
++        raise ValueError("face contains duplicate edge ids")
++    if len(edge_ids) == 1:
++        return [[(edge_ids[0], False)]]
++
++    corners = np.asarray(edge_vertex_adj, dtype=np.int64)[edge_ids]
++    ordered = [0]
++    seen = [int(corners[0, 0]), int(corners[0, 1])]
++    next_vertex = int(corners[0, 1])
++    local_loops = []
++    guard = 0
++    while len(ordered) < len(corners):
++        while True:
++            next_rows = [
++                row_index for row_index, edge in enumerate(corners)
++                if next_vertex in edge and row_index not in ordered
++            ]
++            if not next_rows:
++                break
++            ordered.extend(next_rows)
++            difference = list(set(map(int, corners[next_rows][0])) - set(seen))
++            if not difference:
++                break
++            next_vertex = int(difference[0])
++            seen.extend(map(int, corners[next_rows][0]))
++            guard += 1
++            if guard > len(corners) * 2:
++                raise ValueError("historical loop traversal exceeded guard")
++        consumed = sum(len(loop) for loop in local_loops)
++        local_loops.append(ordered[consumed:])
++        remaining = list(set(range(len(corners))) - set(ordered))
++        if not remaining:
++            break
++        next_corner = int(remaining[0])
++        ordered.append(next_corner)
++        seen.extend(map(int, corners[next_corner]))
++        next_vertex = int(corners[next_corner, 1])
++        guard += 1
++        if guard > len(corners) * 2:
++            raise ValueError("historical loop discovery exceeded guard")
++    if sorted(ordered) != list(range(len(edge_ids))):
++        raise ValueError("historical loop grouping does not cover all face edges")
++    return [[(edge_ids[local_index], False) for local_index in loop] for loop in local_loops]
++
++
++def _orient_ordered_loop(loop, edge_vertex_adj):
++    edge_ids = [int(edge_id) for edge_id, _ in loop]
++    if not edge_ids:
++        raise ValueError("wire loop is empty")
++    for first_reverse in (False, True):
++        first_a, first_b = _edge_endpoints(edge_vertex_adj, edge_ids[0])
++        start = first_b if first_reverse else first_a
++        current = first_a if first_reverse else first_b
++        oriented = [(edge_ids[0], first_reverse)]
++        possible = True
++        for edge_id in edge_ids[1:]:
++            edge_a, edge_b = _edge_endpoints(edge_vertex_adj, edge_id)
++            if edge_a == current:
++                oriented.append((edge_id, False))
++                current = edge_b
++            elif edge_b == current:
++                oriented.append((edge_id, True))
++                current = edge_a
++            else:
++                possible = False
++                break
++        if possible and current == start:
++            return oriented
++    raise ValueError("ordered wire edges cannot be oriented into a closed loop")
++
++
++def _directed_face_loops(face_edge_ids, edge_vertex_adj):
++    """Return deterministic closed loops while retaining one-edge closed loops."""
++    edge_ids = [int(edge_id) for edge_id in face_edge_ids]
++    if not edge_ids:
++        raise ValueError("face has no incident edge")
++    if len(set(edge_ids)) != len(edge_ids):
++        raise ValueError("face contains duplicate edge ids")
++
++    loops = []
++    remaining = set()
++    for edge_id in edge_ids:
++        start, end = _edge_endpoints(edge_vertex_adj, edge_id)
++        if start == end:
++            loops.append([(edge_id, False)])
++        else:
++            remaining.add(edge_id)
++    while remaining:
++        first = min(remaining)
++        start_vertex, current_vertex = _edge_endpoints(edge_vertex_adj, first)
++        loop = [(first, False)]
++        remaining.remove(first)
++        while current_vertex != start_vertex:
++            candidates = [
++                edge_id for edge_id in sorted(remaining)
++                if current_vertex in _edge_endpoints(edge_vertex_adj, edge_id)
++            ]
++            if len(candidates) != 1:
++                raise ValueError(
++                    f"trim loop is open or branching at vertex {current_vertex}: {candidates}"
++                )
++            edge_id = candidates[0]
++            vertex_a, vertex_b = _edge_endpoints(edge_vertex_adj, edge_id)
++            reverse = vertex_b == current_vertex
++            current_vertex = vertex_a if reverse else vertex_b
++            loop.append((edge_id, reverse))
++            remaining.remove(edge_id)
++            if len(loop) > len(edge_ids):
++                raise ValueError("trim loop traversal exceeded incident edge count")
++        loops.append(loop)
++    return loops
++
++
++def build_trim_loops(face_edge_ids, edge_vertex_adj):
++    """Orient the legacy grouping when proven; otherwise retain its grouping."""
++    historical = _historical_face_loops(face_edge_ids, edge_vertex_adj)
++    try:
++        return [_orient_ordered_loop(loop, edge_vertex_adj) for loop in historical]
++    except ValueError:
++        try:
++            return _directed_face_loops(face_edge_ids, edge_vertex_adj)
++        except ValueError:
++            return historical
++
++
++_LOCAL_WIRE_MAX_AREA_RELATIVE_DELTA = 0.005
++_LOCAL_WIRE_MAX_BOUNDARY_LENGTH_RELATIVE_DELTA = 0.005
++_LOCAL_WIRE_MAX_BBOX_RELATIVE_DELTA = 0.001
++
++
++def _relative_delta(first, second):
++    return abs(float(first) - float(second)) / max(
++        abs(float(first)), abs(float(second)), 1e-12
++    )
++
++
++def _face_geometry_signature(face):
++    from OCC.Core.BRepBndLib import brepbndlib
++    from OCC.Core.BRepGProp import brepgprop
++    from OCC.Core.Bnd import Bnd_Box
++    from OCC.Core.GProp import GProp_GProps
++
++    topology = TopologyExplorer(face)
++    wire_count = sum(1 for _ in topology.wires())
++    edge_count = sum(1 for _ in TopologyExplorer(face).edges())
++    surface = GProp_GProps()
++    boundary = GProp_GProps()
++    brepgprop.SurfaceProperties(face, surface)
++    brepgprop.LinearProperties(face, boundary)
++    box = Bnd_Box()
++    brepbndlib.Add(face, box)
++    if box.IsVoid():
++        raise ValueError("face has a void bounding box")
++    return {
++        "wire_count": int(wire_count),
++        "edge_count": int(edge_count),
++        "area": abs(float(surface.Mass())),
++        "boundary_length": abs(float(boundary.Mass())),
++        "bbox": [float(value) for value in box.Get()],
++    }
++
++
++def _preserves_face_geometry(before, after):
++    area_delta = _relative_delta(before["area"], after["area"])
++    boundary_delta = _relative_delta(
++        before["boundary_length"], after["boundary_length"]
++    )
++    before_bbox = [float(value) for value in before["bbox"]]
++    after_bbox = [float(value) for value in after["bbox"]]
++    bbox_scale = max(max(abs(value) for value in before_bbox + after_bbox), 1.0)
++    bbox_delta = max(
++        abs(first - second) for first, second in zip(before_bbox, after_bbox)
++    ) / bbox_scale
++    return {
++        "accepted": bool(
++            before["wire_count"] == after["wire_count"]
++            and before["edge_count"] == after["edge_count"]
++            and before["area"] > 0.0
++            and after["area"] > 0.0
++            and area_delta <= _LOCAL_WIRE_MAX_AREA_RELATIVE_DELTA
++            and boundary_delta <= _LOCAL_WIRE_MAX_BOUNDARY_LENGTH_RELATIVE_DELTA
++            and bbox_delta <= _LOCAL_WIRE_MAX_BBOX_RELATIVE_DELTA
++        ),
++        "area_relative_delta": area_delta,
++        "boundary_length_relative_delta": boundary_delta,
++        "bbox_relative_delta": bbox_delta,
++    }
++
++
++def _wire_self_intersection_count(face):
++    bad_wire_count = 0
++    for wire in TopologyExplorer(face).wires():
++        fixer = ShapeFix_Wire(wire, face, 0.01)
++        fixer.Load(wire)
++        fixer.SetFace(face)
++        fixer.SetPrecision(0.01)
++        fixer.SetMaxTolerance(1.0)
++        fixer.SetMinTolerance(1e-4)
++        fixer.Perform()
++        analysis = ShapeAnalysis_Wire(fixer.Wire(), face, 0.01)
++        analysis.Load(fixer.Wire())
++        analysis.SetPrecision(0.01)
++        analysis.SetSurface(BRep_Tool.Surface(face))
++        if bool(analysis.CheckSelfIntersection()):
++            bad_wire_count += 1
++    return bad_wire_count
++
++
++def repair_face_local_topology(face):
++    """Repair diagnosed wire intersections, returning the input on rejection."""
++    from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_Copy
++    from OCC.Core.BRepCheck import BRepCheck_Analyzer
++    from OCC.Core.TopoDS import topods
++
++    try:
++        bad_before = _wire_self_intersection_count(face)
++        if not bad_before:
++            return face, {"accepted": False, "reason": "no_self_intersection"}
++        before = _face_geometry_signature(face)
++        copied = BRepBuilderAPI_Copy(face, True, False)
++        candidate = topods.Face(copied.Shape())
++        fixer = ShapeFix_Face(candidate)
++        fixer.SetPrecision(0.01)
++        fixer.SetMinTolerance(1e-4)
++        fixer.SetMaxTolerance(0.1)
++        fixer.SetFixWireMode(True)
++        fixer.SetFixIntersectingWiresMode(True)
++        fixer.SetFixLoopWiresMode(False)
++        wire_tool = fixer.FixWireTool()
++        wire_tool.SetPrecision(0.01)
++        wire_tool.SetMinTolerance(1e-4)
++        wire_tool.SetMaxTolerance(0.1)
++        wire_tool.SetClosedWireMode(False)
++        wire_tool.SetFixReorderMode(False)
++        wire_tool.SetFixConnectedMode(False)
++        wire_tool.SetFixEdgeCurvesMode(False)
++        wire_tool.SetFixAddPCurveMode(False)
++        wire_tool.SetFixReversed2dMode(False)
++        wire_tool.SetFixSameParameterMode(False)
++        wire_tool.SetFixSelfIntersectionMode(True)
++        wire_tool.SetFixSelfIntersectingEdgeMode(True)
++        wire_tool.SetFixIntersectingEdgesMode(True)
++        wire_tool.SetFixNonAdjacentIntersectingEdgesMode(True)
++        wire_tool.SetModifyGeometryMode(False)
++        wire_tool.SetModifyTopologyMode(True)
++        wire_tool.SetModifyRemoveLoopMode(False)
++        performed = bool(fixer.Perform())
++        fixer.FixIntersectingWires()
++        fixer.FixOrientation()
++        candidate = fixer.Face()
++        bad_after = _wire_self_intersection_count(candidate)
++        preservation = _preserves_face_geometry(
++            before, _face_geometry_signature(candidate)
++        )
++        accepted = bool(
++            performed
++            and bad_after == 0
++            and BRepCheck_Analyzer(candidate, True).IsValid()
++            and preservation["accepted"]
++        )
++        return (
++            candidate if accepted else face,
++            {
++                "accepted": accepted,
++                "reason": "accepted" if accepted else "candidate_rejected",
++                "bad_wire_count_before": bad_before,
++                "bad_wire_count_after": bad_after,
++                "geometry_preservation": preservation,
++            },
++        )
++    except Exception as error:
++        return face, {
++            "accepted": False,
++            "reason": "repair_error",
++            "error_type": type(error).__name__,
++            "error": str(error),
++        }
++
++
++def _sanitize_curve_points(points):
++    values = np.asarray(points, dtype=np.float64)
++    if values.ndim != 2 or values.shape[1] != 3:
++        raise ValueError(f"curve points must have shape [N,3], got {values.shape}")
++    if len(values) < 2 or not np.isfinite(values).all():
++        raise ValueError("curve points are insufficient or non-finite")
++    keep = np.ones(len(values), dtype=bool)
++    keep[1:] = np.linalg.norm(np.diff(values, axis=0), axis=1) > 1e-9
++    cleaned = values[keep]
++    if len(cleaned) < 2:
++        raise ValueError("curve collapses after duplicate-point removal")
++    if get_bbox_norm(cleaned) <= 1e-9:
++        raise ValueError("curve has negligible geometric span")
++    return cleaned
++
++
++def _fit_curve_with_fallback(points, edge_index):
++    raw = np.asarray(points, dtype=np.float64)
++    candidates = [raw]
++    try:
++        cleaned = _sanitize_curve_points(raw)
++        if len(cleaned) != len(raw):
++            candidates.append(cleaned)
++    except ValueError:
++        pass
++    last_error = None
++    for candidate in candidates:
++        values = TColgp_Array1OfPnt(1, len(candidate))
++        for point_index, point in enumerate(candidate, 1):
++            values.SetValue(point_index, gp_Pnt(*map(float, point)))
++        for min_degree, max_degree, tolerance in (
++            (0, 8, 5e-3), (0, 8, 8e-3), (0, 8, 5e-2),
++            (3, 8, 5e-3), (2, 8, 5e-3), (1, 8, 5e-3),
++            (3, 8, 8e-3), (2, 8, 8e-3), (1, 8, 8e-3),
++            (3, 8, 5e-2), (2, 8, 5e-2), (1, 8, 5e-2),
++        ):
++            try:
++                fitter = GeomAPI_PointsToBSpline(
++                    values, min_degree, max_degree, GeomAbs_C2, tolerance
++                )
++                if fitter.IsDone():
++                    return fitter.Curve()
++            except Exception as error:
++                last_error = error
++    if last_error is not None:
++        raise RuntimeError(
++            f"curve fit failed for edge {edge_index}: {type(last_error).__name__}: {last_error}"
++        )
++    raise RuntimeError(f"curve fit failed for edge {edge_index}")
++
++
+ def construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj):
+     """
+     Fit parametric surfaces / curves and trim into B-rep
+     """
++    surf_wcs = np.asarray(surf_wcs, dtype=np.float64)
++    edge_wcs = np.asarray(edge_wcs, dtype=np.float64)
++    EdgeVertexAdj = np.asarray(EdgeVertexAdj, dtype=np.int64)
++    if len(FaceEdgeAdj) != len(surf_wcs):
++        raise ValueError(
++            f"face adjacency count ({len(FaceEdgeAdj)}) does not match surface count ({len(surf_wcs)})"
++        )
++    for face_index, edge_indices in enumerate(FaceEdgeAdj):
++        if not edge_indices:
++            raise ValueError(f"face {face_index} has no incident edge")
++        for edge_index in edge_indices:
++            if int(edge_index) < 0 or int(edge_index) >= len(edge_wcs):
++                raise ValueError(f"face {face_index} references unknown edge {edge_index}")
++    if len(EdgeVertexAdj) != len(edge_wcs):
++        raise ValueError(
++            f"edge vertex count ({len(EdgeVertexAdj)}) does not match edge count ({len(edge_wcs)})"
++        )
++
+     # print('Building the B-rep...')
+     # Fit surface bspline
+     recon_faces = []  
+-    for points in surf_wcs:
++    for face_index, points in enumerate(surf_wcs):
+         num_u_points, num_v_points = 32, 32
+         uv_points_array = TColgp_Array2OfPnt(1, num_u_points, 1, num_v_points)
+         for u_index in range(1,num_u_points+1):
+@@ -1431,103 +1892,72 @@ def construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj):
+                 pt = points[u_index-1, v_index-1]
+                 point_3d = gp_Pnt(float(pt[0]), float(pt[1]), float(pt[2]))
+                 uv_points_array.SetValue(u_index, v_index, point_3d)
+-        approx_face =  GeomAPI_PointsToBSplineSurface(uv_points_array, 3, 8, GeomAbs_C2, 5e-2).Surface() 
++        surface_fitter = GeomAPI_PointsToBSplineSurface(uv_points_array, 3, 8, GeomAbs_C2, 5e-2)
++        if not surface_fitter.IsDone():
++            raise RuntimeError(f"surface fit failed for face {face_index}")
++        approx_face = surface_fitter.Surface()
+         recon_faces.append(approx_face)
+ 
+     recon_edges = []
+-    for points in edge_wcs:
+-        num_u_points = 32
+-        u_points_array = TColgp_Array1OfPnt(1, num_u_points)
+-        for u_index in range(1,num_u_points+1):
+-            pt = points[u_index-1]
+-            point_2d = gp_Pnt(float(pt[0]), float(pt[1]), float(pt[2]))
+-            u_points_array.SetValue(u_index, point_2d)
+-        try:
+-            approx_edge = GeomAPI_PointsToBSpline(u_points_array, 0, 8, GeomAbs_C2, 5e-3).Curve()  
+-        except Exception as e:
+-            print('high precision failed, trying mid precision...')
+-            try:
+-                approx_edge = GeomAPI_PointsToBSpline(u_points_array, 0, 8, GeomAbs_C2, 8e-3).Curve()  
+-            except Exception as e:
+-                print('mid precision failed, trying low precision...')
+-                approx_edge = GeomAPI_PointsToBSpline(u_points_array, 0, 8, GeomAbs_C2, 5e-2).Curve()
+-        recon_edges.append(approx_edge)
++    for edge_index, points in enumerate(edge_wcs):
++        recon_edges.append(_fit_curve_with_fallback(points, edge_index))
+ 
+     # Create edges from the curve list
+     edge_list = []
+-    for curve in recon_edges:
+-        edge = BRepBuilderAPI_MakeEdge(curve).Edge()
+-        edge_list.append(edge)
++    for edge_index, curve in enumerate(recon_edges):
++        edge_builder = BRepBuilderAPI_MakeEdge(curve)
++        if not edge_builder.IsDone():
++            raise RuntimeError(f"edge builder failed for edge {edge_index}")
++        edge_list.append(edge_builder.Edge())
+ 
+     # Cut surface by wire 
+     post_faces = []
+     post_edges = []
+     for idx,(surface, edge_incides) in enumerate(zip(recon_faces, FaceEdgeAdj)):
+-        corner_indices = EdgeVertexAdj[edge_incides]
+-        
+-        # ordered loop
+-        loops = []
+-        ordered = [0]
+-        seen_corners = [corner_indices[0,0], corner_indices[0,1]]
+-        next_index = corner_indices[0,1]
+-
+-        while len(ordered)<len(corner_indices):
+-            while True:
+-                next_row = [idx for idx, edge in enumerate(corner_indices) if next_index in edge and idx not in ordered]
+-                if len(next_row) == 0:
+-                    break
+-                ordered += next_row
+-                next_index = list(set(corner_indices[next_row][0]) - set(seen_corners))
+-                if len(next_index)==0:break
+-                else: next_index = next_index[0]
+-                seen_corners += [corner_indices[next_row][0][0], corner_indices[next_row][0][1]]
+-            
+-            cur_len = int(np.array([len(x) for x in loops]).sum()) # add to inner / outer loops
+-            loops.append(ordered[cur_len:])
+-            
+-            # Swith to next loop
+-            next_corner =  list(set(np.arange(len(corner_indices))) - set(ordered))
+-            if len(next_corner)==0:break
+-            else: next_corner = next_corner[0]
+-            next_index = corner_indices[next_corner][0]
+-            ordered += [next_corner]
+-            seen_corners += [corner_indices[next_corner][0], corner_indices[next_corner][1]]
+-            next_index = corner_indices[next_corner][1]
++        edge_incides = [int(edge_index) for edge_index in edge_incides]
++        loops = build_trim_loops(edge_incides, EdgeVertexAdj)
+ 
+         # Determine the outer loop by bounding box length (?)
+-        bbox_spans = [get_bbox_norm(edge_wcs[x].reshape(-1,3)) for x in loops]
++        bbox_spans = [get_bbox_norm(edge_wcs[[edge_id for edge_id, _ in loop]].reshape(-1,3)) for loop in loops]
+         
+         # Create wire from ordered edges
+-        _edge_incides_ = [edge_incides[x] for x in ordered]
+-        edge_post = [edge_list[x] for x in _edge_incides_]
+-        post_edges += edge_post
++        post_edges += [edge_list[edge_id] for loop in loops for edge_id, _ in loop]
+ 
+         out_idx = np.argmax(np.array(bbox_spans))
+         inner_idx = list(set(np.arange(len(loops))) - set([out_idx]))
+ 
+         # Outer wire
+         wire_builder = BRepBuilderAPI_MakeWire()
+-        for edge_idx in loops[out_idx]:
+-            wire_builder.Add(edge_list[edge_incides[edge_idx]])
++        for edge_idx, reverse in loops[out_idx]:
++            edge = edge_list[edge_idx].Reversed() if reverse else edge_list[edge_idx]
++            wire_builder.Add(edge)
++        if not wire_builder.IsDone():
++            raise RuntimeError(f"wire builder failed for face {idx} outer loop")
+         outer_wire = wire_builder.Wire()
+ 
+         # Inner wires
+         inner_wires = []
+-        for idx in inner_idx:
++        for inner_loop_idx in inner_idx:
+             wire_builder = BRepBuilderAPI_MakeWire()
+-            for edge_idx in loops[idx]:
+-                wire_builder.Add(edge_list[edge_incides[edge_idx]])
++            for edge_idx, reverse in loops[inner_loop_idx]:
++                edge = edge_list[edge_idx].Reversed() if reverse else edge_list[edge_idx]
++                wire_builder.Add(edge)
++            if not wire_builder.IsDone():
++                raise RuntimeError(f"wire builder failed for face {idx} inner loop {inner_loop_idx}")
+             inner_wires.append(wire_builder.Wire())
+     
+         # Cut by wires
+         face_builder = BRepBuilderAPI_MakeFace(surface, outer_wire)
+         for wire in inner_wires:
+             face_builder.Add(wire)
++        if not face_builder.IsDone():
++            raise RuntimeError(f"face builder failed for face {idx}")
+         face_occ = face_builder.Shape()
+         fix_wires(face_occ)
+         add_pcurves_to_edges(face_occ)
+         fix_wires(face_occ)
+         face_occ = fix_face(face_occ)
++        face_occ, _repair_diagnostics = repair_face_local_topology(face_occ)
+         post_faces.append(face_occ)
+ 
+     # Sew faces into solid 
+@@ -1542,8 +1972,24 @@ def construct_brep(surf_wcs, edge_wcs, FaceEdgeAdj, EdgeVertexAdj):
+ 
+     # Make a solid from the shell
+     maker = BRepBuilderAPI_MakeSolid()
+-    maker.Add(sewn_shell)
++    shell_explorer = TopExp_Explorer(sewn_shell, TopAbs_SHELL)
++    shells = []
++    while shell_explorer.More():
++        shells.append(topods_Shell(shell_explorer.Current()))
++        shell_explorer.Next()
++    if len(shells) != 1:
++        raise RuntimeError(f"sewing produced {len(shells)} shells")
++    maker.Add(shells[0])
+     maker.Build()
++    if not maker.IsDone():
++        raise RuntimeError("solid builder failed")
+     solid = maker.Solid()
++    solid_explorer = TopExp_Explorer(solid, TopAbs_SOLID)
++    solid_count = 0
++    while solid_explorer.More():
++        solid_count += 1
++        solid_explorer.Next()
++    if solid_count != 1:
++        raise RuntimeError(f"solid builder produced {solid_count} solids")
+ 
+     return solid
+-- 
+2.54.0.windows.1
+

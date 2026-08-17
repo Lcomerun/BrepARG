@@ -1,0 +1,35 @@
+{
+  "artifacts": [
+    {
+      "bytes": 364,
+      "path": "archive_validation.json",
+      "sha256": "798a298b20a822483b7705e41bcf7a1dd687ff2b309e55ae8546ba22df041be1"
+    },
+    {
+      "bytes": 72646,
+      "path": "assembly_repair_attempts.jsonl",
+      "sha256": "fa7a12e532eb7c591df096ab5bf478c15e5dd3f8ba5e67c155c8190ed24e42c1"
+    },
+    {
+      "bytes": 1979,
+      "path": "assembly_repair_run.json",
+      "sha256": "531b527793db96b7950ae6d84068596eaab3db5f3ca08c5a8792b97ae4ff854c"
+    },
+    {
+      "bytes": 7063,
+      "path": "assembly_repair_summary.json",
+      "sha256": "a78db92edbda7919691421fb4db2e76dae5843149008a42717e7bc8fd3d4c1b9"
+    },
+    {
+      "bytes": 602,
+      "path": "README.md",
+      "sha256": "bc1da27a329e0da8f0e909f03b38cf797859a056051bbe5f135d67f34fe768df"
+    },
+    {
+      "bytes": 4,
+      "path": "repair_diagnostics_summary.json",
+      "sha256": "e3566b3a06430868d71e9287dfd6c6c520a3da027aabea01951d407ee131dc2f"
+    }
+  ],
+  "generated_at": "2026-08-17T19:17:07+08:00"
+}
