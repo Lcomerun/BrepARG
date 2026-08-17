@@ -48,6 +48,7 @@ def construct_brep_directed(
     curve_fit_fallback: bool = True,
     wire_continuity: bool = True,
     single_solid: bool = True,
+    pcurve_self_intersection: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks."""
     root = Path(breparg_root).resolve()
@@ -68,6 +69,8 @@ def construct_brep_directed(
     from OCC.Core.TopAbs import TopAbs_SHELL, TopAbs_SOLID
     from OCC.Core.TopExp import TopExp_Explorer
     from OCC.Core.TopoDS import topods_Shell
+    from OCC.Core.ShapeFix import ShapeFix_Face, ShapeFix_Wire
+    from OCC.Extend.TopologyUtils import TopologyExplorer
 
     surf_wcs = np.asarray(surf_wcs, dtype=np.float64)
     edge_wcs = np.asarray(edge_wcs, dtype=np.float64)
@@ -175,8 +178,43 @@ def construct_brep_directed(
         face = face_builder.Shape()
         brep_utils.fix_wires(face)
         brep_utils.add_pcurves_to_edges(face)
-        brep_utils.fix_wires(face)
-        faces.append(brep_utils.fix_face(face))
+        if pcurve_self_intersection:
+            face_fixer = ShapeFix_Face(face)
+            face_fixer.SetPrecision(0.01)
+            face_fixer.SetMaxTolerance(0.1)
+            face_fixer.SetFixWireMode(True)
+            face_fixer.SetFixIntersectingWiresMode(True)
+            face_fixer.SetFixLoopWiresMode(True)
+            wire_tool = face_fixer.FixWireTool()
+            wire_tool.SetPrecision(0.01)
+            wire_tool.SetMinTolerance(1e-4)
+            wire_tool.SetMaxTolerance(0.1)
+            wire_tool.SetClosedWireMode(True)
+            wire_tool.SetFixReorderMode(True)
+            wire_tool.SetFixConnectedMode(True)
+            wire_tool.SetFixEdgeCurvesMode(True)
+            wire_tool.SetFixAddPCurveMode(True)
+            wire_tool.SetFixReversed2dMode(True)
+            wire_tool.SetFixSameParameterMode(True)
+            wire_tool.SetFixSelfIntersectionMode(True)
+            wire_tool.SetFixSelfIntersectingEdgeMode(True)
+            wire_tool.SetFixIntersectingEdgesMode(True)
+            wire_tool.SetFixNonAdjacentIntersectingEdgesMode(True)
+            wire_tool.SetModifyGeometryMode(True)
+            wire_tool.SetModifyTopologyMode(False)
+            wire_tool.SetModifyRemoveLoopMode(False)
+            fixed_wires = sum(1 for _ in TopologyExplorer(face).wires())
+            face_fixer.Perform()
+            face_fixer.FixIntersectingWires()
+            face_fixer.FixOrientation()
+            face = face_fixer.Face()
+            diagnostics.setdefault("pcurve_repair", {"faces": 0, "wires": 0})
+            diagnostics["pcurve_repair"]["faces"] += 1
+            diagnostics["pcurve_repair"]["wires"] += fixed_wires
+        else:
+            brep_utils.fix_wires(face)
+            face = brep_utils.fix_face(face)
+        faces.append(face)
 
     sewing = BRepBuilderAPI_Sewing()
     sewing.SetTolerance(1e-3)

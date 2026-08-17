@@ -23,6 +23,7 @@ def test_profile_kwargs_keep_switches_independent():
     assert profile_kwargs(RepairProfile("baseline")) == {
         "directed_trim": False, "curve_fit_fallback": False,
         "wire_continuity": False, "single_solid": False,
+        "pcurve_self_intersection": False,
     }
     assert profile_kwargs(RepairProfile("directed_trim", ("directed_trim",)))[
         "directed_trim"

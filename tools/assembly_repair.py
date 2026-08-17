@@ -18,6 +18,7 @@ REPAIR_SWITCHES = (
     "curve_fit_fallback",
     "wire_continuity",
     "single_solid",
+    "pcurve_self_intersection",
 )
 
 
@@ -43,8 +44,12 @@ COMBINED_PROFILE = RepairProfile("combined", REPAIR_SWITCHES)
 DIRECTED_CURVE_PROFILE = RepairProfile(
     "directed_trim_curve_fit", ("directed_trim", "curve_fit_fallback")
 )
+PCURVE_PROFILE = RepairProfile(
+    "directed_trim_pcurve", ("directed_trim", "pcurve_self_intersection")
+)
 DEFAULT_PROFILES = (
-    BASELINE_PROFILE, *INDIVIDUAL_PROFILES, DIRECTED_CURVE_PROFILE, COMBINED_PROFILE
+    BASELINE_PROFILE, *INDIVIDUAL_PROFILES, DIRECTED_CURVE_PROFILE, PCURVE_PROFILE,
+    COMBINED_PROFILE
 )
 
 

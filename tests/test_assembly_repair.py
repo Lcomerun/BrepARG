@@ -21,7 +21,9 @@ def test_profiles_are_independent_and_combined():
         "curve_fit_fallback",
         "wire_continuity",
         "single_solid",
+        "pcurve_self_intersection",
         "directed_trim_curve_fit",
+        "directed_trim_pcurve",
         "combined",
     ]
     assert parse_profiles(["directed_trim"])[0].enabled("directed_trim")
