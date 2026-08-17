@@ -1,0 +1,11 @@
+{
+  "forbidden_artifacts": [],
+  "machine_absolute_paths": false,
+  "no_checkpoint_step_or_raw_cad_bytes": true,
+  "schema": "git-safe-capacity-ab-assembly-validation-v1",
+  "source_report_bytes": 252598,
+  "source_report_files": 3,
+  "source_report_status": "COMPLETED",
+  "tensorboard_events": 0,
+  "valid": true
+}

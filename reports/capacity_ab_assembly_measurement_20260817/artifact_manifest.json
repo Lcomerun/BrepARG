@@ -1,0 +1,21 @@
+{
+  "artifacts": [
+    {
+      "bytes": 202831,
+      "path": "capacity_ab_assembly_measurement.json",
+      "sha256": "4541bb3cb93a03e66810135b2ab1fed3a8a6b98c1726f0e784e6bede6d8a0b1a"
+    },
+    {
+      "bytes": 1980,
+      "path": "capacity_ab_assembly_measurement.md",
+      "sha256": "88ad62e7924760260d3544280614f43e454c860744dbf1c482ccaaa78cd6d498"
+    },
+    {
+      "bytes": 47787,
+      "path": "capacity_ab_assembly_pairs.csv",
+      "sha256": "64a28b4c8b7c6180bb9f84e23800328a1e9fae27929e280c07c6c84ebc31e4de"
+    }
+  ],
+  "cohort_identity_sha256": "646693dbfde083bf16ae63f917658cc0c3b3eb71cedaeddfeea55007bd741474",
+  "schema": "git-safe-capacity-ab-assembly-v1"
+}

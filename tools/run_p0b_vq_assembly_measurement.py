@@ -1957,6 +1957,11 @@ def _render_capacity_reports(
         }
         for arm in (BYPASS_ARM, CAPACITY_VQ_ARM, CAPACITY_RVQ_ARM)
     }
+    vq_strict = int(summaries[CAPACITY_VQ_ARM]["strict_brep_valid"])
+    rvq_strict = int(summaries[CAPACITY_RVQ_ARM]["strict_brep_valid"])
+    bypass_strict = int(summaries[BYPASS_ARM]["strict_brep_valid"])
+    delta_q = float(decision["delta_q_bypass60k_minus_vq8192_pp"])
+    delta_r = int(HISTORICAL_STRICT_ONLY["original_gt"]) - bypass_strict
     payload = {
         "schema": "p0b-capacity-ab-assembly-measurement-v1",
         "status": "COMPLETED",
@@ -1997,6 +2002,21 @@ def _render_capacity_reports(
             "bypass60k_minus_vq8192_pp": capacity_delta_q(normalized[BYPASS_ARM], normalized[CAPACITY_VQ_ARM]),
             "bypass60k_minus_rvq_pp": capacity_delta_q(normalized[BYPASS_ARM], normalized[CAPACITY_RVQ_ARM]),
         },
+        "strict_comparison_counts": {
+            "gt_historical": HISTORICAL_STRICT_ONLY["original_gt"],
+            "bypass_300k_historical": HISTORICAL_STRICT_ONLY["continuous_bypass_64d"],
+            "fsq_300k_historical": HISTORICAL_STRICT_ONLY["fsq_8192_4d"],
+            "bypass_60k": bypass_strict,
+            "vq_8192_60k": vq_strict,
+        },
+        "gates_percentage_points": {
+            "delta_q_bypass60k_minus_vq8192": delta_q,
+            "delta_r_gt_minus_bypass60k": delta_r,
+            "capacity_trigger_delta_q_gt_5": delta_q > 5.0,
+            "boundary_loss_trigger_delta_r_gt_8": delta_r > 8,
+            "both_within_five_point_noise_band": abs(delta_q) <= 5.0 and abs(delta_r) <= 5.0,
+            "execution_status": "HELD_PENDING_ASSEMBLY_CHAIN_GATE_AND_REVIEW",
+        },
         "decision": decision,
         "sequence_cost": decision["rvq_sequence_cost"],
         "artifact_policy": {
@@ -2020,9 +2040,6 @@ def _render_capacity_reports(
             f"{summary['strict_brep_valid']} | {summary['both_valid']} | {summary['attempts']} | {curved_text} |"
         )
 
-    vq_strict = summaries[CAPACITY_VQ_ARM]["strict_brep_valid"]
-    rvq_strict = summaries[CAPACITY_RVQ_ARM]["strict_brep_valid"]
-    bypass_strict = summaries[BYPASS_ARM]["strict_brep_valid"]
     rvq_vq_strict = paired["rvq_vs_vq"]["strict_brep_valid"]
     markdown = f"""# VQ capacity A/B fixed-100-CAD assembly measurement
 
@@ -2036,11 +2053,19 @@ The three arms use the same ordered parent-isolated 100-CAD cohort and the uncha
 
 Strict validity is the preregistered decision outcome: bypass@60k={bypass_strict}/100, VQ-8192={vq_strict}/100, RVQ={rvq_strict}/100. `Delta_q` for VQ-8192 is `{decision['delta_q_bypass60k_minus_vq8192_pp']:.1f} pp`.
 
+| Strict comparison | GT | bypass@300k | FSQ@300k | bypass@60k | VQ-8192@60k |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Valid / 100 | {HISTORICAL_STRICT_ONLY['original_gt']} | {HISTORICAL_STRICT_ONLY['continuous_bypass_64d']} | {HISTORICAL_STRICT_ONLY['fsq_8192_4d']} | {bypass_strict} | {vq_strict} |
+
+- `Delta_q = bypass@60k - VQ-8192@60k = {delta_q:.1f} pp`.
+- `Delta_r = GT - bypass@60k = {delta_r} pp`.
+- The registered numeric boundary-loss trigger is `{str(delta_r > 8).lower()}` because `Delta_r > 8 pp`. Execution remains held for the independent assembly-chain gate and result review; this report does not start boundary-loss training.
+
 The RVQ-versus-VQ-8192 strict comparison has `{rvq_vq_strict['candidate_wins']}` RVQ-only successes and `{rvq_vq_strict['comparator_wins']}` VQ-only successes; exact two-sided McNemar `p={rvq_vq_strict['p_value_two_sided_exact']:.6g}`. RVQ is accepted only when this improvement is positive and significant at alpha `{MCNEMAR_ALPHA}` because its preregistered estimated downstream sequence length is **+36%** (`{RVQ_SEQUENCE_MULTIPLIER:.2f}x`).
 
 Decision: **{decision['decision']}**. {decision['reason']}
 
-The bypass rows are a historical reference loaded from the completed P0-B paired report (`{historical_report_sha256}`). Checkpoints, STEP files, reconstruction arrays, and raw CAD remain outside this report directory.
+The GT, bypass@300k, and FSQ@300k columns are historical strict-only references. The bypass@60k row is loaded from the completed P0-B paired report (`{historical_report_sha256}`). Checkpoints, STEP files, reconstruction arrays, and raw CAD remain outside this report directory.
 """
     _atomic_text(markdown_path, markdown)
     columns = list(pair_rows[0])

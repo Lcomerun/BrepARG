@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted for the next experiment. Boundary-consistency training and autoregressive work remain blocked.
+Accepted and executed. VQ-8192 is the selected learned quantizer. Boundary-consistency training and autoregressive work remain blocked by the separate assembly-chain gate.
 
 ## Date
 
@@ -31,6 +31,22 @@ The first schema-v1 capacity launch is diagnostic-only and must not be resumed. 
 
 In parallel, repair the original assembly chain against original-control inputs with independent switches and a no-regression gate. Do not combine the repaired chain with the capacity comparison until each track has a valid unchanged-control result. After selecting capacity and accepting repairs, remeasure the winner through the repaired chain.
 
+## Outcome
+
+The schema-v2 experiment completed both arms at seeds 3 and 4 for exactly 100 epochs on the same 60,000/12,000 patch inventories. All four formal tasks passed the finite-state and inventory validator with zero non-finite events. The fixed 100-CAD measurement then produced:
+
+| Arm | STEP readable | Native valid | Strict valid | Both valid |
+| --- | ---: | ---: | ---: | ---: |
+| bypass@60k | 95 | 73 | 70 | 64 |
+| VQ-8192/64D | 96 | 67 | 69 | 61 |
+| RVQ-2x4096/64D | 96 | 72 | 65 | 62 |
+
+VQ-8192 has `Delta_q = bypass - VQ = 1 percentage point`, within the pre-registered 5-point gate. RVQ is four strict-valid points worse than VQ-8192. Their paired strict outcomes contain five RVQ-only successes and nine VQ-only successes, with exact two-sided McNemar `p=0.42395`; this does not justify RVQ's estimated 36 percent sequence-length increase. The measured decision is therefore `VQ_8192_DIRECT_WIN`.
+
+The full registered strict comparison is `GT 84 | bypass@300k 70 | FSQ@300k 49 | bypass@60k 70 | VQ-8192@60k 69`. Therefore `Delta_r = GT - bypass@60k = 14 percentage points`; the original P0-B numeric boundary-loss trigger remains true even though the capacity tax is resolved.
+
+The capacity result resolves the learned-quantizer choice, not the assembly chain. The formal failure-triggered selector pilot restored only five of the six pre-registered invalid controls, and the best accepted no-regression assembly composition remains below the 95/100 release gate. The numeric boundary-loss trigger is recorded but its execution, sequence regeneration, and autoregressive training remain held until that separate gate and result review are resolved. Git-safe per-CAD evidence is in `reports/capacity_ab_assembly_measurement_20260817/`.
+
 ## Alternatives Considered
 
 ### Start boundary-consistency loss immediately
@@ -51,6 +67,6 @@ Rejected. A second residual codebook can collapse and its doubled surface-code s
 
 ## Consequences
 
-The training pipeline gains a second learned-VQ cardinality and a residual quantizer with staged usage metrics. Four formal 100-epoch runs and two fixed-cohort assembly measurements are required before boundary loss can start. VQ-8192 is preferred when it crosses the five-point gate because it preserves one token per latent position. RVQ remains viable only when measured utility offsets its longer sequence.
+The training pipeline retains both capacity probes for reproducibility, but VQ-8192 is the selected learned quantizer because it crosses the five-point gate while preserving one token per latent position. RVQ is not promoted: its lower strict validity and non-significant paired result do not offset the longer sequence.
 
-All new checkpoints and generated STEP files remain local. Git stores implementation, tests, complete lightweight histories, compact logs, TensorBoard events, per-CAD statistics, experiment manifests, and checkpoint hashes. If neither arm crosses the capacity gate, the representation layer is not released to full training, sequence regeneration, or autoregressive training.
+All new checkpoints and generated STEP files remain local. Git stores implementation, tests, complete lightweight histories, compact logs, TensorBoard events, per-CAD statistics, experiment manifests, and checkpoint hashes. Passing the quantizer-capacity gate does not release full training, sequence regeneration, or autoregressive training while the independent assembly-chain gate remains below target.

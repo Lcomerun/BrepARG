@@ -1142,9 +1142,26 @@ def test_capacity_runner_reuses_fixed_cohort_and_writes_paired_report(tmp_path):
     assert len(report["paired_rows"]) == 100
     assert report["sequence_cost"]["estimated_multiplier"] == pytest.approx(1.36)
     assert "+36%" in report["sequence_cost"]["label"]
+    assert report["strict_comparison_counts"] == {
+        "gt_historical": 84,
+        "bypass_300k_historical": 70,
+        "fsq_300k_historical": 49,
+        "bypass_60k": 70,
+        "vq_8192_60k": 64,
+    }
+    assert report["gates_percentage_points"] == {
+        "delta_q_bypass60k_minus_vq8192": 6.0,
+        "delta_r_gt_minus_bypass60k": 14,
+        "capacity_trigger_delta_q_gt_5": True,
+        "boundary_loss_trigger_delta_r_gt_8": True,
+        "both_within_five_point_noise_band": False,
+        "execution_status": "HELD_PENDING_ASSEMBLY_CHAIN_GATE_AND_REVIEW",
+    }
     markdown = (tmp_path / "capacity_reports" / "capacity_ab_assembly_measurement.md").read_text(encoding="utf-8")
     assert "+36%" in markdown
     assert "1.36x" in markdown
+    assert "| Valid / 100 | 84 | 70 | 49 | 70 | 64 |" in markdown
+    assert "Delta_r = GT - bypass@60k = 14 pp" in markdown
     assert len(commands) == 4
 
     second_calls = []
