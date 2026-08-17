@@ -145,8 +145,9 @@ def select_periodic_pcurve_branches(
     assert best is not None
     before_gaps = [
         _uv_distance(normalized[index - 1][1], normalized[index][0])
-        for index in range(count)
+        for index in range(1, count)
     ]
+    before_gaps.append(_uv_distance(normalized[-1][1], normalized[0][0]))
     offsets = best[1]
     return {
         "solved": True,
@@ -463,9 +464,11 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
     """Translate copied-edge pcurves by surface periods, never 3D curves.
 
     Seam edges carry two pcurves and are deliberately fixed in place in this
-    prototype.  A candidate is returned only if an actual branch discontinuity
-    closes, all 3D edge curves remain sample-identical, and discrete incidence,
-    conservative geometry, native validity, and strict wire checks all pass.
+    prototype.  Only wire indices diagnosed on a disposable copy are eligible
+    for translation.  A candidate is returned only if an actual branch
+    discontinuity closes, all 3D edge curves remain sample-identical, and
+    discrete incidence, conservative geometry, native validity, and strict
+    wire checks all pass.
     """
     from OCC.Core.BRep import BRep_Builder, BRep_Tool
     from OCC.Core.BRepCheck import BRepCheck_Analyzer
@@ -476,6 +479,22 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
     from OCC.Core.gp import gp_Vec2d
     from OCC.Extend.TopologyUtils import TopologyExplorer
 
+    diagnostic_copy = BRepBuilderAPI_Copy(face, True, False)
+    diagnostic_face = topods.Face(diagnostic_copy.Shape())
+    diagnosis = wire_self_intersection_state(diagnostic_face)
+    target_wire_indices = sorted(
+        {int(index) for index in diagnosis["bad_wire_indices"]}
+    )
+    diagnosis_source = "strict_wire_check_on_copy"
+    if not target_wire_indices:
+        return face, {
+            "attempted": False,
+            "accepted": False,
+            "reason": "no_diagnosed_self_intersection",
+            "diagnosis": diagnosis,
+            "diagnosis_source": diagnosis_source,
+        }
+
     before_data = _periodic_pcurve_continuity_data(face)
     before = _public_periodic_pcurve_state(before_data)
     if not before_data["available"]:
@@ -484,6 +503,8 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
             "accepted": False,
             "reason": before["reason"],
             "before": before,
+            "diagnosis": diagnosis,
+            "diagnosis_source": diagnosis_source,
         }
     if before_data["periods"] == [None, None]:
         return face, {
@@ -491,8 +512,20 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
             "accepted": False,
             "reason": "surface_not_periodic",
             "before": before,
+            "diagnosis": diagnosis,
+            "diagnosis_source": diagnosis_source,
         }
-    plans = [wire["plan"] for wire in before_data["wires"]]
+    wire_count = len(before_data["wires"])
+    if any(index < 0 or index >= wire_count for index in target_wire_indices):
+        return face, {
+            "attempted": False,
+            "accepted": False,
+            "reason": "diagnosed_wire_index_out_of_range",
+            "before": before,
+            "diagnosis": diagnosis,
+            "diagnosis_source": diagnosis_source,
+        }
+    plans = [before_data["wires"][index]["plan"] for index in target_wire_indices]
     if not any(
         plan["changed_edge_indices"]
         and plan["before_max_gap"] > PCURVE_GAP_TOLERANCE
@@ -504,6 +537,8 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
             "accepted": False,
             "reason": "no_repairable_periodic_branch_gap",
             "before": before,
+            "diagnosis": diagnosis,
+            "diagnosis_source": diagnosis_source,
         }
 
     original_edges = list(TopologyExplorer(face).edges())
@@ -515,6 +550,8 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
     builder = BRep_Builder()
     translations = []
     for wire_row in before_data["wires"]:
+        if wire_row["wire_index"] not in target_wire_indices:
+            continue
         for edge_index, offset in enumerate(wire_row["plan"]["offsets"]):
             if offset == (0, 0):
                 continue
@@ -527,6 +564,8 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
                     "accepted": False,
                     "reason": "seam_edge_translation_forbidden",
                     "before": before,
+                    "diagnosis": diagnosis,
+                    "diagnosis_source": diagnosis_source,
                 }
             pcurve, first, last = BRep_Tool.CurveOnSurface(copied_edge, candidate)
             if pcurve is None:
@@ -535,6 +574,8 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
                     "accepted": False,
                     "reason": "copied_edge_missing_pcurve",
                     "before": before,
+                    "diagnosis": diagnosis,
+                    "diagnosis_source": diagnosis_source,
                 }
             translated = Geom2d_Curve.DownCast(pcurve.Copy())
             translated.Translate(
@@ -564,12 +605,15 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
     curve_gate = corresponding_3d_curve_gate(original_edges, copied_edges)
     topology_equal = before_topology == after_topology
     native_valid = bool(BRepCheck_Analyzer(candidate, True).IsValid())
-    strict_state = wire_self_intersection_state(candidate)
+    verification_copy = BRepBuilderAPI_Copy(candidate, True, False)
+    verification_face = topods.Face(verification_copy.Shape())
+    strict_state = wire_self_intersection_state(verification_face)
     uv_closed = bool(
         after_data["available"]
         and all(
-            wire["plan"]["before_max_gap"] <= PCURVE_GAP_TOLERANCE
-            for wire in after_data["wires"]
+            after_data["wires"][index]["plan"]["before_max_gap"]
+            <= PCURVE_GAP_TOLERANCE
+            for index in target_wire_indices
         )
     )
     accepted = bool(
@@ -586,6 +630,9 @@ def repair_face_periodic_pcurve_branches(face: Any) -> tuple[Any, dict[str, Any]
         "accepted": accepted,
         "reason": "accepted" if accepted else "candidate_rejected",
         "strategy": "periodic_pcurve_branch_translation",
+        "diagnosis": diagnosis,
+        "diagnosis_source": diagnosis_source,
+        "target_wire_indices": target_wire_indices,
         "translations": translations,
         "before": before,
         "after": after,

@@ -1,5 +1,6 @@
 import json
 
+import tools.local_wire_topology_repair as local_repair
 from tools.local_wire_topology_repair import (
     face_geometry_signature,
     geometry_preservation_gate,
@@ -178,15 +179,38 @@ def _cylinder_face_with_shifted_pcurve():
     return face
 
 
-def test_periodic_pcurve_repair_changes_only_copied_uv_branch():
+def test_periodic_pcurve_repair_changes_only_diagnosed_copied_uv_branch(
+    monkeypatch,
+):
     face = _cylinder_face_with_shifted_pcurve()
     input_state = periodic_pcurve_continuity_state(face)
+    diagnosed_then_clean = iter(
+        [
+            {
+                "checked_wires": 1,
+                "bad_wire_indices": [0],
+                "self_intersection_count": 1,
+            },
+            {
+                "checked_wires": 1,
+                "bad_wire_indices": [],
+                "self_intersection_count": 0,
+            },
+        ]
+    )
+    monkeypatch.setattr(
+        local_repair,
+        "wire_self_intersection_state",
+        lambda _face: next(diagnosed_then_clean),
+    )
 
     result, diagnostics = repair_face_periodic_pcurve_branches(face)
 
     assert diagnostics["attempted"] is True
     assert diagnostics["accepted"] is True
     assert diagnostics["strategy"] == "periodic_pcurve_branch_translation"
+    assert diagnostics["diagnosis_source"] == "strict_wire_check_on_copy"
+    assert diagnostics["target_wire_indices"] == [0]
     assert diagnostics["uv_closed"] is True
     assert diagnostics["topology_incidence_equal"] is True
     assert diagnostics["curve_3d_preservation"]["accepted"] is True
@@ -203,7 +227,7 @@ def test_periodic_pcurve_repair_changes_only_copied_uv_branch():
 
 
 def test_periodic_pcurve_repair_leaves_nonperiodic_face_unchanged():
-    face = _planar_face(((0, 0, 0), (1, 0, 0), (1, 1, 0), (0, 1, 0)))
+    face = _planar_face(((0, 0, 0), (1, 1, 0), (0, 1, 0), (1, 0, 0)))
 
     result, diagnostics = repair_face_periodic_pcurve_branches(face)
 
@@ -211,3 +235,38 @@ def test_periodic_pcurve_repair_leaves_nonperiodic_face_unchanged():
     assert diagnostics["attempted"] is False
     assert diagnostics["accepted"] is False
     assert diagnostics["reason"] == "surface_not_periodic"
+
+
+def test_periodic_pcurve_repair_requires_a_diagnosed_wire():
+    face = _cylinder_face_with_shifted_pcurve()
+    input_state = periodic_pcurve_continuity_state(face)
+
+    result, diagnostics = repair_face_periodic_pcurve_branches(face)
+
+    assert result.IsSame(face)
+    assert diagnostics["attempted"] is False
+    assert diagnostics["accepted"] is False
+    assert diagnostics["reason"] == "no_diagnosed_self_intersection"
+    assert diagnostics["diagnosis_source"] == "strict_wire_check_on_copy"
+    assert diagnostics["diagnosis"]["bad_wire_indices"] == []
+    assert periodic_pcurve_continuity_state(face) == input_state
+
+
+def test_periodic_pcurve_repair_rejects_unknown_diagnosed_wire(monkeypatch):
+    face = _cylinder_face_with_shifted_pcurve()
+    monkeypatch.setattr(
+        local_repair,
+        "wire_self_intersection_state",
+        lambda _face: {
+            "checked_wires": 1,
+            "bad_wire_indices": [1],
+            "self_intersection_count": 1,
+        },
+    )
+
+    result, diagnostics = repair_face_periodic_pcurve_branches(face)
+
+    assert result.IsSame(face)
+    assert diagnostics["attempted"] is False
+    assert diagnostics["accepted"] is False
+    assert diagnostics["reason"] == "diagnosed_wire_index_out_of_range"
