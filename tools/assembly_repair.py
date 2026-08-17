@@ -96,6 +96,10 @@ DIRECTED_SURFACE_PRECISION_LOCAL_TOPOLOGY_PROFILE = RepairProfile(
     "directed_trim_surface_precision_local_intersection_topology",
     ("directed_trim", "surface_fit_precision", "local_intersection_topology"),
 )
+DIRECTED_SURFACE_PRECISION_CURVE_INTERPOLATE_PROFILE = RepairProfile(
+    "directed_trim_surface_precision_curve_interpolate",
+    ("directed_trim", "surface_fit_precision", "curve_interpolate"),
+)
 DIRECTED_SURFACE_PRECISION_RESCUE_LOCAL_TOPOLOGY_PROFILE = RepairProfile(
     "directed_trim_surface_precision_curve_rescue_local_intersection_topology",
     (
@@ -115,6 +119,7 @@ DEFAULT_PROFILES = (
     DIRECTED_INTERPOLATE_LOCAL_TOPOLOGY_PROFILE, PCURVE_PROFILE,
     DIRECTED_LOCAL_TOPOLOGY_PROFILE, DIRECTED_RESCUE_LOCAL_TOPOLOGY_PROFILE,
     DIRECTED_SURFACE_PRECISION_LOCAL_TOPOLOGY_PROFILE,
+    DIRECTED_SURFACE_PRECISION_CURVE_INTERPOLATE_PROFILE,
     DIRECTED_SURFACE_PRECISION_RESCUE_LOCAL_TOPOLOGY_PROFILE,
     DIRECTED_LOCAL_PCURVE_PROFILE, COMBINED_PROFILE
 )
