@@ -4,7 +4,9 @@
 
 Accepted and executed. `vq_8192_64d_random` is the selected capacity arm.
 Boundary-consistency training and autoregressive work remain blocked until the
-independent assembly gate passes.
+independent assembly gate passes. A post-hardening rerun from `D:\capv5` at
+commit `6f7436da50a5f455fd9af3c806676ac0f49b8f9f` reproduced the same
+decision and is now the authoritative capacity record.
 
 ## Date
 
@@ -57,6 +59,20 @@ the registered rule selects VQ-8192 directly. The Git-safe report is
 `reports/capacity_ab_assembly_measurement_20260817/`; its JSON SHA-256 is
 `b3c26d56fc90b9e0c8d09bbae49650232d16e2d3c52cdaa197f18733bff50c6d`.
 
+A later post-hardening rerun from `D:\capv5` at commit
+`6f7436da50a5f455fd9af3c806676ac0f49b8f9f` completed all four tasks at exactly
+100 epochs with `valid=true`, identical train/validation inventories, and
+runtime-resume compatibility. The fixed ordered 100-CAD measurement in
+`reports/capacity_ab_posthardening_assembly_measurement_20260818/` reproduced
+bypass `70/100`, VQ-8192 `69/100`, RVQ `65/100`, exact two-sided McNemar
+`p=0.4239501953125`, and the same `VQ_8192_DIRECT_WIN` decision. The report
+contains only `capacity_ab_assembly_measurement.json`,
+`capacity_ab_assembly_measurement.md`, and `capacity_ab_assembly_pairs.csv`,
+with SHA-256 hashes `cd89cf63d25f297c536f43789e32077f914b9c95a115ce5b432a28a6e7d0a9c1`,
+`7709496a07756d3a4da211098e4171091567f9ee0dd87527cdb6b0c440d06f83`, and
+`64a28b4c8b7c6180bb9f84e23800328a1e9fae27929e280c07c6c84ebc31e4de`
+respectively.
+
 ## Alternatives Considered
 
 ### Start boundary-consistency loss immediately
@@ -78,6 +94,8 @@ Rejected. A second residual codebook can collapse and its doubled surface-code s
 ## Consequences
 
 The training pipeline gains a second learned-VQ cardinality and a residual quantizer with staged usage metrics. The four formal runs and fixed-cohort measurement are complete. VQ-8192 is selected because it crosses the five-point capacity gate while preserving one token per latent position; RVQ is rejected because its strict validity is lower and its paired advantage is not significant.
+The 2026-08-17 measurement remains historical evidence, while the
+2026-08-18 post-hardening rerun is the authoritative capacity record.
 
 Capacity is therefore no longer the blocking decision. The independent production
 assembly result remains `88/100` strict-valid against the required `95/100`
