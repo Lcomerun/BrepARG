@@ -17,8 +17,10 @@ REPAIR_SWITCHES = (
     "directed_trim",
     "curve_fit_fallback",
     "curve_fit_rescue",
+    "curve_interpolate",
     "wire_continuity",
     "single_solid",
+    "near_vertex_reconciliation",
     "pcurve_self_intersection",
     "local_intersection_topology",
     "local_pcurve_continuity",
@@ -47,10 +49,13 @@ class RepairProfile:
                 "local_pcurve_continuity are alternative OCC repair strategies "
                 "and cannot be combined"
             )
-        if {"curve_fit_fallback", "curve_fit_rescue"} <= set(self.switches):
+        if len(
+            {"curve_fit_fallback", "curve_fit_rescue", "curve_interpolate"}
+            & set(self.switches)
+        ) > 1:
             raise ValueError(
-                "curve_fit_fallback and curve_fit_rescue are alternative curve "
-                "repair strategies and cannot be combined"
+                "curve_fit_fallback, curve_fit_rescue, and curve_interpolate are "
+                "alternative curve repair strategies and cannot be combined"
             )
 
     def enabled(self, name: str) -> bool:
@@ -68,6 +73,13 @@ COMBINED_PROFILE = RepairProfile(
 DIRECTED_CURVE_PROFILE = RepairProfile(
     "directed_trim_curve_fit", ("directed_trim", "curve_fit_fallback")
 )
+DIRECTED_CURVE_INTERPOLATE_PROFILE = RepairProfile(
+    "directed_trim_curve_interpolate", ("directed_trim", "curve_interpolate")
+)
+DIRECTED_INTERPOLATE_LOCAL_TOPOLOGY_PROFILE = RepairProfile(
+    "directed_trim_curve_interpolate_local_intersection_topology",
+    ("directed_trim", "curve_interpolate", "local_intersection_topology"),
+)
 PCURVE_PROFILE = RepairProfile(
     "directed_trim_pcurve", ("directed_trim", "pcurve_self_intersection")
 )
@@ -84,7 +96,9 @@ DIRECTED_LOCAL_PCURVE_PROFILE = RepairProfile(
     ("directed_trim", "local_pcurve_continuity"),
 )
 DEFAULT_PROFILES = (
-    BASELINE_PROFILE, *INDIVIDUAL_PROFILES, DIRECTED_CURVE_PROFILE, PCURVE_PROFILE,
+    BASELINE_PROFILE, *INDIVIDUAL_PROFILES, DIRECTED_CURVE_PROFILE,
+    DIRECTED_CURVE_INTERPOLATE_PROFILE,
+    DIRECTED_INTERPOLATE_LOCAL_TOPOLOGY_PROFILE, PCURVE_PROFILE,
     DIRECTED_LOCAL_TOPOLOGY_PROFILE, DIRECTED_RESCUE_LOCAL_TOPOLOGY_PROFILE,
     DIRECTED_LOCAL_PCURVE_PROFILE, COMBINED_PROFILE
 )

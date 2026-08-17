@@ -24,6 +24,13 @@ import numpy as np
 
 try:
     from .assembly_repair import RepairProfile, parse_profiles
+    from .assembly_selector_geometry import (
+        GEOMETRY_GATE_SCHEMA,
+        candidate_step_signature,
+        geometry_topology_gate,
+        input_geometry_signature,
+        sample_input_edge_points,
+    )
     from .diagnose_step_validity_components import diagnose_step
     from .directed_trim_assembly import construct_brep_directed
     from .run_assembly_calibration_oracle import cpu_joint_optimize
@@ -35,6 +42,13 @@ try:
     from .solid_topology_repair import reconcile_near_vertices
 except ImportError:  # direct script execution
     from assembly_repair import RepairProfile, parse_profiles
+    from assembly_selector_geometry import (
+        GEOMETRY_GATE_SCHEMA,
+        candidate_step_signature,
+        geometry_topology_gate,
+        input_geometry_signature,
+        sample_input_edge_points,
+    )
     from diagnose_step_validity_components import diagnose_step
     from directed_trim_assembly import construct_brep_directed
     from run_assembly_calibration_oracle import cpu_joint_optimize
@@ -60,6 +74,7 @@ ISOLATED_WORKER_SWITCHES = frozenset(
         # Contain it just like the face-level repair profiles so one native
         # failure cannot compromise the matrix denominator.
         "single_solid",
+        "near_vertex_reconciliation",
     }
 )
 
@@ -72,12 +87,76 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    return [
-        json.loads(line)
-        for line in Path(path).read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+SOURCE_PICKLE_BINDING_FIELDS = frozenset({"bytes", "sha256"})
+
+
+class SourcePickleBindingMismatch(RuntimeError):
+    """The source bytes changed or differ from the signed worker input."""
+
+
+def source_pickle_binding_from_bytes(payload: bytes) -> dict[str, Any]:
+    """Return a path-free identity for the exact bytes given to ``pickle.loads``."""
+    return {
+        "bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+    }
+
+
+def normalize_source_pickle_binding(binding: Mapping[str, Any]) -> dict[str, Any]:
+    """Reject malformed or path-bearing source bindings before an OCC attempt."""
+    if not isinstance(binding, Mapping) or set(binding) != SOURCE_PICKLE_BINDING_FIELDS:
+        raise ValueError("source pickle binding must contain exactly bytes and sha256")
+    byte_count = binding.get("bytes")
+    digest = binding.get("sha256")
+    if type(byte_count) is not int or byte_count < 0:
+        raise ValueError("source pickle binding bytes must be a non-negative integer")
+    if (
+        not isinstance(digest, str)
+        or len(digest) != 64
+        or any(character not in "0123456789abcdef" for character in digest)
+    ):
+        raise ValueError("source pickle binding sha256 must be a lowercase hex digest")
+    return {"bytes": byte_count, "sha256": digest}
+
+
+def source_pickle_binding(path: Path) -> dict[str, Any]:
+    """Hash a pickle without putting its host path into the binding payload."""
+    return source_pickle_binding_from_bytes(Path(path).read_bytes())
+
+
+def read_jsonl(
+    path: Path, *, recover_truncated_tail: bool = False
+) -> list[dict[str, Any]]:
+    """Read JSONL, optionally removing only an unterminated final torn write."""
+    target = Path(path)
+    payload = target.read_bytes()
+    rows: list[dict[str, Any]] = []
+    offset = 0
+    lines = payload.splitlines(keepends=True)
+    for index, raw_line in enumerate(lines):
+        stripped = raw_line.strip()
+        if not stripped:
+            offset += len(raw_line)
+            continue
+        try:
+            row = json.loads(stripped.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            torn_final_line = (
+                index == len(lines) - 1
+                and not raw_line.endswith((b"\n", b"\r"))
+            )
+            if recover_truncated_tail and torn_final_line:
+                with target.open("r+b") as handle:
+                    handle.truncate(offset)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                return rows
+            raise
+        if not isinstance(row, dict):
+            raise ValueError(f"expected JSON object in JSONL: {target}")
+        rows.append(row)
+        offset += len(raw_line)
+    return rows
 
 
 def append_jsonl(path: Path, row: Mapping[str, Any]) -> None:
@@ -85,6 +164,7 @@ def append_jsonl(path: Path, row: Mapping[str, Any]) -> None:
     with path.open("a", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(dict(row), sort_keys=True) + "\n")
         handle.flush()
+        os.fsync(handle.fileno())
 
 
 def requires_isolated_worker(profile: RepairProfile) -> bool:
@@ -228,6 +308,11 @@ def bind_run_manifest(output_dir: Path, payload: Mapping[str, Any]) -> dict[str,
                 f"{path}"
             )
         current["status"] = "RUNNING"
+        # A prior interrupted attempt may retain an exception string containing
+        # a host path.  It is failure-only state and must not survive a clean
+        # resumed completion or enter a Git-safe report.
+        current.pop("error", None)
+        current.pop("error_type", None)
         atomic_json(path, current)
         return current
     unexpected = [
@@ -268,7 +353,7 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
     if profile.name == "baseline":
         return {
             "directed_trim": False, "curve_fit_fallback": False,
-            "curve_fit_rescue": False,
+            "curve_fit_rescue": False, "curve_interpolate": False,
             "wire_continuity": False, "single_solid": False,
             "solid_topology_repair": False,
             "pcurve_self_intersection": False,
@@ -277,6 +362,7 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
         }
     result = {name: profile.enabled(name) for name in (
         "directed_trim", "curve_fit_fallback", "curve_fit_rescue",
+        "curve_interpolate",
         "wire_continuity", "single_solid",
         "pcurve_self_intersection", "local_intersection_topology",
         "local_pcurve_continuity",
@@ -284,7 +370,11 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
     # The legacy switch name remains the external profile name.  It used to
     # enforce only the output count; it now additionally enables the narrow,
     # separately documented topology reconciliation before construction.
-    result["solid_topology_repair"] = profile.enabled("single_solid")
+    near_vertex = profile.enabled("near_vertex_reconciliation")
+    result["single_solid"] = bool(result["single_solid"] or near_vertex)
+    result["solid_topology_repair"] = bool(
+        profile.enabled("single_solid") or near_vertex
+    )
     return result
 
 
@@ -356,7 +446,10 @@ def strict_validate_step(path: Path, *, breparg_root: Path) -> dict[str, Any]:
 
 def run_one(
     source: Mapping[str, Any], profile: RepairProfile, *, output_dir: Path,
-    breparg_root: Path, joint_iterations: int, assembly_backend: str = "directed",
+    breparg_root: Path, joint_iterations: int,
+    assembly_backend: str = "directed",
+    selector_geometry_gate: bool = False,
+    expected_source_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     cad_id = str(source["cad_id"])
     row: dict[str, Any] = {
@@ -369,8 +462,28 @@ def run_one(
     }
     started = time.perf_counter()
     try:
-        with Path(str(source["source_path"])).open("rb") as handle:
-            parsed = pickle.load(handle)
+        expected_binding = (
+            normalize_source_pickle_binding(expected_source_binding)
+            if expected_source_binding is not None
+            else None
+        )
+        source_path = Path(str(source["source_path"]))
+        source_bytes = source_path.read_bytes()
+        actual_binding = source_pickle_binding_from_bytes(source_bytes)
+        row["source_pickle_binding"] = actual_binding
+        if expected_binding is not None and actual_binding != expected_binding:
+            raise SourcePickleBindingMismatch(
+                "source pickle binding mismatched before load"
+            )
+        # Deserialize the bytes that were just hashed rather than reopening the
+        # path, so the reported binding names the exact input that OCC receives.
+        parsed = pickle.loads(source_bytes)
+        post_load_binding = source_pickle_binding(source_path)
+        row["source_pickle_binding_after"] = post_load_binding
+        if post_load_binding != actual_binding:
+            raise SourcePickleBindingMismatch(
+                "source pickle binding changed during load"
+            )
         face_edge_adj = [list(map(int, values)) for values in parsed["faceEdge_adj"]]
         edge_vertex_adj = np.asarray(parsed["edgeCorner_adj"], dtype=np.int64)
         if assembly_backend == "production":
@@ -433,6 +546,47 @@ def run_one(
             status="both_valid" if validity["both_valid"] else "step_invalid",
             step_saved=True, step_path=str(step_path), step_bytes=step_path.stat().st_size,
             step_sha256=sha256_file(step_path), assembly_diagnostics=diagnostics, **validity,
+        )
+        if selector_geometry_gate and validity["both_valid"]:
+            try:
+                effective = diagnostics.get("effective_input_topology") or {}
+                input_signature = input_geometry_signature(
+                    surf_wcs,
+                    edge_wcs,
+                    face_edge_adj,
+                    edge_vertex_adj,
+                    effective_vertex_count=effective.get("vertex_count"),
+                    effective_vertex_edge_incidence_counts=effective.get(
+                        "vertex_edge_incidence_counts"
+                    ),
+                )
+                candidate_signature = candidate_step_signature(
+                    step_path,
+                    input_edge_samples=sample_input_edge_points(edge_wcs),
+                    input_edge_polylines=edge_wcs,
+                    input_signature=input_signature,
+                    validity_components=validity["validity_components"],
+                )
+                row["selector_geometry_topology_gate"] = geometry_topology_gate(
+                    input_signature, candidate_signature
+                )
+            except Exception as exc:
+                # This native OCC work deliberately happens in this child worker.
+                # Its failure rejects only this candidate rather than losing the
+                # entire selector denominator in the parent process.
+                row["selector_geometry_topology_gate"] = {
+                    "schema": GEOMETRY_GATE_SCHEMA,
+                    "accepted": False,
+                    "checks": {"geometry_measurement_completed": False},
+                    "rejection_reasons": [
+                        f"geometry_measurement_error:{type(exc).__name__}"
+                    ],
+                }
+    except SourcePickleBindingMismatch as exc:
+        row.update(
+            status="source_binding_mismatch",
+            error_type=type(exc).__name__,
+            error=str(exc),
         )
     except Exception as exc:
         row.update(
@@ -559,6 +713,8 @@ def run_one_isolated(
     joint_iterations: int,
     timeout_seconds: float,
     assembly_backend: str = "directed",
+    selector_geometry_gate: bool = False,
+    expected_source_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run one OCC attempt in a child so a native exit cannot lose the matrix."""
     cad_id = str(source["cad_id"])
@@ -571,6 +727,22 @@ def run_one_isolated(
         / ".w"
         / uuid.uuid4().hex[:12]
     )
+    expected_binding: dict[str, Any] | None = None
+    if expected_source_binding is not None:
+        try:
+            expected_binding = normalize_source_pickle_binding(expected_source_binding)
+            if source_pickle_binding(Path(str(source["source_path"]))) != expected_binding:
+                raise SourcePickleBindingMismatch(
+                    "parent source pickle binding mismatched before worker launch"
+                )
+        except (OSError, TypeError, ValueError, SourcePickleBindingMismatch) as exc:
+            stdout_log.write_text("", encoding="utf-8")
+            stderr_log.write_text("", encoding="utf-8")
+            return worker_failure_row(
+                source, profile, status="worker_protocol_error", returncode=None,
+                stdout_log=stdout_log, stderr_log=stderr_log,
+                error=f"source binding preflight failed: {type(exc).__name__}",
+            )
     command = [
         sys.executable,
         str(Path(__file__).resolve()),
@@ -583,6 +755,15 @@ def run_one_isolated(
         "--worker-profile", profile.name,
         "--worker-cad-id", cad_id,
     ]
+    if expected_binding is not None:
+        command.extend(
+            [
+                "--worker-source-binding-json",
+                json.dumps(expected_binding, sort_keys=True, separators=(",", ":")),
+            ]
+        )
+    if selector_geometry_gate:
+        command.append("--selector-geometry-gate")
     try:
         completed = subprocess.run(
             command,
@@ -625,6 +806,13 @@ def run_one_isolated(
                 if row is None else f"worker exited {completed.returncode}"
             ),
         )
+    if row.get("status") == "source_binding_mismatch":
+        return worker_failure_row(
+            source, profile, status="worker_protocol_error",
+            returncode=int(completed.returncode), stdout_log=stdout_log,
+            stderr_log=stderr_log,
+            error="worker detected a source pickle binding mismatch",
+        )
     try:
         validate_attempt_row(row, source, profile)
     except (TypeError, ValueError) as exc:
@@ -633,6 +821,35 @@ def run_one_isolated(
             returncode=int(completed.returncode), stdout_log=stdout_log,
             stderr_log=stderr_log, error=str(exc),
         )
+    if expected_binding is not None:
+        try:
+            worker_binding = normalize_source_pickle_binding(
+                row["source_pickle_binding"]
+            )
+            worker_post_load_binding = normalize_source_pickle_binding(
+                row["source_pickle_binding_after"]
+            )
+            parent_post_worker_binding = source_pickle_binding(
+                Path(str(source["source_path"]))
+            )
+        except (KeyError, OSError, TypeError, ValueError) as exc:
+            return worker_failure_row(
+                source, profile, status="worker_protocol_error",
+                returncode=int(completed.returncode), stdout_log=stdout_log,
+                stderr_log=stderr_log,
+                error=f"worker source binding evidence invalid: {type(exc).__name__}",
+            )
+        if (
+            worker_binding != expected_binding
+            or worker_post_load_binding != expected_binding
+            or parent_post_worker_binding != expected_binding
+        ):
+            return worker_failure_row(
+                source, profile, status="worker_protocol_error",
+                returncode=int(completed.returncode), stdout_log=stdout_log,
+                stderr_log=stderr_log,
+                error="worker source pickle binding mismatched expected bytes",
+            )
     if row["step_saved"]:
         staged_step = attempt_dir / "steps" / profile.name / f"{cad_id}.step"
         if (
@@ -720,6 +937,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--worker-profile", default=None, help=argparse.SUPPRESS)
     parser.add_argument("--worker-cad-id", default=None, help=argparse.SUPPRESS)
     parser.add_argument(
+        "--worker-source-binding-json", default=None, help=argparse.SUPPRESS
+    )
+    parser.add_argument(
+        "--selector-geometry-gate",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
+    parser.add_argument(
         "--historical-invalid-only", action="store_true",
         help="Development-only pilot on the 16 historical failures; cannot pass the formal gate.",
     )
@@ -734,7 +959,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     full_source_rows = frozen_original_rows(args.calibration_manifest)
     if bool(args.worker_profile) != bool(args.worker_cad_id):
         parser.error("--worker-profile and --worker-cad-id must be provided together")
+    if args.worker_source_binding_json is not None and not args.worker_profile:
+        parser.error("--worker-source-binding-json is valid only for a worker")
     if args.worker_profile:
+        expected_source_binding = None
+        if args.worker_source_binding_json is not None:
+            try:
+                decoded_source_binding = json.loads(args.worker_source_binding_json)
+                expected_source_binding = normalize_source_pickle_binding(
+                    decoded_source_binding
+                )
+            except (TypeError, ValueError, json.JSONDecodeError):
+                parser.error("--worker-source-binding-json must be a valid source binding")
         profile = parse_profiles([args.worker_profile])[0]
         selected = [
             row for row in full_source_rows
@@ -747,6 +983,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             breparg_root=args.breparg_root,
             joint_iterations=args.joint_iterations,
             assembly_backend=args.assembly_backend,
+            selector_geometry_gate=bool(args.selector_geometry_gate),
+            expected_source_binding=expected_source_binding,
         )
         print(WORKER_MARKER + json.dumps(row, sort_keys=True), flush=True)
         return 0

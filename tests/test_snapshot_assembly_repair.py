@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from tools.snapshot_assembly_repair import sha256_file, snapshot
+from tools.snapshot_assembly_repair import compact_selection, sha256_file, snapshot
 
 
 def write_completed_run_manifest(run: Path, *, attempts: int = 1) -> dict:
@@ -125,6 +125,43 @@ def test_snapshot_rejects_summary_not_bound_to_run_manifest(tmp_path):
         snapshot(run, report, label="tampered")
 
 
+def test_snapshot_drops_transient_error_text_from_archived_manifest(tmp_path):
+    run = _single_solid_run(tmp_path)
+    manifest_path = run / "assembly_repair_run.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["error_type"] = "FileNotFoundError"
+    manifest["error"] = r"D:\private\input.pkl"
+    manifest_path.write_text(json.dumps(manifest))
+
+    snapshot(run, tmp_path / "report", label="sanitized")
+
+    archived = json.loads(
+        (tmp_path / "report" / "assembly_repair_run.json").read_text()
+    )
+    assert "error" not in archived
+    assert "error_type" not in archived
+    assert "D:\\private" not in (
+        tmp_path / "report" / "assembly_repair_run.json"
+    ).read_text()
+
+
+def test_selector_snapshot_rejects_unbound_candidate_ledger(tmp_path):
+    run = _single_solid_run(tmp_path)
+    matrix_path = run / "assembly_repair_matrix.jsonl"
+    candidate_path = run / "assembly_selector_candidates.jsonl"
+    candidate_path.write_text("{}\n")
+    manifest_path = run / "assembly_repair_run.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["payload"] = {"run_kind": "assembly-repair-selector-v1"}
+    manifest["final_matrix_sha256"] = sha256_file(matrix_path)
+    manifest["candidate_manifest_sha256"] = "not-the-ledger-hash"
+    manifest["candidate_attempts"] = 1
+    manifest_path.write_text(json.dumps(manifest))
+
+    with pytest.raises(RuntimeError, match="candidate ledger hash"):
+        snapshot(run, tmp_path / "report", label="tampered-selector")
+
+
 def _single_solid_run(tmp_path):
     run = tmp_path / "run"
     run.mkdir()
@@ -240,3 +277,58 @@ def test_snapshot_rejects_non_equivalent_reference_cohort(tmp_path):
             label="mismatch",
             reference_report_dir=reference,
         )
+
+
+def test_selector_snapshot_whitelists_candidate_evidence_and_rejects_paths():
+    selection = {
+        "schema": "assembly-repair-selector-v1",
+        "primary_profile": "primary",
+        "fallback_order": ["fallback"],
+        "attempted_profiles": ["primary", "fallback"],
+        "selected_profile": "fallback",
+        "selected_reason": "fallback_native_strict_geometry_passed",
+        "fallback_accepted": True,
+        "candidates": [
+            {
+                "profile": "primary",
+                "switches": ["primary"],
+                "status": "step_invalid",
+                "step_saved": True,
+                "native_brep_valid": False,
+                "strict_brep_valid": False,
+                "both_valid": False,
+                "step_path": r"D:\private\candidate.step",
+                "worker_stdout_log": r"D:\private\worker.log",
+                "error": r"D:\private\raw error",
+                "rejection_reasons": ["candidate_strict_invalid"],
+            }
+        ],
+    }
+    with pytest.raises(RuntimeError, match="path"):
+        compact_selection(selection)
+
+    safe = json.loads(json.dumps(selection))
+    safe["candidates"][0].pop("step_path")
+    safe["candidates"][0].pop("worker_stdout_log")
+    safe["candidates"][0].pop("error")
+    safe["candidates"][0]["geometry_topology_gate"] = {
+        "schema": "assembly-selector-geometry-gate-v2",
+        "accepted": True,
+        "input_vertex_edge_incidence_counts": [1, 1, 2],
+        "candidate_vertex_edge_incidence_counts": [1, 1, 2],
+        "input_projection_sample_count": 16,
+        "input_to_candidate_sample_count": 16,
+        "input_to_candidate_projected_sample_count": 16,
+        "candidate_to_input_sample_count": 32,
+        "candidate_to_input_projected_sample_count": 32,
+    }
+    compact = compact_selection(safe)
+    archived_candidate = compact["candidates"][0]
+    assert "step_path" not in archived_candidate
+    assert "worker_stdout_log" not in archived_candidate
+    assert "error" not in archived_candidate
+    archived_gate = archived_candidate["geometry_topology_gate"]
+    assert archived_gate["input_vertex_edge_incidence_counts"] == [1, 1, 2]
+    assert archived_gate["candidate_vertex_edge_incidence_counts"] == [1, 1, 2]
+    assert archived_gate["input_projection_sample_count"] == 16
+    assert archived_gate["candidate_to_input_projected_sample_count"] == 32

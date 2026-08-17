@@ -39,6 +39,26 @@ except ImportError:  # direct script execution
     from solid_topology_repair import reconcile_near_vertices
 
 
+def effective_topology_summary(edge_vertex_adj: Any) -> dict[str, Any]:
+    """Return path-free counts for the adjacency actually used to build edges.
+
+    Near-vertex reconciliation can remap endpoint ids before OCC edge creation.
+    The selector must compare the candidate STEP with that effective topology,
+    not with the source pickle's pre-reconciliation vertex ids.
+    """
+    adjacency = np.asarray(edge_vertex_adj, dtype=np.int64)
+    if adjacency.ndim != 2 or adjacency.shape[1:] != (2,):
+        raise ValueError("effective edge_vertex_adj must have shape (edge_count, 2)")
+    if len(adjacency) == 0 or np.any(adjacency < 0):
+        raise ValueError("effective edge_vertex_adj must contain nonnegative endpoints")
+    _, counts = np.unique(adjacency.reshape(-1), return_counts=True)
+    return {
+        "edge_count": int(len(adjacency)),
+        "vertex_count": int(len(counts)),
+        "vertex_edge_incidence_counts": sorted(int(value) for value in counts),
+    }
+
+
 def construct_brep_directed(
     surf_wcs: np.ndarray,
     edge_wcs: np.ndarray,
@@ -54,6 +74,7 @@ def construct_brep_directed(
     pcurve_self_intersection: bool = False,
     local_intersection_topology: bool = False,
     curve_fit_rescue: bool = False,
+    curve_interpolate: bool = False,
     local_pcurve_continuity: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks.
@@ -76,7 +97,11 @@ def construct_brep_directed(
         BRepBuilderAPI_Sewing,
     )
     from OCC.Core.BRep import BRep_Builder
-    from OCC.Core.GeomAPI import GeomAPI_PointsToBSpline, GeomAPI_PointsToBSplineSurface
+    from OCC.Core.GeomAPI import (
+        GeomAPI_Interpolate,
+        GeomAPI_PointsToBSpline,
+        GeomAPI_PointsToBSplineSurface,
+    )
     from OCC.Core.GeomAbs import GeomAbs_C2
     from OCC.Core.gp import gp_Pnt
     from OCC.Core.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
@@ -89,6 +114,14 @@ def construct_brep_directed(
     surf_wcs = np.asarray(surf_wcs, dtype=np.float64)
     edge_wcs = np.asarray(edge_wcs, dtype=np.float64)
     edge_vertex_adj = np.asarray(edge_vertex_adj, dtype=np.int64)
+    if sum(
+        bool(value)
+        for value in (curve_fit_fallback, curve_fit_rescue, curve_interpolate)
+    ) > 1:
+        raise ValueError(
+            "curve_fit_fallback, curve_fit_rescue, and curve_interpolate are "
+            "mutually exclusive"
+        )
     diagnostics: dict[str, Any] = {
         "faces": len(surf_wcs), "edges": len(edge_wcs), "loop_count": 0,
         "reversed_edge_uses": 0, "multi_loop_faces": 0,
@@ -103,6 +136,9 @@ def construct_brep_directed(
             near_vertex_diagnostics,
         ) = reconcile_near_vertices(edge_wcs, edge_vertex_adj, face_edge_adj)
         diagnostics["solid_topology_repair"] = near_vertex_diagnostics
+    diagnostics["effective_input_topology"] = effective_topology_summary(
+        topology_edge_vertex_adj
+    )
 
     surfaces = []
     for face_index, points in enumerate(surf_wcs):
@@ -133,7 +169,10 @@ def construct_brep_directed(
     for edge_index, points in enumerate(edge_wcs):
         raw_points = np.asarray(points, dtype=np.float64)
         fit_passes = []
-        if curve_fit_fallback:
+        if curve_interpolate:
+            cleaned, point_stats = sanitize_curve_points(raw_points)
+            fit_passes.append(("interpolate", cleaned, point_stats, ()))
+        elif curve_fit_fallback:
             cleaned, point_stats = sanitize_curve_points(raw_points)
             fit_passes.append(
                 ("fallback_sanitized", cleaned, point_stats, curve_fit_attempts())
@@ -152,6 +191,40 @@ def construct_brep_directed(
             values = TColgp_Array1OfPnt(1, len(candidate_points))
             for point_index, point in enumerate(candidate_points, 1):
                 values.SetValue(point_index, gp_Pnt(*map(float, point)))
+            if fit_mode == "interpolate":
+                from OCC.Core.TColgp import TColgp_HArray1OfPnt
+
+                point_array = TColgp_HArray1OfPnt(1, len(candidate_points))
+                for point_index, point in enumerate(candidate_points, 1):
+                    point_array.SetValue(point_index, gp_Pnt(*map(float, point)))
+                periodic = bool(
+                    len(candidate_points) >= 3
+                    and np.linalg.norm(candidate_points[0] - candidate_points[-1])
+                    <= 1e-7
+                )
+                attempt = {
+                    "edge_index": edge_index,
+                    "fit_mode": fit_mode,
+                    **point_stats,
+                    "periodic": periodic,
+                    "status": "pending",
+                }
+                try:
+                    fitter = GeomAPI_Interpolate(point_array, periodic, 1e-7)
+                    fitter.Perform()
+                    if fitter.IsDone():
+                        curve = fitter.Curve()
+                        attempt["status"] = "succeeded"
+                    else:
+                        attempt["status"] = "not_done"
+                except Exception as exc:
+                    attempt.update(
+                        status="failed", error_type=type(exc).__name__, error=str(exc)
+                    )
+                diagnostics["curve_fit_attempts"].append(attempt)
+                if curve is not None:
+                    break
+                continue
             for min_degree, max_degree, tolerance in fit_attempts:
                 attempt = {
                     "edge_index": edge_index, "fit_mode": fit_mode,

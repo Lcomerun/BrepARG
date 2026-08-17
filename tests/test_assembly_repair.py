@@ -21,12 +21,16 @@ def test_profiles_are_independent_and_combined():
         "directed_trim",
         "curve_fit_fallback",
         "curve_fit_rescue",
+        "curve_interpolate",
         "wire_continuity",
         "single_solid",
+        "near_vertex_reconciliation",
         "pcurve_self_intersection",
         "local_intersection_topology",
         "local_pcurve_continuity",
         "directed_trim_curve_fit",
+        "directed_trim_curve_interpolate",
+        "directed_trim_curve_interpolate_local_intersection_topology",
         "directed_trim_pcurve",
         "directed_trim_local_intersection_topology",
         "directed_trim_curve_rescue_local_intersection_topology",
@@ -56,7 +60,7 @@ def test_profiles_are_independent_and_combined():
     with pytest.raises(ValueError, match="alternative curve repair strategies"):
         RepairProfile(
             "ambiguous_curve_fit",
-            ("curve_fit_fallback", "curve_fit_rescue"),
+            ("curve_fit_fallback", "curve_interpolate"),
         )
     with pytest.raises(ValueError, match="unknown assembly repair"):
         RepairProfile("bad", ("magic",))
