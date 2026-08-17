@@ -1,0 +1,11 @@
+{
+  "attempts": 100,
+  "forbidden_artifacts": [],
+  "profiles": {
+    "directed_trim": 100
+  },
+  "run_signature": "394bff0be3808086a26484374c5e8c048d261c2d036db1f750e2ff0ddcacfeaf",
+  "run_status": "COMPLETED",
+  "summary_sha256": "2dd0f1624e14f2ff8bb0624eb65636f8ef7810a845edf2ec87544b5bbe48fb53",
+  "valid": true
+}

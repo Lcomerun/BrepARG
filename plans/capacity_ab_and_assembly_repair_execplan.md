@@ -39,6 +39,7 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 16:14 +08:00) Completed the signed `local_intersection_topology` 100-CAD matrix from clean commit `2351552`: 100 unique attempts, 95 STEP-readable, 85 native-valid, 85 strict-valid, 82 both-valid, one restored CAD (`00029780...`), zero regressions, and zero worker timeout/exit/protocol failures. The switch passes the individual no-regression condition but not the 95/100 assembly gate.
 - [x] (2026-08-17 16:18 +08:00) Hardened the assembly snapshot contract to require the signed run manifest, completed status, exact attempt count, and matching summary SHA-256. Generated `reports/assembly_repair_local_topology_100cad_20260817/`; archive validation reports 100 attempts and zero forbidden artifacts.
 - [x] (2026-08-17 16:24 +08:00) Generated the matching Git-safe `reports/assembly_repair_baseline_100cad_20260817/` snapshot, binding the exact 84/100 baseline parity matrix to run signature `9b492577...`. This permits remote case-by-case baseline comparison without exposing STEP or pickle bytes.
+- [x] (2026-08-17 16:27 +08:00) Completed and snapshotted the original `directed_trim` full 100-CAD matrix. It restored both pre-STEP wire-build cases but regressed historical-valid `00044862...`, yielding 85/100 strict. The profile is rejected for composition in this form; the Git-safe negative result is preserved under `reports/assembly_repair_directed_trim_100cad_20260817/`.
 - [ ] Implement the remaining assembly repairs as independent, diagnosed-entity-local switches, with tests and one commit per logically independent repair.
 - [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
 - [x] (2026-08-17 12:51 +08:00) Added an idempotent local `run_assembly_repair_matrix.py` coordinator with independent and combined profiles, fixed 100-CAD identity checks, attempts-based strict/native/both-valid counts, and restored/unchanged/regressed CAD maps. A one-CAD real OCC smoke completed as both-valid.
@@ -107,6 +108,9 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - Observation: The conservative local topology treatment is safe on the frozen cohort but has low recall.
   Evidence: The signed full matrix preserves all 84 historical strict-valid CADs and restores only `00029780...`, producing 85/100 strict validity. It therefore remains eligible as one independently measured component, but cannot be presented as an assembly-chain solution or used to release boundary consistency, sequence regeneration, or AR.
 
+- Observation: Global directed trim has a narrow useful effect but is not fail-safe on malformed source incidence.
+  Evidence: It restores `00016845...` and `00032004...`, where historical wire construction failed, but regresses `00044862...`. Five faces in the regressed CAD contain open/disconnected endpoint components for which neither historical-order orientation nor graph regrouping can prove a closed loop; the current implementation raises instead of retaining baseline ordering.
+
 ## Decision Log
 
 - Decision: Compare one 8192-entry learned codebook with two sequential 4096-entry residual codebooks, both using 64-dimensional code vectors and `anchor='random'`.
@@ -171,6 +175,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Decision: Retain `local_intersection_topology` as a no-regression repair primitive, not as an accepted final profile.
   Rationale: Its full-cohort result is 85/100 with one restoration and zero regressions. It may be combined only with other independently no-regressing switches and every explicit combination must still run its own 100-CAD matrix; the final assembly gate remains at least 95/100.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Reject the original global `directed_trim` profile and replace it with a fail-closed directed-loop policy.
+  Rationale: A directed strategy may orient or regroup a face only when it can prove a closed walk. If both directed strategies fail, the face must retain the historical baseline grouping and record the fallback. This preserves the two known recoveries while targeting the sole observed regression without changing tolerances or hard-coding CAD identities.
   Date/Author: 2026-08-17 / Codex.
 
 ## Outcomes & Retrospective
@@ -284,3 +292,5 @@ Revision note 2026-08-17 15:39 +08:00: Recorded the contaminated duplicate pilot
 Revision note 2026-08-17 16:18 +08:00: Recorded exact baseline parity and the completed local-topology 100-CAD no-regression matrix. The switch restores one CAD without regression but reaches only 85/100, so it is retained as an independent primitive while the 95/100 gate stays closed. The Git-safe snapshot now carries the signed run manifest and verifies its summary hash.
 
 Revision note 2026-08-17 16:24 +08:00: Added the matching baseline parity snapshot so the remote evidence chain now contains both the unchanged 84/100 control vector and the 85/100 local-topology vector under their signed run manifests.
+
+Revision note 2026-08-17 16:27 +08:00: Recorded the full original directed-trim matrix as a rejected profile: two wire-build recoveries, one historical-valid regression, and 85/100 strict overall. The next implementation increment is a topology-evidence fallback to baseline grouping, followed by a new signed 100-CAD no-regression matrix.
