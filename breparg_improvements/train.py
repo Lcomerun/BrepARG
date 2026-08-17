@@ -16,6 +16,7 @@ Task-1 结论(有证据,见 repro_outputs/DATA_FORMAT_COMPARISON.md):
 """
 
 import os, sys, glob, json, time, pickle, random, argparse, warnings, types, hashlib, platform, subprocess
+from typing import Mapping
 import numpy as np
 import torch
 import torch.nn as nn
@@ -79,7 +80,13 @@ from vqvae_sampling import (
     summarize_exact_hash_inventory,
     validate_inventory_identities,
 )
-from vqvae_metrics import VQValidationAccumulator, patch_bucket
+from vqvae_metrics import (
+    QuantizerStageUsageTracker,
+    VQValidationAccumulator,
+    patch_bucket,
+    quantizer_stage_indices,
+    stage_usage_health,
+)
 from vqvae_sample_cache import load_vqvae_sample_cache, save_vqvae_sample_cache
 from cad_protocol import parent_cad_id
 
@@ -304,7 +311,8 @@ def evaluate_vq_checkpoint_candidate(
         prior_perplexities=(),
         prior_coverages=(),
         best_curved_parent_mse=float('inf'),
-        history_ratio=0.9):
+        history_ratio=0.9,
+        stage_usage_health_report=None):
     """Select a representation checkpoint from curved quality and stable usage."""
     code_usage = metrics.get('code_usage') or {}
     bucket_metrics = metrics.get('parent_cluster_reconstruction_mse') or {}
@@ -337,6 +345,14 @@ def evaluate_vq_checkpoint_candidate(
         )
     if type(nonfinite) is not int or nonfinite != 0:
         reasons.append(f"nonfinite validation samples must be 0, observed {nonfinite!r}")
+    if stage_usage_health_report is None:
+        stage_usage_health_report = metrics.get('stage_usage_health')
+    if isinstance(stage_usage_health_report, Mapping) and not stage_usage_health_report.get(
+            'healthy', True):
+        reasons.extend(
+            f"quantizer stage usage: {reason}"
+            for reason in (stage_usage_health_report.get('reasons') or ["unhealthy"])
+        )
     return {
         'selected': not reasons,
         'reasons': reasons,
@@ -597,13 +613,46 @@ class AmpSafeLearnedVectorQuantiser(nn.Module):
         return quantized, loss, info
 
 
-def build_learned_vqvae(
-        codebook_size=4096,
+class QuantizerInfo(tuple):
+    """Three-item legacy info tuple with optional residual-VQ attributes.
+
+    Existing callers use positional unpacking and ``len(info) == 3``.  RVQ
+    metadata therefore lives on attributes instead of becoming additional
+    tuple fields, which keeps the upstream quantizer contract intact.
+    """
+
+    def __new__(
+            cls,
+            perplexity,
+            min_encodings,
+            encoding_indices,
+            stage_indices=(),
+            stage_perplexities=()):
+        value = tuple.__new__(
+            cls, (perplexity, min_encodings, encoding_indices)
+        )
+        value.stage_indices = tuple(stage_indices)
+        value.stage_perplexities = tuple(stage_perplexities)
+        return value
+
+    def __reduce__(self):
+        return (
+            type(self),
+            (
+                self[0], self[1], self[2],
+                self.stage_indices, self.stage_perplexities,
+            ),
+        )
+
+
+def _make_amp_safe_learned_quantizer(
+        codebook_size,
         embedding_dim=64,
         distance='cos',
         anchor='random',
         first_batch=False,
         contrastive_loss=True):
+    """Construct one upstream learned quantizer behind the fp32 AMP adapter."""
     from quantise import VectorQuantiser
 
     class AmpSafeVectorQuantiser(VectorQuantiser):
@@ -614,19 +663,124 @@ def build_learned_vqvae(
                 pool.features = features.to(device=z.device, dtype=z.dtype)
             return super().forward(z, *args, **kwargs)
 
-    m = _build_base_vqvae(codebook_size)
-    original = m.quantize
     quantizer = AmpSafeVectorQuantiser(
         num_embed=int(codebook_size),
         embed_dim=int(embedding_dim),
-        beta=original.beta,
+        beta=0.25,
         distance=distance,
         anchor=anchor,
         first_batch=bool(first_batch),
         contras_loss=bool(contrastive_loss),
     )
-    quantizer.embedding.weight.data.copy_(original.embedding.weight.data)
-    m.quantize = AmpSafeLearnedVectorQuantiser(quantizer)
+    return AmpSafeLearnedVectorQuantiser(quantizer)
+
+
+def build_learned_vqvae(
+        codebook_size=4096,
+        embedding_dim=64,
+        distance='cos',
+        anchor='random',
+        first_batch=False,
+        contrastive_loss=True):
+    m = _build_base_vqvae(codebook_size)
+    original = m.quantize
+    quantizer = _make_amp_safe_learned_quantizer(
+        codebook_size=codebook_size,
+        embedding_dim=embedding_dim,
+        distance=distance,
+        anchor=anchor,
+        first_batch=first_batch,
+        contrastive_loss=contrastive_loss,
+    )
+    # Preserve the beta used by diffusers' replacement quantizer.
+    quantizer.quantizer.beta = original.beta
+    quantizer.quantizer.embedding.weight.data.copy_(original.embedding.weight.data)
+    m.quantize = quantizer
+    return m
+
+
+class ResidualLearnedVectorQuantiser(nn.Module):
+    """Two independent learned codebooks quantizing a detached residual."""
+
+    def __init__(self, stage1, stage2):
+        super().__init__()
+        self.stage1 = stage1
+        self.stage2 = stage2
+        self.stage_codebook_sizes = (
+            int(stage1.num_embed),
+            int(stage2.num_embed),
+        )
+
+    def forward(self, latent, *args, **kwargs):
+        input_dtype = latent.dtype
+        # The upstream adapter casts each stage input back to its incoming
+        # dtype.  Keep the residual subtraction in fp32 so bf16 autocast does
+        # not erase the detail that the second codebook is meant to recover.
+        latent_fp32 = latent.float()
+        stage1_quantized, stage1_loss, stage1_info = self.stage1(
+            latent_fp32, *args, **kwargs
+        )
+        residual = latent_fp32 - stage1_quantized.detach().float()
+        stage2_quantized, stage2_loss, stage2_info = self.stage2(
+            residual, *args, **kwargs
+        )
+        # One aggregate straight-through path avoids doubling the encoder
+        # gradient while retaining both codebook losses.
+        quantized_value = (
+            stage1_quantized.detach().float()
+            + stage2_quantized.detach().float()
+        )
+        quantized = latent_fp32 + (quantized_value - latent_fp32).detach()
+        if quantized.dtype != input_dtype:
+            quantized = quantized.to(dtype=input_dtype)
+        stage_indices = quantizer_stage_indices(stage1_info) + quantizer_stage_indices(stage2_info)
+        stage_perplexities = (
+            stage1_info[0],
+            stage2_info[0],
+        )
+        aggregate_indices = torch.cat(tuple(index.reshape(-1) for index in stage_indices))
+        aggregate_probs = torch.bincount(
+            aggregate_indices,
+            minlength=max(self.stage_codebook_sizes),
+        ).to(dtype=torch.float32)
+        aggregate_probs = aggregate_probs / aggregate_probs.sum().clamp_min(1.0)
+        aggregate_perplexity = torch.exp(
+            -(aggregate_probs[aggregate_probs > 0]
+              * aggregate_probs[aggregate_probs > 0].log()).sum()
+        )
+        return quantized, stage1_loss + stage2_loss, QuantizerInfo(
+            aggregate_perplexity,
+            stage1_info[1],
+            aggregate_indices,
+            tuple(stage_indices),
+            tuple(stage_perplexities),
+        )
+
+
+def build_residual_vqvae(
+        stage_codebook_sizes=(4096, 4096),
+        embedding_dim=64,
+        distance='cos',
+        anchor='random',
+        first_batch=False,
+        contrastive_loss=True):
+    if len(tuple(stage_codebook_sizes)) != 2:
+        raise ValueError("residual VQ currently requires exactly two stages")
+    sizes = tuple(int(size) for size in stage_codebook_sizes)
+    # Build both capacity arms from the same 8,192-entry base so encoder,
+    # decoder, and projection initialization consume the same RNG stream.
+    # The base quantizer is replaced below and is not part of RVQ state.
+    m = _build_base_vqvae(8192)
+    original_beta = m.quantize.beta
+    stage1 = _make_amp_safe_learned_quantizer(
+        sizes[0], embedding_dim, distance, anchor, first_batch, contrastive_loss
+    )
+    stage2 = _make_amp_safe_learned_quantizer(
+        sizes[1], embedding_dim, distance, anchor, first_batch, contrastive_loss
+    )
+    stage1.quantizer.beta = original_beta
+    stage2.quantizer.beta = original_beta
+    m.quantize = ResidualLearnedVectorQuantiser(stage1, stage2)
     return m
 
 
@@ -729,6 +883,54 @@ def quantizer_comparison_configs(arm_names=None):
                 'downstream_compatible': False,
             },
         },
+        'vq_8192_64d_random': {
+            'name': 'vq_8192_64d_random',
+            'kind': 'learned_vq',
+            'levels': (),
+            'codebook_size': 8192,
+            'lr': VQ_LR,
+            'quantizer': {
+                'kind': 'learned_vq',
+                'implementation': 'BrepARG.quantise.VectorQuantiser',
+                'codebook_size': 8192,
+                'embedding_dim': 64,
+                'distance': 'cos',
+                'anchor': 'random',
+                'first_batch': False,
+                'contrastive_loss': True,
+                'decay': 0.99,
+                'downstream_compatible': False,
+            },
+        },
+        'rvq_2x4096_64d_random': {
+            'name': 'rvq_2x4096_64d_random',
+            'kind': 'residual_vq',
+            'levels': (),
+            'codebook_size': 4096,
+            'stage_codebook_sizes': (4096, 4096),
+            'lr': VQ_LR,
+            'quantizer': {
+                'kind': 'residual_vq',
+                'implementation': 'BrepARG.quantise.VectorQuantiser',
+                'stage_count': 2,
+                'stage_codebook_sizes': [4096, 4096],
+                'codebook_size': 4096,
+                'embedding_dim': 64,
+                'distance': 'cos',
+                'anchor': 'random',
+                'first_batch': False,
+                'contrastive_loss': True,
+                'decay': 0.99,
+                'loss_aggregation': 'sum',
+                'residual_stage1_detached': True,
+                'effective_code_combinations': 4096 * 4096,
+                'stage2_collapse_gate': {
+                    'min_unique_bins': 2,
+                    'min_perplexity_exclusive': 1.0,
+                },
+                'downstream_compatible': False,
+            },
+        },
         'continuous_bypass_64d': {
             'name': 'continuous_bypass_64d',
             'kind': 'continuous_bypass',
@@ -760,6 +962,20 @@ def build_quantized_vqvae(config):
         quantizer = config['quantizer']
         return build_learned_vqvae(
             codebook_size=config['codebook_size'],
+            embedding_dim=quantizer['embedding_dim'],
+            distance=quantizer['distance'],
+            anchor=quantizer['anchor'],
+            first_batch=quantizer['first_batch'],
+            contrastive_loss=quantizer['contrastive_loss'],
+        )
+    if kind == 'residual_vq':
+        quantizer = config['quantizer']
+        return build_residual_vqvae(
+            stage_codebook_sizes=tuple(
+                quantizer.get('stage_codebook_sizes')
+                or config.get('stage_codebook_sizes')
+                or (4096, 4096)
+            ),
             embedding_dim=quantizer['embedding_dim'],
             distance=quantizer['distance'],
             anchor=quantizer['anchor'],
@@ -1333,6 +1549,17 @@ def _train_vqvae(model, Xtr, Xva, epochs, bs, lr=1e-3, tag="", save_path=None):
     return hist, best_val
 
 
+def _quantizer_stage_codebook_sizes(model):
+    quantizer = getattr(model, 'quantize', None)
+    sizes = getattr(quantizer, 'stage_codebook_sizes', None)
+    if sizes is None:
+        return ()
+    sizes = tuple(int(size) for size in sizes)
+    if not sizes or any(size <= 0 for size in sizes):
+        raise ValueError('quantizer stage_codebook_sizes must contain positive values')
+    return sizes
+
+
 def _train_vqvae(
         model,
         Xtr,
@@ -1378,6 +1605,7 @@ def _train_vqvae(
         'per_train_batch': False,
     }
     model = model.to(DEVICE)
+    stage_codebook_sizes = _quantizer_stage_codebook_sizes(model)
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-6)
     if precision is None:
         if amp_enabled is None:
@@ -1573,6 +1801,10 @@ def _train_vqvae(
     try:
       for absolute_epoch in range(start_epoch, target_epoch):
         model.train(); perm = torch.randperm(len(Xtr)); tot = nb = 0
+        train_stage_tracker = (
+            QuantizerStageUsageTracker(stage_codebook_sizes, device=DEVICE)
+            if stage_codebook_sizes else None
+        )
         train_batches = skipped_train_batches = 0
         nonfinite_loss_batches = nonfinite_gradient_batches = nonfinite_state_batches = 0
         preclip_grad_norms = []
@@ -1585,7 +1817,7 @@ def _train_vqvae(
             opt.zero_grad(set_to_none=True)
             with precision_policy.autocast():
                 h = model.encoder(xb); h = model.quant_conv(h)
-                zq, vq_loss, _ = model.quantize(h)
+                zq, vq_loss, quantizer_info = model.quantize(h)
                 recon = model.decoder(model.post_quant_conv(zq))
                 loss = weighted_reconstruction_loss(recon, xb, wb) + vq_loss
             if not torch.isfinite(loss):
@@ -1616,6 +1848,9 @@ def _train_vqvae(
                 scaler.update()
             else:
                 opt.step()
+            if train_stage_tracker is not None:
+                # Count only batches whose optimizer step actually committed.
+                train_stage_tracker.update(quantizer_info)
             preclip_grad_norms.append(preclip_grad_norm)
             tot += loss.item(); nb += 1
         model.eval(); vtot = vcount = vnb = 0; val_batches = 0
@@ -1623,6 +1858,10 @@ def _train_vqvae(
         val_accumulator = (
             VQValidationAccumulator(int(codebook_size), val_buckets, val_parent_groups)
             if val_buckets else None
+        )
+        val_stage_tracker = (
+            QuantizerStageUsageTracker(stage_codebook_sizes, device=DEVICE)
+            if stage_codebook_sizes else None
         )
         with torch.no_grad():
             for i in range(0, len(Xva), bs):
@@ -1643,6 +1882,8 @@ def _train_vqvae(
                     )
                 if val_accumulator is not None:
                     val_accumulator.update(per_sample, quantizer_info[2])
+                if val_stage_tracker is not None:
+                    val_stage_tracker.update(quantizer_info)
                 if finite_samples:
                     vtot += float(per_sample[finite_mask].sum().item())
                     vcount += finite_samples
@@ -1663,13 +1904,31 @@ def _train_vqvae(
         best_val = stop_state.best_val
         hist.append((tr, va))
         val_metrics = val_accumulator.summary() if val_accumulator is not None else None
+        train_stage_usage = (
+            train_stage_tracker.summary() if train_stage_tracker is not None else None
+        )
+        val_stage_usage = (
+            val_stage_tracker.summary() if val_stage_tracker is not None else None
+        )
+        stage_health = (
+            stage_usage_health(
+                val_stage_usage,
+                require_stage2=len(stage_codebook_sizes) >= 2,
+            )
+            if stage_codebook_sizes
+            else {"healthy": True, "reasons": []}
+        )
         if val_metrics is not None:
             val_metrics['nonfinite_val_samples'] = nonfinite_val_samples
+            if val_stage_usage is not None:
+                val_metrics['stage_code_usage'] = val_stage_usage
+                val_metrics['stage_usage_health'] = stage_health
             checkpoint_decision = evaluate_vq_checkpoint_candidate(
                 val_metrics,
                 prior_perplexities=prior_perplexities,
                 prior_coverages=prior_coverages,
                 best_curved_parent_mse=best_curved_parent_mse,
+                stage_usage_health_report=stage_health,
             )
         else:
             checkpoint_decision = {
@@ -1743,6 +2002,10 @@ def _train_vqvae(
             'quantizer': quantizer_metadata,
             'checkpoint_epoch': absolute_epoch,
             'validation_metrics': val_metrics,
+            'train_stage_code_usage': train_stage_usage,
+            'val_stage_code_usage': val_stage_usage,
+            'stage_usage_health': stage_health,
+            'stage_codebook_sizes': list(stage_codebook_sizes),
             'checkpoint_context': checkpoint_context,
             'validation_loss': metric_for_report(va),
             'checkpoint_selection': checkpoint_decision,
@@ -1825,6 +2088,9 @@ def _train_vqvae(
         }
         if val_metrics is not None:
             record['val_code_usage'] = val_metrics['code_usage']
+            if val_stage_usage is not None:
+                record['val_stage_code_usage'] = val_stage_usage
+                record['stage_usage_health'] = stage_health
             record['val_reconstruction_mse'] = val_metrics['reconstruction_mse']
             if 'parent_cluster_mse' in val_metrics:
                 record['val_parent_cluster_mse'] = val_metrics['parent_cluster_mse']
@@ -1832,6 +2098,8 @@ def _train_vqvae(
                 record['val_parent_cluster_reconstruction_mse'] = val_metrics[
                     'parent_cluster_reconstruction_mse'
                 ]
+        if train_stage_usage is not None:
+            record['train_stage_code_usage'] = train_stage_usage
         history.append(record)
         meta.update({
             'epochs_ran': absolute_epoch - requested_start_epoch + 1,
@@ -1849,6 +2117,20 @@ def _train_vqvae(
             if val_metrics is not None:
                 for name, value in val_metrics['code_usage'].items():
                     writer.add_scalar(f'validation/code_usage/{name}', value, absolute_epoch)
+                for stage_name, usage in (val_stage_usage or {}).items():
+                    for name, value in usage.items():
+                        writer.add_scalar(
+                            f'validation/{stage_name}/code_usage/{name}',
+                            value,
+                            absolute_epoch,
+                        )
+                for stage_name, usage in (train_stage_usage or {}).items():
+                    for name, value in usage.items():
+                        writer.add_scalar(
+                            f'train/{stage_name}/code_usage/{name}',
+                            value,
+                            absolute_epoch,
+                        )
                 for name, bucket in val_metrics['reconstruction_mse'].items():
                     if bucket['mse'] is not None:
                         writer.add_scalar(
@@ -1894,6 +2176,7 @@ def _train_vqvae(
                     'max_nonfinite_val_epochs': stop_config.max_nonfinite_val_epochs,
                     'plateau_metric': VQ_PLATEAU_METRIC,
                     'quantizer': quantizer_metadata,
+                    'stage_codebook_sizes': list(stage_codebook_sizes),
                 },
                 'history': history,
                 'best_val_recon': metric_for_report(best_val),
@@ -1924,6 +2207,10 @@ def _train_vqvae(
                         'best_curved_parent_mse': best_curved_parent_mse,
                         'prior_perplexities': prior_perplexities,
                         'prior_coverages': prior_coverages,
+                        **(
+                            {'stage_usage_health': stage_health}
+                            if stage_codebook_sizes else {}
+                        ),
                     },
                     'meta': {
                         'best_val_metrics': meta.get('best_val_metrics'),

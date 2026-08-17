@@ -1,3 +1,4 @@
+import csv
 import json
 from pathlib import Path
 
@@ -5,6 +6,9 @@ import pytest
 
 from tools.run_p0b_vq_assembly_measurement import (
     BYPASS_ARM,
+    CAPACITY_ARMS,
+    CAPACITY_RVQ_ARM,
+    CAPACITY_VQ_ARM,
     FORMAL_ARMS,
     FORMAL_SEEDS,
     HISTORICAL_STRICT_ONLY,
@@ -13,6 +17,13 @@ from tools.run_p0b_vq_assembly_measurement import (
     VQ_ARM,
     EvidenceError,
     _calibration_is_complete,
+    build_capacity_pair_rows,
+    decide_capacity_ab,
+    exact_mcnemar_pvalue,
+    load_historical_bypass_rows,
+    paired_mcnemar,
+    run_capacity_measurement,
+    select_capacity_seed3_checkpoints,
     _validity_summary,
     canonical_signature,
     run_measurement,
@@ -779,3 +790,359 @@ def test_paired_coordinator_uses_seed3_best_and_reports_delta_gates(tmp_path):
     assert result["gates_percentage_points"]["decision"] == "CAPACITY_AB_FIRST"
     csv_rows = (tmp_path / "paired_reports" / "p0b_paired_assembly_measurement.csv").read_text().splitlines()
     assert len(csv_rows) == 201
+
+
+def _paired_rows(arm: str, valid_indices: set[int], *, native_indices=None) -> list[dict]:
+    native_indices = valid_indices if native_indices is None else native_indices
+    rows = []
+    for index in range(MAX_CADS):
+        rows.append(
+            {
+                "arm": arm,
+                "cad_id": f"cad-{index:03d}",
+                "parent_id": f"parent-{index:03d}",
+                "native_brep_valid": index in native_indices,
+                "strict_brep_valid": index in valid_indices,
+                "status": "audited",
+            }
+        )
+    return rows
+
+
+def test_exact_mcnemar_handles_zero_balanced_and_one_sided_discordance():
+    assert exact_mcnemar_pvalue(0, 0) == 1.0
+    assert exact_mcnemar_pvalue(5, 5) == 1.0
+    assert exact_mcnemar_pvalue(10, 0) == pytest.approx(0.001953125)
+
+
+def test_paired_validation_rejects_missing_duplicate_and_order_mismatch():
+    identities = {f"cad-{index:03d}": f"parent-{index:03d}" for index in range(MAX_CADS)}
+    bypass = _paired_rows(BYPASS_ARM, set(range(50)))
+    candidate = _paired_rows(CAPACITY_VQ_ARM, set(range(50)))
+    checked = build_capacity_pair_rows(
+        {
+            BYPASS_ARM: bypass,
+            CAPACITY_VQ_ARM: candidate,
+            CAPACITY_RVQ_ARM: _paired_rows(CAPACITY_RVQ_ARM, set(range(50))),
+        },
+        expected_identities=identities,
+    )
+    assert len(checked) == MAX_CADS
+    duplicate = list(candidate)
+    duplicate[1] = dict(duplicate[0])
+    with pytest.raises(EvidenceError, match="duplicate"):
+        paired_mcnemar(duplicate, bypass)
+    missing = candidate[:-1]
+    with pytest.raises(EvidenceError, match="expected 100"):
+        paired_mcnemar(missing, bypass)
+    reordered = list(candidate)
+    reordered[0], reordered[1] = reordered[1], reordered[0]
+    with pytest.raises(EvidenceError, match="order"):
+        paired_mcnemar(reordered, bypass)
+
+
+def test_capacity_decision_accepts_vq_at_exact_five_pp_and_reports_cost():
+    summaries = {
+        BYPASS_ARM: {"attempts": 100, "strict_brep_valid": 80},
+        CAPACITY_VQ_ARM: {"attempts": 100, "strict_brep_valid": 75},
+        CAPACITY_RVQ_ARM: {"attempts": 100, "strict_brep_valid": 74},
+    }
+    comparisons = {
+        "vq_vs_bypass": {"candidate_wins": 0, "comparator_wins": 5, "significant": False},
+        "rvq_vs_vq": {"candidate_wins": 0, "comparator_wins": 1, "significant": False},
+    }
+    decision = decide_capacity_ab(summaries, comparisons)
+    assert decision["decision"] == "VQ_8192_DIRECT_WIN"
+    assert decision["selected_arm"] == CAPACITY_VQ_ARM
+    assert decision["delta_q_bypass60k_minus_vq8192_pp"] == pytest.approx(5.0)
+    assert decision["rvq_sequence_cost"]["estimated_relative_increase_percentage"] == pytest.approx(36.0)
+    assert "+36%" in decision["rvq_sequence_cost"]["label"]
+
+
+def test_capacity_decision_requires_significant_positive_rvq_improvement():
+    summaries = {
+        BYPASS_ARM: {"attempts": 100, "strict_brep_valid": 90},
+        CAPACITY_VQ_ARM: {"attempts": 100, "strict_brep_valid": 70},
+        CAPACITY_RVQ_ARM: {"attempts": 100, "strict_brep_valid": 71},
+    }
+    not_significant = decide_capacity_ab(
+        summaries,
+        {
+            "vq_vs_bypass": {"candidate_wins": 0, "comparator_wins": 20, "significant": True},
+            "rvq_vs_vq": {"candidate_wins": 1, "comparator_wins": 0, "significant": False},
+        },
+    )
+    assert not_significant["decision"] == "CAPACITY_UNRESOLVED"
+    accepted = decide_capacity_ab(
+        summaries,
+        {
+            "vq_vs_bypass": {"candidate_wins": 0, "comparator_wins": 20, "significant": True},
+            "rvq_vs_vq": {"candidate_wins": 8, "comparator_wins": 0, "significant": True},
+        },
+    )
+    assert accepted["decision"] == "RVQ_ACCEPTED_FOR_VALIDITY"
+    assert accepted["selected_arm"] == CAPACITY_RVQ_ARM
+
+
+def test_historical_bypass_loader_rejects_changed_strict_count(tmp_path):
+    fixture = make_evidence(tmp_path)
+    cohort = verify_fixed_cohort(
+        fixture["protocol_dir"],
+        fixture["historical_manifest"],
+        protocol_sha256=fixture["protocol_sha"],
+        selector=fixture["selector"],
+    )
+    path = tmp_path / "sealed.csv"
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=["arm", "cad_id", "parent_id", "native_brep_valid", "strict_brep_valid"],
+            lineterminator="\n",
+        )
+        writer.writeheader()
+        for index, identity in enumerate(fixture["selected_rows"]):
+            writer.writerow(
+                {
+                    "arm": BYPASS_ARM,
+                    "cad_id": identity["cad_id"],
+                    "parent_id": identity["parent_id"],
+                    "native_brep_valid": index < 69,
+                    "strict_brep_valid": index < 69,
+                }
+            )
+    with pytest.raises(EvidenceError, match="sealed 70/100"):
+        load_historical_bypass_rows(path, cohort=cohort)
+
+
+def test_capacity_seed3_selector_reuses_only_a_validated_complete_matrix(tmp_path, monkeypatch):
+    import tools.run_capacity_ab_60k as capacity_launcher
+
+    capacity_root = tmp_path / "capacity"
+    capacity_root.mkdir()
+    state_path = capacity_root / "capacity_state.json"
+    state_path.write_text("{}\n", encoding="utf-8")
+    expected_inventory = _patch_inventory()
+    tasks = []
+    validation_tasks = []
+    for arm in CAPACITY_ARMS:
+        for seed in (3, 4):
+            task_root = capacity_root / "tasks" / arm / f"seed{seed}"
+            task_root.mkdir(parents=True)
+            checkpoint = task_root / f"{arm}_best.pt"
+            checkpoint.write_bytes(f"{arm}-seed{seed}".encode())
+            sweep = task_root / "vqvae_hp_sweep.json"
+            metrics = {
+                "parent_cluster_reconstruction_mse": {"surface_curved_proxy": {"mse": 0.001 + seed / 10000}},
+            }
+            sweep.write_text(
+                json.dumps(
+                    {
+                        "mse_ranking": [
+                            {
+                                "name": arm,
+                                "checkpoint_best": str(checkpoint),
+                                "checkpoint_epoch": 99,
+                                "checkpoint_val_recon": 0.002 + seed / 10000,
+                                "best_val_metrics": metrics,
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            task_id = f"{arm}:seed{seed}"
+            tasks.append(
+                {
+                    "task_id": task_id,
+                    "arm": arm,
+                    "seed": seed,
+                    "status": "COMPLETED",
+                    "best_checkpoint": str(checkpoint),
+                    "sweep": str(sweep),
+                }
+            )
+            validation_tasks.append({"task_id": task_id, "valid": True, "inventory": expected_inventory})
+    state = {
+        "schema": capacity_launcher.SCHEMA,
+        "status": "COMPLETED",
+        "mode": "FORMAL",
+        "formal_result_eligible": True,
+        "configuration": {
+            "arms": list(CAPACITY_ARMS), "seeds": [3, 4],
+            "train_cap": 60_000, "val_cap": 12_000, "batch_size": 128,
+            "epochs": 100, "precision": "bf16",
+        },
+        "tasks": tasks,
+    }
+    validation = {
+        "valid": True,
+        "formal_result_eligible": True,
+        "inventory_consistent": True,
+        "reasons": [],
+        "tasks": validation_tasks,
+    }
+    monkeypatch.setattr(capacity_launcher, "load_and_refresh", lambda _root: (state_path, state))
+    monkeypatch.setattr(capacity_launcher, "validation_summary", lambda _state: validation)
+
+    selected = select_capacity_seed3_checkpoints(
+        capacity_root,
+        expected_inventory=expected_inventory,
+        protocol_sha256="protocol-sha",
+        split_pickle_sha256="split-sha",
+    )
+    assert set(selected) == set(CAPACITY_ARMS)
+    assert all(item["seed"] == 3 for item in selected.values())
+    assert all(item["checkpoint_role"] == "best" for item in selected.values())
+    assert all(item["checkpoint_epoch"] == 99 for item in selected.values())
+
+    validation["tasks"][0]["inventory"] = {"wrong": "inventory"}
+    with pytest.raises(EvidenceError, match="inventory mismatch"):
+        select_capacity_seed3_checkpoints(
+            capacity_root,
+            expected_inventory=expected_inventory,
+            protocol_sha256="protocol-sha",
+            split_pickle_sha256="split-sha",
+        )
+
+
+def test_capacity_runner_reuses_fixed_cohort_and_writes_paired_report(tmp_path):
+    fixture = make_evidence(tmp_path)
+    repo, breparg, python = _make_runtime_inputs(tmp_path)
+    historical_csv = tmp_path / "historical" / "p0b_paired_assembly_measurement.csv"
+    historical_csv.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = ["arm", "cad_id", "parent_id", "native_brep_valid", "strict_brep_valid", "status"]
+    with historical_csv.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
+        writer.writeheader()
+        for index, identity in enumerate(fixture["selected_rows"]):
+            writer.writerow(
+                {
+                    "arm": BYPASS_ARM,
+                    "cad_id": identity["cad_id"],
+                    "parent_id": identity["parent_id"],
+                    "native_brep_valid": index < 70,
+                    "strict_brep_valid": index < 70,
+                    "status": "audited",
+                }
+            )
+    candidate_files = {
+        CAPACITY_VQ_ARM: tmp_path / "vq8192.pt",
+        CAPACITY_RVQ_ARM: tmp_path / "rvq.pt",
+    }
+    for path in candidate_files.values():
+        path.write_bytes(path.name.encode())
+    cohort = verify_fixed_cohort(
+        fixture["protocol_dir"],
+        fixture["historical_manifest"],
+        protocol_sha256=fixture["protocol_sha"],
+        selector=fixture["selector"],
+    )
+    assert len(load_historical_bypass_rows(historical_csv.parent, cohort=cohort)) == 100
+    commands = []
+
+    def runner(command, *, cwd, stdout_path, stderr_path):
+        commands.append(list(command))
+        stdout_path.parent.mkdir(parents=True, exist_ok=True)
+        stdout_path.write_text("ok\n", encoding="utf-8")
+        stderr_path.write_text("", encoding="utf-8")
+        output = Path(command[command.index("--output-dir") + 1])
+        arm = command[command.index("--checkpoint") + 1].split("=", 1)[0] if "--checkpoint" in command else None
+        if "run_assembly_calibration_oracle.py" in command[1]:
+            assert arm in CAPACITY_ARMS
+            checkpoint_path = candidate_files[arm]
+            rows = []
+            for index, identity in enumerate(fixture["selected_rows"]):
+                rows.append(
+                    {
+                        "cad_id": identity["cad_id"],
+                        "parent_id": identity["parent_id"],
+                        "source_path": identity["path"],
+                        "arm": arm,
+                        "selection_seed": SELECTION_SEED,
+                        "protocol_sha256": fixture["protocol_sha"],
+                        "checkpoint_sha256": sha256_file(checkpoint_path),
+                        "status": "saved",
+                        "step_saved": False,
+                        "brep_valid": False,
+                    }
+                )
+            _write_jsonl(output / "calibration_manifest.jsonl", rows)
+            _write_json(
+                output / "calibration_state.json",
+                {
+                    "status": "COMPLETED",
+                    "selected_cads": 100,
+                    "expected_rows": 100,
+                    "manifest_rows": 100,
+                    "arms": [arm],
+                    "protocol_sha256": fixture["protocol_sha"],
+                    "checkpoints": {arm: {"sha256": sha256_file(checkpoint_path)}},
+                },
+            )
+        else:
+            assert "audit_assembly_step_validity.py" in command[1]
+            manifest = Path(command[command.index("--manifest") + 1])
+            source_rows = [json.loads(line) for line in manifest.read_text(encoding="utf-8").splitlines() if line]
+            arm = source_rows[0]["arm"]
+            # RVQ wins all of its discordant pairs against VQ in this fixture;
+            # the report therefore exercises the preregistered acceptance path.
+            strict_limit = 64 if arm == CAPACITY_VQ_ARM else 75
+            audit_rows = [
+                {
+                    "cad_id": source["cad_id"],
+                    "arm": arm,
+                    "source_status": source["status"],
+                    "native_brep_valid": None,
+                    "strict_brep_valid": index < strict_limit,
+                    "status": "no_step",
+                }
+                for index, source in enumerate(source_rows)
+            ]
+            _write_jsonl(output / "step_validity_audit.jsonl", audit_rows)
+            _write_json(output / "step_validity_summary.json", _validity_summary(audit_rows))
+        return 0
+
+    result = run_capacity_measurement(
+        repo_root=repo,
+        p0b_output_root=fixture["output_root"],
+        historical_calibration_manifest=fixture["historical_manifest"],
+        historical_paired_report=historical_csv,
+        breparg_root=breparg,
+        candidate_checkpoints=candidate_files,
+        output_dir=tmp_path / "capacity",
+        report_dir=tmp_path / "capacity_reports",
+        python=python,
+        checkpoint_loader=fixture["checkpoint_loader"],
+        selector=fixture["selector"],
+        command_runner=runner,
+    )
+    assert result["status"] == "COMPLETED"
+    assert result["decision"]["decision"] == "RVQ_ACCEPTED_FOR_VALIDITY"
+    assert result["summary"][CAPACITY_VQ_ARM]["strict_brep_valid"] == 64
+    assert result["summary"][CAPACITY_RVQ_ARM]["strict_brep_valid"] == 75
+    report = json.loads((tmp_path / "capacity_reports" / "capacity_ab_assembly_measurement.json").read_text(encoding="utf-8"))
+    assert len(report["paired_rows"]) == 100
+    assert report["sequence_cost"]["estimated_multiplier"] == pytest.approx(1.36)
+    assert "+36%" in report["sequence_cost"]["label"]
+    markdown = (tmp_path / "capacity_reports" / "capacity_ab_assembly_measurement.md").read_text(encoding="utf-8")
+    assert "+36%" in markdown
+    assert "1.36x" in markdown
+    assert len(commands) == 4
+
+    second_calls = []
+    second = run_capacity_measurement(
+        repo_root=repo,
+        p0b_output_root=fixture["output_root"],
+        historical_calibration_manifest=fixture["historical_manifest"],
+        historical_paired_report=historical_csv,
+        breparg_root=breparg,
+        candidate_checkpoints=candidate_files,
+        output_dir=tmp_path / "capacity",
+        report_dir=tmp_path / "capacity_reports",
+        python=python,
+        checkpoint_loader=fixture["checkpoint_loader"],
+        selector=fixture["selector"],
+        command_runner=lambda *args, **kwargs: second_calls.append((args, kwargs)),
+    )
+    assert second["status"] == "COMPLETED"
+    assert second_calls == []

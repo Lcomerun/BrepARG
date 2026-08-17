@@ -11,6 +11,135 @@ import numpy as np
 VQ_BUCKETS = ("surface_planar_like", "surface_curved_proxy", "edge")
 
 
+def quantizer_stage_indices(info: object) -> tuple[object, ...]:
+    """Return per-stage flattened code indices from any quantizer info value.
+
+    The legacy quantizer contract is a three-item tuple whose third item is a
+    flat index tensor.  Residual VQ adds a ``stage_indices`` attribute while
+    retaining those first three positions.  Keeping this adapter here lets
+    validation and training code consume both contracts without type checks
+    scattered through the loop.
+    """
+    stages = getattr(info, "stage_indices", None)
+    if stages is not None:
+        if not isinstance(stages, (tuple, list)) or not stages:
+            raise ValueError("stage_indices must be a non-empty tuple or list")
+        return tuple(stages)
+    try:
+        indices = info[2]  # type: ignore[index]
+    except (IndexError, KeyError, TypeError) as exc:
+        raise ValueError("quantizer info does not contain encoding indices") from exc
+    return (indices,)
+
+
+class QuantizerStageUsageTracker:
+    """Accumulate exact code histograms independently for each quantizer stage.
+
+    Counts stay on the active device during training.  Only ``summary`` reads
+    scalar values, so a large 4,096-entry histogram does not cause a host copy
+    on every batch.  Index bounds are checked before updating, which makes a
+    malformed checkpoint fail closed instead of silently corrupting usage.
+    """
+
+    def __init__(self, stage_codebook_sizes: Sequence[int], device: object = "cpu"):
+        sizes = tuple(int(size) for size in stage_codebook_sizes)
+        if not sizes or any(size <= 0 for size in sizes):
+            raise ValueError("stage_codebook_sizes must contain positive sizes")
+        self.stage_codebook_sizes = sizes
+        import torch
+
+        self.device = torch.device(device)
+        self.counts = [
+            torch.zeros(size, dtype=torch.int64, device=self.device) for size in sizes
+        ]
+
+    def update(self, info_or_indices: object) -> None:
+        import torch
+
+        indices = quantizer_stage_indices(info_or_indices)
+        if len(indices) != len(self.counts):
+            raise ValueError(
+                f"expected {len(self.counts)} stage index streams, got {len(indices)}"
+            )
+        for stage, (value, size) in enumerate(zip(indices, self.stage_codebook_sizes)):
+            if not torch.is_tensor(value):
+                value = torch.as_tensor(value, device=self.device)
+            value = value.detach().to(device=self.device, dtype=torch.long).reshape(-1)
+            if value.numel() == 0:
+                continue
+            if bool(torch.any(value < 0).item()) or bool(torch.any(value >= size).item()):
+                raise ValueError(f"stage {stage + 1} encoding index outside codebook")
+            self.counts[stage].add_(torch.bincount(value, minlength=size))
+
+    @staticmethod
+    def _summary(counts: object, size: int) -> dict[str, float | int]:
+        import torch
+
+        tensor = counts.detach()
+        total = int(tensor.sum().item())
+        unique = int(torch.count_nonzero(tensor).item())
+        if total:
+            probabilities = tensor[tensor > 0].to(dtype=torch.float64) / float(total)
+            perplexity = float(torch.exp(-(probabilities * probabilities.log()).sum()).item())
+        else:
+            perplexity = 0.0
+        return {
+            "tokens": total,
+            "unique_bins": unique,
+            "coverage": float(unique / size),
+            "entropy_perplexity": perplexity,
+        }
+
+    def summary(self) -> dict[str, dict[str, float | int]]:
+        return {
+            f"stage{index + 1}": self._summary(counts, size)
+            for index, (counts, size) in enumerate(
+                zip(self.counts, self.stage_codebook_sizes)
+            )
+        }
+
+
+def stage_usage_health(
+    usage: Mapping[str, object] | None,
+    *,
+    require_stage2: bool = False,
+    min_unique_bins: int = 2,
+    min_perplexity_exclusive: float = 1.0,
+) -> dict[str, object]:
+    """Return a fail-closed health report for stage usage summaries."""
+    usage = usage if isinstance(usage, Mapping) else {}
+    stage_names = sorted(
+        (str(name) for name in usage),
+        key=lambda name: (
+            0, int(name[5:])
+        ) if name.startswith("stage") and name[5:].isdigit() else (1, name),
+    )
+    if require_stage2 and "stage2" not in usage:
+        return {"healthy": False, "reasons": ["stage2 usage is missing"]}
+    reasons: list[str] = []
+    for name in stage_names:
+        item = usage.get(name)
+        if not isinstance(item, Mapping):
+            reasons.append(f"{name} usage is missing")
+            continue
+        tokens = item.get("tokens")
+        unique = item.get("unique_bins")
+        perplexity = item.get("entropy_perplexity")
+        if type(tokens) is not int or tokens <= 0:
+            reasons.append(f"{name} token count must be positive")
+        if type(unique) is not int or unique < int(min_unique_bins):
+            reasons.append(f"{name} unique_bins must be >= {int(min_unique_bins)}")
+        try:
+            finite_perplexity = math.isfinite(float(perplexity))
+        except (TypeError, ValueError):
+            finite_perplexity = False
+        if not finite_perplexity or float(perplexity) <= float(min_perplexity_exclusive):
+            reasons.append(
+                f"{name} entropy_perplexity must be > {float(min_perplexity_exclusive)}"
+            )
+    return {"healthy": not reasons, "reasons": reasons}
+
+
 def _symmetric_3x3_eigenvalues(matrix: np.ndarray) -> tuple[float, float, float]:
     """Return sorted eigenvalues for a 3x3 symmetric matrix without LAPACK."""
     values = [[float(matrix[row, column]) for column in range(3)] for row in range(3)]

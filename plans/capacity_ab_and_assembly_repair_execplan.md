@@ -15,8 +15,9 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 10:25 +08:00) Verified the starting branch and evidence. Local HEAD is `f31bd11`, remote `experiment/protocol-v5-scaling-ladder` is at `82a236a`, and the only unpushed commit is the prior paired-gate documentation closeout.
 - [x] (2026-08-17 10:25 +08:00) Verified the RTX 3060 is idle and no Python trainer is running. D: has about 43.7 GB free and E: about 3.6 TB, so new local training artifacts will use E: while the Git working tree remains on D:.
 - [x] (2026-08-17 10:25 +08:00) Reconfirmed the frozen Protocol V5 identities: protocol SHA-256 `6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3`, split SHA-256 `6ff0a0c3ee6a04ee056fa1ab982eb436a9f59d3d21f21f17babf34e6dc701d29`, train count 60,000, validation count 12,000, and zero parent overlap.
-- [ ] Implement and test VQ-8192/64D and two-stage RVQ-4096/64D, including independent RVQ stage usage, perplexity, coverage, and collapse evidence.
-- [ ] Implement a fail-closed capacity launcher for seeds 3 and 4, 100 epochs, bf16, batch 128, LR `3e-4`, gradient clip 1.0, plateau decay, zero-nonfinite fuse, atomic resume, identical inventory digests, and output on E:.
+- [x] (2026-08-17 11:09 +08:00) Implemented and tested VQ-8192/64D and two-stage RVQ-4096/64D, including independent RVQ stage usage, perplexity, coverage, and collapse evidence. Preserved the legacy three-item quantizer-info contract and forced RVQ residual subtraction to fp32 under bf16 input.
+- [x] (2026-08-17 11:09 +08:00) Implemented the fail-closed capacity launcher for seeds 3 and 4, 100 epochs, bf16, batch 128, LR `3e-4`, gradient clip 1.0, plateau decay, zero-nonfinite fuse, atomic resume, identical inventory digests, and output on E:. A non-mutating formal dry run produced exactly four signed tasks.
+- [x] (2026-08-17 11:09 +08:00) Passed 176 focused and compatibility tests covering the capacity quantizers, launcher, stability lifecycle, prior P0-B behavior, fixed-cohort measurement, and P0-A snapshot/diagnostic paths.
 - [ ] Run bounded CUDA forward/backward and interruption/resume probes for both arms, then run all four formal 100-epoch tasks.
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
@@ -31,6 +32,12 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Observation: The capacity candidates have different downstream sequence costs even though both use 64-dimensional latent vectors.
   Evidence: VQ-8192 still emits one token per latent position, while two-stage RVQ emits two code indices. The registered work order estimates approximately 36 percent total CAD-sequence growth after non-surface tokens are included, so RVQ must demonstrate a material validity advantage rather than a marginal MSE win.
+
+- Observation: The first RVQ implementation would have subtracted the stage-one code from a bf16 latent because the AMP adapter restores the incoming dtype before returning.
+  Evidence: The new bf16 regression captures the stage-two input and requires `torch.float32`; it fails with the original subtraction and passes after explicitly computing the residual from `latent.float()` and a detached fp32 stage-one code.
+
+- Observation: Extending a `NamedTuple` with stage metadata changed `len(info)` from three to five even though positional indices zero through two still worked.
+  Evidence: The legacy-contract regression requires `len(info) == 3`. `QuantizerInfo` is now a three-item tuple subclass whose `stage_indices` and `stage_perplexities` are attributes, so old positional unpacking remains exact.
 
 ## Decision Log
 
@@ -135,3 +142,5 @@ No new local checkpoint is copied into Git. For every checkpoint used in a concl
 The capacity launcher must be a standalone Python CLI in `tools/` and use the frozen constants above. The assembly repair module and coordinator must also live in this repository and accept explicit repair switches. No implementation may edit or track `D:\luolin\V13\BrepARG`.
 
 Revision note 2026-08-17 10:25 +08:00: Created this plan after the paired VQ/bypass gate selected capacity A/B. It freezes the capacity candidates, P0-B recipe, paired assembly decision, independent repair design, storage policy, final merge gate, and Git-safe evidence contract.
+
+Revision note 2026-08-17 11:09 +08:00: Recorded completion of the capacity implementation, the three-item quantizer-info compatibility fix, fp32 residual handling under bf16, the 176-test regression, and the non-mutating four-task formal dry run. The next capacity milestone is a clean-commit CUDA smoke followed by the resumable formal matrix.
