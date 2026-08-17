@@ -1,39 +1,39 @@
 {
   "artifacts": [
     {
-      "bytes": 686712,
+      "bytes": 686616,
       "path": "assembly_chain_attempts_detailed.jsonl",
-      "sha256": "fe1e0862a3afb402fe65f9312d6081b5762a28f99e30e27883187db7c87070f0"
+      "sha256": "ef0fe189e6119feeabe2b44bb381f9d3ca9ff456767c1ef2db3dae541ed6276e"
     },
     {
-      "bytes": 11095,
+      "bytes": 10609,
       "path": "assembly_chain_cases.json",
-      "sha256": "f5302a900e99184a288cb0e5c825185c65a29cb9bfaa37bb084963db351e5d37"
+      "sha256": "60f5cd6b2e1c2c816de3ac2d29cacd17e16f15f9a587fa63cc6b5f79237bbe0f"
     },
     {
-      "bytes": 8150,
+      "bytes": 8134,
       "path": "assembly_chain_cases.jsonl",
-      "sha256": "4ba9e1bf90fff38ca8e01557e8ac2c4672ac9252dc6183875493acc1af1bf07d"
+      "sha256": "cc2a896b52408552ebbc03af115f8ccc29c4fefdaf1c47d89036c0600eda17a4"
     },
     {
-      "bytes": 1968,
+      "bytes": 1908,
       "path": "assembly_chain_summary.json",
-      "sha256": "1593f000df07ed9aa00764d7c72267732dd5fe574d6f5246f996033110f67f3a"
+      "sha256": "aad263e7d32786ed6599e7e07fafd431cf8d30d71f37c97fa9d4242306af8a38"
     },
     {
-      "bytes": 23834,
+      "bytes": 23737,
       "path": "attempts_compact.csv",
-      "sha256": "a9c19cd6d41ea975fe6263b14f8b855eaae1dfb7fde37d2db48a99e8eac68b2f"
+      "sha256": "e997e488d7b62f0af68407831dfe6b7d7ebda3031fc463519b4d4b7fbb938c2a"
     },
     {
-      "bytes": 1389,
+      "bytes": 1343,
       "path": "failure_taxonomy.json",
-      "sha256": "451cb5e2191e5a364ca9429eed3bdb6de6f6e829a972ed7654bde38444b2ef8d"
+      "sha256": "7fc10d1af3041da61dba10621c1989bce0a98313cad36786281c625d0e7a83b1"
     },
     {
-      "bytes": 3795,
+      "bytes": 3673,
       "path": "joint_optimize_ablation.json",
-      "sha256": "b9ea69a058b89d6afd170e72d3b50bd283c108c7a29e8a1885c0a3ee1d2ad95f"
+      "sha256": "5bb5fc93bb3d95336cd2fadb748bc616d4407e42c71c71c2e1b261f34b414817"
     },
     {
       "bytes": 1667,
@@ -41,19 +41,19 @@
       "sha256": "f528b9e89fabfef7b0e7554ca7d64a20888172e60c59f5e62d821766e0ad19a2"
     },
     {
-      "bytes": 929,
+      "bytes": 919,
       "path": "repair_checklist.md",
-      "sha256": "14144f5638a209230267d210fc5d1798d566c7a8cae6e8d665052e5164e9d47e"
+      "sha256": "3a9230abdd0bd4a72d071ae1c4d1205986e0af7ab118af052e90b23b2e4e4cd6"
     },
     {
-      "bytes": 14619,
+      "bytes": 14552,
       "path": "step_sha256.csv",
-      "sha256": "bb2b7cd0e7e3c63e79d5a876475e4cac7d24f3194ecca0ace95d852eadd3dc9f"
+      "sha256": "a1280c59466c09b08b8556598f86ebd888a36059fcbd7459139404e10cd8fd39"
     },
     {
-      "bytes": 3727,
+      "bytes": 3591,
       "path": "tolerance_scan.json",
-      "sha256": "c189d25e35f81c6558c01ffac849334923f8896fa64e43f1377bed73f078071d"
+      "sha256": "d92edbb20ba855c7254b76a01714857d7dd28768d815ac73e629da00dbd3d0ee"
     }
   ],
   "policy": "STEP, pickle, checkpoint, reconstructed-array, and machine-local path bytes remain local."

@@ -11,6 +11,7 @@ from tools.snapshot_p0a_assembly_chain import (
     snapshot,
     validate_evidence,
 )
+from tools.snapshot_p0a_critical_evidence import snapshot as snapshot_critical_evidence
 
 
 def _sha256(path: Path) -> str:
@@ -121,6 +122,43 @@ def test_snapshot_archives_only_lightweight_normalized_evidence(tmp_path):
     archived = {item["path"] for item in manifest["artifacts"]}
     assert "README.md" in archived
     assert "step_sha256.csv" in archived
+
+
+def test_snapshot_uses_canonical_lf_and_manifest_matches_bytes(tmp_path):
+    run = _fixture_run(tmp_path)
+    report = tmp_path / "repo" / "reports" / "p0a"
+
+    snapshot(run, report, repo_root=tmp_path / "repo")
+
+    manifest = json.loads((report / "artifact_manifest.json").read_text(encoding="utf-8"))
+    for artifact in manifest["artifacts"]:
+        path = report / artifact["path"]
+        data = path.read_bytes()
+        assert b"\r" not in data, artifact["path"]
+        assert artifact["bytes"] == len(data)
+        assert artifact["sha256"] == hashlib.sha256(data).hexdigest()
+
+
+def test_critical_snapshot_repairs_existing_crlf_before_manifest(tmp_path):
+    run = _fixture_run(tmp_path)
+    report = tmp_path / "repo" / "reports" / "p0a"
+    snapshot(run, report, repo_root=tmp_path / "repo")
+
+    # Simulate a Windows checkout of an existing report. The critical-evidence
+    # archiver must normalize untouched files as well as files it regenerates.
+    for path in report.iterdir():
+        if path.suffix.lower() in {".csv", ".json", ".jsonl", ".md"}:
+            path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+
+    snapshot_critical_evidence(run, report)
+
+    manifest = json.loads((report / "artifact_manifest.json").read_text(encoding="utf-8"))
+    for artifact in manifest["artifacts"]:
+        path = report / artifact["path"]
+        data = path.read_bytes()
+        assert b"\r" not in data, artifact["path"]
+        assert artifact["bytes"] == len(data)
+        assert artifact["sha256"] == hashlib.sha256(data).hexdigest()
 
 
 def test_snapshot_rejects_tampered_step(tmp_path):

@@ -54,6 +54,31 @@ STEP_FIELDS = (
 
 BASELINE_JOINT_ITERATIONS = 200
 BASELINE_SEWING_TOLERANCE = 1e-4
+REPORT_TEXT_SUFFIXES = frozenset({".csv", ".json", ".jsonl", ".md"})
+
+
+def write_text_lf(path: Path, text: str) -> None:
+    """Write UTF-8 text with stable LF bytes on every platform."""
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    with Path(path).open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(normalized)
+
+
+def normalize_report_text_files(report_dir: Path) -> None:
+    """Normalize existing Git-safe report text files before hashing them.
+
+    A Windows checkout may materialize an already archived report as CRLF.
+    Rewriting only the report's text artifacts keeps their content unchanged
+    while making the bytes hashed into ``artifact_manifest.json`` identical to
+    the LF bytes stored by Git under the report's ``eol=lf`` attributes.
+    """
+    for path in sorted(Path(report_dir).rglob("*")):
+        if (
+            path.is_file()
+            and path.name != "artifact_manifest.json"
+            and path.suffix.lower() in REPORT_TEXT_SUFFIXES
+        ):
+            write_text_lf(path, path.read_text(encoding="utf-8"))
 
 
 def sha256_file(path: Path) -> str:
@@ -77,16 +102,16 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
 
 
 def write_json(path: Path, payload: Any) -> None:
-    Path(path).write_text(
+    write_text_lf(
+        path,
         json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=True) + "\n",
-        encoding="utf-8",
     )
 
 
 def write_jsonl(path: Path, rows: Sequence[Mapping[str, Any]]) -> None:
-    Path(path).write_text(
+    write_text_lf(
+        path,
         "".join(json.dumps(dict(row), sort_keys=True, ensure_ascii=True) + "\n" for row in rows),
-        encoding="utf-8",
     )
 
 
@@ -313,8 +338,8 @@ def build_failure_taxonomy(cases: Sequence[Mapping[str, Any]]) -> dict[str, Any]
 
 
 def write_csv(path: Path, fieldnames: Sequence[str], rows: Sequence[Mapping[str, Any]]) -> None:
-    with Path(path).open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+    with Path(path).open("w", encoding="utf-8", newline="\n") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows({field: row.get(field) for field in fieldnames} for row in rows)
 
@@ -416,15 +441,21 @@ P0-A 的“≥80% 可归因”验收已经通过（实际 100%），但这只关
 
 
 def artifact_manifest(report_dir: Path) -> list[dict[str, Any]]:
-    return [
-        {
-            "path": path.relative_to(report_dir).as_posix(),
-            "bytes": path.stat().st_size,
-            "sha256": sha256_file(path),
-        }
-        for path in sorted(Path(report_dir).rglob("*"))
-        if path.is_file() and path.name != "artifact_manifest.json"
-    ]
+    artifacts = []
+    for path in sorted(Path(report_dir).rglob("*")):
+        if not path.is_file() or path.name == "artifact_manifest.json":
+            continue
+        data = path.read_bytes()
+        if path.suffix.lower() in REPORT_TEXT_SUFFIXES and b"\r" in data:
+            raise RuntimeError(f"report text artifact is not canonical LF: {path}")
+        artifacts.append(
+            {
+                "path": path.relative_to(report_dir).as_posix(),
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def snapshot(run_root: Path, report_dir: Path, *, repo_root: Path) -> dict[str, Any]:
@@ -439,9 +470,7 @@ def snapshot(run_root: Path, report_dir: Path, *, repo_root: Path) -> dict[str, 
     write_json(report_dir / "assembly_chain_summary.json", normalized_summary)
     write_json(report_dir / "assembly_chain_cases.json", cases)
     checklist = (run_root / "repair_checklist.md").read_text(encoding="utf-8")
-    (report_dir / "repair_checklist.md").write_text(
-        checklist.rstrip() + "\n", encoding="utf-8"
-    )
+    write_text_lf(report_dir / "repair_checklist.md", checklist.rstrip() + "\n")
     compact = [compact_attempt(row, run_root=run_root) for row in attempts]
     compact.sort(
         key=lambda row: (
@@ -453,9 +482,8 @@ def snapshot(run_root: Path, report_dir: Path, *, repo_root: Path) -> dict[str, 
     write_csv(report_dir / "attempts_compact.csv", ATTEMPT_FIELDS, compact)
     steps = build_step_manifest(attempts, run_root=run_root)
     write_csv(report_dir / "step_sha256.csv", STEP_FIELDS, steps)
-    (report_dir / "README.md").write_text(
-        render_readme(normalized_summary, cases), encoding="utf-8"
-    )
+    write_text_lf(report_dir / "README.md", render_readme(normalized_summary, cases))
+    normalize_report_text_files(report_dir)
     write_json(
         report_dir / "artifact_manifest.json",
         {

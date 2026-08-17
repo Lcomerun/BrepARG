@@ -3,29 +3,36 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from snapshot_p0a_assembly_chain import (
-    build_ablation_summary,
-    build_failure_taxonomy,
-    detailed_attempt,
-    read_json,
-    read_jsonl,
-    validate_evidence,
-    write_json,
-    write_jsonl,
-)
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+try:
+    from tools.snapshot_p0a_assembly_chain import (
+        artifact_manifest,
+        build_ablation_summary,
+        build_failure_taxonomy,
+        detailed_attempt,
+        normalize_report_text_files,
+        read_json,
+        read_jsonl,
+        validate_evidence,
+        write_json,
+        write_jsonl,
+    )
+except ModuleNotFoundError:  # pragma: no cover - direct script execution
+    from snapshot_p0a_assembly_chain import (
+        artifact_manifest,
+        build_ablation_summary,
+        build_failure_taxonomy,
+        detailed_attempt,
+        normalize_report_text_files,
+        read_json,
+        read_jsonl,
+        validate_evidence,
+        write_json,
+        write_jsonl,
+    )
 
 
 def snapshot(run_root: Path, report_dir: Path) -> dict[str, Any]:
@@ -56,21 +63,12 @@ def snapshot(run_root: Path, report_dir: Path) -> dict[str, Any]:
     )
     write_json(report_dir / "tolerance_scan.json", ablations["tolerance_scan"])
 
-    artifacts = []
-    for path in sorted(report_dir.rglob("*")):
-        if path.is_file() and path.name != "artifact_manifest.json":
-            artifacts.append(
-                {
-                    "path": path.relative_to(report_dir).as_posix(),
-                    "bytes": path.stat().st_size,
-                    "sha256": sha256_file(path),
-                }
-            )
+    normalize_report_text_files(report_dir)
     write_json(
         report_dir / "artifact_manifest.json",
         {
             "policy": "STEP, pickle, checkpoint, reconstructed-array, and machine-local path bytes remain local.",
-            "artifacts": artifacts,
+            "artifacts": artifact_manifest(report_dir),
         },
     )
     return {
