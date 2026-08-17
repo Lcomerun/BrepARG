@@ -291,6 +291,14 @@ def _sweep_is_complete(path: Path, rung: RungSpec, config: LadderConfig) -> tupl
     except (OSError, json.JSONDecodeError) as exc:
         return False, f"cannot read sweep: {type(exc).__name__}"
     experiment = (payload.get("run_manifest") or {}).get("experiment") or {}
+    seed_dir = Path(path).parent.name
+    if seed_dir.startswith("seed") and seed_dir[4:].isdigit():
+        try:
+            run_seed = int(experiment.get("seed", -1))
+        except (TypeError, ValueError):
+            run_seed = -1
+        if run_seed != int(seed_dir[4:]):
+            return False, "sweep seed does not match its seed directory"
     rows = payload.get("mse_ranking")
     if experiment.get("train_cap") != rung.train_cap:
         return False, "sweep train cap does not match rung"

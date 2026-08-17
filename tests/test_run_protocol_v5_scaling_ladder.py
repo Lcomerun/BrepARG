@@ -218,6 +218,7 @@ def test_full_ladder_runs_conditional_oracle_and_never_enters_ar(tmp_path):
             payload = {
                 "run_manifest": {
                     "experiment": {
+                        "seed": int(env["NS_VQ_EXPERIMENT_SEED"]),
                         "train_cap": train_cap,
                         "arms": [{"name": arm} for arm in arms],
                     }
@@ -293,6 +294,7 @@ def test_resume_after_analysis_failure_reuses_completed_training(tmp_path):
                     {
                         "run_manifest": {
                             "experiment": {
+                                "seed": seed,
                                 "train_cap": rung.train_cap,
                                 "arms": [{"name": arm} for arm in rung.arms],
                             }
@@ -346,6 +348,7 @@ def test_resume_after_analysis_failure_reuses_completed_training(tmp_path):
                     {
                         "run_manifest": {
                             "experiment": {
+                                "seed": int(env["NS_VQ_EXPERIMENT_SEED"]),
                                 "train_cap": 300000,
                                 "arms": [{"name": "continuous_bypass_64d"}],
                             }

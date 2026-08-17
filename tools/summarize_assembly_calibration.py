@@ -67,11 +67,12 @@ def _arm_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
     ordered_rows = sorted(finite, key=lambda row: float(row["curved_mse"]))
     errors = [float(row["curved_mse"]) for row in ordered_rows]
     empirical_gate = None
-    minimum_gate_samples = min(10, len(ordered_rows))
-    for end in range(minimum_gate_samples, len(ordered_rows) + 1):
-        prefix = ordered_rows[:end]
-        if sum(bool(row.get("brep_valid")) for row in prefix) / end >= 0.8:
-            empirical_gate = float(prefix[-1]["curved_mse"])
+    if ordered_rows:
+        minimum_gate_samples = min(10, len(ordered_rows))
+        for end in range(max(1, minimum_gate_samples), len(ordered_rows) + 1):
+            prefix = ordered_rows[:end]
+            if sum(bool(row.get("brep_valid")) for row in prefix) / end >= 0.8:
+                empirical_gate = float(prefix[-1]["curved_mse"])
     bins = []
     if errors:
         for bin_index in range(min(4, len(errors))):
@@ -184,7 +185,10 @@ def summarize_calibration(
         if valid_rate >= acceptable_valid_rate:
             status = "CURRENT_ERROR_ACCEPTABLE"
             reason = "current continuous reconstruction error already assembles at an acceptable rate"
-        elif association is not None and float(association) >= strong_association:
+        elif association is None:
+            status = "INSUFFICIENT_EVIDENCE"
+            reason = "not enough finite curved_mse rows to estimate the error-validity association"
+        elif float(association) >= strong_association:
             status = "REPRESENTATION_ERROR_CORRELATED"
             reason = "low validity is strongly associated with higher curved reconstruction error"
         else:

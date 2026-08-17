@@ -85,6 +85,15 @@ def validate_sweep(
         report["reasons"].append(f"sweep unreadable: {type(exc).__name__}")
         return report
     experiment = (payload.get("run_manifest") or {}).get("experiment") or {}
+    seed_dir = Path(sweep_path).parent.name
+    if seed_dir.startswith("seed") and seed_dir[4:].isdigit():
+        try:
+            run_seed = int(experiment.get("seed", -1))
+        except (TypeError, ValueError):
+            run_seed = -1
+        if run_seed != int(seed_dir[4:]):
+            report["reasons"].append(
+                f"seed mismatch: run={experiment.get('seed')!r} dir={seed_dir}")
     rows = payload.get("mse_ranking") or []
     by_name = {str(row.get("name")): row for row in rows if isinstance(row, dict)}
     if set(by_name) != set(ARMS):
