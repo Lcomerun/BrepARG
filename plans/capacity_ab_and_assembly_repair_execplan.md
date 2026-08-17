@@ -28,6 +28,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 13:20 +08:00) Repaired RVQ evidence semantics. Stage indices now use independent namespaces, every stage reports `usage_fraction = entropy_perplexity / codebook_size`, best-checkpoint selection uses stage-specific historical stability instead of a conflated marginal, and the RVQ-over-VQ material advantage is frozen at 5 percentage points plus exact paired significance.
 - [x] (2026-08-17 13:18 +08:00) Re-ran the two-arm real-CUDA smoke from clean schema-v2 source. Both VQ-8192 and RVQ returned `valid=true`; RVQ's two stage usage reports and scheduler bindings passed.
 - [x] (2026-08-17 13:30 +08:00) Completed the forced interruption/resume behavior: epoch 0 was checkpointed, both processes were killed, and the replacement process restored full state and completed epoch 1 with `resumed=true` and `resume_from_epoch=0`. The smoke validator now distinguishes deduplicated smoke batch counts from formal exact-cap counts while still requiring all observed batches finite.
+- [x] (2026-08-17 20:20 +08:00) Archived the completed P0-B 60k formal cohort as a Git-safe snapshot: four 100-epoch histories, four TensorBoard event files, compact logs, metrics, manifests, and checkpoint SHA-256/size bindings. Archive validation reports 36 files, four histories, four TensorBoard events, no forbidden artifacts, and `valid=true`; the 4.27 GiB of checkpoint bytes remain local.
+- [x] (2026-08-17 20:30 +08:00) Archived the P0-A frozen-invalid16 diagnosis: all 96 paired attempts (`16 cases x 2 joint settings x 3 sewing tolerances`) completed, all 16 cases have a primary attribution, and the taxonomy is 10 wire self-intersections, 3 curve-fit failures, 2 wire-build failures, and 1 non-unit/empty-solid case. The archive contains the per-case JSONL, detailed attempts, ablation, tolerance scan, taxonomy, compact CSV, repair checklist, and byte manifest only.
+- [x] (2026-08-17 21:00 +08:00) Completed the unchanged-chain paired P0-B assembly measurement on the frozen ordered 100-CAD cohort using seed-3 best checkpoints for bypass and VQ-4096. The cohort identity hash, checkpoint hashes, protocol hash, split hash, command return codes, and log hashes are bound in `measurement_runtime_manifest.json`; all 100 attempts remain in the denominator.
+- [x] (2026-08-18 09:30 +08:00) Revalidated the three Git-safe report directories and their focused regression tests (`33 passed`). The archive and paired measurement commits are present in `origin/experiment/protocol-v5-scaling-ladder`; no force push or checkpoint upload is required.
 - [x] (2026-08-17 13:29 +08:00) Started the new four-task formal root `D:\luolin\V13\local_runs\capacity_ab_60k_v2_20260817` from clean schema-v2 commit `76604edb4bc06f6be7f4740d44886b1099e95eaa`. The old `capacity_ab_60k_20260817` root remains quarantined and is not resumed or promoted.
 - [x] (2026-08-17 14:12 +08:00) Rechecked the live schema-v2 task after epoch 30. VQ-8192 seed 3 had exact `469/469` train and `94/94` validation batches, zero non-finite counters, 97 percent GPU utilization, curved-parent MSE `0.0042640607`, validation perplexity `2411.32`, and coverage `0.822144`; the serialized scheduler metric equals curved-parent MSE.
 - [x] (2026-08-17 21:23 +08:00) Finished the immutable schema-v2 formal capacity matrix. All four tasks validated at exactly 100 epochs with identical train/validation inventories and resume-compatible runtime evidence. RVQ seed 4 hit a Windows `PermissionError` while replacing its rolling checkpoint after epoch 51; attempt 2 resumed from the same signed rolling state and completed with exit code 0. The final root is `COMPLETED` and `formal_result_eligible=true`.
@@ -184,6 +188,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
   Rationale: Changing quantization and assembly simultaneously would make recovered CADs impossible to attribute. The capacity A/B first uses the current chain; the repair track first uses original controls; only the final winner is measured through the repaired chain.
   Date/Author: 2026-08-17 / Codex.
 
+- Decision: Treat the paired 60k strict-validity gap as a capacity gate before starting boundary-consistency loss.
+  Rationale: On the identical 100-CAD cohort, bypass@60k is 70/100 strict and VQ-4096@60k is 57/100 strict, so `Delta_q=13 pp` exceeds the registered 5 pp noise band. The reconstruction-to-assembly loss is also 14 pp (`84-70`), but the preregistered order resolves the representation confound first.
+  Date/Author: 2026-08-18 / Codex.
+
 - Decision: Keep schema-v2 formal training immutable at commit `76604edb4bc06f6be7f4740d44886b1099e95eaa` and add capacity-aware Git-safe archival support without touching that running worktree's signed training sources.
   Rationale: Editing the detached training worktree would invalidate its source hashes. The archival code is exercised independently and will only read the completed state after all four tasks validate.
   Date/Author: 2026-08-17 / Codex.
@@ -246,9 +254,30 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 ## Outcomes & Retrospective
 
-The face/wire diagnosis milestone is complete and Git-safe. Schema v1 localizes 10 saved-STEP failure CADs to named faces, while schema v2 classifies every one of the 16 self-intersecting wires by exact OCC edge positions and preserves five pre-STEP cases as unavailable. The schema-v2 capacity root is complete: all four 100-epoch tasks validate with identical inventories and the unchanged-chain 100-CAD measurement selects `vq_8192_64d_random` by the registered rule. VQ-8192 reaches 69/100 strict-valid against bypass at 70/100, while RVQ reaches 65/100 and fails to justify its estimated +36 percent sequence cost. Baseline parity is exact at 84/100. Local topology reaches 85/100, guarded directed trim reaches 86/100, and their explicit combination reaches 87/100, all with zero regressions. The corrected local-pcurve-continuity profile independently reaches 86/100 and adds no recovery beyond guarded directed trim; selective curve rescue changes the three curve-fit failures into STEP-invalid rows but adds no strict-valid CAD beyond the 87/100 combination. The new near-vertex repair explains and restores the one non-unit-solid case without regressing any original success: its signed matrix is 95 STEP-readable, 87 native-valid, 85 strict-valid, and 83 both-valid. The best isolated production composition is 100 STEP-readable, 90 native-valid, 88 strict-valid, and 86 both-valid with all 84 original controls preserved. The assembly gate remains closed at seven CADs below 95/100, so boundary consistency, sequence regeneration, and AR remain blocked pending a different diagnosed repair or a formal gate decision. The plan is not complete until the remaining no-regression assembly repairs, repaired-chain VQ-8192 measurement, Git-safe snapshots, and remote push are verified.
+The face/wire diagnosis milestone and P0-B stability archive are complete and
+Git-safe. Schema v1/v2 localizes all 16 invalid controls and the archive records
+all 96 diagnosis attempts. The P0-B archive contains four 100-epoch histories,
+four TensorBoard event files, compact logs, metrics, manifests, and checkpoint
+SHA-256/size bindings; the 4.27 GiB checkpoint bytes remain local. The original
+unchanged-chain capacity measurement (bypass@60k 70/100, VQ-4096@60k 57/100)
+correctly triggered the preregistered capacity-first decision.
 
-The post-hardening capacity rerun from `D:\capv5` at commit `6f7436da50a5f455fd9af3c806676ac0f49b8f9f` is the authoritative capacity root. It completed all four tasks at exactly 100 epochs with `valid=true`, identical train/validation inventories, and runtime-resume compatibility. The fixed 100-CAD measurement in `reports/capacity_ab_posthardening_assembly_measurement_20260818/` reproduced bypass `70/100`, VQ-8192 `69/100`, RVQ `65/100`, exact paired McNemar `p=0.4239501953125`, and the same `VQ_8192_DIRECT_WIN` decision. The report contains only `capacity_ab_assembly_measurement.json`, `capacity_ab_assembly_measurement.md`, and `capacity_ab_assembly_pairs.csv`, with SHA-256 hashes `cd89cf63d25f297c536f43789e32077f914b9c95a115ce5b432a28a6e7d0a9c1`, `7709496a07756d3a4da211098e4171091567f9ee0dd87527cdb6b0c440d06f83`, and `64a28b4c8b7c6180bb9f84e23800328a1e9fae27929e280c07c6c84ebc31e4de` respectively. The 2026-08-17 measurement is retained as historical evidence.
+The authoritative post-hardening rerun from `D:\capv5` at commit
+`6f7436da50a5f455fd9af3c806676ac0f49b8f9f` completed all four VQ-8192/RVQ
+tasks at exactly 100 epochs with `valid=true`, identical inventories, and
+runtime-resume compatibility. On the fixed cohort, bypass@60k is 70/100 strict,
+VQ-8192 is 69/100, and RVQ is 65/100; exact RVQ-versus-VQ McNemar is
+`p=0.4239501953125`. The registered decision is `VQ_8192_DIRECT_WIN` with
+`Delta_q=1 pp`; the post-hardening report is Git-safe and retains only JSON,
+Markdown, and CSV summaries. The 2026-08-17 measurement remains historical.
+
+Baseline parity is exact at 84/100. The best isolated production composition
+reaches 100 STEP-readable, 90 native-valid, 88 strict-valid, and 86 both-valid
+with all 84 original controls preserved and zero regressions. The assembly gate
+therefore remains closed at seven cases below 95/100. Boundary consistency,
+sequence regeneration, and AR remain blocked; the plan is not complete until a
+repair meeting the immutable gate and its repaired-chain winner measurement are
+verified.
 
 ## Context and Orientation
 
@@ -285,7 +314,11 @@ Run focused tests after each implementation increment:
     C:\Users\YU\.conda\envs\brepgen_env\python.exe -m pytest -q tests\test_vqvae_protocol_training.py tests\test_training_stability.py tests\test_run_p0b_stability_retest.py
     C:\Users\YU\.conda\envs\brepgen_env\python.exe -m pytest -q tests\test_run_p0b_vq_assembly_measurement.py tests\test_diagnose_assembly_chain.py tests\test_directed_trim_assembly.py
 
-The exact capacity launcher command will be recorded here after its CLI is implemented. It must expose `probe`, `run`, `status`, and `validate` operations and must never silently change the registered formal constants.
+The exact capacity launcher command will be recorded here after its CLI is implemented. It must expose `probe`, `run`, `status`, and `validate` operations and must never silently change the registered formal constants. The completed P0 archive and paired-measurement verification used:
+
+    C:\Users\YU\.conda\envs\brepgen_env\python.exe -m pytest -q tests\test_snapshot_p0a_assembly_chain.py tests\test_snapshot_p0b_formal_results.py tests\test_run_p0b_vq_assembly_measurement.py tests\test_audit_assembly_step_validity.py
+
+The expected result is `33 passed`; the report-level validators must also show `forbidden_artifacts=[]`, four histories, four TensorBoard events, cohort attempts `100` per arm, and `decision=CAPACITY_AB_FIRST`.
 
 ## Validation and Acceptance
 
