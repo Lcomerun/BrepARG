@@ -1,0 +1,84 @@
+{
+  "logs": [
+    {
+      "attempt": 1,
+      "bytes": 1642,
+      "last_nonempty_line": "[03:35:54] DONE {'vqsweep': 'PASS'} in 117.8min",
+      "line_count": 17,
+      "nonempty_line_count": 17,
+      "sha256": "840d00f59b83cb4e3376b600cc9634f05bd1aae048c4f8119308968ee87bad00",
+      "stream": "stdout",
+      "task_id": "rvq_2x4096_64d_random:seed3"
+    },
+    {
+      "attempt": 1,
+      "bytes": 0,
+      "last_nonempty_line": null,
+      "line_count": 0,
+      "nonempty_line_count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stream": "stderr",
+      "task_id": "rvq_2x4096_64d_random:seed3"
+    },
+    {
+      "attempt": 1,
+      "bytes": 1642,
+      "last_nonempty_line": "[05:31:16] DONE {'vqsweep': 'PASS'} in 115.3min",
+      "line_count": 17,
+      "nonempty_line_count": 17,
+      "sha256": "0c077dad2f53e1c8152455f783498658738226f666cae05308b3561cab8e259d",
+      "stream": "stdout",
+      "task_id": "rvq_2x4096_64d_random:seed4"
+    },
+    {
+      "attempt": 1,
+      "bytes": 0,
+      "last_nonempty_line": null,
+      "line_count": 0,
+      "nonempty_line_count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stream": "stderr",
+      "task_id": "rvq_2x4096_64d_random:seed4"
+    },
+    {
+      "attempt": 1,
+      "bytes": 1606,
+      "last_nonempty_line": "[23:42:00] DONE {'vqsweep': 'PASS'} in 115.0min",
+      "line_count": 17,
+      "nonempty_line_count": 17,
+      "sha256": "cb8d2086b174cbd47f9f42292766c47ce0156dbe2638a79a7d7e59473cd344ff",
+      "stream": "stdout",
+      "task_id": "vq_8192_64d_random:seed3"
+    },
+    {
+      "attempt": 1,
+      "bytes": 0,
+      "last_nonempty_line": null,
+      "line_count": 0,
+      "nonempty_line_count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stream": "stderr",
+      "task_id": "vq_8192_64d_random:seed3"
+    },
+    {
+      "attempt": 1,
+      "bytes": 1606,
+      "last_nonempty_line": "[01:38:03] DONE {'vqsweep': 'PASS'} in 116.0min",
+      "line_count": 17,
+      "nonempty_line_count": 17,
+      "sha256": "eb538121d371d9626845ee3a0f3f141a5aafc79679d066b67c0430514cffdf0f",
+      "stream": "stdout",
+      "task_id": "vq_8192_64d_random:seed4"
+    },
+    {
+      "attempt": 1,
+      "bytes": 0,
+      "last_nonempty_line": null,
+      "line_count": 0,
+      "nonempty_line_count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stream": "stderr",
+      "task_id": "vq_8192_64d_random:seed4"
+    }
+  ]
+}

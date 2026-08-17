@@ -1,0 +1,147 @@
+{
+  "command": [
+    "<MACHINE_LOCAL_PATH>/python.exe",
+    "<MACHINE_LOCAL_PATH>/train.py",
+    "--stage",
+    "vqsweep"
+  ],
+  "created_at": "2026-08-18T03:35:55+08:00",
+  "environment": {
+    "GIT_CONFIG_COUNT": "1",
+    "GIT_CONFIG_KEY_0": "safe.directory",
+    "GIT_CONFIG_VALUE_0": "<MACHINE_LOCAL_PATH>/capv5",
+    "NS_OUT": "<MACHINE_LOCAL_PATH>/seed4",
+    "NS_OUTBASE": "<MACHINE_LOCAL_PATH>/capacity_ab_60k_posthardening_v2_20260817",
+    "NS_PROTOCOL_DIR": "<MACHINE_LOCAL_PATH>/protocol",
+    "NS_PROTOCOL_V2": "1",
+    "NS_VQ_AUTO_RESUME": "1",
+    "NS_VQ_BALANCE_BY_PARENT": "1",
+    "NS_VQ_BS": "128",
+    "NS_VQ_COMPLEX_FRACTION": "0.0",
+    "NS_VQ_COMPLEX_LOSS_WEIGHT": "1.0",
+    "NS_VQ_CURVED_FRACTION": "0.0",
+    "NS_VQ_CURVED_LOSS_THRESHOLD": "0.02",
+    "NS_VQ_CURVED_LOSS_WEIGHT": "1.0",
+    "NS_VQ_DEDUP_BEFORE_CAP": "1",
+    "NS_VQ_EPOCHS": "100",
+    "NS_VQ_EXPERIMENT_SEED": "4",
+    "NS_VQ_EXPERIMENT_SIGNATURE": "42ee20f02f0596d898d2a78748529d43687a169ce4c10a3cd63bff5ea2e8ea06",
+    "NS_VQ_GRAD_CLIP": "1.0",
+    "NS_VQ_LR": "3e-4",
+    "NS_VQ_MAX_NONFINITE_VAL_EPOCHS": "1",
+    "NS_VQ_MIN_DELTA": "1e-05",
+    "NS_VQ_MIN_EPOCHS": "100",
+    "NS_VQ_MIN_PARENT_COVERAGE": "0.9",
+    "NS_VQ_PATIENCE": "100",
+    "NS_VQ_PLATEAU_METRIC": "curved_parent_mse",
+    "NS_VQ_PRECISION": "bf16",
+    "NS_VQ_REQUIRE_EXACT_CAPS": "1",
+    "NS_VQ_ROLLING_CHECKPOINT": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_rolling.pt",
+    "NS_VQ_SAMPLES": "60000",
+    "NS_VQ_SAVE_FINAL": "1",
+    "NS_VQ_SCHEDULER_FACTOR": "0.5",
+    "NS_VQ_SCHEDULER_MIN_LR": "1e-06",
+    "NS_VQ_SCHEDULER_PATIENCE": "8",
+    "NS_VQ_SCHEDULER_THRESHOLD": "1e-05",
+    "NS_VQ_STRICT_NONFINITE": "1",
+    "NS_VQ_SWEEP_ARMS": "rvq_2x4096_64d_random",
+    "NS_VQ_SWEEP_EPOCHS": "100",
+    "NS_VQ_SWEEP_TRAIN_CAP": "60000",
+    "NS_VQ_TB_LOG_DIR": "<MACHINE_LOCAL_PATH>/tensorboard",
+    "NS_VQ_VAL_SAMPLES": "12000"
+  },
+  "schema": "capacity-ab-60k-v2",
+  "signature": "42ee20f02f0596d898d2a78748529d43687a169ce4c10a3cd63bff5ea2e8ea06",
+  "signature_payload": {
+    "arm": "rvq_2x4096_64d_random",
+    "batch_size": 128,
+    "breparg_quantise_path": "<MACHINE_LOCAL_PATH>/quantise.py",
+    "breparg_quantise_sha256": "b5a030d6123e44302c836caeefe2cf83b52261630ed9474806a163a01a37980c",
+    "epochs": 100,
+    "git": {
+      "commit": "6f7436da50a5f455fd9af3c806676ac0f49b8f9f",
+      "dirty": false
+    },
+    "gradient_clip": "1.0",
+    "learning_rate": "3e-4",
+    "loss": {
+      "complex_loss_weight": 1.0,
+      "curved_loss_threshold": 0.02,
+      "curved_loss_weight": 1.0,
+      "reconstruction": "weighted_mse"
+    },
+    "parent_overlap_counts": {
+      "train__test": 0,
+      "train__val": 0,
+      "val__test": 0
+    },
+    "precision": "bf16",
+    "protocol_sha256": "6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3",
+    "protocol_status": "VERIFIED",
+    "protocol_summary_sha256": "cf0dfaf71b544851e0531bc33332753d4f06202b27499a5a487946dd9e9eed59",
+    "quantizer": {
+      "anchor": "random",
+      "codebook_size": 4096,
+      "contrastive_loss": true,
+      "decay": 0.99,
+      "distance": "cos",
+      "downstream_compatible": false,
+      "effective_code_combinations": 16777216,
+      "embedding_dim": 64,
+      "first_batch": false,
+      "implementation": "BrepARG.quantise.VectorQuantiser",
+      "kind": "residual_vq",
+      "loss_aggregation": "sum",
+      "residual_stage1_detached": true,
+      "stage2_collapse_gate": {
+        "min_perplexity_exclusive": 1.0,
+        "min_unique_bins": 2
+      },
+      "stage_codebook_sizes": [
+        4096,
+        4096
+      ],
+      "stage_count": 2
+    },
+    "sampling": {
+      "balance_by_parent": true,
+      "complex_fraction": 0.0,
+      "curved_fraction": 0.0,
+      "deduplicate_before_cap": true,
+      "min_parent_coverage": 0.9,
+      "require_exact_caps": true
+    },
+    "scheduler": {
+      "factor": 0.5,
+      "kind": "ReduceLROnPlateau",
+      "metric": "curved_parent_mse",
+      "min_lr": 1e-06,
+      "patience": 8,
+      "threshold": 1e-05,
+      "threshold_mode": "abs"
+    },
+    "schema": "capacity-ab-60k-v2",
+    "seed": 4,
+    "source_sha256": {
+      "cad_protocol.py": "e4649a368e30b7a55819538533d3fa8004afdf655be38f66a2d6aeaf6569e71d",
+      "fsq_quantise.py": "116e34f31081bf32a545cf6b52b55cf70a8b0470e04b790c08de5a653e8e4528",
+      "sharded_data.py": "b86894c50ac77011930f46509c969caa7de2ac81667c2b0532419dc7e00386b8",
+      "train.py": "14beba33811debc89462bf0cd52d2b6e4759cda5f299f55bd2c533da1f467fbd",
+      "training_stability.py": "bc02d0a5f2b63ad021f2e9bea1d0a9fe28cc4f4858c354624a70c30da9ecbcb3",
+      "vqvae_metrics.py": "91e3933d26a2cd50da6c97c63bc9b7a1b4a165b7c89a7fa8d083891662c3c992",
+      "vqvae_sample_cache.py": "c26926d189d53d7e4e38d88e55c5f4c353630bdb0fd86cc31894c94a2cb4dc10",
+      "vqvae_sampling.py": "913b07abe10433474ef9d0a5fa079124ff1a5693231acc2caf9cce02580aa689"
+    },
+    "split_pickle_sha256": "6ff0a0c3ee6a04ee056fa1ab982eb436a9f59d3d21f21f17babf34e6dc701d29",
+    "stop": {
+      "max_nonfinite_val_epochs": 1,
+      "min_delta": 1e-05,
+      "min_epochs": 100,
+      "patience": 100
+    },
+    "strict_nonfinite": true,
+    "train_cap": 60000,
+    "val_cap": 12000
+  },
+  "task_id": "rvq_2x4096_64d_random:seed4"
+}
