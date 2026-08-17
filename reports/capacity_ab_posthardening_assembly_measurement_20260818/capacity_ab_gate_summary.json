@@ -1,0 +1,33 @@
+{
+  "schema": "capacity-ab-gate-summary-v1",
+  "source_measurement_json": "capacity_ab_assembly_measurement.json",
+  "source_measurement_json_sha256": "cd89cf63d25f297c536f43789e32077f914b9c95a115ce5b432a28a6e7d0a9c1",
+  "cohort_attempts": 100,
+  "strict_valid_counts": {
+    "gt_reference": 84,
+    "bypass_300k_reference": 70,
+    "fsq_300k_reference": 49,
+    "bypass_60k": 70,
+    "vq_8192_60k": 69,
+    "rvq_60k": 65
+  },
+  "gates_percentage_points": {
+    "delta_q_bypass60k_minus_vq8192_60k": 1,
+    "delta_r_gt_minus_bypass60k": 14,
+    "capacity_trigger_delta_q_gt_5": false,
+    "boundary_loss_trigger_delta_r_gt_8": true,
+    "noise_band_abs_pp": 5
+  },
+  "decision": {
+    "capacity_arm": "vq_8192_64d_random",
+    "capacity_decision": "VQ_8192_DIRECT_WIN",
+    "assembly_gate_status": "CLOSED",
+    "assembly_gate_target_strict_valid": 95,
+    "sequence_and_ar_status": "BLOCKED_PENDING_ASSEMBLY_GATE"
+  },
+  "notes": [
+    "GT, bypass@300k, and FSQ@300k are historical strict-only references.",
+    "All current 60k attempts remain in the denominator.",
+    "This companion binds the original measurement JSON without rewriting it."
+  ]
+}

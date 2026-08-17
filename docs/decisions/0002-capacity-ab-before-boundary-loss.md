@@ -66,12 +66,14 @@ runtime-resume compatibility. The fixed ordered 100-CAD measurement in
 `reports/capacity_ab_posthardening_assembly_measurement_20260818/` reproduced
 bypass `70/100`, VQ-8192 `69/100`, RVQ `65/100`, exact two-sided McNemar
 `p=0.4239501953125`, and the same `VQ_8192_DIRECT_WIN` decision. The report
-contains only `capacity_ab_assembly_measurement.json`,
-`capacity_ab_assembly_measurement.md`, and `capacity_ab_assembly_pairs.csv`,
-with SHA-256 hashes `cd89cf63d25f297c536f43789e32077f914b9c95a115ce5b432a28a6e7d0a9c1`,
-`7709496a07756d3a4da211098e4171091567f9ee0dd87527cdb6b0c440d06f83`, and
-`64a28b4c8b7c6180bb9f84e23800328a1e9fae27929e280c07c6c84ebc31e4de`
-respectively.
+contains only the JSON, Markdown, CSV, gate summary, and artifact manifest.
+The primary artifact hashes are `capacity_ab_assembly_measurement.json` =
+`cd89cf63d25f297c536f43789e32077f914b9c95a115ce5b432a28a6e7d0a9c1`,
+`capacity_ab_assembly_measurement.md` =
+`f4f265367737b5e5ed870992f647225ca8ff7021836d240953c84ca92dbaedda`, and
+`capacity_ab_assembly_pairs.csv` =
+`64a28b4c8b7c6180bb9f84e23800328a1e9fae27929e280c07c6c84ebc31e4de`.
+The gate summary and manifest bind the source JSON and all four Git-safe files.
 
 ## Alternatives Considered
 

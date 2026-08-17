@@ -1,0 +1,31 @@
+{
+  "schema": "git-safe-artifact-manifest-v1",
+  "report": "capacity_ab_posthardening_assembly_measurement_20260818",
+  "policy": {
+    "forbidden_artifacts": ["checkpoint", "step", "pickle", "npz", "npy", "raw_cad", "upstream_breparg"],
+    "checkpoint_bytes_archived": false,
+    "raw_cad_archived": false
+  },
+  "artifacts": [
+    {
+      "path": "capacity_ab_assembly_measurement.json",
+      "bytes": 202333,
+      "sha256": "cd89cf63d25f297c536f43789e32077f914b9c95a115ce5b432a28a6e7d0a9c1"
+    },
+    {
+      "path": "capacity_ab_assembly_measurement.md",
+      "bytes": 1922,
+      "sha256": "f4f265367737b5e5ed870992f647225ca8ff7021836d240953c84ca92dbaedda"
+    },
+    {
+      "path": "capacity_ab_assembly_pairs.csv",
+      "bytes": 47787,
+      "sha256": "64a28b4c8b7c6180bb9f84e23800328a1e9fae27929e280c07c6c84ebc31e4de"
+    },
+    {
+      "path": "capacity_ab_gate_summary.json",
+      "bytes": 1153,
+      "sha256": "4e8a67d10ce6e778b17c2a861918536c3175baddd047dd1ce10744b044675278"
+    }
+  ]
+}

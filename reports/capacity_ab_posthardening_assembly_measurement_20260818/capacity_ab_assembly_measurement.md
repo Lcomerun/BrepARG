@@ -10,6 +10,8 @@ The three arms use the same ordered parent-isolated 100-CAD cohort and the uncha
 
 Strict validity is the preregistered decision outcome: bypass@60k=70/100, VQ-8192=69/100, RVQ=65/100. `Delta_q` for VQ-8192 is `1.0 pp`.
 
+Using the historical strict GT reference of 84/100, `Delta_r = GT - bypass@60k = 14 pp`. Thus the registered capacity trigger (`Delta_q > 5 pp`) is false, while the boundary-loss trigger (`Delta_r > 8 pp`) is true. Execution remains blocked by the independent assembly gate: the best repaired-chain result is 88/100 strict against the required 95/100. The machine-readable gate fields are in `capacity_ab_gate_summary.json`, which binds the measurement JSON by SHA-256.
+
 The RVQ-versus-VQ-8192 strict comparison has `5` RVQ-only successes and `9` VQ-only successes; exact two-sided McNemar `p=0.42395`. RVQ is accepted only when this improvement is positive and significant at alpha `0.05` because its preregistered estimated downstream sequence length is **+36%** (`1.36x`).
 
 Decision: **VQ_8192_DIRECT_WIN**. VQ-8192 is within the preregistered 5 pp bypass gap; the extra RVQ sequence cost is unnecessary.
