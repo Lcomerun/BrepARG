@@ -1,0 +1,22 @@
+{
+  "attempts": 100,
+  "cohort_equivalence_valid": true,
+  "final_matrix_sha256": "d3cb1ba56fbc67cdb4db3828cc1ba3036e800ccd32b20b47071144c081b65fe8",
+  "forbidden_artifacts": [],
+  "profiles": {
+    "failure_triggered_selector": 100
+  },
+  "repair_diagnostics_present": false,
+  "run_signature": "a4f1208d4a74026be313a6dfff6b6a1dc92ce0c79c154f5ea9dc9bf113b55cf1",
+  "run_status": "COMPLETED",
+  "selector_ledger_binding": {
+    "candidate_attempts": 146,
+    "candidate_final_binding_valid": true,
+    "candidate_ledger_sha256": "7b46b99ad0211cf9a51f2142673c125f106c8759d062d3481defbe39617bcea7",
+    "final_matrix_sha256": "d3cb1ba56fbc67cdb4db3828cc1ba3036e800ccd32b20b47071144c081b65fe8",
+    "selector_run": true
+  },
+  "solid_topology_diagnosis_archived": false,
+  "summary_sha256": "03ccbcfd53f29a625e55dc730f874958fb3e7f31a6c7d7e3289f993222ae7823",
+  "valid": true
+}

@@ -62,21 +62,21 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 20:05 +08:00) Implemented the pre-registered failure-triggered selector and its Git-safe evidence adapter in the selector worktree. The primary is `directed_trim_local_intersection_topology`; only a strict-invalid primary can try `near_vertex_reconciliation` and then `directed_trim_curve_interpolate_local_intersection_topology`. Every candidate runs in an isolated child. The child measures the candidate STEP and returns a path-free geometry/topology gate; the parent only evaluates the fixed route. A durable local candidate ledger records every candidate before the final denominator row, so an interrupted CAD resumes from its exact route prefix.
 - [x] (2026-08-17 20:29 +08:00) Performed an independent selector review before the formal pilot and hardened the result contract. The gate now compares effective vertex count plus face/edge incidence multisets; every candidate edge must expose a projectable 3D curve and every requested curve sample must succeed. Each local candidate record has a canonical SHA-256 which the final selected row, completed manifest, and Git-safe snapshot revalidate. The signed payload now includes the actual CPU joint optimizer and strict-diagnosis sources plus a path-free SHA-256/byte binding for every executed source pickle. JSONL appends use `fsync` and a resume may discard only an unterminated final torn line. A previous failure's raw exception text is cleared on successful resume and never archived. The full focused suite passed `83` tests after these changes.
 - [x] (2026-08-17 21:02 +08:00) Closed the second selector review before formal execution. A serialized positive gate is now accepted only after complete schema-v2 checks, thresholds, finite metrics, incidence, and sample-accounting validation in routing, ledger recovery, and final-row validation. The effective post-reconciliation vertex-edge incidence is measured explicitly. Parent and child bind the exact pickle bytes passed to `pickle.loads`, and code, `BrepARG/utils.py`, and every selected pickle are rehashed both after acquiring the run lock and before completion. The Git-safe gate snapshot includes all new incidence and accounting evidence. The seven-file focused suite passed `95` tests and `git diff --check` passed.
-- [ ] Rebase the reviewed selector commit onto the current remote hardening branch, push it without force, then run the selector first on the frozen 16 original failures and only then on all 100 original-control CADs. Its pre-registered acceptance condition is exactly the expected six both-valid restorations, at least `90/100` strict-valid, at least `87/100` both-valid, all original 84 strict-valid controls preserved, and zero worker/protocol failures. A miss fails the selector rather than changing the gate.
+- [x] (2026-08-18 07:00 +08:00) Pushed the reviewed selector implementation through `ab9965a` to `origin/experiment/protocol-v5-scaling-ladder`, reran the frozen 16-invalid pilot, and verified the exact seven both-valid restorations, four accepted fallbacks, zero worker/protocol failures, and no regression.
 - [x] (2026-08-17 21:22 +08:00) Rebased and normally pushed the selector hardening as clean commit `8e98acf` on `protocol-v5-assembly-selector`, then completed the new-root 16 historical-invalid pilot. The signed pilot has 16 final rows and 41 isolated candidates with zero worker/protocol failures, but reaches only five rather than six pre-registered both-valid restorations. The schema-v2 geometry/topology gate correctly rejects the missing interpolation fallback because it changes topology, so the protocol is fail-closed and the full 100-CAD selector run is not started.
 - [x] (2026-08-17 23:48 +08:00) Completed an exploratory 16-invalid pilot of high-precision surface fitting at tolerance `1e-4`. The mixed curve-rescue profile made `00032101...` and `00051587...` both-valid in addition to two existing directed-trim recoveries, but it is not eligible as a global replacement because standalone pilots show that changing surface fit can invalidate an existing recovery.
 - [x] (2026-08-17 23:54 +08:00) Removed the curve-rescue confound and measured selector geometry gates on the two new high-precision recoveries. `00051587...` remains native/strict/both-valid with identical 24 faces, 48 edges, 28 vertices, incidence multisets, and accepted boundary residuals. `00032101...` is rejected because the STEP has 16 vertices rather than the input topology's 18 and a different vertex-edge incidence multiset. No threshold was relaxed.
 - [x] (2026-08-18 00:08 +08:00) Added the no-confound high-precision profile as the selector's final failure-only fallback. Independent review found and the implementation closed a durable-ledger ordering gap: recovery and final-row validation now recompute the first eligible fallback across every earlier candidate. Three regressions reject a later ledger entry, a skipped final-row fallback, and a skipped final-to-ledger binding. The seven-file focused suite passes 112 tests.
-- [ ] Commit the reviewed selector from a clean worktree, rerun the frozen 16-invalid protocol, and run the full 100-CAD selector only if the pilot restores the exact registered six CADs with zero worker/protocol failures.
+- [x] (2026-08-18 07:00 +08:00) Completed the full 100-CAD failure-triggered selector from signed run `a4f1208d4a74026be313a6dfff6b6a1dc92ce0c79c154f5ea9dc9bf113b55cf1`. It produced 100 attempts, 97 STEP-readable, 90 native-valid, 91 strict-valid, 88 both-valid, seven restorations, 84/84 original controls preserved, and zero worker/protocol failures.
 - [ ] Implement the remaining assembly repairs as independent, diagnosed-entity-local switches, with tests and one commit per logically independent repair.
 - [x] (2026-08-17 23:24 +08:00) Completed the periodic-surface UV branch prototype as an isolated pcurve-only primitive. Its dynamic program closes integer-period UV branch gaps on copied edges and the OCC test proves unchanged sampled 3D curves, face/edge/vertex incidence, and geometry. The frozen failed faces are fitted as non-periodic surfaces, so this primitive is not connected to a production profile and no formal CAD matrix is justified.
 - [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
 - [x] (2026-08-17 12:51 +08:00) Added an idempotent local `run_assembly_repair_matrix.py` coordinator with independent and combined profiles, fixed 100-CAD identity checks, attempts-based strict/native/both-valid counts, and restored/unchanged/regressed CAD maps. A one-CAD real OCC smoke completed as both-valid.
 - [x] (2026-08-17 13:00 +08:00) Ran development pilots on all 16 historical failures. The all-switch profile restored 0/16 and failed early on 7; independent directed trim restored exactly the two historical wire-build failures, while curve fallback, continuity-only, and single-solid restored none. This is negative pilot evidence, not the formal 100-CAD result; the next repair must target self-intersecting pcurves/wires locally rather than globally reordering every face.
 - [x] (2026-08-17 13:15 +08:00) Tested an explicit OCC `ShapeFix_Wire`/`ShapeFix_Face` pcurve self-intersection mode twice on the same 16 failures. It retained the two directed-trim wire-build recoveries but restored none of the ten self-intersection cases. Generic OCC self-intersection repair is therefore rejected as the next global switch; the formal 95/100 GT gate remains unmet.
-- [ ] Re-run the frozen 100 original-control CADs after each repair, preserve all 84 original strict-valid CADs, reach at least 95 strict-valid CADs, and publish the repair-to-restored/regressed-case map.
+- [ ] Re-run the frozen 100 original-control CADs after each new diagnosed repair, preserve all 84 original strict-valid CADs, reach at least 95 strict-valid CADs, and publish the repair-to-restored/regressed-case map. The selector composition is currently 91/100, so this gate remains open.
 - [ ] Re-measure the selected capacity arm through the repaired chain and apply the final release gate.
-- [ ] Snapshot Git-safe evidence into `reports/capacity_ab_60k_20260817/` and `reports/assembly_repair_20260817/`, validate forbidden-file exclusions, commit, and push normally to `experiment/protocol-v5-scaling-ladder`.
+- [x] (2026-08-18 07:05 +08:00) Snapshotted the selector evidence at `reports/assembly_selector_main_100cad_20260818/`, validated the forbidden-file and cohort contracts, and prepared the report for the normal branch push.
 
 ## Surprises & Discoveries
 
@@ -205,6 +205,12 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Observation: High-precision surface fitting separates two visually similar strict failures only after the selector's discrete-topology gate.
   Evidence: Both `00032101...` and `00051587...` become native/strict/both-valid at surface-fit tolerance `1e-4` without curve rescue. `00051587...` preserves all input face/edge/vertex counts and incidence and passes the fixed gate; `00032101...` changes the vertex count from 18 to 16 and is rejected despite small continuous boundary residuals.
+
+- Observation: The complete selector improves the no-regression chain but does not meet the release gate.
+  Evidence: The signed 100-CAD run has 97 STEP-readable, 90 native-valid, 91 strict-valid, and 88 both-valid rows; it restores seven CADs, preserves all 84 historical strict controls, and reports zero worker/protocol failures. The immutable release condition is 95 strict-valid, so the shortfall is four CADs rather than a protocol failure.
+
+- Observation: Detaching the selector from a terminal is necessary on Windows.
+  Evidence: The first launch stopped after two rows with `OSError: [Errno 22] Invalid argument` when the parent terminal closed its stdout handle. Resuming the same signed output root with stdout/stderr redirected completed all 100 rows without any worker or protocol failure.
 
 ## Decision Log
 
@@ -336,6 +342,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
   Rationale: The prior broad pcurve-continuity treatment enabled `ModifyGeometryMode(True)` and added no frozen-cohort recovery. `BRep_Builder.UpdateEdge` has a dedicated two-dimensional curve overload, so a copied face can instead translate only a diagnosed edge's pcurve by an integer surface period while preserving the original 3D edge curve and discrete incidence exactly.
   Date/Author: 2026-08-17 / Codex.
 
+- Decision: Keep the failure-triggered selector as the current assembly candidate, but do not release it or start downstream representation work at 91/100.
+  Rationale: The selector is protocol-clean and preserves every original success, yet it misses the immutable 95/100 strict gate by four CADs. Treating selector-protocol success as assembly-release success would conflate evidence integrity with geometric utility.
+  Date/Author: 2026-08-18 / Codex.
+
 ## Outcomes & Retrospective
 
 The face/wire diagnosis milestone and P0-B stability archive are complete and
@@ -355,13 +365,15 @@ VQ-8192 is 69/100, and RVQ is 65/100; exact RVQ-versus-VQ McNemar is
 `Delta_q=1 pp`; the post-hardening report is Git-safe and retains only JSON,
 Markdown, and CSV summaries. The 2026-08-17 measurement remains historical.
 
-Baseline parity is exact at 84/100. The best isolated production composition
+Baseline parity is exact at 84/100. The earlier isolated production composition
 reaches 100 STEP-readable, 90 native-valid, 88 strict-valid, and 86 both-valid
-with all 84 original controls preserved and zero regressions. The assembly gate
-therefore remains closed at seven cases below 95/100. Boundary consistency,
-sequence regeneration, and AR remain blocked; the plan is not complete until a
-repair meeting the immutable gate and its repaired-chain winner measurement are
-verified.
+with all 84 original controls preserved and zero regressions. The newer
+failure-triggered selector reaches 97 STEP-readable, 90 native-valid, 91
+strict-valid, and 88 both-valid, restores seven cases, and still preserves all
+84 controls with zero regressions. The assembly gate therefore remains closed at
+four cases below 95/100. Boundary consistency, sequence regeneration, and AR
+remain blocked; the plan is not complete until a repair meeting the immutable
+gate and its repaired-chain winner measurement are verified.
 
 The fail-closed selector implementation is now part of this branch. It preserves
 strict-valid primary outputs, records every isolated candidate in a durable
@@ -369,6 +381,8 @@ ledger, and accepts a fallback only after complete source-topology and
 bidirectional geometry checks. Its formal 16-CAD and 100-CAD evidence is tracked
 as a separate milestone because implementation alone does not satisfy the 95/100
 release gate.
+
+The completed 100-CAD selector is the latest authoritative assembly evidence. It reaches 91/100 strict-valid and 88/100 both-valid, restores seven cases, and preserves 84/84 historical strict-valid controls with zero worker/protocol failures. The Git-safe snapshot binds run signature `a4f1208d4a74026be313a6dfff6b6a1dc92ce0c79c154f5ea9dc9bf113b55cf1`, final matrix SHA-256 `d3cb1ba56fbc67cdb4db3828cc1ba3036e800ccd32b20b47071144c081b65fe8`, and candidate-ledger SHA-256 `7b46b99ad0211cf9a51f2142673c125f106c8759d062d3481defbe39617bcea7`. The assembly release gate remains closed; boundary consistency, sequence regeneration, and AR are still blocked.
 
 ## Context and Orientation
 
@@ -539,3 +553,5 @@ Revision note 2026-08-17 23:15 +08:00: Registered a bounded periodic-surface UV 
 Revision note 2026-08-17 23:45 +08:00: Rebuilt the Capacity A/B Git-safe archive so every JSON, JSONL, CSV, Markdown, text, and log artifact is validated fail-closed for machine-local absolute paths, UTF-8, and canonical LF bytes. All 40 manifest entries match their archived bytes, no forbidden artifact or absolute path remains, and the experiment metrics plus all 12 checkpoint size/SHA-256 bindings are unchanged. Repaired the local remote-default reference to `refs/remotes/origin/HEAD -> refs/remotes/origin/main`; this is local Git metadata and does not alter experiment evidence.
 
 Revision note 2026-08-17 23:57 +08:00: Recorded the high-precision surface exploratory pilot and the two isolated selector-gate probes. Added a no-confound `directed_trim_surface_precision_local_intersection_topology` profile and registered it as the selector's final failure-only fallback. `00051587...` passes the unchanged schema-v2 gate; `00032101...` is rejected for changed vertex topology. Formal evidence still requires a clean-commit 16-invalid selector run before any 100-CAD execution.
+
+Revision note 2026-08-18 07:05 +08:00: Completed and archived the full signed 100-CAD failure-triggered selector. It reached 91/100 strict-valid and 88/100 both-valid with seven restorations, preserved all 84 original strict controls, and had zero worker/protocol failures. The selector protocol passed, but the immutable 95/100 assembly release gate remains closed; no repaired-chain capacity remeasurement or downstream representation work is authorized.
