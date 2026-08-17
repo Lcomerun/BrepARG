@@ -691,12 +691,53 @@ def _make_amp_safe_learned_quantizer(
     from quantise import VectorQuantiser
 
     class AmpSafeVectorQuantiser(VectorQuantiser):
+        @staticmethod
+        def _query_feature_pool_bounded(pool, features):
+            """Update the upstream history pool without overflowing its tail.
+
+            BrepARG's FeaturePool assumes every append fits entirely in the
+            remaining capacity.  A checkpoint can restore a partially filled
+            pool whose remaining rows are smaller than the next latent batch.
+            Fill the tail first, then randomly replace existing rows with the
+            remainder, matching the upstream full-pool policy.
+            """
+            pool.features = pool.features.to(
+                device=features.device, dtype=features.dtype
+            )
+            pool_size = int(pool.pool_size)
+            count = int(features.size(0))
+            if count >= pool_size:
+                selected = torch.randperm(count, device=features.device)[:pool_size]
+                pool.features = features[selected].detach().clone()
+                pool.nums_features = pool_size
+                return pool.features
+            used = max(0, min(int(pool.nums_features), pool_size))
+            tail = min(pool_size - used, count)
+            if tail:
+                pool.features[used:used + tail] = features[:tail]
+                used += tail
+            remainder = count - tail
+            if remainder:
+                replacement = torch.randperm(pool_size, device=features.device)[:remainder]
+                pool.features[replacement] = features[tail:]
+            pool.nums_features = used
+            return pool.features
+
         def forward(self, z, *args, **kwargs):
             pool = getattr(self, 'pool', None)
             features = getattr(pool, 'features', None)
             if features is not None and (features.device != z.device or features.dtype != z.dtype):
                 pool.features = features.to(device=z.device, dtype=z.dtype)
-            return super().forward(z, *args, **kwargs)
+            original_query = getattr(pool, 'query', None)
+            if callable(original_query):
+                pool.query = lambda value: self._query_feature_pool_bounded(
+                    pool, value
+                )
+            try:
+                return super().forward(z, *args, **kwargs)
+            finally:
+                if callable(original_query):
+                    pool.query = original_query
 
     quantizer = AmpSafeVectorQuantiser(
         num_embed=int(codebook_size),

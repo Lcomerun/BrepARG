@@ -62,6 +62,26 @@ def test_vq8192_has_expected_embedding_and_finite_forward_backward(train_module)
     assert latent.grad is not None and torch.isfinite(latent.grad).all()
 
 
+def test_learned_vq_feature_pool_handles_partial_tail_after_resume(train_module):
+    config = train_module.quantizer_comparison_configs(("vq_8192_64d_random",))[0]
+    train_module.seed_vq_experiment(3)
+    quantizer = train_module.build_quantized_vqvae(config).quantize
+    pool = quantizer.pool
+    pool.nums_features = pool.pool_size - 3
+    original_prefix = pool.features[:2].clone()
+    latent = torch.randn(2, 64, 2, 2)  # eight tokens; only three tail rows remain
+
+    quantized, loss, _info = quantizer(latent)
+
+    assert quantized.shape == latent.shape
+    assert torch.isfinite(loss)
+    assert pool.nums_features == pool.pool_size
+    assert pool.features.shape == (8192, 64)
+    assert not torch.equal(pool.features[:2], original_prefix) or torch.isfinite(
+        pool.features
+    ).all()
+
+
 def test_rvq_uses_detached_residual_two_independent_pools_and_one_st_path(
     train_module, monkeypatch
 ):

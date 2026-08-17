@@ -23,7 +23,8 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 13:00 +08:00) Stopped the first formal root at VQ-8192 seed 3 epoch 52 and classified it as diagnostic-only. Its signed scheduler declared `curved_parent_mse`, but the launcher omitted `NS_VQ_PLATEAU_METRIC`, so the actual scheduler consumed global validation MSE. No later arm or seed was started.
 - [x] (2026-08-17 13:20 +08:00) Upgraded the capacity evidence contract to schema v2: the launcher explicitly injects every scheduler, sampling, loss, and stop control; history and validator bind the real plateau metric; source and clean-Git identity coverage is expanded; exact batch/lifecycle checks fail closed; and existing state rejects environment drift.
 - [x] (2026-08-17 13:20 +08:00) Repaired RVQ evidence semantics. Stage indices now use independent namespaces, every stage reports `usage_fraction = entropy_perplexity / codebook_size`, best-checkpoint selection uses stage-specific historical stability instead of a conflated marginal, and the RVQ-over-VQ material advantage is frozen at 5 percentage points plus exact paired significance.
-- [ ] Re-run the two-arm CUDA smoke and forced interruption/resume smoke from the clean schema-v2 commit, then start a new four-task formal root. The old `capacity_ab_60k_20260817` root must never be resumed or promoted.
+- [x] (2026-08-17 13:18 +08:00) Re-ran the two-arm real-CUDA smoke from clean schema-v2 source. Both VQ-8192 and RVQ returned `valid=true`; RVQ's two stage usage reports and scheduler bindings passed.
+- [ ] Complete the forced interruption/resume smoke, then start a new four-task formal root. Its first resume attempt exposed an upstream FeaturePool tail-overflow when a restored partially filled pool has less free space than the next batch; the local adapter now handles the tail and has a regression test. The old `capacity_ab_60k_20260817` root must never be resumed or promoted.
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
 - [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
@@ -65,6 +66,9 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Observation: Concatenating two RVQ integer streams without an offset merges unrelated code identities.
   Evidence: Code 7 from stage 1 and code 7 from stage 2 occupied the same histogram bin in schema v1. Schema v2 offsets stage 2 by 4096 and treats the combined histogram as compatibility-only evidence; selection uses each stage's usage fraction independently.
+
+- Observation: The upstream history-feature pool cannot append across its final free rows after checkpoint restore.
+  Evidence: Restoring VQ-8192 with 7,748 of 8,192 rows filled and processing a 512-token batch attempted to assign 512 rows into a 444-row slice. The local learned-VQ adapter now fills the tail and randomly replaces rows with the remainder without modifying `BrepARG/`.
 
 ## Decision Log
 
@@ -199,3 +203,5 @@ Revision note 2026-08-17 13:00 +08:00: Recorded the real OCC runner smoke and th
 Revision note 2026-08-17 13:15 +08:00: Recorded two negative generic pcurve self-intersection repair pilots. They added no restoration beyond the two directed-trim wire-build cases, so the plan rejects broad OCC ShapeFix as a route to the 95/100 gate and leaves boundary loss and downstream training blocked.
 
 Revision note 2026-08-17 13:20 +08:00: Recorded the schema-v1 scheduler mismatch, stopped and quarantined the diagnostic-only run, froze schema-v2 runtime/evidence controls, repaired RVQ stage accounting and selection, and made a new CUDA smoke plus clean-root restart mandatory.
+
+Revision note 2026-08-17 13:25 +08:00: Recorded the successful schema-v2 two-arm CUDA smoke and the FeaturePool tail-overflow found by the forced-resume smoke. The fix remains in the local adapter and must pass a second forced-resume smoke before formal launch.
