@@ -3,6 +3,7 @@ import subprocess
 from pathlib import Path
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
 from tools.assembly_repair import RepairProfile, parse_profiles
@@ -13,6 +14,7 @@ from tools.run_assembly_repair_matrix import (
     bind_run_manifest,
     main,
     parse_worker_result,
+    production_profile_topology_inputs,
     profile_kwargs,
     requires_isolated_worker,
     run_one_isolated,
@@ -59,6 +61,54 @@ def test_profile_kwargs_keep_switches_independent():
             "local_pcurve_continuity", ("local_pcurve_continuity",)
         )
     )["local_pcurve_continuity"] is True
+
+
+def test_production_single_solid_remaps_only_merged_endpoint_pair():
+    points = {
+        0: (0.0, 0.0, 0.0),
+        1: (1.0, 0.0, 0.0),
+        2: (1.0, 1.0, 0.0),
+        3: (0.0, 1.0, 0.0),
+        4: (1.0 + 5e-5, 1.0, 0.0),
+    }
+    edge_pairs = [(0, 1), (1, 2), (4, 3), (3, 0)]
+    edge_wcs = np.asarray(
+        [
+            [points[left], points[right]]
+            for left, right in edge_pairs
+        ],
+        dtype=np.float64,
+    )
+    adjacency = np.asarray(edge_pairs, dtype=np.int64)
+
+    repaired_edges, remapped, diagnostics = production_profile_topology_inputs(
+        RepairProfile("single_solid", ("single_solid",)),
+        edge_wcs,
+        adjacency,
+        [[0, 1, 2, 3]],
+    )
+
+    assert remapped.tolist() == [[0, 1], [1, 2], [2, 3], [3, 0]]
+    assert diagnostics["solid_topology_repair"]["applied"] is True
+    assert diagnostics["solid_topology_repair"]["production_endpoint_adjustment_count"] == 2
+    np.testing.assert_allclose(repaired_edges[1, -1], repaired_edges[2, 0])
+    np.testing.assert_allclose(repaired_edges[0], edge_wcs[0])
+
+
+def test_production_topology_inputs_are_noop_without_single_solid():
+    edge_wcs = np.zeros((1, 2, 3), dtype=np.float64)
+    adjacency = np.asarray([[0, 0]], dtype=np.int64)
+
+    repaired_edges, remapped, diagnostics = production_profile_topology_inputs(
+        RepairProfile("baseline"),
+        edge_wcs,
+        adjacency,
+        [[0]],
+    )
+
+    np.testing.assert_array_equal(repaired_edges, edge_wcs)
+    np.testing.assert_array_equal(remapped, adjacency)
+    assert diagnostics == {}
 
 
 @pytest.mark.parametrize(

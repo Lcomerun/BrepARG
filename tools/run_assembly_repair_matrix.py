@@ -32,6 +32,7 @@ try:
         canonical_signature,
         output_root_writer_lock,
     )
+    from .solid_topology_repair import reconcile_near_vertices
 except ImportError:  # direct script execution
     from assembly_repair import RepairProfile, parse_profiles
     from diagnose_step_validity_components import diagnose_step
@@ -42,6 +43,7 @@ except ImportError:  # direct script execution
         canonical_signature,
         output_root_writer_lock,
     )
+    from solid_topology_repair import reconcile_near_vertices
 
 
 SCHEMA = "assembly-repair-matrix-v1"
@@ -286,6 +288,57 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
     return result
 
 
+def production_profile_topology_inputs(
+    profile: RepairProfile,
+    edge_wcs: np.ndarray,
+    edge_vertex_adj: np.ndarray,
+    face_edge_adj: Sequence[Sequence[int]],
+) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
+    """Apply profile-controlled topology inputs before production construction.
+
+    The production ``utils.construct_brep`` API has no explicit shared-vertex
+    argument.  For the narrowly scoped near-vertex repair, remap only proven
+    endpoint-id pairs and move the affected curve endpoints to the shared
+    representative so the production wire builder sees matching endpoints.
+    """
+    edge_values = np.asarray(edge_wcs, dtype=np.float64)
+    adjacency = np.asarray(edge_vertex_adj, dtype=np.int64)
+    diagnostics: dict[str, Any] = {}
+    if not profile.enabled("single_solid"):
+        return edge_values, adjacency, diagnostics
+
+    remapped, shared_vertices, near_vertex_diagnostics = reconcile_near_vertices(
+        edge_values,
+        adjacency,
+        face_edge_adj,
+    )
+    repaired_edges = edge_values.copy()
+    merged_roots = {
+        int(cluster["root"])
+        for cluster in near_vertex_diagnostics.get("clusters", [])
+        if isinstance(cluster, Mapping)
+    }
+    endpoint_adjustments: list[float] = []
+    if near_vertex_diagnostics.get("applied"):
+        for edge_index, (start_vertex, end_vertex) in enumerate(remapped):
+            for point_index, vertex_id in ((0, int(start_vertex)), (-1, int(end_vertex))):
+                if vertex_id not in merged_roots:
+                    continue
+                replacement = np.asarray(shared_vertices[vertex_id], dtype=np.float64)
+                endpoint_adjustments.append(
+                    float(np.linalg.norm(repaired_edges[edge_index, point_index] - replacement))
+                )
+                repaired_edges[edge_index, point_index] = replacement
+    diagnostics["solid_topology_repair"] = {
+        **near_vertex_diagnostics,
+        "production_endpoint_adjustment_count": len(endpoint_adjustments),
+        "production_endpoint_adjustment_max": (
+            max(endpoint_adjustments) if endpoint_adjustments else 0.0
+        ),
+    }
+    return repaired_edges, remapped, diagnostics
+
+
 def strict_validate_step(path: Path, *, breparg_root: Path) -> dict[str, Any]:
     root = Path(breparg_root).resolve()
     if str(root) not in sys.path:
@@ -341,12 +394,18 @@ def run_one(
                 edge_bboxes=np.asarray(parsed["edge_bbox_wcs"], dtype=np.float32),
                 edge_scale_resolver=brep_utils.resolve_edge_scale,
             )
+            edge_wcs, production_edge_vertex_adj, topology_diagnostics = (
+                production_profile_topology_inputs(
+                    profile, edge_wcs, edge_vertex_adj, face_edge_adj
+                )
+            )
             solid = brep_utils.construct_brep(
-                surf_wcs, edge_wcs, face_edge_adj, edge_vertex_adj
+                surf_wcs, edge_wcs, face_edge_adj, production_edge_vertex_adj
             )
             diagnostics = {
                 "assembly_backend": "production",
                 "utils_sha256": sha256_file(root / "utils.py"),
+                **topology_diagnostics,
             }
         elif assembly_backend == "directed":
             surf_wcs, edge_wcs = cpu_joint_optimize(
