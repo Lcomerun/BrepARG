@@ -25,6 +25,7 @@ def test_profiles_are_independent_and_combined():
         "wire_continuity",
         "single_solid",
         "near_vertex_reconciliation",
+        "surface_fit_precision",
         "pcurve_self_intersection",
         "local_intersection_topology",
         "local_pcurve_continuity",
@@ -34,6 +35,7 @@ def test_profiles_are_independent_and_combined():
         "directed_trim_pcurve",
         "directed_trim_local_intersection_topology",
         "directed_trim_curve_rescue_local_intersection_topology",
+        "directed_trim_surface_precision_curve_rescue_local_intersection_topology",
         "directed_trim_local_pcurve_continuity",
         "combined",
     ]

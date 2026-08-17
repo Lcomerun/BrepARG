@@ -76,6 +76,7 @@ def construct_brep_directed(
     curve_fit_rescue: bool = False,
     curve_interpolate: bool = False,
     local_pcurve_continuity: bool = False,
+    surface_fit_precision: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks.
 
@@ -111,6 +112,7 @@ def construct_brep_directed(
     from OCC.Core.ShapeFix import ShapeFix_Face, ShapeFix_Wire
     from OCC.Extend.TopologyUtils import TopologyExplorer
 
+    surface_fit_tolerance = 1e-4 if surface_fit_precision else 5e-2
     surf_wcs = np.asarray(surf_wcs, dtype=np.float64)
     edge_wcs = np.asarray(edge_wcs, dtype=np.float64)
     edge_vertex_adj = np.asarray(edge_vertex_adj, dtype=np.int64)
@@ -147,10 +149,16 @@ def construct_brep_directed(
             for v_index in range(1, 33):
                 point = points[u_index - 1, v_index - 1]
                 grid.SetValue(u_index, v_index, gp_Pnt(*map(float, point)))
-        fitter = GeomAPI_PointsToBSplineSurface(grid, 3, 8, GeomAbs_C2, 5e-2)
+        fitter = GeomAPI_PointsToBSplineSurface(
+            grid, 3, 8, GeomAbs_C2, surface_fit_tolerance
+        )
         if not fitter.IsDone():
             raise RuntimeError(f"surface_fit_not_done face={face_index}")
         surfaces.append(fitter.Surface())
+    diagnostics["surface_fit"] = {
+        "precision_enabled": bool(surface_fit_precision),
+        "tolerance": surface_fit_tolerance,
+    }
 
     shared_vertices: dict[int, Any] = {}
     if shared_vertex_points:

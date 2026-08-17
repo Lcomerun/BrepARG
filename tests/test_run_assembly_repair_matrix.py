@@ -45,6 +45,7 @@ def test_profile_kwargs_keep_switches_independent():
         "directed_trim": False, "curve_fit_fallback": False,
         "curve_fit_rescue": False, "curve_interpolate": False,
         "wire_continuity": False, "single_solid": False,
+        "surface_fit_precision": False,
         "solid_topology_repair": False,
         "pcurve_self_intersection": False,
         "local_intersection_topology": False,
@@ -53,6 +54,17 @@ def test_profile_kwargs_keep_switches_independent():
     assert profile_kwargs(RepairProfile("directed_trim", ("directed_trim",)))[
         "directed_trim"
     ] is True
+    precision = profile_kwargs(
+        parse_profiles(
+            [
+                "directed_trim_surface_precision_curve_rescue_"
+                "local_intersection_topology"
+            ]
+        )[0]
+    )
+    assert precision["surface_fit_precision"] is True
+    assert precision["curve_fit_rescue"] is True
+    assert precision["local_intersection_topology"] is True
     assert profile_kwargs(
         RepairProfile(
             "local_intersection_topology", ("local_intersection_topology",)

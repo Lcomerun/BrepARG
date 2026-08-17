@@ -21,6 +21,7 @@ REPAIR_SWITCHES = (
     "wire_continuity",
     "single_solid",
     "near_vertex_reconciliation",
+    "surface_fit_precision",
     "pcurve_self_intersection",
     "local_intersection_topology",
     "local_pcurve_continuity",
@@ -91,6 +92,15 @@ DIRECTED_RESCUE_LOCAL_TOPOLOGY_PROFILE = RepairProfile(
     "directed_trim_curve_rescue_local_intersection_topology",
     ("directed_trim", "curve_fit_rescue", "local_intersection_topology"),
 )
+DIRECTED_SURFACE_PRECISION_RESCUE_LOCAL_TOPOLOGY_PROFILE = RepairProfile(
+    "directed_trim_surface_precision_curve_rescue_local_intersection_topology",
+    (
+        "directed_trim",
+        "surface_fit_precision",
+        "curve_fit_rescue",
+        "local_intersection_topology",
+    ),
+)
 DIRECTED_LOCAL_PCURVE_PROFILE = RepairProfile(
     "directed_trim_local_pcurve_continuity",
     ("directed_trim", "local_pcurve_continuity"),
@@ -100,6 +110,7 @@ DEFAULT_PROFILES = (
     DIRECTED_CURVE_INTERPOLATE_PROFILE,
     DIRECTED_INTERPOLATE_LOCAL_TOPOLOGY_PROFILE, PCURVE_PROFILE,
     DIRECTED_LOCAL_TOPOLOGY_PROFILE, DIRECTED_RESCUE_LOCAL_TOPOLOGY_PROFILE,
+    DIRECTED_SURFACE_PRECISION_RESCUE_LOCAL_TOPOLOGY_PROFILE,
     DIRECTED_LOCAL_PCURVE_PROFILE, COMBINED_PROFILE
 )
 
