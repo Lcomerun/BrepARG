@@ -1,0 +1,56 @@
+{
+  "accepted_profiles": [],
+  "advance_to_boundary_consistency": false,
+  "advance_to_sequence_or_ar": false,
+  "cohort_size": 16,
+  "gate_passed": false,
+  "generated_at": "2026-08-17T12:42:30+08:00",
+  "historical_strict_valid": 0,
+  "label": "16-case combined switch pilot",
+  "profiles": [
+    {
+      "attempts": 16,
+      "both_valid": 0,
+      "meets_95_gate": false,
+      "native_valid": 6,
+      "preserves_original_84": true,
+      "profile": "combined",
+      "regressed_cad_ids": [],
+      "restored_cad_ids": [],
+      "status_counts": {
+        "assembly_error": 7,
+        "step_invalid": 9
+      },
+      "step_readable": 9,
+      "strict_valid": 0,
+      "unchanged_cad_ids": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
+        "00016845_33dbc9e6ea684970be61af74_step_000",
+        "00029780_a4788d5955c04fe1886666b7_step_000",
+        "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+        "00032101_674d8fea687f4d9bbca6599b_step_000",
+        "00047472_197769bbdd814278b715d88a_step_000",
+        "00051587_446e8810d6884cae80689579_step_000",
+        "00051602_7f1947595ae247e0a4a32f43_step_000",
+        "00061931_dcdd8a95feac4121adfd341f_step_000",
+        "00063055_e309c689b9b44f0686f47966_step_000",
+        "00067160_2a27016aa44f42c69c1079f7_step_000",
+        "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+        "00087341_6a73c5e821934d3fe4d0d555_step_000",
+        "00095733_8b325d2fcb27ec9e79388602_step_000"
+      ]
+    }
+  ],
+  "schema": "assembly-repair-matrix-v1",
+  "source_binding": {
+    "label": "16-case combined switch pilot",
+    "source_manifest_bytes": 100140,
+    "source_manifest_sha256": "2ab9cb4f42257984e80a17942f942d3b2e887b441d00ca9afc580fbf79369475",
+    "source_pickles_archived": false,
+    "source_run_name": "assembly_repair_invalid16_combined_20260817",
+    "step_bytes_archived": false,
+    "step_files_local": 9
+  }
+}

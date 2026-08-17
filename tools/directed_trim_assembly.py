@@ -19,7 +19,9 @@ try:
     from .assembly_repair import (
         curve_fit_attempts,
         directed_face_loops,
+        historical_face_loops,
         loop_bbox_diagonal,
+        orient_ordered_loop,
         sanitize_curve_points,
         validate_directed_loop,
     )
@@ -27,7 +29,9 @@ except ImportError:  # direct script execution
     from assembly_repair import (
         curve_fit_attempts,
         directed_face_loops,
+        historical_face_loops,
         loop_bbox_diagonal,
+        orient_ordered_loop,
         sanitize_curve_points,
         validate_directed_loop,
     )
@@ -40,6 +44,10 @@ def construct_brep_directed(
     edge_vertex_adj: np.ndarray,
     *,
     breparg_root: Path,
+    directed_trim: bool = True,
+    curve_fit_fallback: bool = True,
+    wire_continuity: bool = True,
+    single_solid: bool = True,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks."""
     root = Path(breparg_root).resolve()
@@ -85,12 +93,18 @@ def construct_brep_directed(
     edges = []
     curve_tolerances = []
     for edge_index, points in enumerate(edge_wcs):
-        cleaned, point_stats = sanitize_curve_points(points)
+        if curve_fit_fallback:
+            cleaned, point_stats = sanitize_curve_points(points)
+            fit_attempts = curve_fit_attempts()
+        else:
+            cleaned = np.asarray(points, dtype=np.float64)
+            point_stats = {"input_points": len(cleaned), "retained_points": len(cleaned)}
+            fit_attempts = ((0, 8, 5e-3), (0, 8, 8e-3), (0, 8, 5e-2))
         values = TColgp_Array1OfPnt(1, len(cleaned))
         for point_index, point in enumerate(cleaned, 1):
             values.SetValue(point_index, gp_Pnt(*map(float, point)))
         curve = None
-        for min_degree, max_degree, tolerance in curve_fit_attempts():
+        for min_degree, max_degree, tolerance in fit_attempts:
             attempt = {
                 "edge_index": edge_index, "min_degree": min_degree,
                 "max_degree": max_degree, "tolerance": tolerance,
@@ -125,14 +139,22 @@ def construct_brep_directed(
 
     faces = []
     for face_index, (surface, incident) in enumerate(zip(surfaces, face_edge_adj)):
-        loops = directed_face_loops(incident, edge_vertex_adj)
+        if directed_trim:
+            historical = historical_face_loops(incident, edge_vertex_adj)
+            try:
+                loops = [orient_ordered_loop(loop, edge_vertex_adj) for loop in historical]
+            except ValueError:
+                loops = directed_face_loops(incident, edge_vertex_adj)
+        else:
+            loops = historical_face_loops(incident, edge_vertex_adj)
         diagnostics["loop_count"] += len(loops)
         diagnostics["multi_loop_faces"] += int(len(loops) > 1)
         spans = [loop_bbox_diagonal(loop, edge_wcs) for loop in loops]
         outer_index = int(np.argmax(np.asarray(spans)))
         wires = []
         for loop_index, loop in enumerate(loops):
-            validate_directed_loop(loop, edge_vertex_adj)
+            if wire_continuity:
+                validate_directed_loop(loop, edge_vertex_adj)
             wire_builder = BRepBuilderAPI_MakeWire()
             for edge_id, reverse in loop:
                 edge = edges[edge_id].Reversed() if reverse else edges[edge_id]
@@ -171,8 +193,10 @@ def construct_brep_directed(
     diagnostics["curve_tolerance_counts"] = {
         str(value): curve_tolerances.count(value) for value in sorted(set(curve_tolerances))
     }
-    if len(shells) != 1:
+    if single_solid and len(shells) != 1:
         raise RuntimeError(f"sewing_produced_shell_count={len(shells)}")
+    if not shells:
+        raise RuntimeError("sewing_produced_no_shell")
     maker = BRepBuilderAPI_MakeSolid()
     maker.Add(shells[0])
     maker.Build()
@@ -185,6 +209,6 @@ def construct_brep_directed(
         solid_count += 1
         solid_explorer.Next()
     diagnostics["solid_count"] = solid_count
-    if solid_count != 1:
+    if single_solid and solid_count != 1:
         raise RuntimeError(f"solid_builder_produced_solid_count={solid_count}")
     return solid, diagnostics

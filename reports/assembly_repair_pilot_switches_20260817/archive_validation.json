@@ -1,0 +1,11 @@
+{
+  "attempts": 64,
+  "forbidden_artifacts": [],
+  "profiles": {
+    "curve_fit_fallback": 16,
+    "directed_trim": 16,
+    "single_solid": 16,
+    "wire_continuity": 16
+  },
+  "valid": true
+}

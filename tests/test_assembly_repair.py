@@ -6,6 +6,8 @@ from tools.assembly_repair import (
     RepairProfile,
     curve_fit_attempts,
     directed_face_loops,
+    historical_face_loops,
+    orient_ordered_loop,
     parse_profiles,
     sanitize_curve_points,
     validate_directed_loop,
@@ -19,6 +21,7 @@ def test_profiles_are_independent_and_combined():
         "curve_fit_fallback",
         "wire_continuity",
         "single_solid",
+        "directed_trim_curve_fit",
         "combined",
     ]
     assert parse_profiles(["directed_trim"])[0].enabled("directed_trim")
@@ -40,6 +43,15 @@ def test_degenerate_closed_edges_are_separate_loops():
     assert [(1, False), (2, False)] in loops
     for loop in loops:
         validate_directed_loop(loop, adjacency)
+
+
+def test_historical_grouping_can_be_oriented_without_regrouping():
+    adjacency = np.asarray([[0, 1], [2, 1], [2, 0]], dtype=np.int64)
+    loops = historical_face_loops([0, 1, 2], adjacency)
+    assert [[edge for edge, _ in loop] for loop in loops] == [[0, 1, 2]]
+    oriented = orient_ordered_loop(loops[0], adjacency)
+    assert oriented == [(0, False), (1, True), (2, False)]
+    validate_directed_loop(oriented, adjacency)
 
 
 def test_open_or_branching_topology_is_rejected():

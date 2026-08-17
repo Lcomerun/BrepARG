@@ -40,7 +40,12 @@ class RepairProfile:
 BASELINE_PROFILE = RepairProfile("baseline")
 INDIVIDUAL_PROFILES = tuple(RepairProfile(name, (name,)) for name in REPAIR_SWITCHES)
 COMBINED_PROFILE = RepairProfile("combined", REPAIR_SWITCHES)
-DEFAULT_PROFILES = (BASELINE_PROFILE, *INDIVIDUAL_PROFILES, COMBINED_PROFILE)
+DIRECTED_CURVE_PROFILE = RepairProfile(
+    "directed_trim_curve_fit", ("directed_trim", "curve_fit_fallback")
+)
+DEFAULT_PROFILES = (
+    BASELINE_PROFILE, *INDIVIDUAL_PROFILES, DIRECTED_CURVE_PROFILE, COMBINED_PROFILE
+)
 
 
 def parse_profiles(values: Iterable[str] | None = None) -> tuple[RepairProfile, ...]:
@@ -114,6 +119,84 @@ def directed_face_loops(
                 raise ValueError("trim loop traversal exceeded incident edge count")
         loops.append(loop)
     return loops
+
+
+def historical_face_loops(
+    face_edge_ids: Sequence[int], edge_vertex_adj: np.ndarray
+) -> list[list[tuple[int, bool]]]:
+    """Reproduce the historical face-local loop grouping without orientation."""
+    edge_ids = [int(value) for value in face_edge_ids]
+    if not edge_ids:
+        raise ValueError("face has no incident edge")
+    corners = np.asarray(edge_vertex_adj, dtype=np.int64)[edge_ids]
+    ordered = [0]
+    seen = [int(corners[0, 0]), int(corners[0, 1])]
+    next_vertex = int(corners[0, 1])
+    local_loops: list[list[int]] = []
+    guard = 0
+    while len(ordered) < len(corners):
+        while True:
+            next_rows = [
+                index for index, edge in enumerate(corners)
+                if next_vertex in edge and index not in ordered
+            ]
+            if not next_rows:
+                break
+            ordered.extend(next_rows)
+            difference = list(set(map(int, corners[next_rows][0])) - set(seen))
+            if not difference:
+                break
+            next_vertex = int(difference[0])
+            seen.extend(map(int, corners[next_rows][0]))
+            guard += 1
+            if guard > len(corners) * 2:
+                raise ValueError("historical loop traversal exceeded guard")
+        consumed = sum(len(loop) for loop in local_loops)
+        local_loops.append(ordered[consumed:])
+        remaining = list(set(range(len(corners))) - set(ordered))
+        if not remaining:
+            break
+        next_corner = int(remaining[0])
+        ordered.append(next_corner)
+        seen.extend(map(int, corners[next_corner]))
+        next_vertex = int(corners[next_corner, 1])
+        guard += 1
+        if guard > len(corners) * 2:
+            raise ValueError("historical loop discovery exceeded guard")
+    if not local_loops:
+        local_loops = [ordered]
+    if sorted(ordered) != list(range(len(edge_ids))):
+        raise ValueError("historical loop grouping does not cover all face edges")
+    return [[(edge_ids[local], False) for local in loop] for loop in local_loops]
+
+
+def orient_ordered_loop(
+    loop: Sequence[tuple[int, bool]], edge_vertex_adj: np.ndarray
+) -> list[tuple[int, bool]]:
+    """Orient one already ordered loop without changing its edge order."""
+    edge_ids = [int(edge_id) for edge_id, _ in loop]
+    if not edge_ids:
+        raise ValueError("wire loop is empty")
+    for first_reverse in (False, True):
+        first_a, first_b = _edge_endpoints(edge_vertex_adj, edge_ids[0])
+        start = first_b if first_reverse else first_a
+        current = first_a if first_reverse else first_b
+        oriented = [(edge_ids[0], first_reverse)]
+        possible = True
+        for edge_id in edge_ids[1:]:
+            edge_a, edge_b = _edge_endpoints(edge_vertex_adj, edge_id)
+            if edge_a == current:
+                oriented.append((edge_id, False))
+                current = edge_b
+            elif edge_b == current:
+                oriented.append((edge_id, True))
+                current = edge_a
+            else:
+                possible = False
+                break
+        if possible and current == start:
+            return oriented
+    raise ValueError("ordered wire edges cannot be oriented into a closed loop")
 
 
 def validate_directed_loop(

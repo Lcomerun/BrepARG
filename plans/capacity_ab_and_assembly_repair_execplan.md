@@ -24,6 +24,8 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
 - [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
+- [x] (2026-08-17 12:51 +08:00) Added an idempotent local `run_assembly_repair_matrix.py` coordinator with independent and combined profiles, fixed 100-CAD identity checks, attempts-based strict/native/both-valid counts, and restored/unchanged/regressed CAD maps. A one-CAD real OCC smoke completed as both-valid.
+- [x] (2026-08-17 13:00 +08:00) Ran development pilots on all 16 historical failures. The all-switch profile restored 0/16 and failed early on 7; independent directed trim restored exactly the two historical wire-build failures, while curve fallback, continuity-only, and single-solid restored none. This is negative pilot evidence, not the formal 100-CAD result; the next repair must target self-intersecting pcurves/wires locally rather than globally reordering every face.
 - [ ] Re-run the frozen 100 original-control CADs after each repair, preserve all 84 original strict-valid CADs, reach at least 95 strict-valid CADs, and publish the repair-to-restored/regressed-case map.
 - [ ] Re-measure the selected capacity arm through the repaired chain and apply the final release gate.
 - [ ] Snapshot Git-safe evidence into `reports/capacity_ab_60k_20260817/` and `reports/assembly_repair_20260817/`, validate forbidden-file exclusions, commit, and push normally to `experiment/protocol-v5-scaling-ladder`.
@@ -47,6 +49,9 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Observation: The external E: volume cannot safely host checkpoint-heavy formal training.
   Evidence: Windows reports the exFAT volume as `Warning / Full Repair Needed`; `py-spy` showed the smoke blocked inside `torch.save` at native `WriteFile`. A 256 MiB write to D: completed in about 0.18 seconds. The clean smoke and formal matrix therefore use D: and immediately restored sustained 96--98% GPU utilization after the one-time dataset scan and deduplication.
+
+- Observation: The first assembly switch matrix disproved the assumption that the four diagnosed families can be repaired by globally enabling all four treatments.
+  Evidence: On the frozen 16 historical failures, the combined profile restored 0 CADs, wrote 9 STEP files, and raised 7 assembly errors. Directed trim alone restored `00016845...` and `00032004...`, the two prior wire-build failures, but no other switch restored a case. Several data records contain degenerate or non-manifold face-loop incidence, so fail-closed global endpoint validation rejects even cases whose historical assembler reached STEP.
 
 ## Decision Log
 
@@ -167,3 +172,5 @@ Revision note 2026-08-17 11:36 +08:00: Recorded the bounded CUDA smoke result an
 Revision note 2026-08-17 12:16 +08:00: Recorded the successful D:-hosted two-arm smoke, E: filesystem diagnosis, formal launch and first healthy metrics. Added the immutable-source decision and clarified that formal training is now an automatic background task rather than an unstarted milestone.
 
 Revision note 2026-08-17 12:35 +08:00: Recorded the first independently switchable assembly-repair primitives and the provenance correction that separates the running formal worktree from subsequent development before the second formal task begins.
+
+Revision note 2026-08-17 13:00 +08:00: Recorded the real OCC runner smoke and the 16-case independent/combined pilot. The pilot recovered the two wire-build cases only under directed trim and established that global switch composition is unsafe; future work narrows trim/pcurve repair to diagnosed failing entities before the formal 100-CAD no-regression matrix.
