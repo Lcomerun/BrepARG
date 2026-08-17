@@ -251,10 +251,12 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
             "wire_continuity": False, "single_solid": False,
             "pcurve_self_intersection": False,
             "local_intersection_topology": False,
+            "local_pcurve_continuity": False,
         }
     return {name: profile.enabled(name) for name in (
         "directed_trim", "curve_fit_fallback", "wire_continuity", "single_solid",
         "pcurve_self_intersection", "local_intersection_topology",
+        "local_pcurve_continuity",
     )}
 
 
@@ -620,10 +622,14 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     historical = historical_strict_map(full_source_rows)
     profiles = parse_profiles(args.profile)
-    if any(profile.enabled("local_intersection_topology") for profile in profiles):
+    if any(
+        profile.enabled("local_intersection_topology")
+        or profile.enabled("local_pcurve_continuity")
+        for profile in profiles
+    ):
         if not args.isolate_cad_workers:
             parser.error(
-                "local_intersection_topology requires --isolate-cad-workers"
+                "local face repair profiles require --isolate-cad-workers"
             )
     source_rows = list(full_source_rows)
     if args.historical_invalid_only:

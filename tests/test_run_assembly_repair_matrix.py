@@ -37,6 +37,7 @@ def test_profile_kwargs_keep_switches_independent():
         "wire_continuity": False, "single_solid": False,
         "pcurve_self_intersection": False,
         "local_intersection_topology": False,
+        "local_pcurve_continuity": False,
     }
     assert profile_kwargs(RepairProfile("directed_trim", ("directed_trim",)))[
         "directed_trim"
@@ -46,6 +47,11 @@ def test_profile_kwargs_keep_switches_independent():
             "local_intersection_topology", ("local_intersection_topology",)
         )
     )["local_intersection_topology"] is True
+    assert profile_kwargs(
+        RepairProfile(
+            "local_pcurve_continuity", ("local_pcurve_continuity",)
+        )
+    )["local_pcurve_continuity"] is True
 
 
 def test_summary_records_restoration_and_regression():

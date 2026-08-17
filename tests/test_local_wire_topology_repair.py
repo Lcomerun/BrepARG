@@ -1,6 +1,7 @@
 from tools.local_wire_topology_repair import (
     face_geometry_signature,
     geometry_preservation_gate,
+    repair_face_local_pcurve,
     repair_face_local_topology,
 )
 
@@ -90,4 +91,16 @@ def test_self_intersecting_candidate_is_rejected_and_original_face_is_returned()
     assert result.IsSame(face)
     assert diagnostics["attempted"] is True
     assert diagnostics["accepted"] is False
+    assert diagnostics["before"]["self_intersection_count"] == 1
+
+
+def test_local_pcurve_candidate_fails_closed_on_unrepairable_crossing():
+    face = _planar_face(((0, 0, 0), (1, 1, 0), (0, 1, 0), (1, 0, 0)))
+
+    result, diagnostics = repair_face_local_pcurve(face)
+
+    assert result.IsSame(face)
+    assert diagnostics["attempted"] is True
+    assert diagnostics["accepted"] is False
+    assert diagnostics["strategy"] == "pcurve_continuity"
     assert diagnostics["before"]["self_intersection_count"] == 1

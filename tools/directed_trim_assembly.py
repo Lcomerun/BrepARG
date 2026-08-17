@@ -50,6 +50,7 @@ def construct_brep_directed(
     single_solid: bool = True,
     pcurve_self_intersection: bool = False,
     local_intersection_topology: bool = False,
+    local_pcurve_continuity: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks."""
     root = Path(breparg_root).resolve()
@@ -180,7 +181,22 @@ def construct_brep_directed(
         face = face_builder.Shape()
         brep_utils.fix_wires(face)
         brep_utils.add_pcurves_to_edges(face)
-        if local_intersection_topology:
+        if local_pcurve_continuity:
+            try:
+                from .local_wire_topology_repair import repair_face_local_pcurve
+            except ImportError:  # direct script execution
+                from local_wire_topology_repair import repair_face_local_pcurve
+
+            repaired_face, repair_diagnostics = repair_face_local_pcurve(face)
+            diagnostics.setdefault("local_pcurve_continuity", []).append(
+                {"face_index": face_index, **repair_diagnostics}
+            )
+            if repair_diagnostics["accepted"]:
+                face = repaired_face
+            else:
+                brep_utils.fix_wires(face)
+                face = brep_utils.fix_face(face)
+        elif local_intersection_topology:
             try:
                 from .local_wire_topology_repair import repair_face_local_topology
             except ImportError:  # direct script execution
