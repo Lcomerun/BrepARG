@@ -41,10 +41,10 @@ def group_split_paths_by_chunk(split):
 
 
 def sequence_metadata(package):
-    missing = [key for key in METADATA_KEYS if key not in package]
+    missing = [key for key in METADATA_KEYS if key not in package and key != "ordering"]
     if missing:
         raise ValueError(f"sequence package missing metadata keys: {missing}")
-    return {key: package[key] for key in METADATA_KEYS}
+    return {key: package.get(key, "RCM") if key == "ordering" else package[key] for key in METADATA_KEYS}
 
 
 def _input_ids_of(group):

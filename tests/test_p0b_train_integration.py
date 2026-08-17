@@ -254,19 +254,25 @@ def test_auto_resume_restores_full_state_and_starts_at_next_epoch(tmp_path, trai
     assert history_payload["config"]["target_epoch"] == 3
 
 
-def test_auto_resume_rejects_signature_mismatch(tmp_path, train_module):
+def test_auto_resume_restarts_fresh_on_signature_mismatch(tmp_path, train_module, capsys):
     rolling = tmp_path / "rolling.pt"
     train_once(train_module, TinyAutoencoder(), rolling, epochs=1, signature="run-a")
 
-    with pytest.raises(ValueError, match="signature mismatch"):
-        train_once(
-            train_module,
-            TinyAutoencoder(),
-            rolling,
-            epochs=3,
-            signature="run-b",
-            auto_resume=True,
-        )
+    history, _, meta = train_once(
+        train_module,
+        TinyAutoencoder(),
+        rolling,
+        epochs=3,
+        signature="run-b",
+        auto_resume=True,
+    )
+
+    payload = torch.load(rolling, map_location="cpu")
+    assert meta["resumed"] is False
+    assert meta["start_epoch"] == 0
+    assert len(history) == 3
+    assert [record["epoch"] for record in payload["history"]] == [0, 1, 2]
+    assert "signature stale; starting fresh" in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("drift_field", ["inventory", "runtime_resume_compatibility"])

@@ -92,6 +92,37 @@ class SequenceShardingHardeningTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "duplicate"):
             sequence_sharding.merge_sequence_shards([path, path], self.tmp / "m.pkl")
 
+    def test_legacy_shards_default_missing_ordering_to_rcm(self):
+        metadata = {
+            "vocab_size": 10,
+            "special_token_size": 4,
+            "face_index_size": 2,
+            "se_codebook_size": 2,
+            "bbox_index_size": 2,
+            "face_index_offset": 0,
+            "se_token_offset": 2,
+            "bbox_token_offset": 4,
+            "se_tokens_per_element": 4,
+            "bbox_tokens_per_element": 6,
+            "special_tokens": {"PAD_TOKEN": 9},
+        }
+        shard_a = self.tmp / "abc_0000.pkl"
+        shard_b = self.tmp / "abc_0001.pkl"
+        sequence_sharding.write_sequence_package(
+            shard_a,
+            {**metadata, "train": [{"original": {"input_ids": [1]}}], "val": [], "test": []},
+        )
+        sequence_sharding.write_sequence_package(
+            shard_b,
+            {**metadata, "train": [], "val": [], "test": [{"original": {"input_ids": [2]}}]},
+        )
+
+        output = self.tmp / "merged.pkl"
+        summary = sequence_sharding.merge_sequence_shards([shard_a, shard_b], output)
+
+        self.assertEqual(summary["ordering"], "RCM")
+        self.assertEqual(sequence_sharding.load_sequence_package(output)["ordering"], "RCM")
+
 
 class CalibrationSummaryHardeningTests(unittest.TestCase):
     def test_latest_attempt_wins_per_arm_cad(self):
