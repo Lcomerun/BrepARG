@@ -851,24 +851,36 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
             reasons.append("history row is not an object")
             continue
         epoch = row.get("epoch")
-        expected_train_batches = math.ceil(
-            int(task["signature_payload"]["train_cap"])
-            / int(task["signature_payload"]["batch_size"])
-        )
-        expected_val_batches = math.ceil(
-            int(task["signature_payload"]["val_cap"])
-            / int(task["signature_payload"]["batch_size"])
-        )
-        for field, expected_count in (
-            ("train_batches", expected_train_batches),
-            ("finite_train_batches", expected_train_batches),
-            ("val_batches", expected_val_batches),
-            ("finite_val_batches", expected_val_batches),
-        ):
-            if row.get(field) != expected_count:
-                reasons.append(
-                    f"epoch {epoch}: {field} must be {expected_count}"
-                )
+        if formal:
+            expected_train_batches = math.ceil(
+                int(task["signature_payload"]["train_cap"])
+                / int(task["signature_payload"]["batch_size"])
+            )
+            expected_val_batches = math.ceil(
+                int(task["signature_payload"]["val_cap"])
+                / int(task["signature_payload"]["batch_size"])
+            )
+            for field, expected_count in (
+                ("train_batches", expected_train_batches),
+                ("finite_train_batches", expected_train_batches),
+                ("val_batches", expected_val_batches),
+                ("finite_val_batches", expected_val_batches),
+            ):
+                if row.get(field) != expected_count:
+                    reasons.append(
+                        f"epoch {epoch}: {field} must be {expected_count}"
+                    )
+        else:
+            train_batches = row.get("train_batches")
+            val_batches = row.get("val_batches")
+            if type(train_batches) is not int or train_batches <= 0:
+                reasons.append(f"epoch {epoch}: train_batches must be positive")
+            elif row.get("finite_train_batches") != train_batches:
+                reasons.append(f"epoch {epoch}: finite_train_batches mismatch")
+            if type(val_batches) is not int or val_batches <= 0:
+                reasons.append(f"epoch {epoch}: val_batches must be positive")
+            elif row.get("finite_val_batches") != val_batches:
+                reasons.append(f"epoch {epoch}: finite_val_batches mismatch")
         for field in ZERO_FIELDS:
             if row.get(field) != 0:
                 reasons.append(f"epoch {epoch}: {field} must be zero")

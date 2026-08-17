@@ -108,6 +108,27 @@ def test_validator_compares_scheduler_to_serialized_curved_precision(
     assert result["valid"] is True, result["reasons"]
 
 
+def test_smoke_validator_accepts_deduplicated_batch_counts_but_formal_does_not(
+    tmp_path, monkeypatch
+):
+    config = make_inputs(tmp_path, monkeypatch)
+    task = launcher.build_task(config, "vq_8192_64d_random", 3)
+    materialize_success(task)
+    payload = json.loads(Path(task["history"]).read_text(encoding="utf-8"))
+    for row in payload["history"]:
+        row["train_batches"] = row["finite_train_batches"] = 11
+        row["val_batches"] = row["finite_val_batches"] = 3
+    Path(task["history"]).write_text(json.dumps(payload), encoding="utf-8")
+    rolling = torch.load(task["rolling_checkpoint"], map_location="cpu", weights_only=False)
+    rolling["history"] = payload["history"]
+    torch.save(rolling, task["rolling_checkpoint"])
+
+    assert launcher.validate_task(task, formal=False)["valid"] is True
+    formal_result = launcher.validate_task(task, formal=True)
+    assert formal_result["valid"] is False
+    assert any("train_batches must be 469" in reason for reason in formal_result["reasons"])
+
+
 def test_existing_state_rejects_environment_drift(tmp_path, monkeypatch):
     config = make_inputs(tmp_path, monkeypatch)
     path, state = launcher.ensure_state(config)
