@@ -15,6 +15,7 @@ import hashlib
 import json
 import math
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -752,7 +753,21 @@ def _load_checkpoint(
     try:
         import torch
 
-        payload = torch.load(path, map_location="cpu", weights_only=False)
+        # 复制到私有临时文件后再 torch.load:避免在反序列化的数秒内持有
+        # live rolling checkpoint 的读句柄(Windows 上会让训练端的
+        # os.replace 原子保存抛 PermissionError 并中止训练)。
+        with tempfile.NamedTemporaryFile(
+            prefix=f".{path.name}.", suffix=".read.tmp", delete=False
+        ) as handle:
+            temporary = Path(handle.name)
+        try:
+            shutil.copy2(path, temporary)
+            payload = torch.load(temporary, map_location="cpu", weights_only=False)
+        finally:
+            try:
+                temporary.unlink()
+            except OSError:
+                pass
     except Exception as exc:
         reasons.append(f"{label} unreadable: {type(exc).__name__}")
         return None
@@ -983,18 +998,19 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
             continue
         epoch = row.get("epoch", index)
         for field in ZERO_FIELDS:
-            if row.get(field) != 0:
+            value = row.get(field)
+            if type(value) is not int or value != 0:
                 reasons.append(f"epoch {epoch}: {field} must be integer zero")
         for field in TRUE_FIELDS:
             if row.get(field) is not True:
                 reasons.append(f"epoch {epoch}: {field} must be true")
-        if row.get("nonfinite_state_audits") != 0:
+        if type(row.get("nonfinite_state_audits")) is not int or row.get("nonfinite_state_audits") != 0:
             reasons.append(f"epoch {epoch}: nonfinite_state_audits must be integer zero")
         if row.get("finite_state_audit_cadence") != "lifecycle_v1":
             reasons.append(f"epoch {epoch}: finite-state audit cadence mismatch")
-        if row.get("full_state_audits") != 1:
+        if type(row.get("full_state_audits")) is not int or row.get("full_state_audits") != 1:
             reasons.append(f"epoch {epoch}: exactly one full state audit is required")
-        if row.get("per_batch_full_state_audits") != 0:
+        if type(row.get("per_batch_full_state_audits")) is not int or row.get("per_batch_full_state_audits") != 0:
             reasons.append(f"epoch {epoch}: per-batch full state audits must be zero")
         state_audit = row.get("finite_state_audit")
         if not isinstance(state_audit, Mapping) or state_audit.get("status") != "finite":
@@ -1396,6 +1412,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         child = subparsers.add_parser(name)
         child.add_argument("--output-root", type=Path, required=True)
     args = parser.parse_args(argv)
+    try:
+        import torch  # noqa: F401  # 校验 checkpoint 需要;缺 torch 会把已完成任务误判 FAILED
+    except ImportError as exc:
+        parser.error(f"this launcher requires torch in its interpreter: {exc}")
     if args.command in {"run", "probe"}:
         config = config_from_args(args)
         command = [sys.executable, str(Path(__file__).resolve()), *(argv or sys.argv[1:])]

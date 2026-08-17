@@ -87,7 +87,11 @@ from vqvae_metrics import (
     quantizer_stage_indices,
     stage_usage_health,
 )
-from vqvae_sample_cache import load_vqvae_sample_cache, save_vqvae_sample_cache
+from vqvae_sample_cache import (
+    _normalize_npz_path as normalize_sample_cache_path,
+    load_vqvae_sample_cache,
+    save_vqvae_sample_cache,
+)
 from cad_protocol import parent_cad_id
 
 # ---- paths (heavy artifacts on /data) ----
@@ -126,6 +130,7 @@ VQ_MIN_EPOCHS = int(os.environ.get('NS_VQ_MIN_EPOCHS', '12'))
 VQ_PATIENCE = int(os.environ.get('NS_VQ_PATIENCE', '8'))
 VQ_MIN_DELTA = float(os.environ.get('NS_VQ_MIN_DELTA', '1e-5'))
 VQ_MAX_NONFINITE_VAL_EPOCHS = int(os.environ.get('NS_VQ_MAX_NONFINITE_VAL_EPOCHS', '2'))
+VQ_MAX_TOTAL_NONFINITE_VAL_EPOCHS = int(os.environ.get('NS_VQ_MAX_TOTAL_NONFINITE_VAL_EPOCHS', '6'))
 VQ_LR = float(os.environ.get('NS_VQ_LR', '3e-4'))
 VQ_RESUME_FROM = os.environ.get('NS_VQ_RESUME_FROM', '').strip()
 VQ_HISTORY_IN = os.environ.get('NS_VQ_HISTORY_IN', '').strip()
@@ -134,7 +139,6 @@ VQ_PRECISION = os.environ.get('NS_VQ_PRECISION', '').strip().lower()
 VQ_GRAD_CLIP = float(os.environ.get('NS_VQ_GRAD_CLIP', '1.0'))
 VQ_ROLLING_CHECKPOINT = os.environ.get('NS_VQ_ROLLING_CHECKPOINT', '').strip()
 VQ_AUTO_RESUME = parse_env_bool(os.environ.get('NS_VQ_AUTO_RESUME'), False)
-VQ_STRICT_NONFINITE = parse_env_bool(os.environ.get('NS_VQ_STRICT_NONFINITE'), False)
 VQ_EXPERIMENT_SIGNATURE = os.environ.get('NS_VQ_EXPERIMENT_SIGNATURE', '').strip()
 VQ_SCHEDULER_FACTOR = float(os.environ.get('NS_VQ_SCHEDULER_FACTOR', '0.5'))
 VQ_SCHEDULER_PATIENCE = int(os.environ.get('NS_VQ_SCHEDULER_PATIENCE', '8'))
@@ -153,6 +157,8 @@ VQ_COMPLEX_LOSS_WEIGHT = float(os.environ.get('NS_VQ_COMPLEX_LOSS_WEIGHT', '1'))
 VQ_CURVED_LOSS_WEIGHT = float(os.environ.get('NS_VQ_CURVED_LOSS_WEIGHT', '1'))
 VQ_CURVED_LOSS_THRESHOLD = float(os.environ.get('NS_VQ_CURVED_LOSS_THRESHOLD', '0.02'))
 PROTOCOL_V2 = parse_env_bool(os.environ.get('NS_PROTOCOL_V2'), True)
+# 协议模式下默认启用 fail-closed 非有限保护;可用 NS_VQ_STRICT_NONFINITE=0 显式关闭。
+VQ_STRICT_NONFINITE = parse_env_bool(os.environ.get('NS_VQ_STRICT_NONFINITE'), PROTOCOL_V2)
 VQ_BALANCE_BY_PARENT = parse_env_bool(os.environ.get('NS_VQ_BALANCE_BY_PARENT'), PROTOCOL_V2)
 VQ_DEDUP_BEFORE_CAP = parse_env_bool(os.environ.get('NS_VQ_DEDUP_BEFORE_CAP'), True)
 VQ_MIN_PARENT_COVERAGE = float(os.environ.get('NS_VQ_MIN_PARENT_COVERAGE', '0'))
@@ -186,6 +192,8 @@ AR_LR = float(os.environ.get('NS_AR_LR', '5e-4'))
 AR_SAVE_EVERY = int(os.environ.get('NS_AR_SAVE_EVERY', '20'))
 AR_RESUME_FROM = os.environ.get('NS_AR_RESUME_FROM', '').strip()
 AR_LOG_EVERY_BATCHES = int(os.environ.get('NS_AR_LOG_EVERY_BATCHES', '2000'))
+# 默认保持 1024:改默认会使旧 AR checkpoint 无法 strict 续训且基线口径漂移;
+# 文档要求的 2048 长上下文由启动脚本显式设置 NS_AR_MAX_SEQ_LEN=2048。
 AR_MAX_SEQ_LEN = int(os.environ.get('NS_AR_MAX_SEQ_LEN', '1024'))
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 AMP = torch.cuda.is_available()
@@ -246,7 +254,36 @@ def load_report():
             'ar_max_seq_len': AR_MAX_SEQ_LEN,
             'ar_save_every': AR_SAVE_EVERY, 'ar_resume_from': AR_RESUME_FROM or None,
             'device': DEVICE}, 'stages': {}}
-def save_report(r): json.dump(r, open(REPORT, 'w'), ensure_ascii=False, indent=2)
+def _replace_with_retry(tmp, path):
+    last = None
+    for _ in range(50):
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError as exc:
+            # Windows:status/validate/snapshot/watch 等读者可能正持有目标句柄
+            last = exc
+            time.sleep(0.2)
+    raise last
+
+
+def _atomic_write_json(path, payload):
+    tmp = f"{path}.tmp{os.getpid()}"
+    try:
+        with open(tmp, 'w', encoding='utf-8') as handle:
+            json.dump(payload, handle, ensure_ascii=False, indent=2)
+        _replace_with_retry(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+
+
+def _atomic_torch_save(payload, path):
+    # 复用 training_stability.atomic_torch_save(mkdir + PermissionError 退避 + tmp 清理)
+    atomic_torch_save(payload, path)
+
+
+def save_report(r): _atomic_write_json(REPORT, r)
 
 
 def evaluate_vq_promotion(
@@ -404,14 +441,21 @@ def evaluate_vq_checkpoint_candidate(
 
 
 def summarize_vq_sweep(results):
-    mse_ranking = sorted(results, key=lambda item: item['best_val_recon'])
+    def _recon_rank(item):
+        value = item.get('best_val_recon')
+        # 发散臂(inf/NaN)经 metric_for_report 变为 None:排最后而非崩溃
+        return (value is None, value if value is not None else 0.0)
+
+    def _eligible_rank(item):
+        value = item.get('checkpoint_val_recon')
+        if value is None:
+            value = item.get('best_val_recon')
+        return (value is None, value if value is not None else 0.0)
+
+    mse_ranking = sorted(results, key=_recon_rank)
     eligible = sorted(
         (item for item in results if (item.get('promotion') or {}).get('eligible') is True),
-        key=lambda item: (
-            item.get('checkpoint_val_recon')
-            if item.get('checkpoint_val_recon') is not None
-            else item['best_val_recon']
-        ),
+        key=_eligible_rank,
     )
     return {
         'mse_ranking': mse_ranking,
@@ -510,6 +554,47 @@ def build_checkpoint_promotion(
         'protocol_sha256': context.get('protocol_sha256'),
     }
     return promotion
+
+
+def build_run_checkpoint_promotion(checkpoint_path, run_meta):
+    """仅当本次运行确实选出过 best checkpoint 时才做晋级评定。
+
+    防止两类事故:①本次运行未选出 checkpoint 且路径无旧文件时,在训练收尾处
+    FileNotFoundError 崩溃;②路径残留上一次运行的旧 checkpoint 时,旧权重被
+    静默评定晋级并进入 sequence/AR。
+    """
+    def _ineligible(reason):
+        return {
+            'eligible': False,
+            'reasons': [reason],
+            'observed': {},
+            'thresholds': {
+                'min_perplexity': float(VQ_PROMOTION_MIN_PERPLEXITY),
+                'max_curved_parent_mse': float(VQ_PROMOTION_MAX_CURVED_PARENT_MSE),
+                'min_parent_coverage': float(VQ_PROMOTION_MIN_PARENT_COVERAGE),
+            },
+            'binding': {},
+        }
+
+    checkpoint_epoch = run_meta.get('checkpoint_epoch')
+    if not isinstance(checkpoint_epoch, int) or checkpoint_epoch < 0:
+        return _ineligible('no best checkpoint was selected during this run')
+    if not os.path.exists(checkpoint_path):
+        return _ineligible(f'selected checkpoint is missing on disk: {checkpoint_path}')
+    checkpoint_payload = torch.load(checkpoint_path, map_location='cpu')
+    saved_epoch = checkpoint_payload.get('checkpoint_epoch')
+    if saved_epoch != checkpoint_epoch:
+        return _ineligible(
+            'checkpoint on disk does not belong to this run: '
+            f'epoch {saved_epoch!r} != selected {checkpoint_epoch!r}'
+        )
+    return build_checkpoint_promotion(
+        checkpoint_path,
+        checkpoint_payload,
+        min_perplexity=VQ_PROMOTION_MIN_PERPLEXITY,
+        max_curved_parent_mse=VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
+        min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
+    )
 
 
 def verify_vq_promotion_binding(
@@ -1186,9 +1271,16 @@ def vq_training_signature_configuration(run_manifest, config, *, precision=None)
         'lr': float(config['lr']),
         'precision': str(precision or VQ_PRECISION),
         'grad_clip_norm': float(VQ_GRAD_CLIP),
+        'strict_nonfinite': bool(VQ_STRICT_NONFINITE),
+        'stopping': {
+            'min_epochs': int(VQ_MIN_EPOCHS),
+            'patience': int(VQ_PATIENCE),
+            'min_delta': float(VQ_MIN_DELTA),
+            'max_nonfinite_val_epochs': int(VQ_MAX_NONFINITE_VAL_EPOCHS),
+        },
         'scheduler': {
             'kind': 'ReduceLROnPlateau',
-            'metric': VQ_PLATEAU_METRIC,
+            'metric': str(VQ_PLATEAU_METRIC),
             'factor': float(VQ_SCHEDULER_FACTOR),
             'patience': int(VQ_SCHEDULER_PATIENCE),
             'threshold': float(VQ_SCHEDULER_THRESHOLD),
@@ -1233,8 +1325,32 @@ def vq_patch_shard_paths():
 
 def collect_se(paths, cap, return_weights=False):
     global _LAST_VQVAE_SAMPLING_SUMMARY
-    if VQ_SAMPLE_CACHE and os.path.exists(VQ_SAMPLE_CACHE):
-        samples, weights, summary = load_vqvae_sample_cache(VQ_SAMPLE_CACHE, min_samples=cap)
+    cache_fingerprint = None
+    if VQ_SAMPLE_CACHE:
+        cache_fingerprint = {
+            # 用 basename 而非绝对路径:同一数据在不同挂载点/机器间不应失配
+            'pool': os.path.basename(str(PARSED_POOL).rstrip('/\\')) or None,
+            'complex_fraction': VQ_COMPLEX_FRACTION,
+            'curved_fraction': VQ_CURVED_FRACTION,
+            'complex_min_faces': VQ_COMPLEX_MIN_FACES,
+            'complex_min_edges': VQ_COMPLEX_MIN_EDGES,
+            'max_source_faces': VQ_MAX_SOURCE_FACES,
+            'max_source_edges': VQ_MAX_SOURCE_EDGES,
+            'patch_shard_root': (
+                os.path.basename(str(VQ_PATCH_SHARD_ROOT).rstrip('/\\'))
+                if VQ_PATCH_SHARD_ROOT else None
+            ),
+            'patch_shards': VQ_PATCH_SHARDS or None,
+            'balance_by_parent': bool(VQ_BALANCE_BY_PARENT),
+            'dedup_before_cap': bool(VQ_DEDUP_BEFORE_CAP),
+            # 缓存内 weights 数组由这三个参数决定,必须参与指纹
+            'complex_loss_weight': VQ_COMPLEX_LOSS_WEIGHT,
+            'curved_loss_weight': VQ_CURVED_LOSS_WEIGHT,
+            'curved_loss_threshold': VQ_CURVED_LOSS_THRESHOLD,
+        }
+    if VQ_SAMPLE_CACHE and normalize_sample_cache_path(VQ_SAMPLE_CACHE).exists():
+        samples, weights, summary = load_vqvae_sample_cache(
+            VQ_SAMPLE_CACHE, min_samples=cap, expected_fingerprint=cache_fingerprint)
         summary["source"] = "vq_sample_cache"
         _LAST_VQVAE_SAMPLING_SUMMARY = summary
         log(f"  VQ sample cache loaded={len(samples)} requested={cap} path={VQ_SAMPLE_CACHE}")
@@ -1283,7 +1399,8 @@ def collect_se(paths, cap, return_weights=False):
     summary["curved_loss_weight"] = VQ_CURVED_LOSS_WEIGHT
     summary["curved_loss_threshold"] = VQ_CURVED_LOSS_THRESHOLD
     if VQ_SAMPLE_CACHE:
-        save_vqvae_sample_cache(VQ_SAMPLE_CACHE, samples, weights, summary)
+        save_vqvae_sample_cache(VQ_SAMPLE_CACHE, samples, weights, summary,
+                                fingerprint=cache_fingerprint)
         summary["cache_path"] = VQ_SAMPLE_CACHE
         summary["cache_written"] = True
         summary["cache_samples"] = int(len(samples))
@@ -1584,6 +1701,10 @@ def stage_split():
         }
         save_report(report)
         return True
+    if PROTOCOL_DIR:
+        raise RuntimeError(
+            'NS_PROTOCOL_DIR 指向受验证协议目录,legacy split 会覆盖其中的 split.pkl;'
+            '请取消 NS_PROTOCOL_DIR 或使用 NS_PROTOCOL_V2=1')
     log("SPLIT: 从 abc_parsed_50c 采样 5K(复用解析几何,无需重解析原始 step)")
     files = sorted(glob.glob(os.path.join(PARSED_POOL, '*.pkl')))
     if not files:                                              # 分 chunk 子目录布局(abc_parsed_100c/abc_XXXX/*.pkl)
@@ -1718,6 +1839,7 @@ def _train_vqvae(
         min_epochs=VQ_MIN_EPOCHS,
         patience=VQ_PATIENCE,
         max_nonfinite_val_epochs=VQ_MAX_NONFINITE_VAL_EPOCHS,
+        max_total_nonfinite_val_epochs=VQ_MAX_TOTAL_NONFINITE_VAL_EPOCHS,
         min_delta=VQ_MIN_DELTA,
     )
     scaler = (
@@ -1768,7 +1890,7 @@ def _train_vqvae(
         'grad_clip_norm': grad_clip_norm,
         'scheduler': {
             'kind': 'ReduceLROnPlateau',
-            'metric': VQ_PLATEAU_METRIC,
+            'metric': str(VQ_PLATEAU_METRIC),
             'factor': float(scheduler_factor),
             'patience': int(scheduler_patience),
             'threshold': float(scheduler_threshold),
@@ -1834,11 +1956,21 @@ def _train_vqvae(
         if os.path.exists(rolling_checkpoint_path):
             resume_path = rolling_checkpoint_path
     if resume_path:
-        resume_payload = load_training_checkpoint(
-            resume_path,
-            expected_signature=experiment_signature,
-            map_location=DEVICE,
-        )
+        try:
+            resume_payload = load_training_checkpoint(
+                resume_path,
+                expected_signature=experiment_signature,
+                map_location=DEVICE,
+            )
+        except ValueError as exc:
+            if (not resume_from) and auto_resume and 'signature' in str(exc):
+                # 代码/配置升级后 rolling checkpoint 签名过期:auto-resume 降级为
+                # 全新训练并告警;显式 NS_VQ_RESUME_FROM 仍保持 fail-closed
+                log(f"  {tag} rolling checkpoint signature stale; starting fresh ({exc})")
+                resume_path = None
+            else:
+                raise
+    if resume_path:
         restored = restore_training_checkpoint(
             resume_payload,
             model=model,
@@ -1949,6 +2081,11 @@ def _train_vqvae(
                 nonfinite_gradient_batches += 1
                 skipped_train_batches += 1
                 opt.zero_grad(set_to_none=True)
+                if scaler is not None:
+                    # 跳过 scaler.step 的同时必须手动回退 loss scale:
+                    # 否则 scale 偏高时后续每个 batch 都溢出→被跳过→scale
+                    # 不变,整段 epoch 预算被静默烧掉、模型零更新。
+                    scaler.update(scaler.get_scale() * scaler.get_backoff_factor())
                 if strict_nonfinite:
                     raise
                 continue
@@ -2134,7 +2271,7 @@ def _train_vqvae(
             if curved_parent_mse is not None:
                 best_curved_parent_mse = float(curved_parent_mse)
             if save_path:
-                torch.save(checkpoint_payload, save_path)
+                _atomic_torch_save(checkpoint_payload, save_path)
         if val_metrics is not None:
             code_usage = val_metrics.get('code_usage') or {}
             if not val_stage_usage and safe_json_number(code_usage.get('entropy_perplexity')) is not None:
@@ -2148,7 +2285,7 @@ def _train_vqvae(
                         float(fraction)
                     )
         if save_final_path and state_audit_finite:
-            torch.save(checkpoint_payload, save_final_path)
+            _atomic_torch_save(checkpoint_payload, save_final_path)
         record = {
             'epoch': absolute_epoch,
             'train_loss': metric_for_report(tr),
@@ -2274,7 +2411,7 @@ def _train_vqvae(
                             f'validation/parent_cluster_mse/{name}', bucket['mse'], absolute_epoch
                         )
         if history_path:
-            json.dump({
+            _history_doc = {
                 'tag': tag,
                 'config': {
                     'epochs_requested': epochs,
@@ -2289,7 +2426,7 @@ def _train_vqvae(
                     'finite_state_audit_cadence': state_audit_cadence,
                     'scheduler': {
                         'kind': 'ReduceLROnPlateau',
-                        'metric': VQ_PLATEAU_METRIC,
+                        'metric': str(VQ_PLATEAU_METRIC),
                         'factor': float(scheduler_factor),
                         'patience': int(scheduler_patience),
                         'threshold': float(scheduler_threshold),
@@ -2316,7 +2453,8 @@ def _train_vqvae(
                     'startup_or_post_resume': meta['startup_finite_state_audit'],
                     'full_state_audits': meta['full_state_audits'],
                 },
-            }, open(history_path, 'w'), indent=2)
+            }
+            _atomic_write_json(history_path, _history_doc)
         if rolling_checkpoint_path and state_audit_finite:
             rolling_payload = capture_training_checkpoint(
                 model=model,
@@ -2441,18 +2579,11 @@ def stage_vqsweep():
             scheduler_min_lr=VQ_SCHEDULER_MIN_LR,
         )
         final_metrics = arm_meta.get('last_val_metrics') or {}
-        checkpoint_payload = torch.load(arm_checkpoint, map_location='cpu')
-        promotion = build_checkpoint_promotion(
-            arm_checkpoint,
-            checkpoint_payload,
-            min_perplexity=VQ_PROMOTION_MIN_PERPLEXITY,
-            max_curved_parent_mse=VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
-            min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
-        )
+        promotion = build_run_checkpoint_promotion(arm_checkpoint, arm_meta)
         results.append({'name': c['name'], 'levels': list(c['levels']),
                         'codebook': int(c.get('codebook_size') or np.prod(c['levels'])),
                         'quantizer': c.get('quantizer'),
-                        'lr': c['lr'], 'best_val_recon': round(bv, 5)})
+                        'lr': c['lr'], 'best_val_recon': metric_for_report(bv, 5)})
         results[-1].update({
             'epochs_ran': arm_meta.get('epochs_ran'),
             'history_path': arm_history,
@@ -2477,15 +2608,11 @@ def stage_vqsweep():
         })
         log(f"  -> {c['name']}: best_val_recon={bv:.5f}")
     sweep_summary = summarize_vq_sweep(results)
-    json.dump(
-        {
-            'run_manifest': run_manifest,
-            'sweep': sweep_summary['mse_ranking'],
-            **sweep_summary,
-        },
-        open(SWEEP_JSON, 'w'),
-        indent=2,
-    )
+    _atomic_write_json(SWEEP_JSON, {
+        'run_manifest': run_manifest,
+        'sweep': sweep_summary['mse_ranking'],
+        **sweep_summary,
+    })
     r = load_report(); r['stages']['vqsweep'] = {
         'run_manifest': run_manifest,
         'results': sweep_summary['mse_ranking'],
@@ -2525,6 +2652,10 @@ def stage_vqvae():
     initial_best_val = None
     initial_best_epoch = -1
     epochs_to_run = VQ_EPOCHS
+    if VQ_HISTORY_IN and not (VQ_RESUME_FROM or VQ_AUTO_RESUME):
+        raise RuntimeError(
+            'NS_VQ_HISTORY_IN 未配套 NS_VQ_RESUME_FROM/NS_VQ_AUTO_RESUME:'
+            '将从随机权重续训并覆盖 best/final checkpoint,拒绝执行')
     if VQ_HISTORY_IN:
         resume_summary = summarize_vqvae_history(VQ_HISTORY_IN)
         start_epoch = resume_summary['next_epoch']
@@ -2598,18 +2729,21 @@ def stage_vqvae():
         scheduler_threshold=VQ_SCHEDULER_THRESHOLD,
         scheduler_min_lr=VQ_SCHEDULER_MIN_LR,
     )
-    first_val = hist[0][1] if hist else float('inf')
+    finite_vals = [h[1] for h in hist if np.isfinite(h[1])]
+    first_val = finite_vals[0] if finite_vals else float('inf')
     baseline_best = initial_best_val if initial_best_val is not None else first_val
-    ok = bool(hist) and np.isfinite(bv) and np.isfinite(first_val) and bv <= baseline_best
-    last_val_metrics = meta.get('last_val_metrics') or {}
-    checkpoint_payload = torch.load(VQVAE_PT, map_location='cpu')
-    promotion = build_checkpoint_promotion(
-        VQVAE_PT,
-        checkpoint_payload,
-        min_perplexity=VQ_PROMOTION_MIN_PERPLEXITY,
-        max_curved_parent_mse=VQ_PROMOTION_MAX_CURVED_PARENT_MSE,
-        min_parent_coverage=VQ_PROMOTION_MIN_PARENT_COVERAGE,
+    tolerance = max(VQ_MIN_DELTA, 1e-7)
+    already_complete = bool(meta.get('resumed')) and not hist and np.isfinite(bv)
+    if already_complete:
+        if not meta.get('stop_reason'):
+            meta['stop_reason'] = 'already_complete'
+        log('  vqvae: rolling checkpoint 已达目标 epoch,无新训练,视为完成')
+    ok = already_complete or (
+        bool(hist) and np.isfinite(bv)
+        and (not np.isfinite(baseline_best) or bv <= float(baseline_best) + tolerance)
     )
+    last_val_metrics = meta.get('last_val_metrics') or {}
+    promotion = build_run_checkpoint_promotion(VQVAE_PT, meta)
     r = load_report(); r['stages']['vqvae'] = {
         'samples': len(Xtr) + len(Xva), 'train_samples': len(Xtr), 'val_samples': len(Xva),
         'epochs': epochs_to_run, 'target_epoch': int(VQ_TARGET_EPOCH) if VQ_TARGET_EPOCH else None,
@@ -2717,7 +2851,16 @@ def _load_ar_seqs(max_seq_len=None, expected_vq_binding=None):
     data = pickle.load(open(SEQ_PKL, 'rb'))
     if expected_vq_binding is not None and data.get('vq_binding') != expected_vq_binding:
         raise RuntimeError("sequence VQ binding does not match the current checkpoint")
-    def seqs_of(split): return [g['original']['input_ids'] for g in data[split] if len(g['original']['input_ids']) <= max_seq_len]
+    def seqs_of(split):
+        all_ids = [g['original']['input_ids'] for g in data[split]]
+        kept = [s for s in all_ids if len(s) <= max_seq_len]
+        dropped = len(all_ids) - len(kept)
+        if dropped:
+            longest = max(map(len, all_ids))
+            log(f"  [_load_ar_seqs] {split}: kept={len(kept)}/{len(all_ids)} "
+                f"dropped_over_{max_seq_len}={dropped} (max_len={longest}) "
+                f"— 超长序列多为复杂模型,必要时调大 NS_AR_MAX_SEQ_LEN")
+        return kept
     return data, seqs_of('train'), seqs_of('val')
 
 
@@ -2808,13 +2951,21 @@ def _train_ar(data, tr, va, dmodel, layers, lr, epochs, bs, tag="ar", save_path=
             if AR_LOG_EVERY_BATCHES > 0 and batch_idx % AR_LOG_EVERY_BATCHES == 0:
                 running = tot / max(1, nb)
                 log(f"  [{tag}] ep {ep:3d} batch {batch_idx}/{total_train_batches} train_CE_running={running:.4f} elapsed_min={((time.time() - t0) / 60):.2f}")
-        model.eval(); vt = vn = 0
+        model.eval(); vt = 0.0; vn = 0; nonfinite_val_batches = 0
         with torch.no_grad():
             for ids, att in _ar_batches(va, bs, PAD, False, DEVICE):
                 lab = ids.clone(); lab[lab == PAD] = -100
                 with torch.cuda.amp.autocast(enabled=AMP):
-                    vt += model(input_ids=ids, attention_mask=att, labels=lab).loss.item(); vn += 1
-        tr_ce = tot / max(1, nb); va_ce = vt / max(1, vn)
+                    v = model(input_ids=ids, attention_mask=att, labels=lab).loss.item()
+                ntok = int((lab != -100).sum().item())
+                if np.isfinite(v) and ntok > 0:
+                    vt += v * ntok; vn += ntok
+                else:
+                    nonfinite_val_batches += 1
+        tr_ce = tot / max(1, nb)
+        # 与 VQ 验证口径一致:任一非有限 val batch 使整轮 val 无效(fail-closed),
+        # 防止剔除坏 batch 后 best checkpoint 在被污染的轮次被更新
+        va_ce = (vt / vn) if vn and not nonfinite_val_batches else float('inf')
         if ci is None: ci = tr_ce
         cf = tr_ce; last_val = va_ce; epochs_ran += 1
         improved = va_ce < best
@@ -2924,12 +3075,19 @@ STAGES = {'split': stage_split, 'vqsweep': stage_vqsweep, 'vqvae': stage_vqvae,
           'sequence': stage_sequence, 'ar': stage_ar, 'ar_sweep': stage_ar_sweep}
 
 if __name__ == '__main__':
-    ap = argparse.ArgumentParser(); ap.add_argument('--stage', default='all'); a = ap.parse_args()
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--stage', default='all', choices=['all'] + sorted(STAGES))
+    a = ap.parse_args()
     order = ['split', 'vqsweep', 'vqvae', 'sequence', 'ar'] if a.stage == 'all' else [a.stage]
     t0 = time.time(); res = {}
     for s in order:
         log(f"===== STAGE {s} =====")
-        ok = STAGES[s](); res[s] = ok
+        try:
+            ok = STAGES[s]()
+        except Exception as exc:
+            log(f"STAGE {s} raised {type(exc).__name__}: {exc}")
+            ok = False
+        res[s] = ok
         if not ok:
             log(f"STAGE {s} FAILED, stop."); break
     r = load_report(); r['elapsed_min'] = round((time.time() - t0) / 60, 1)

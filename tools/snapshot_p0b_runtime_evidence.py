@@ -165,6 +165,21 @@ def checkpoint_manifest(states: Sequence[Mapping[str, Any]]) -> list[dict[str, A
     return rows
 
 
+def scan_missing_runtime_logs(state: Mapping[str, Any], label: str) -> list[str]:
+    """在写入任何文件之前预检:缺失的 attempt 日志会使快照静默漏采。"""
+    missing: list[str] = []
+    for task in state.get("tasks") or []:
+        task_label = str(task["task_id"]).replace(":", "_")
+        for attempt in task.get("attempts") or []:
+            attempt_number = int(attempt["attempt"])
+            for stream in ("stdout", "stderr"):
+                source = Path(str(attempt.get(stream) or ""))
+                if not source.is_file():
+                    missing.append(
+                        f"{label}/{task_label} attempt{attempt_number:03d} {stream}: {source}")
+    return missing
+
+
 def copy_runtime_logs(state: Mapping[str, Any], report_dir: Path, label: str) -> None:
     for task in state.get("tasks") or []:
         task_label = str(task["task_id"]).replace(":", "_")
@@ -184,7 +199,8 @@ def copy_runtime_logs(state: Mapping[str, Any], report_dir: Path, label: str) ->
         tensorboard = Path(str(task["task_root"])) / "tensorboard"
         if tensorboard.is_dir():
             for source in sorted(tensorboard.rglob("events.out.tfevents.*")):
-                target = report_dir / "tensorboard" / label / task_label / source.name
+                relative = source.relative_to(tensorboard).as_posix().replace("/", "__")
+                target = report_dir / "tensorboard" / label / task_label / relative
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(source, target)
 
@@ -248,6 +264,7 @@ def snapshot(
     report_dir: Path,
     *,
     second_writer_log: Path,
+    allow_missing_logs: bool = False,
 ) -> dict[str, Any]:
     report_dir.mkdir(parents=True, exist_ok=True)
     if any(report_dir.iterdir()):
@@ -257,6 +274,16 @@ def snapshot(
         "bf16": validated_state(bf16_root),
         "resume": validated_state(resume_root),
     }
+    missing_runtime_logs: list[str] = []
+    for label, state in states.items():
+        missing_runtime_logs.extend(scan_missing_runtime_logs(state, label))
+    if missing_runtime_logs and not allow_missing_logs:
+        head = "; ".join(missing_runtime_logs[:8])
+        extra = f" (+{len(missing_runtime_logs) - 8} more)" if len(missing_runtime_logs) > 8 else ""
+        raise RuntimeError(
+            "runtime evidence logs are missing, snapshot would silently under-archive "
+            "(rerun with --allow-missing-logs to archive anyway, recorded in payload): "
+            + head + extra)
     probes = {}
     for precision in ("fp32", "bf16"):
         state = states[precision]
@@ -273,10 +300,15 @@ def snapshot(
             "inventory_consistent": state.get("inventory_consistent"),
             "tasks": tasks,
         }
-    fp_inventory = probes["fp32"]["tasks"][0]["inventory"]
-    bf_inventory = probes["bf16"]["tasks"][0]["inventory"]
-    if fp_inventory != bf_inventory:
-        raise RuntimeError("fp32 and bf16 probes used different inventories")
+    fp_tasks = probes["fp32"]["tasks"]
+    bf_tasks = probes["bf16"]["tasks"]
+    if len(fp_tasks) != len(bf_tasks):
+        raise RuntimeError("fp32/bf16 probes have different task counts")
+    for task_index, (fp_task, bf_task) in enumerate(zip(fp_tasks, bf_tasks)):
+        if fp_task["inventory"] != bf_task["inventory"]:
+            raise RuntimeError(
+                "fp32 and bf16 probes used different inventories "
+                f"(task index {task_index})")
 
     resume_state = states["resume"]
     resume_task = task_summary(resume_state["tasks"][0])
@@ -327,6 +359,8 @@ def snapshot(
         "formal_training_started": False,
         "boundary_consistency_allowed": False,
     }
+    if missing_runtime_logs:
+        payload["missing_runtime_logs"] = missing_runtime_logs
     write_json(report_dir / "runtime_evidence.json", payload)
     write_json(
         report_dir / "checkpoint_manifest.json",
@@ -359,6 +393,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--resume-root", type=Path, required=True)
     parser.add_argument("--second-writer-log", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
+    parser.add_argument("--allow-missing-logs", action="store_true")
     args = parser.parse_args(argv)
     payload = snapshot(
         args.fp32_root,
@@ -366,6 +401,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         args.resume_root,
         args.report_dir,
         second_writer_log=args.second_writer_log,
+        allow_missing_logs=args.allow_missing_logs,
     )
     print(
         json.dumps(

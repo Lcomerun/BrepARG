@@ -65,6 +65,14 @@ def sweep_complete(path: Path, *, train_cap: int, min_epochs: int, max_epochs: i
     except (OSError, json.JSONDecodeError):
         return False
     experiment = (payload.get("run_manifest") or {}).get("experiment") or {}
+    seed_dir = path.parent.name
+    if seed_dir.startswith("seed") and seed_dir[4:].isdigit():
+        try:
+            run_seed = int(experiment.get("seed", -1))
+        except (TypeError, ValueError):
+            run_seed = -1
+        if run_seed != int(seed_dir[4:]):
+            return False
     ranking = payload.get("mse_ranking") or []
     if experiment.get("train_cap") != train_cap or len(ranking) != 1:
         return False

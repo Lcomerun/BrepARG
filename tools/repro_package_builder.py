@@ -168,6 +168,12 @@ def write_stable_json(path: Path, value: object) -> None:
     path.write_bytes(stable_json_bytes(value))
 
 
+def _write_text_lf(path: Path, text: str, *, encoding: str = "utf-8") -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding=encoding, newline="\n") as handle:
+        handle.write(text)
+
+
 def _relative_posix(path: Path) -> str:
     return path.as_posix().lstrip("./")
 
@@ -233,11 +239,7 @@ def write_checksum_manifest(root: Path) -> Path:
         if path.is_file() and path != checksum_path
     )
     lines = [f"{sha256_file(path)}  {path.relative_to(root).as_posix()}" for path in files]
-    checksum_path.write_text(
-        "\n".join(lines) + ("\n" if lines else ""),
-        encoding="utf-8",
-        newline="\n",
-    )
+    _write_text_lf(checksum_path, "\n".join(lines) + ("\n" if lines else ""))
     return checksum_path
 
 
@@ -595,12 +597,7 @@ def _copy_text_lf(source: Path, destination: Path) -> None:
         text = source.read_text(encoding="utf-8-sig")
     except (OSError, UnicodeError) as exc:
         raise PackageBuildError(f"cannot read UTF-8 template {source}: {exc}") from exc
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(
-        text.replace("\r\n", "\n").replace("\r", "\n"),
-        encoding="utf-8",
-        newline="\n",
-    )
+    _write_text_lf(destination, text.replace("\r\n", "\n").replace("\r", "\n"))
 
 
 def _copy_template_tree(source: Path, destination: Path) -> int:
@@ -1055,16 +1052,11 @@ def _capture_provenance(
         repo_root,
         ["log", "-10", "--date=iso-strict", "--pretty=format:%H%x09%ad%x09%s"],
     )
-    (provenance_root / "outer_status.txt").write_text(
-        status["stdout"], encoding="utf-8", newline="\n"
-    )
-    (provenance_root / "outer_diff_from_clean.patch").write_text(
-        diff["stdout"], encoding="utf-8", newline="\n"
-    )
-    (provenance_root / "outer_recent_commits.tsv").write_text(
+    _write_text_lf(provenance_root / "outer_status.txt", status["stdout"])
+    _write_text_lf(provenance_root / "outer_diff_from_clean.patch", diff["stdout"])
+    _write_text_lf(
+        provenance_root / "outer_recent_commits.tsv",
         log["stdout"] + ("\n" if log["stdout"] else ""),
-        encoding="utf-8",
-        newline="\n",
     )
     write_stable_json(provenance_root / "current_source_manifest.json", current_manifest)
     write_stable_json(provenance_root / "clean_source_manifest.json", clean_manifest)
@@ -1158,11 +1150,9 @@ def _capture_provenance(
                 ),
             }
         )
-        (provenance_root / "breparg_status.txt").write_text(
-            nested_status["stdout"], encoding="utf-8", newline="\n"
-        )
-        (provenance_root / "breparg_worktree.patch").write_text(
-            nested_diff["stdout"], encoding="utf-8", newline="\n"
+        _write_text_lf(provenance_root / "breparg_status.txt", nested_status["stdout"])
+        _write_text_lf(
+            provenance_root / "breparg_worktree.patch", nested_diff["stdout"]
         )
     write_stable_json(provenance_root / "breparg_provenance.json", nested)
     record = {
@@ -1433,16 +1423,16 @@ def build_package(
             "heavy_artifacts_included": False,
         }
         write_stable_json(stage_root / "PACKAGE_MANIFEST.json", package_manifest)
-        (stage_root / "BUILD_REPORT.md").write_text(
-            _build_report_markdown(package_manifest), encoding="utf-8", newline="\n"
+        _write_text_lf(
+            stage_root / "BUILD_REPORT.md", _build_report_markdown(package_manifest)
         )
 
         pre_checksum_validation = validate_stage(stage_root)
         write_checksum_manifest(stage_root)
         stage_validation = validate_stage(stage_root)
         archive_hash = write_deterministic_zip(stage_root, archive_path, epoch)
-        checksum_path.write_text(
-            f"{archive_hash}  {package_name}\n", encoding="ascii", newline="\n"
+        _write_text_lf(
+            checksum_path, f"{archive_hash}  {package_name}\n", encoding="ascii"
         )
         archive_verification = verify_archive(archive_path)
         execution = {

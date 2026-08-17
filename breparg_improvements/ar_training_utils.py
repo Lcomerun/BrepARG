@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import torch
@@ -29,6 +30,10 @@ def _input_ids_of(group):
 
 def summarize_ar_sequences(package, max_seq_len=1024):
     vocab_size = int(package.get("vocab_size", 0) or 0)
+    if vocab_size <= 0:
+        raise ValueError(
+            "sequence package is missing a positive vocab_size; "
+            "token range audit would be silently skipped")
     summary = {
         "raw_train": len(package.get("train", [])),
         "raw_val": len(package.get("val", [])),
@@ -67,6 +72,16 @@ def summarize_ar_sequences(package, max_seq_len=1024):
 
 def validate_ar_sequence_package(package, max_seq_len=1024):
     missing = [key for key in ("train", "val", "test", "vocab_size", "special_tokens") if key not in package]
+    if int(package.get("vocab_size", 0) or 0) <= 0:
+        # summarize_ar_sequences 对无效 vocab_size 会 raise;校验入口维持
+        # 「返回结构化 FAILED 报告」的既有契约,供 preflight 落盘
+        if "vocab_size" not in missing:
+            missing.append("vocab_size")
+        pad_token = None
+        if isinstance(package.get("special_tokens"), dict):
+            pad_token = package["special_tokens"].get("PAD_TOKEN")
+        return {"status": "FAILED", "missing_keys": missing, "pad_token": pad_token,
+                "error": "missing positive vocab_size"}
     summary = summarize_ar_sequences(package, max_seq_len=max_seq_len)
     pad_token = None
     if isinstance(package.get("special_tokens"), dict):
@@ -88,7 +103,9 @@ def append_jsonl(path, row):
 def save_ar_checkpoint(path, payload):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(payload, path)
+    tmp = path.with_name(path.name + f".tmp{os.getpid()}")
+    torch.save(payload, tmp)
+    tmp.replace(path)
 
 
 def load_ar_checkpoint(path, map_location):
