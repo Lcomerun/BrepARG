@@ -13,6 +13,7 @@ from tools.run_assembly_repair_matrix import (
     main,
     parse_worker_result,
     profile_kwargs,
+    requires_isolated_worker,
     run_one_isolated,
     sha256_file,
     summarize_matrix,
@@ -52,6 +53,22 @@ def test_profile_kwargs_keep_switches_independent():
             "local_pcurve_continuity", ("local_pcurve_continuity",)
         )
     )["local_pcurve_continuity"] is True
+
+
+@pytest.mark.parametrize(
+    ("profile_name", "expected"),
+    [
+        ("baseline", False),
+        ("directed_trim", False),
+        ("local_intersection_topology", True),
+        ("local_pcurve_continuity", True),
+        ("directed_trim_local_intersection_topology", True),
+        ("directed_trim_local_pcurve_continuity", True),
+    ],
+)
+def test_local_face_repairs_require_isolated_worker(profile_name, expected):
+    profile = parse_profiles([profile_name])[0]
+    assert requires_isolated_worker(profile) is expected
 
 
 def test_summary_records_restoration_and_regression():
