@@ -77,6 +77,7 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [ ] Re-run the frozen 100 original-control CADs after each new diagnosed repair, preserve all 84 original strict-valid CADs, reach at least 95 strict-valid CADs, and publish the repair-to-restored/regressed-case map. The selector composition is currently 91/100, so this gate remains open.
 - [ ] Re-measure the selected capacity arm through the repaired chain and apply the final release gate.
 - [x] (2026-08-18 07:05 +08:00) Snapshotted the selector evidence at `reports/assembly_selector_main_100cad_20260818/`, validated the forbidden-file and cohort contracts, and prepared the report for the normal branch push.
+- [x] (2026-08-17) Ran a separate diagnostic frozen-invalid16 production probe against the dirty Windows repair worktree containing the new local pcurve fallback. It produced 16/16 STEP-readable rows, 7/16 native-valid, 3/16 strict/both-valid, exactly the existing production-baseline restorations (`00016845...`, `00029780...`, and `00032004...`), zero assembly errors, and zero worker/protocol failures. Because it added no recovery, the dirty fallback remains diagnostic-only and no 100-CAD production matrix was started from it.
 
 ## Surprises & Discoveries
 
@@ -342,6 +343,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
   Rationale: The prior broad pcurve-continuity treatment enabled `ModifyGeometryMode(True)` and added no frozen-cohort recovery. `BRep_Builder.UpdateEdge` has a dedicated two-dimensional curve overload, so a copied face can instead translate only a diagnosed edge's pcurve by an integer surface period while preserving the original 3D edge curve and discrete incidence exactly.
   Date/Author: 2026-08-17 / Codex.
 
+- Decision: Reject the dirty production-worktree local pcurve fallback as a promoted repair.
+  Rationale: Its isolated frozen-invalid16 probe reached only 3/16 strict/both-valid, exactly matching the existing production baseline, despite writing all 16 STEP files. It introduced no new restoration and therefore does not justify a signed 100-CAD matrix, shared-source change, or any relaxation of the schema-v2 geometry/topology gate.
+  Date/Author: 2026-08-17 / Codex.
+
 - Decision: Keep the failure-triggered selector as the current assembly candidate, but do not release it or start downstream representation work at 91/100.
   Rationale: The selector is protocol-clean and preserves every original success, yet it misses the immutable 95/100 strict gate by four CADs. Treating selector-protocol success as assembly-release success would conflate evidence integrity with geometric utility.
   Date/Author: 2026-08-18 / Codex.
@@ -555,3 +560,5 @@ Revision note 2026-08-17 23:45 +08:00: Rebuilt the Capacity A/B Git-safe archive
 Revision note 2026-08-17 23:57 +08:00: Recorded the high-precision surface exploratory pilot and the two isolated selector-gate probes. Added a no-confound `directed_trim_surface_precision_local_intersection_topology` profile and registered it as the selector's final failure-only fallback. `00051587...` passes the unchanged schema-v2 gate; `00032101...` is rejected for changed vertex topology. Formal evidence still requires a clean-commit 16-invalid selector run before any 100-CAD execution.
 
 Revision note 2026-08-18 07:05 +08:00: Completed and archived the full signed 100-CAD failure-triggered selector. It reached 91/100 strict-valid and 88/100 both-valid with seven restorations, preserved all 84 original strict controls, and had zero worker/protocol failures. The selector protocol passed, but the immutable 95/100 assembly release gate remains closed; no repaired-chain capacity remeasurement or downstream representation work is authorized.
+
+Revision note 2026-08-17: Completed a separate diagnostic frozen-invalid16 production probe from the dirty Windows repair worktree after adding its local pcurve fallback. The run wrote 16/16 STEP files, reached 7/16 native-valid and 3/16 strict/both-valid, restored no CAD beyond the existing production baseline, and recorded zero worker/protocol failures. The fallback is rejected for promotion and remains outside the formal 100-CAD evidence chain.
