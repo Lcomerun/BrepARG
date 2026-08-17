@@ -354,6 +354,7 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
         return {
             "directed_trim": False, "curve_fit_fallback": False,
             "curve_fit_rescue": False, "curve_interpolate": False,
+            "surface_fit_precision": False,
             "wire_continuity": False, "single_solid": False,
             "solid_topology_repair": False,
             "pcurve_self_intersection": False,
@@ -363,6 +364,7 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
     result = {name: profile.enabled(name) for name in (
         "directed_trim", "curve_fit_fallback", "curve_fit_rescue",
         "curve_interpolate",
+        "surface_fit_precision",
         "wire_continuity", "single_solid",
         "pcurve_self_intersection", "local_intersection_topology",
         "local_pcurve_continuity",
