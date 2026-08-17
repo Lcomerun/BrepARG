@@ -5,15 +5,20 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Mapping, Optional, Sequence
 
 
 FORBIDDEN_SUFFIXES = {".step", ".stp", ".pkl", ".pickle", ".pt", ".pth", ".ckpt", ".npy", ".npz"}
 RUN_MANIFEST_NAME = "assembly_repair_run.json"
 COMPLETED_RUN_STATUSES = {"COMPLETED", "COMPLETED_PARTIAL"}
+SOLID_TOPOLOGY_DIAGNOSIS_SCHEMA = "solid-topology-diagnosis-v1"
+ABSOLUTE_PATH_PATTERN = re.compile(
+    r"(?:[A-Za-z]:[\\/]|(?:^|[\"'\s])/(?:home|users|private)(?:[\\/]))"
+)
 
 
 def now() -> str:
@@ -26,6 +31,12 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def write_text_lf(path: Path, content: str) -> None:
+    """Write report text with canonical LF bytes on Windows and Linux."""
+    with Path(path).open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(content)
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -75,6 +86,10 @@ def repair_diagnostics_summary(
     local_accepted_cads: set[str] = set()
     local_attempts = 0
     local_accepted = 0
+    solid_candidate_pairs = 0
+    solid_mutual_pairs = 0
+    solid_merged_vertices = 0
+    solid_applied_cads: set[str] = set()
     for row in rows:
         cad_id = str(row.get("cad_id"))
         diagnostics = row.get("assembly_diagnostics") or {}
@@ -92,6 +107,13 @@ def repair_diagnostics_summary(
             if item.get("accepted"):
                 local_accepted += 1
                 local_accepted_cads.add(cad_id)
+        solid = diagnostics.get("solid_topology_repair") or {}
+        if isinstance(solid, Mapping):
+            solid_candidate_pairs += int(solid.get("candidate_pair_count") or 0)
+            solid_mutual_pairs += int(solid.get("mutual_pair_count") or 0)
+            solid_merged_vertices += int(solid.get("merged_vertex_count") or 0)
+            if solid.get("applied"):
+                solid_applied_cads.add(cad_id)
     result: dict[str, Any] = {}
     if directed_modes:
         result["directed_trim_loop_policies"] = {
@@ -110,10 +132,63 @@ def repair_diagnostics_summary(
             "attempted_cad_ids": sorted(local_attempted_cads),
             "accepted_cad_ids": sorted(local_accepted_cads),
         }
+    if solid_candidate_pairs or solid_mutual_pairs or solid_applied_cads:
+        result["solid_topology_repair"] = {
+            "candidate_pair_count": solid_candidate_pairs,
+            "mutual_pair_count": solid_mutual_pairs,
+            "merged_vertex_count": solid_merged_vertices,
+            "applied_cad_ids": sorted(solid_applied_cads),
+        }
     return result
 
 
-def snapshot(run_root: Path, report_dir: Path, *, label: str) -> dict[str, Any]:
+def archive_solid_topology_diagnosis(
+    source: Path, report_dir: Path
+) -> dict[str, Any]:
+    """Copy one proven diagnosis only after rejecting path-bearing payloads."""
+    source = Path(source)
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    if payload.get("schema") != SOLID_TOPOLOGY_DIAGNOSIS_SCHEMA:
+        raise RuntimeError("solid topology diagnosis schema is unsupported")
+
+    def reject_private_values(value: Any, location: str = "root") -> None:
+        if isinstance(value, Mapping):
+            for key, child in value.items():
+                normalized = str(key).lower()
+                if normalized == "path" or normalized.endswith("_path"):
+                    raise RuntimeError(
+                        f"solid topology diagnosis contains path field at {location}.{key}"
+                    )
+                reject_private_values(child, f"{location}.{key}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                reject_private_values(child, f"{location}[{index}]")
+        elif isinstance(value, str) and ABSOLUTE_PATH_PATTERN.search(value):
+            raise RuntimeError(
+                f"solid topology diagnosis contains absolute path text at {location}"
+            )
+
+    reject_private_values(payload)
+    target = report_dir / "solid_topology_diagnosis.json"
+    write_text_lf(target, json.dumps(payload, indent=2, sort_keys=True) + "\n")
+    return {
+        "archived": True,
+        "schema": payload["schema"],
+        "cad_id": payload.get("cad_id"),
+        "source_bytes": source.stat().st_size,
+        "source_sha256": sha256_file(source),
+        "archived_bytes": target.stat().st_size,
+        "archived_sha256": sha256_file(target),
+    }
+
+
+def snapshot(
+    run_root: Path,
+    report_dir: Path,
+    *,
+    label: str,
+    solid_topology_diagnosis: Optional[Path] = None,
+) -> dict[str, Any]:
     run_root, report_dir = Path(run_root).resolve(), Path(report_dir).resolve()
     source = run_root / "assembly_repair_matrix.jsonl"
     summary_path = run_root / "assembly_repair_summary.json"
@@ -137,16 +212,23 @@ def snapshot(run_root: Path, report_dir: Path, *, label: str) -> dict[str, Any]:
     if any(report_dir.iterdir()):
         raise RuntimeError(f"report directory must be empty: {report_dir}")
     compact = [compact_row(row) for row in rows]
-    (report_dir / "assembly_repair_attempts.jsonl").write_text(
-        "".join(json.dumps(row, sort_keys=True) + "\n" for row in compact), encoding="utf-8"
+    write_text_lf(
+        report_dir / "assembly_repair_attempts.jsonl",
+        "".join(json.dumps(row, sort_keys=True) + "\n" for row in compact),
     )
-    (report_dir / RUN_MANIFEST_NAME).write_text(
-        json.dumps(run_manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    write_text_lf(
+        report_dir / RUN_MANIFEST_NAME,
+        json.dumps(run_manifest, indent=2, sort_keys=True) + "\n",
     )
     repair_summary = repair_diagnostics_summary(rows)
-    (report_dir / "repair_diagnostics_summary.json").write_text(
+    write_text_lf(
+        report_dir / "repair_diagnostics_summary.json",
         json.dumps(repair_summary, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    )
+    topology_diagnosis_binding = (
+        archive_solid_topology_diagnosis(solid_topology_diagnosis, report_dir)
+        if solid_topology_diagnosis is not None
+        else {"archived": False}
     )
     source_binding = {
         "label": label, "source_run_name": run_root.name,
@@ -158,10 +240,12 @@ def snapshot(run_root: Path, report_dir: Path, *, label: str) -> dict[str, Any]:
         "summary_sha256": summary_sha256,
         "step_files_local": sum(bool(row.get("step_saved")) for row in rows),
         "step_bytes_archived": False, "source_pickles_archived": False,
+        "solid_topology_diagnosis": topology_diagnosis_binding,
     }
     archived_summary = {**summary, "label": label, "generated_at": now(), "source_binding": source_binding}
-    (report_dir / "assembly_repair_summary.json").write_text(
-        json.dumps(archived_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    write_text_lf(
+        report_dir / "assembly_repair_summary.json",
+        json.dumps(archived_summary, indent=2, sort_keys=True) + "\n",
     )
     profile_lines = "\n".join(
         f"| {item['profile']} | {item['attempts']} | {item['step_readable']} | {item['native_valid']} | {item['strict_valid']} | {item['both_valid']} | {len(item['restored_cad_ids'])} | {len(item['regressed_cad_ids'])} |"
@@ -180,7 +264,7 @@ SHA-256 in the compact per-attempt JSONL.
 Gate passed: `{summary.get('gate_passed')}`. This snapshot does not authorize
 boundary consistency, sequence regeneration, or AR training.
 """
-    (report_dir / "README.md").write_text(readme, encoding="utf-8")
+    write_text_lf(report_dir / "README.md", readme)
     forbidden = [
         path.relative_to(report_dir).as_posix() for path in report_dir.rglob("*")
         if path.is_file() and path.suffix.lower() in FORBIDDEN_SUFFIXES
@@ -194,14 +278,23 @@ boundary consistency, sequence regeneration, or AR training.
         "run_status": run_status,
         "summary_sha256": summary_sha256,
         "repair_diagnostics_present": bool(repair_summary),
+        "solid_topology_diagnosis_archived": bool(
+            topology_diagnosis_binding["archived"]
+        ),
         "forbidden_artifacts": forbidden,
     }
-    (report_dir / "archive_validation.json").write_text(
-        json.dumps(validation, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    write_text_lf(
+        report_dir / "archive_validation.json",
+        json.dumps(validation, indent=2, sort_keys=True) + "\n",
     )
-    (report_dir / "artifact_manifest.json").write_text(
-        json.dumps({"generated_at": now(), "artifacts": artifact_manifest(report_dir)}, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    write_text_lf(
+        report_dir / "artifact_manifest.json",
+        json.dumps(
+            {"generated_at": now(), "artifacts": artifact_manifest(report_dir)},
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
     )
     return validation
 
@@ -211,8 +304,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--run-root", type=Path, required=True)
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--label", required=True)
+    parser.add_argument("--solid-topology-diagnosis", type=Path)
     args = parser.parse_args(argv)
-    print(json.dumps(snapshot(args.run_root, args.report_dir, label=args.label), indent=2))
+    print(
+        json.dumps(
+            snapshot(
+                args.run_root,
+                args.report_dir,
+                label=args.label,
+                solid_topology_diagnosis=args.solid_topology_diagnosis,
+            ),
+            indent=2,
+        )
+    )
     return 0
 
 

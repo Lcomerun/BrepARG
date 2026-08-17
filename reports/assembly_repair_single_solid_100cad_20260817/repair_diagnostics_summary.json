@@ -1,0 +1,15 @@
+{
+  "solid_topology_repair": {
+    "applied_cad_ids": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00044862_20ff2d12baed4ba699895a12_step_000",
+      "00062455_47888b68dba146bf8ea154b6_step_000",
+      "00063055_e309c689b9b44f0686f47966_step_000",
+      "00067160_2a27016aa44f42c69c1079f7_step_000",
+      "00095733_8b325d2fcb27ec9e79388602_step_000"
+    ],
+    "candidate_pair_count": 37,
+    "merged_vertex_count": 34,
+    "mutual_pair_count": 34
+  }
+}

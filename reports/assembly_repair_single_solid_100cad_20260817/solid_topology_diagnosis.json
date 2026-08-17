@@ -1,0 +1,315 @@
+{
+  "baseline_step": {
+    "archived": false,
+    "bytes": 314723,
+    "native_valid": false,
+    "readable": true,
+    "sha256": "869da5115cfdfcc93e8b1f408c7909384eb2f98797760f07172a2b82b9e64272",
+    "subshapes": {
+      "faces": {
+        "count": 45,
+        "invalid": [
+          {
+            "index_1based": 2,
+            "statuses": [
+              "BRepCheck_UnorientableShape"
+            ]
+          },
+          {
+            "index_1based": 29,
+            "statuses": [
+              "BRepCheck_InvalidImbricationOfWires"
+            ]
+          },
+          {
+            "index_1based": 30,
+            "statuses": [
+              "BRepCheck_BadOrientationOfSubshape"
+            ]
+          },
+          {
+            "index_1based": 32,
+            "statuses": [
+              "BRepCheck_InvalidImbricationOfWires"
+            ]
+          },
+          {
+            "index_1based": 33,
+            "statuses": [
+              "BRepCheck_BadOrientationOfSubshape"
+            ]
+          },
+          {
+            "index_1based": 34,
+            "statuses": [
+              "BRepCheck_InvalidImbricationOfWires"
+            ]
+          },
+          {
+            "index_1based": 35,
+            "statuses": [
+              "BRepCheck_BadOrientationOfSubshape"
+            ]
+          }
+        ]
+      },
+      "shells": {
+        "count": 1,
+        "invalid": []
+      },
+      "solids": {
+        "count": 0,
+        "invalid": []
+      },
+      "wires": {
+        "count": 58,
+        "invalid": [
+          {
+            "index_1based": 3,
+            "statuses": [
+              "BRepCheck_NotConnected"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "cad_id": "00000444_4ed4c78d6d754aac90876fc2_step_003",
+  "candidate_step": {
+    "archived": false,
+    "bytes": 311843,
+    "native_valid": true,
+    "readable": true,
+    "sha256": "f5ae5ca3d295a87a4b542792bdca0f8ae520a66fc53537b4d78ba63eed5fa9ef",
+    "subshapes": {
+      "faces": {
+        "count": 42,
+        "invalid": []
+      },
+      "shells": {
+        "count": 1,
+        "invalid": []
+      },
+      "solids": {
+        "count": 1,
+        "invalid": []
+      },
+      "wires": {
+        "count": 50,
+        "invalid": []
+      }
+    }
+  },
+  "interpretation": "near-coincident source endpoint ids split face loops and caused invalid face orientation/imbrication after STEP round-trip; one-to-one shared vertices restore complete loops and one valid solid",
+  "recovered": true,
+  "schema": "solid-topology-diagnosis-v1",
+  "source_pickle": {
+    "archived": false,
+    "bytes": 1137962,
+    "sha256": "da40274c3a345f88a2112f5a6ca17a8b3a8d6870dd3f68c000d5f8961e5a4f0f"
+  },
+  "source_topology": {
+    "edge_count": 120,
+    "face_count": 42,
+    "geometry_stage": "cpu_joint_optimize",
+    "joint_iterations": 200,
+    "near_vertex_reconciliation": {
+      "applied": true,
+      "candidate_pair_count": 8,
+      "candidate_pairs": [
+        {
+          "distance": 0.00010000169277191162,
+          "left": 50,
+          "right": 87
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 51,
+          "right": 86
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 54,
+          "right": 83
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 55,
+          "right": 82
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 58,
+          "right": 79
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 59,
+          "right": 78
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 62,
+          "right": 75
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 63,
+          "right": 74
+        }
+      ],
+      "clusters": [
+        {
+          "members": [
+            50,
+            87
+          ],
+          "root": 50
+        },
+        {
+          "members": [
+            51,
+            86
+          ],
+          "root": 51
+        },
+        {
+          "members": [
+            54,
+            83
+          ],
+          "root": 54
+        },
+        {
+          "members": [
+            55,
+            82
+          ],
+          "root": 55
+        },
+        {
+          "members": [
+            58,
+            79
+          ],
+          "root": 58
+        },
+        {
+          "members": [
+            59,
+            78
+          ],
+          "root": 59
+        },
+        {
+          "members": [
+            62,
+            75
+          ],
+          "root": 62
+        },
+        {
+          "members": [
+            63,
+            74
+          ],
+          "root": 63
+        }
+      ],
+      "merged_pairs": [
+        {
+          "distance": 0.00010000169277191162,
+          "left": 50,
+          "right": 87
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 51,
+          "right": 86
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 54,
+          "right": 83
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 55,
+          "right": 82
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 58,
+          "right": 79
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 59,
+          "right": 78
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 62,
+          "right": 75
+        },
+        {
+          "distance": 0.00010000169277191162,
+          "left": 63,
+          "right": 74
+        }
+      ],
+      "merged_vertex_count": 8,
+      "mutual_pair_count": 8,
+      "reason": "unambiguous_mutual_pairs",
+      "schema": "solid-near-vertex-repair-v1",
+      "tolerance": 0.0002
+    },
+    "original_incomplete_loop_faces": [
+      {
+        "error": null,
+        "face_index_0based": 28,
+        "incident_edge_count": 4,
+        "loop_count": 2,
+        "missing_edge_ids": [
+          104
+        ],
+        "observed_edge_count": 3,
+        "repeated_edge_ids": []
+      },
+      {
+        "error": null,
+        "face_index_0based": 30,
+        "incident_edge_count": 4,
+        "loop_count": 2,
+        "missing_edge_ids": [
+          108
+        ],
+        "observed_edge_count": 3,
+        "repeated_edge_ids": []
+      },
+      {
+        "error": null,
+        "face_index_0based": 32,
+        "incident_edge_count": 4,
+        "loop_count": 2,
+        "missing_edge_ids": [
+          112
+        ],
+        "observed_edge_count": 3,
+        "repeated_edge_ids": []
+      },
+      {
+        "error": null,
+        "face_index_0based": 34,
+        "incident_edge_count": 4,
+        "loop_count": 2,
+        "missing_edge_ids": [
+          116
+        ],
+        "observed_edge_count": 3,
+        "repeated_edge_ids": []
+      }
+    ],
+    "reconciled_incomplete_loop_faces": []
+  }
+}

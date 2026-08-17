@@ -25,6 +25,7 @@ try:
         sanitize_curve_points,
         validate_directed_loop,
     )
+    from .solid_topology_repair import reconcile_near_vertices
 except ImportError:  # direct script execution
     from assembly_repair import (
         curve_fit_attempts,
@@ -35,6 +36,7 @@ except ImportError:  # direct script execution
         sanitize_curve_points,
         validate_directed_loop,
     )
+    from solid_topology_repair import reconcile_near_vertices
 
 
 def construct_brep_directed(
@@ -48,12 +50,19 @@ def construct_brep_directed(
     curve_fit_fallback: bool = True,
     wire_continuity: bool = True,
     single_solid: bool = True,
+    solid_topology_repair: bool = False,
     pcurve_self_intersection: bool = False,
     local_intersection_topology: bool = False,
     curve_fit_rescue: bool = False,
     local_pcurve_continuity: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
-    """Construct one solid using directed trim loops and fail-closed OCC checks."""
+    """Construct one solid using directed trim loops and fail-closed OCC checks.
+
+    ``solid_topology_repair`` is deliberately separate from ``single_solid``.
+    The latter is a validation guard retained for historical profile parity;
+    the former enables the narrowly scoped near-vertex reconciliation needed
+    by the P0-A non-unit-solid case.
+    """
     root = Path(breparg_root).resolve()
     if str(root) not in sys.path:
         sys.path.insert(0, str(root))
@@ -62,9 +71,11 @@ def construct_brep_directed(
         BRepBuilderAPI_MakeEdge,
         BRepBuilderAPI_MakeFace,
         BRepBuilderAPI_MakeSolid,
+        BRepBuilderAPI_MakeVertex,
         BRepBuilderAPI_MakeWire,
         BRepBuilderAPI_Sewing,
     )
+    from OCC.Core.BRep import BRep_Builder
     from OCC.Core.GeomAPI import GeomAPI_PointsToBSpline, GeomAPI_PointsToBSplineSurface
     from OCC.Core.GeomAbs import GeomAbs_C2
     from OCC.Core.gp import gp_Pnt
@@ -83,6 +94,15 @@ def construct_brep_directed(
         "reversed_edge_uses": 0, "multi_loop_faces": 0,
         "curve_fit_attempts": [], "directed_trim_loop_policies": [],
     }
+    topology_edge_vertex_adj = edge_vertex_adj
+    shared_vertex_points: dict[int, np.ndarray] = {}
+    if solid_topology_repair:
+        (
+            topology_edge_vertex_adj,
+            shared_vertex_points,
+            near_vertex_diagnostics,
+        ) = reconcile_near_vertices(edge_wcs, edge_vertex_adj, face_edge_adj)
+        diagnostics["solid_topology_repair"] = near_vertex_diagnostics
 
     surfaces = []
     for face_index, points in enumerate(surf_wcs):
@@ -95,6 +115,17 @@ def construct_brep_directed(
         if not fitter.IsDone():
             raise RuntimeError(f"surface_fit_not_done face={face_index}")
         surfaces.append(fitter.Surface())
+
+    shared_vertices: dict[int, Any] = {}
+    if shared_vertex_points:
+        vertex_builder = BRep_Builder()
+        for vertex_id, point in shared_vertex_points.items():
+            vertex = BRepBuilderAPI_MakeVertex(gp_Pnt(*map(float, point))).Vertex()
+            # The representative is the mean of endpoints that were already
+            # no farther than 2e-4 apart.  Its tolerance must cover both
+            # original curve endpoints without allowing a global snap.
+            vertex_builder.UpdateVertex(vertex, 2e-4)
+            shared_vertices[int(vertex_id)] = vertex
 
     edges = []
     curve_tolerances = []
@@ -189,7 +220,18 @@ def construct_brep_directed(
                 )
         if curve is None:
             raise RuntimeError(f"curve_fit_not_done edge={edge_index}")
-        builder = BRepBuilderAPI_MakeEdge(curve)
+        if shared_vertices:
+            start_vertex, end_vertex = map(int, topology_edge_vertex_adj[edge_index])
+            if start_vertex != end_vertex:
+                builder = BRepBuilderAPI_MakeEdge(
+                    curve, shared_vertices[start_vertex], shared_vertices[end_vertex]
+                )
+            else:
+                # A closed edge cannot use one explicit vertex twice through
+                # this OCC overload.  Preserve the original curve-only path.
+                builder = BRepBuilderAPI_MakeEdge(curve)
+        else:
+            builder = BRepBuilderAPI_MakeEdge(curve)
         if not builder.IsDone():
             raise RuntimeError(f"edge_builder_not_done edge={edge_index}")
         edges.append(builder.Edge())
@@ -198,13 +240,13 @@ def construct_brep_directed(
     for face_index, (surface, incident) in enumerate(zip(surfaces, face_edge_adj)):
         if directed_trim:
             loops, loop_policy = guarded_directed_face_loops(
-                incident, edge_vertex_adj
+                incident, topology_edge_vertex_adj
             )
             diagnostics["directed_trim_loop_policies"].append(
                 {"face_index": face_index, **loop_policy}
             )
         else:
-            loops = historical_face_loops(incident, edge_vertex_adj)
+            loops = historical_face_loops(incident, topology_edge_vertex_adj)
         diagnostics["loop_count"] += len(loops)
         diagnostics["multi_loop_faces"] += int(len(loops) > 1)
         spans = [loop_bbox_diagonal(loop, edge_wcs) for loop in loops]
@@ -212,7 +254,7 @@ def construct_brep_directed(
         wires = []
         for loop_index, loop in enumerate(loops):
             if wire_continuity:
-                validate_directed_loop(loop, edge_vertex_adj)
+                validate_directed_loop(loop, topology_edge_vertex_adj)
             wire_builder = BRepBuilderAPI_MakeWire()
             for edge_id, reverse in loop:
                 edge = edges[edge_id].Reversed() if reverse else edges[edge_id]

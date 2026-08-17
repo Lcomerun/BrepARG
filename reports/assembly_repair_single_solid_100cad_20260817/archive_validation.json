@@ -1,0 +1,13 @@
+{
+  "attempts": 100,
+  "forbidden_artifacts": [],
+  "profiles": {
+    "single_solid": 100
+  },
+  "repair_diagnostics_present": true,
+  "run_signature": "a223d056390e25ee81fe6e14ead730b6033249f71cf470c8c8fe093972591940",
+  "run_status": "COMPLETED",
+  "solid_topology_diagnosis_archived": true,
+  "summary_sha256": "874ef6fe8dd6748a8793640549ceb0c4ab3266fc181c5cc208b7431a625915e1",
+  "valid": true
+}

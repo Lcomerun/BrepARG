@@ -51,7 +51,14 @@ EXPECTED_CADS = 100
 EXPECTED_BASELINE_VALID = 84
 WORKER_MARKER = "__ASSEMBLY_REPAIR_WORKER_RESULT__="
 ISOLATED_WORKER_SWITCHES = frozenset(
-    {"local_intersection_topology", "local_pcurve_continuity"}
+    {
+        "local_intersection_topology",
+        "local_pcurve_continuity",
+        # Near-vertex reconciliation changes low-level OCC edge vertices.
+        # Contain it just like the face-level repair profiles so one native
+        # failure cannot compromise the matrix denominator.
+        "single_solid",
+    }
 )
 
 
@@ -127,6 +134,7 @@ def assembly_source_hashes(repo_root: Path) -> dict[str, str]:
         "tools/assembly_repair.py",
         "tools/directed_trim_assembly.py",
         "tools/local_wire_topology_repair.py",
+        "tools/solid_topology_repair.py",
         "tools/run_assembly_repair_matrix.py",
     )
     result: dict[str, str] = {}
@@ -258,16 +266,22 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
             "directed_trim": False, "curve_fit_fallback": False,
             "curve_fit_rescue": False,
             "wire_continuity": False, "single_solid": False,
+            "solid_topology_repair": False,
             "pcurve_self_intersection": False,
             "local_intersection_topology": False,
             "local_pcurve_continuity": False,
         }
-    return {name: profile.enabled(name) for name in (
+    result = {name: profile.enabled(name) for name in (
         "directed_trim", "curve_fit_fallback", "curve_fit_rescue",
-        "wire_continuity", "single_solid", "pcurve_self_intersection",
-        "local_intersection_topology",
+        "wire_continuity", "single_solid",
+        "pcurve_self_intersection", "local_intersection_topology",
         "local_pcurve_continuity",
     )}
+    # The legacy switch name remains the external profile name.  It used to
+    # enforce only the output count; it now additionally enables the narrow,
+    # separately documented topology reconciliation before construction.
+    result["solid_topology_repair"] = profile.enabled("single_solid")
+    return result
 
 
 def strict_validate_step(path: Path, *, breparg_root: Path) -> dict[str, Any]:
