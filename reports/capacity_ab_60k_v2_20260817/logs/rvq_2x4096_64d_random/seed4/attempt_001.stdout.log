@@ -1,0 +1,9 @@
+[19:18:13] ===== STAGE vqsweep =====
+[19:18:13] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[19:21:55]   sweep 数据: train=60000 val=12000  (短训 15 ep)
+[19:23:02]   rvq_2x4096_64d_random ep   0 train=1.23209 val=0.14309 best=0.14309 finite_train=469/469 finite_val=94/94
+[19:34:06]   rvq_2x4096_64d_random ep  10 train=0.02646 val=0.00817 best=0.00817 finite_train=469/469 finite_val=94/94
+[19:45:12]   rvq_2x4096_64d_random ep  20 train=0.00450 val=0.00270 best=0.00270 finite_train=469/469 finite_val=94/94
+[19:56:16]   rvq_2x4096_64d_random ep  30 train=0.00197 val=0.00163 best=0.00163 finite_train=469/469 finite_val=94/94
+[20:07:18]   rvq_2x4096_64d_random ep  40 train=0.00167 val=0.00143 best=0.00135 finite_train=469/469 finite_val=94/94
+[20:18:21]   rvq_2x4096_64d_random ep  50 train=0.00130 val=0.00136 best=0.00114 finite_train=469/469 finite_val=94/94

@@ -1,0 +1,256 @@
+{
+  "active_task": null,
+  "configuration_signature": "e23e0ba09ceba965d535a63bfe2128604ad4d14f1b7bf76056d7442cf18830b7",
+  "created_at": "2026-08-17T13:29:38+08:00",
+  "formal_result_eligible": true,
+  "inventory_consistent": true,
+  "mode": "FORMAL",
+  "schema": "capacity-ab-60k-v2",
+  "status": "COMPLETED",
+  "task_validations": [
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": null,
+          "finished_at": "2026-08-17T19:18:10+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-17T17:23:52+08:00"
+        }
+      ],
+      "signature": "52c2fe9ee160a432d7e55332f486562d25234d16f639b9904e19925ec77a8ff4",
+      "task_id": "rvq_2x4096_64d_random:seed3",
+      "validation": {
+        "epochs_observed": 100,
+        "formal": true,
+        "inventory": {
+          "train": {
+            "count": 60000,
+            "ordered_sha256": "b58198fa4f09220207ca58ba5da24d2a1116e23619cf276e822a055cc7aecfdc",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "505e3820212f9464606a1f2f48d6a21fa5684bb843ce5784dfb21d08a2f5c2db"
+          },
+          "val": {
+            "count": 12000,
+            "ordered_sha256": "cb76aa74ca07de1a23a8906d7a2326cce6b3c927a46b1f8893472f43ab9c750e",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "899493d7e74e504f4ae5cebd260398cef216dbd174eab38989fcdc36bca13dd5"
+          }
+        },
+        "last_epoch": 99,
+        "reasons": [],
+        "runtime_resume_compatibility": {
+          "cuda": "11.8",
+          "cudnn": 8700,
+          "cudnn_benchmark": false,
+          "cudnn_deterministic": false,
+          "deterministic_algorithms": false,
+          "device_type": "cuda",
+          "diffusers": "0.27.0",
+          "gpu_compute_capability": [
+            8,
+            6
+          ],
+          "numpy": "1.26.4",
+          "python_implementation": "CPython",
+          "python_version": [
+            3,
+            9,
+            23
+          ],
+          "pytorch": "2.2.2+cu118",
+          "tf32_cudnn": true,
+          "tf32_matmul": true,
+          "torch_default_dtype": "torch.float32"
+        },
+        "task_id": "rvq_2x4096_64d_random:seed3",
+        "valid": true
+      }
+    },
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": null,
+          "finished_at": "2026-08-17T20:19:28+08:00",
+          "returncode": 1,
+          "started_at": "2026-08-17T19:18:10+08:00"
+        },
+        {
+          "attempt": 2,
+          "auto_resume": null,
+          "finished_at": "2026-08-17T21:23:15+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-17T20:22:37+08:00"
+        }
+      ],
+      "signature": "d1f224e07f80225c79c4044d8627fc0f67b2fe58c8387d2b18cdfc52cbb832f2",
+      "task_id": "rvq_2x4096_64d_random:seed4",
+      "validation": {
+        "epochs_observed": 100,
+        "formal": true,
+        "inventory": {
+          "train": {
+            "count": 60000,
+            "ordered_sha256": "b58198fa4f09220207ca58ba5da24d2a1116e23619cf276e822a055cc7aecfdc",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "505e3820212f9464606a1f2f48d6a21fa5684bb843ce5784dfb21d08a2f5c2db"
+          },
+          "val": {
+            "count": 12000,
+            "ordered_sha256": "cb76aa74ca07de1a23a8906d7a2326cce6b3c927a46b1f8893472f43ab9c750e",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "899493d7e74e504f4ae5cebd260398cef216dbd174eab38989fcdc36bca13dd5"
+          }
+        },
+        "last_epoch": 99,
+        "reasons": [],
+        "runtime_resume_compatibility": {
+          "cuda": "11.8",
+          "cudnn": 8700,
+          "cudnn_benchmark": false,
+          "cudnn_deterministic": false,
+          "deterministic_algorithms": false,
+          "device_type": "cuda",
+          "diffusers": "0.27.0",
+          "gpu_compute_capability": [
+            8,
+            6
+          ],
+          "numpy": "1.26.4",
+          "python_implementation": "CPython",
+          "python_version": [
+            3,
+            9,
+            23
+          ],
+          "pytorch": "2.2.2+cu118",
+          "tf32_cudnn": true,
+          "tf32_matmul": true,
+          "torch_default_dtype": "torch.float32"
+        },
+        "task_id": "rvq_2x4096_64d_random:seed4",
+        "valid": true
+      }
+    },
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": null,
+          "finished_at": "2026-08-17T15:28:50+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-17T13:29:38+08:00"
+        }
+      ],
+      "signature": "7bd38ebcf3b7565ac953ecd11a615828f74c750d8a699230e035fd5e29e4a5fc",
+      "task_id": "vq_8192_64d_random:seed3",
+      "validation": {
+        "epochs_observed": 100,
+        "formal": true,
+        "inventory": {
+          "train": {
+            "count": 60000,
+            "ordered_sha256": "b58198fa4f09220207ca58ba5da24d2a1116e23619cf276e822a055cc7aecfdc",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "505e3820212f9464606a1f2f48d6a21fa5684bb843ce5784dfb21d08a2f5c2db"
+          },
+          "val": {
+            "count": 12000,
+            "ordered_sha256": "cb76aa74ca07de1a23a8906d7a2326cce6b3c927a46b1f8893472f43ab9c750e",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "899493d7e74e504f4ae5cebd260398cef216dbd174eab38989fcdc36bca13dd5"
+          }
+        },
+        "last_epoch": 99,
+        "reasons": [],
+        "runtime_resume_compatibility": {
+          "cuda": "11.8",
+          "cudnn": 8700,
+          "cudnn_benchmark": false,
+          "cudnn_deterministic": false,
+          "deterministic_algorithms": false,
+          "device_type": "cuda",
+          "diffusers": "0.27.0",
+          "gpu_compute_capability": [
+            8,
+            6
+          ],
+          "numpy": "1.26.4",
+          "python_implementation": "CPython",
+          "python_version": [
+            3,
+            9,
+            23
+          ],
+          "pytorch": "2.2.2+cu118",
+          "tf32_cudnn": true,
+          "tf32_matmul": true,
+          "torch_default_dtype": "torch.float32"
+        },
+        "task_id": "vq_8192_64d_random:seed3",
+        "valid": true
+      }
+    },
+    {
+      "attempts": [
+        {
+          "attempt": 1,
+          "auto_resume": null,
+          "finished_at": "2026-08-17T17:23:51+08:00",
+          "returncode": 0,
+          "started_at": "2026-08-17T15:28:52+08:00"
+        }
+      ],
+      "signature": "f842b6875700281fea6c560199cd02ee21a1501099f93f738dae80c3eb2ee68a",
+      "task_id": "vq_8192_64d_random:seed4",
+      "validation": {
+        "epochs_observed": 100,
+        "formal": true,
+        "inventory": {
+          "train": {
+            "count": 60000,
+            "ordered_sha256": "b58198fa4f09220207ca58ba5da24d2a1116e23619cf276e822a055cc7aecfdc",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "505e3820212f9464606a1f2f48d6a21fa5684bb843ce5784dfb21d08a2f5c2db"
+          },
+          "val": {
+            "count": 12000,
+            "ordered_sha256": "cb76aa74ca07de1a23a8906d7a2326cce6b3c927a46b1f8893472f43ab9c750e",
+            "schema": "vq-exact-hash-inventory-v1",
+            "sorted_sha256": "899493d7e74e504f4ae5cebd260398cef216dbd174eab38989fcdc36bca13dd5"
+          }
+        },
+        "last_epoch": 99,
+        "reasons": [],
+        "runtime_resume_compatibility": {
+          "cuda": "11.8",
+          "cudnn": 8700,
+          "cudnn_benchmark": false,
+          "cudnn_deterministic": false,
+          "deterministic_algorithms": false,
+          "device_type": "cuda",
+          "diffusers": "0.27.0",
+          "gpu_compute_capability": [
+            8,
+            6
+          ],
+          "numpy": "1.26.4",
+          "python_implementation": "CPython",
+          "python_version": [
+            3,
+            9,
+            23
+          ],
+          "pytorch": "2.2.2+cu118",
+          "tf32_cudnn": true,
+          "tf32_matmul": true,
+          "torch_default_dtype": "torch.float32"
+        },
+        "task_id": "vq_8192_64d_random:seed4",
+        "valid": true
+      }
+    }
+  ],
+  "updated_at": "2026-08-17T21:30:37+08:00"
+}

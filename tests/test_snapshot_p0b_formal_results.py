@@ -4,6 +4,7 @@ from tools.snapshot_p0b_formal_results import (
     arm_aggregates,
     epoch_summary,
     summarize_task,
+    validate_report,
 )
 
 
@@ -103,3 +104,26 @@ def test_capacity_vq_and_rvq_usage_are_preserved():
         rows, ("vq_8192_64d_random", "rvq_2x4096_64d_random")
     )
     assert aggregates["pairwise"]["best_curved_parent_mse_ratio_left_over_right"] == 2.0
+
+
+def test_validate_report_accepts_multiple_tensorboard_segments_after_resume(tmp_path):
+    for index in range(4):
+        task_dir = tmp_path / "tasks" / f"arm{index}" / "seed3"
+        task_dir.mkdir(parents=True)
+        (task_dir / f"arm{index}_history.json").write_text("{}\n", encoding="utf-8")
+
+        tensorboard_dir = tmp_path / "tensorboard" / f"arm{index}" / "seed3"
+        tensorboard_dir.mkdir(parents=True)
+        (tensorboard_dir / f"events.out.tfevents.{index}.0").write_bytes(b"event")
+
+    resumed_dir = tmp_path / "tensorboard" / "arm3" / "seed3"
+    (resumed_dir / "events.out.tfevents.3.1").write_bytes(b"resumed-event")
+
+    validation = validate_report(
+        tmp_path,
+        expected_histories=4,
+        expected_tensorboard_events=5,
+    )
+
+    assert validation["histories"] == 4
+    assert validation["tensorboard_events"] == 5

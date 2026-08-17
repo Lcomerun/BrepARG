@@ -1,0 +1,194 @@
+{
+  "attempts": 16,
+  "candidate_attempts": 41,
+  "candidate_manifest_sha256": "e926f1dbc4945835e57d23887f75f836ccf0174435084d4472408f6ce7436fab",
+  "final_matrix_sha256": "7abdafbc368dc987f8ec7a28ce499cf9bc5d0c32277fc575b0757e0531a2d1fa",
+  "payload": {
+    "breparg_runtime": {
+      "utils_sha256": "e2509a844db0a9e0f8eaf670fffb9d4ad9e240af755155d25891d37b4468d521"
+    },
+    "calibration_manifest_sha256": "426809e39cf2f4ee13c2e86b542c76a5d1c80ce6abfa4ac4a2e84135f580f4ef",
+    "candidate_schema": "assembly-selector-candidate-v1",
+    "full_cohort_count": 100,
+    "full_cohort_signature": "e3003eb09d8822bfb6cb0d1a97e017a57823a24e74256daf44d7daf7afee1904",
+    "historical_invalid_only": true,
+    "joint_iterations": 200,
+    "matrix_schema": "assembly-repair-selector-v1",
+    "repository": {
+      "commit": "8e98acf9367e9c91e2c2ba813a3741a1a938754a",
+      "dirty": false,
+      "source_sha256": {
+        "tools/assembly_repair.py": "87f87152bb94583c0db703673d670b3a09292ec10826c2a51fb8f8f892867d2f",
+        "tools/assembly_selector_geometry.py": "b21c4b1246c1b298d34984cdec4bbb4ee5d2736ffc5881f8e066426dd82605d3",
+        "tools/diagnose_step_validity_components.py": "c2e7e9e676a4175af876f51d24503dd495fa4e8472990ff30b1393140d1abdc9",
+        "tools/directed_trim_assembly.py": "49dd508ccc2b3ff88a034e35b0685e1c55b8be4db30f804f86dc9a57ec619765",
+        "tools/local_wire_topology_repair.py": "8a02ca1c823c7533f1eac85a0330080b7840a7881b2b4b143c869cf1a0b7852c",
+        "tools/run_assembly_calibration_oracle.py": "ae589503963f45e2cc5d195da4b2ebc1d865c57bc7e5b3efb53f77faecf9d21f",
+        "tools/run_assembly_repair_matrix.py": "a7cc3b66c14ec566f4f8a2b66bd388f548546f88a3b5579e946b98f3eb43de90",
+        "tools/run_assembly_repair_selector.py": "79b3c573f219138d60c5760f48e7118aeb022c02f7002b1d7cf961f080c6a151",
+        "tools/run_p0b_stability_retest.py": "2b5fd1fc1080887941e8b2438ff2e6d2d66ef834db24b453f1d28fced85a1a45",
+        "tools/solid_topology_repair.py": "c70dafdf1aa5e4fe7df58eb4732a12736fea79757d1847fd0d0164ffa6272778"
+      },
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "run_kind": "assembly-repair-selector-v1",
+    "schema": "assembly-repair-run-v2",
+    "selected_cohort_count": 16,
+    "selected_cohort_signature": "892eb91d361eb07dbd6e13aba4f8142356f99a9079138fc91cc49569f4166e74",
+    "selected_source_pickles": {
+      "00000444_4ed4c78d6d754aac90876fc2_step_003": {
+        "bytes": 1137962,
+        "sha256": "da40274c3a345f88a2112f5a6ca17a8b3a8d6870dd3f68c000d5f8961e5a4f0f"
+      },
+      "00002441_179a8df075c94d0596b1f20d_step_010": {
+        "bytes": 345684,
+        "sha256": "cc6338a6db7a1ef052d54b73cffd5625055490e9e78f94f2afb0468a2fcdde68"
+      },
+      "00008763_affd199038524a1c8e3b7ad4_step_001": {
+        "bytes": 620232,
+        "sha256": "9459e2dcefaf0e3f16c471ff4eab12bf6449f08fae5430c6281f00a8420f9049"
+      },
+      "00016845_33dbc9e6ea684970be61af74_step_000": {
+        "bytes": 983804,
+        "sha256": "17931776dcd7e89a47e340753812ca9298825199de11ff400a0ac04bf9f65c89"
+      },
+      "00029780_a4788d5955c04fe1886666b7_step_000": {
+        "bytes": 1250648,
+        "sha256": "bcfbdf80752c6e97e7d95307e114d52ad7c0b75ed0b0e3dccb5ec97e0c571a7e"
+      },
+      "00032004_b91639b3cc4b41c7bf6a854d_step_000": {
+        "bytes": 609040,
+        "sha256": "0ae49be12ed2b98028b306c2de4a1e6ac8dccb29c5449d3ef61e7b049cef32f7"
+      },
+      "00032101_674d8fea687f4d9bbca6599b_step_000": {
+        "bytes": 369466,
+        "sha256": "d256156b02d6e758db80fd29beeb3d7d80d435d303f2a7de7dce4a7c04028a43"
+      },
+      "00047472_197769bbdd814278b715d88a_step_000": {
+        "bytes": 1191390,
+        "sha256": "68343d8203dc640d75cd3f4b2a7fea119e637b4f23f3c3ca26fc5c739196eab1"
+      },
+      "00051587_446e8810d6884cae80689579_step_000": {
+        "bytes": 632846,
+        "sha256": "abcd9e339bd86b89e3e19aada768da563689f9db498b300b5c39cf528cfb24c6"
+      },
+      "00051602_7f1947595ae247e0a4a32f43_step_000": {
+        "bytes": 403520,
+        "sha256": "2883f35753fe2c69fde4c77e264ac57ac8729214a2f3264f2d13b6e18c224e9e"
+      },
+      "00061931_dcdd8a95feac4121adfd341f_step_000": {
+        "bytes": 702734,
+        "sha256": "53a42d399afba460d7df9ca9787c0e02ece001448eaa8f0b3e97d9c66bc82f1c"
+      },
+      "00063055_e309c689b9b44f0686f47966_step_000": {
+        "bytes": 486822,
+        "sha256": "39f56ba42e0f25044d2ef9e3b2f6d14e5d092cf0be887bb221b68103f037cf96"
+      },
+      "00067160_2a27016aa44f42c69c1079f7_step_000": {
+        "bytes": 731700,
+        "sha256": "5d1cffed546ca946ecd45bc11005f91f007e149c9a8db62c836914a25ecd2002"
+      },
+      "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000": {
+        "bytes": 1150480,
+        "sha256": "eb15e16897c84a3511b0fe3456d150517953ba49304a323cb96de9319459fa84"
+      },
+      "00087341_6a73c5e821934d3fe4d0d555_step_000": {
+        "bytes": 855710,
+        "sha256": "84e00ee2876e1f684777ad0ebdd43ed90995e6970101e341987b55ad69065b72"
+      },
+      "00095733_8b325d2fcb27ec9e79388602_step_000": {
+        "bytes": 810954,
+        "sha256": "51f52484db1b03058104b44a6bc26923f98c8f79fe852970b1254dd8257df278"
+      }
+    },
+    "selector": {
+      "all_candidates_isolated": true,
+      "expected_both_valid_restorations": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00016845_33dbc9e6ea684970be61af74_step_000",
+        "00029780_a4788d5955c04fe1886666b7_step_000",
+        "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+        "00051587_446e8810d6884cae80689579_step_000"
+      ],
+      "expected_fallback_accepted_ids": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00051587_446e8810d6884cae80689579_step_000"
+      ],
+      "fallback_acceptance_predicate": "step_saved && status=both_valid && native && strict && both && isolated_geometry_topology_gate",
+      "fallbacks": [
+        {
+          "effective_constructor_kwargs": {
+            "curve_fit_fallback": false,
+            "curve_fit_rescue": false,
+            "curve_interpolate": false,
+            "directed_trim": false,
+            "local_intersection_topology": false,
+            "local_pcurve_continuity": false,
+            "pcurve_self_intersection": false,
+            "single_solid": true,
+            "solid_topology_repair": true,
+            "wire_continuity": false
+          },
+          "name": "near_vertex_reconciliation",
+          "switches": [
+            "near_vertex_reconciliation"
+          ]
+        },
+        {
+          "effective_constructor_kwargs": {
+            "curve_fit_fallback": false,
+            "curve_fit_rescue": false,
+            "curve_interpolate": true,
+            "directed_trim": true,
+            "local_intersection_topology": true,
+            "local_pcurve_continuity": false,
+            "pcurve_self_intersection": false,
+            "single_solid": false,
+            "solid_topology_repair": false,
+            "wire_continuity": false
+          },
+          "name": "directed_trim_curve_interpolate_local_intersection_topology",
+          "switches": [
+            "directed_trim",
+            "curve_interpolate",
+            "local_intersection_topology"
+          ]
+        }
+      ],
+      "geometry_gate_schema": "assembly-selector-geometry-gate-v2",
+      "geometry_gate_thresholds": {
+        "max_bbox_relative_delta": 0.02,
+        "max_edge_length_relative_delta": 0.05,
+        "max_edge_sample_max_normalized": 0.05,
+        "max_edge_sample_rms_normalized": 0.01
+      },
+      "primary": {
+        "effective_constructor_kwargs": {
+          "curve_fit_fallback": false,
+          "curve_fit_rescue": false,
+          "curve_interpolate": false,
+          "directed_trim": true,
+          "local_intersection_topology": true,
+          "local_pcurve_continuity": false,
+          "pcurve_self_intersection": false,
+          "single_solid": false,
+          "solid_topology_repair": false,
+          "wire_continuity": false
+        },
+        "name": "directed_trim_local_intersection_topology",
+        "switches": [
+          "directed_trim",
+          "local_intersection_topology"
+        ]
+      },
+      "profile": "failure_triggered_selector"
+    },
+    "worker_timeout_seconds": 600.0
+  },
+  "schema": "assembly-repair-run-v2",
+  "signature": "a219e475370a4ffc1bfd851895a71d9cc67fa9ad65d0dbf88f4f0014500be19b",
+  "status": "COMPLETED_PARTIAL",
+  "summary_sha256": "0dd3de0ef628bd9577c91865f5d26413fef688389d669978b3ef36ae661833ae"
+}

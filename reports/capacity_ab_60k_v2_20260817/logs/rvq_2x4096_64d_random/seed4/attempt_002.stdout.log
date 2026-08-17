@@ -1,0 +1,12 @@
+[20:22:39] ===== STAGE vqsweep =====
+[20:22:39] VQSWEEP: FSQ-VQVAE 超参对比(短训选最优)
+[20:26:02]   sweep 数据: train=60000 val=12000  (短训 15 ep)
+[20:26:03]   rvq_2x4096_64d_random resumed full state from D:\luolin\V13\local_runs\capacity_ab_60k_v2_20260817\tasks\rvq_2x4096_64d_random\seed4\rvq_2x4096_64d_random_rolling.pt after epoch=50
+[20:37:42]   rvq_2x4096_64d_random ep  60 train=0.00087 val=0.00099 best=0.00099 finite_train=469/469 finite_val=94/94
+[20:49:22]   rvq_2x4096_64d_random ep  70 train=0.00067 val=0.00089 best=0.00089 finite_train=469/469 finite_val=94/94
+[21:01:02]   rvq_2x4096_64d_random ep  80 train=0.00066 val=0.00093 best=0.00089 finite_train=469/469 finite_val=94/94
+[21:12:41]   rvq_2x4096_64d_random ep  90 train=0.00051 val=0.00094 best=0.00089 finite_train=469/469 finite_val=94/94
+[21:23:14]   rvq_2x4096_64d_random ep  99 train=0.00044 val=0.00093 best=0.00089 finite_train=469/469 finite_val=94/94
+[21:23:15]   -> rvq_2x4096_64d_random: best_val_recon=0.00089
+[21:23:15]   NO PROMOTED ARM: MSE ranking is diagnostic only
+[21:23:15] DONE {'vqsweep': 'PASS'} in 60.6min

@@ -1,0 +1,104 @@
+{
+  "logs": [
+    {
+      "attempt": 1,
+      "bytes": 1646,
+      "last_nonempty_line": "[19:18:10] DONE {'vqsweep': 'PASS'} in 114.3min",
+      "line_count": 17,
+      "nonempty_line_count": 17,
+      "sha256": "f3491fa6e94acbeb14a05e004e1cfbfbccc981e93a80de3d848e5d3222db0536",
+      "stream": "stdout",
+      "task_id": "rvq_2x4096_64d_random:seed3"
+    },
+    {
+      "attempt": 1,
+      "bytes": 0,
+      "last_nonempty_line": null,
+      "line_count": 0,
+      "nonempty_line_count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stream": "stderr",
+      "task_id": "rvq_2x4096_64d_random:seed3"
+    },
+    {
+      "attempt": 1,
+      "bytes": 872,
+      "last_nonempty_line": "[20:18:21]   rvq_2x4096_64d_random ep  50 train=0.00130 val=0.00136 best=0.00114 finite_train=469/469 finite_val=94/94",
+      "line_count": 9,
+      "nonempty_line_count": 9,
+      "sha256": "d0ef82fc216b3c3efad88089cc8f9fa9e2e2f722c7360b39e1adcc24087ec5d2",
+      "stream": "stdout",
+      "task_id": "rvq_2x4096_64d_random:seed4"
+    },
+    {
+      "attempt": 1,
+      "bytes": 1011,
+      "last_nonempty_line": "PermissionError: [WinError 5] \ufffd\u073e\ufffd\ufffd\ufffd\ufffd\u02a1\ufffd: 'D:\\\\luolin\\\\V13\\\\local_runs\\\\capacity_ab_60k_v2_20260817\\\\tasks\\\\rvq_2x4096_64d_random\\\\seed4\\\\.rvq_2x4096_64d_random_rolling.pt.7kj8p5xg.tmp' -> 'D:\\\\luolin\\\\V13\\\\local_runs\\\\capacity_ab_60k_v2_20260817\\\\tasks\\\\rvq_2x4096_64d_random\\\\seed4\\\\rvq_2x4096_64d_random_rolling.pt'",
+      "line_count": 10,
+      "nonempty_line_count": 10,
+      "sha256": "dd689ae20883a1f05caa3da2159871b2f1d01d43b0791bf5047f9a68ce2b26c7",
+      "stream": "stderr",
+      "task_id": "rvq_2x4096_64d_random:seed4"
+    },
+    {
+      "attempt": 2,
+      "bytes": 1120,
+      "last_nonempty_line": "[21:23:15] DONE {'vqsweep': 'PASS'} in 60.6min",
+      "line_count": 12,
+      "nonempty_line_count": 12,
+      "sha256": "e23be7e4eb291bff89d53adc7369ebb1a136cd569a9b35248a07d0753564f774",
+      "stream": "stdout",
+      "task_id": "rvq_2x4096_64d_random:seed4"
+    },
+    {
+      "attempt": 2,
+      "bytes": 0,
+      "last_nonempty_line": null,
+      "line_count": 0,
+      "nonempty_line_count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stream": "stderr",
+      "task_id": "rvq_2x4096_64d_random:seed4"
+    },
+    {
+      "attempt": 1,
+      "bytes": 1610,
+      "last_nonempty_line": "[15:28:50] DONE {'vqsweep': 'PASS'} in 119.2min",
+      "line_count": 17,
+      "nonempty_line_count": 17,
+      "sha256": "ca4db3958e87d8c7e854325aa8c2b56f0801b2cc48c91aed809ed1707bc6709c",
+      "stream": "stdout",
+      "task_id": "vq_8192_64d_random:seed3"
+    },
+    {
+      "attempt": 1,
+      "bytes": 0,
+      "last_nonempty_line": null,
+      "line_count": 0,
+      "nonempty_line_count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stream": "stderr",
+      "task_id": "vq_8192_64d_random:seed3"
+    },
+    {
+      "attempt": 1,
+      "bytes": 1610,
+      "last_nonempty_line": "[17:23:51] DONE {'vqsweep': 'PASS'} in 115.0min",
+      "line_count": 17,
+      "nonempty_line_count": 17,
+      "sha256": "66207bc340371aac47152c61a98d67fd8c516ce3026d9e9e16b0af1b5451d37d",
+      "stream": "stdout",
+      "task_id": "vq_8192_64d_random:seed4"
+    },
+    {
+      "attempt": 1,
+      "bytes": 0,
+      "last_nonempty_line": null,
+      "line_count": 0,
+      "nonempty_line_count": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stream": "stderr",
+      "task_id": "vq_8192_64d_random:seed4"
+    }
+  ]
+}

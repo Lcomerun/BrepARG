@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "D:\luolin\V13\.worktrees\capacity-ab-v2-20260817\breparg_improvements\train.py", line 2932, in <module>
+    ok = STAGES[s](); res[s] = ok
+  File "D:\luolin\V13\.worktrees\capacity-ab-v2-20260817\breparg_improvements\train.py", line 2420, in stage_vqsweep
+    hist, bv, arm_meta = _train_vqvae(
+  File "D:\luolin\V13\.worktrees\capacity-ab-v2-20260817\breparg_improvements\train.py", line 2362, in _train_vqvae
+    atomic_torch_save(rolling_payload, rolling_checkpoint_path)
+  File "D:\luolin\V13\.worktrees\capacity-ab-v2-20260817\breparg_improvements\training_stability.py", line 347, in atomic_torch_save
+    os.replace(temporary, path)
+PermissionError: [WinError 5] ¾Ü¾ø·ÃÎÊ¡£: 'D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\.rvq_2x4096_64d_random_rolling.pt.7kj8p5xg.tmp' -> 'D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_rolling.pt'

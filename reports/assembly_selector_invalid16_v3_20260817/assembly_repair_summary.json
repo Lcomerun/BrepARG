@@ -1,0 +1,128 @@
+{
+  "accepted_profiles": [],
+  "advance_to_boundary_consistency": false,
+  "advance_to_sequence_or_ar": false,
+  "assembly_release_gate_passed": false,
+  "cohort_size": 16,
+  "gate_passed": false,
+  "generated_at": "2026-08-17T21:28:05+08:00",
+  "historical_invalid_only": true,
+  "historical_strict_valid": 0,
+  "label": "failure_triggered_selector_invalid16_v3_formal_negative",
+  "profiles": [
+    {
+      "attempts": 16,
+      "both_valid": 5,
+      "meets_95_gate": false,
+      "native_valid": 8,
+      "preserves_original_84": true,
+      "profile": "failure_triggered_selector",
+      "regressed_cad_ids": [],
+      "restored_both_valid_cad_ids": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00016845_33dbc9e6ea684970be61af74_step_000",
+        "00029780_a4788d5955c04fe1886666b7_step_000",
+        "00032004_b91639b3cc4b41c7bf6a854d_step_000"
+      ],
+      "restored_cad_ids": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00016845_33dbc9e6ea684970be61af74_step_000",
+        "00029780_a4788d5955c04fe1886666b7_step_000",
+        "00032004_b91639b3cc4b41c7bf6a854d_step_000"
+      ],
+      "status_counts": {
+        "assembly_error": 3,
+        "both_valid": 5,
+        "step_invalid": 8
+      },
+      "step_readable": 13,
+      "strict_valid": 5,
+      "unchanged_cad_ids": [
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
+        "00032101_674d8fea687f4d9bbca6599b_step_000",
+        "00047472_197769bbdd814278b715d88a_step_000",
+        "00051587_446e8810d6884cae80689579_step_000",
+        "00051602_7f1947595ae247e0a4a32f43_step_000",
+        "00061931_dcdd8a95feac4121adfd341f_step_000",
+        "00063055_e309c689b9b44f0686f47966_step_000",
+        "00067160_2a27016aa44f42c69c1079f7_step_000",
+        "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+        "00087341_6a73c5e821934d3fe4d0d555_step_000",
+        "00095733_8b325d2fcb27ec9e79388602_step_000"
+      ]
+    }
+  ],
+  "schema": "assembly-repair-selector-v1",
+  "selector": {
+    "accepted_fallback_ids": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00002441_179a8df075c94d0596b1f20d_step_010"
+    ],
+    "candidate_attempt_count": 41,
+    "expected_both_valid_restorations": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00002441_179a8df075c94d0596b1f20d_step_010",
+      "00016845_33dbc9e6ea684970be61af74_step_000",
+      "00029780_a4788d5955c04fe1886666b7_step_000",
+      "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+      "00051587_446e8810d6884cae80689579_step_000"
+    ],
+    "expected_fallback_accepted_ids": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00002441_179a8df075c94d0596b1f20d_step_010",
+      "00051587_446e8810d6884cae80689579_step_000"
+    ],
+    "expected_fallbacks_match": false,
+    "expected_restorations_match": false,
+    "fallback_order": [
+      "near_vertex_reconciliation",
+      "directed_trim_curve_interpolate_local_intersection_topology"
+    ],
+    "observed_both_valid_restorations": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00002441_179a8df075c94d0596b1f20d_step_010",
+      "00016845_33dbc9e6ea684970be61af74_step_000",
+      "00029780_a4788d5955c04fe1886666b7_step_000",
+      "00032004_b91639b3cc4b41c7bf6a854d_step_000"
+    ],
+    "primary_fast_path_violations": 0,
+    "primary_profile": "directed_trim_local_intersection_topology",
+    "protocol_passed": false,
+    "selected_native_invalid_fallbacks": 0,
+    "selected_profile_counts": {
+      "directed_trim_curve_interpolate_local_intersection_topology": 1,
+      "directed_trim_local_intersection_topology": 14,
+      "near_vertex_reconciliation": 1
+    },
+    "worker_or_protocol_failure_count": 0
+  },
+  "selector_protocol_passed": false,
+  "source_binding": {
+    "cohort_equivalence": {
+      "provided": false
+    },
+    "label": "failure_triggered_selector_invalid16_v3_formal_negative",
+    "run_signature": "a219e475370a4ffc1bfd851895a71d9cc67fa9ad65d0dbf88f4f0014500be19b",
+    "run_status": "COMPLETED_PARTIAL",
+    "selector_ledger_binding": {
+      "candidate_attempts": 41,
+      "candidate_final_binding_valid": true,
+      "candidate_ledger_sha256": "e926f1dbc4945835e57d23887f75f836ccf0174435084d4472408f6ce7436fab",
+      "final_matrix_sha256": "7abdafbc368dc987f8ec7a28ce499cf9bc5d0c32277fc575b0757e0531a2d1fa",
+      "selector_run": true
+    },
+    "solid_topology_diagnosis": {
+      "archived": false
+    },
+    "source_matrix_bytes": 66839,
+    "source_matrix_sha256": "7abdafbc368dc987f8ec7a28ce499cf9bc5d0c32277fc575b0757e0531a2d1fa",
+    "source_pickles_archived": false,
+    "source_run_manifest_sha256": "1c1bc2450d1a5dd34ad4b47466decca1bfd65072cb988c6df929189f4ab2487d",
+    "source_run_name": "assembly_selector_invalid16_v3_20260817",
+    "step_bytes_archived": false,
+    "step_files_local": 13,
+    "summary_sha256": "0dd3de0ef628bd9577c91865f5d26413fef688389d669978b3ef36ae661833ae"
+  }
+}

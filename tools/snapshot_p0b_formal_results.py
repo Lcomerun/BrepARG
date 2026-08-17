@@ -554,7 +554,9 @@ four tasks.
 - `epoch_metrics.csv`: compact metrics for all 400 epochs.
 - `tasks/`: exact history, task manifest, train report, and sweep JSON files.
 - `logs/`: exact stdout/stderr plus `log_summary.json`.
-- `tensorboard/`: the four small TensorBoard event files.
+- `tensorboard/`: all `{summary['tensorboard_event_count']}` small TensorBoard
+  event files. A task may have more than one file after an automatic resume;
+  every segment is preserved and hash-bound.
 - `checkpoint_manifest.json`: size and SHA-256 for all 12 local checkpoints.
   It does not contain checkpoint bytes.
 - `source_archive_manifest.json`: source-to-archive hash binding for copied
@@ -566,7 +568,11 @@ present in this directory.
 """
 
 
-def validate_report(report_dir: Path, expected_histories: int = 4) -> dict[str, Any]:
+def validate_report(
+    report_dir: Path,
+    expected_histories: int = 4,
+    expected_tensorboard_events: int | None = None,
+) -> dict[str, Any]:
     files = [path for path in report_dir.rglob("*") if path.is_file()]
     forbidden = [
         path.relative_to(report_dir).as_posix()
@@ -579,8 +585,15 @@ def validate_report(report_dir: Path, expected_histories: int = 4) -> dict[str, 
         raise RuntimeError(f"forbidden artifacts entered report: {forbidden}")
     if len(histories) != expected_histories:
         raise RuntimeError(f"expected {expected_histories} histories, found {len(histories)}")
-    if len(events) != expected_histories:
-        raise RuntimeError(f"expected {expected_histories} TensorBoard events, found {len(events)}")
+    expected_events = (
+        expected_histories
+        if expected_tensorboard_events is None
+        else expected_tensorboard_events
+    )
+    if len(events) != expected_events:
+        raise RuntimeError(
+            f"expected {expected_events} TensorBoard events, found {len(events)}"
+        )
     return {
         "valid": True,
         "files": len(files),
@@ -645,6 +658,7 @@ def snapshot_from_state(
     task_rows: list[dict[str, Any]] = []
     epoch_rows: list[dict[str, Any]] = []
     logs: list[dict[str, Any]] = []
+    tensorboard_event_counts: dict[str, int] = {}
     for task in sorted(tasks, key=task_key):
         history, history_rows = load_and_validate_history(task, expected_epochs)
         task_rows.append(summarize_task(task, history, history_rows))
@@ -673,8 +687,9 @@ def snapshot_from_state(
                 logs.append(log_summary(target, task, number, stream))
         tensorboard_root = Path(str(task["task_root"])) / "tensorboard"
         events = sorted(tensorboard_root.rglob("events.out.tfevents.*"))
-        if len(events) != 1:
-            raise RuntimeError(f"{task.get('task_id')} has {len(events)} TensorBoard events")
+        if not events:
+            raise RuntimeError(f"{task.get('task_id')} has no TensorBoard events")
+        tensorboard_event_counts[str(task["task_id"])] = len(events)
         for source in events:
             target = (
                 report_dir
@@ -714,6 +729,10 @@ def snapshot_from_state(
         "inventory": inventories[0],
         "tasks": task_rows,
         "aggregates": aggregates,
+        "tensorboard_event_count": sum(tensorboard_event_counts.values()),
+        "tensorboard_event_counts_by_task": dict(
+            sorted(tensorboard_event_counts.items())
+        ),
         "gate": {
             "all_four_tasks_completed": all(row["status"] == "COMPLETED" for row in task_rows),
             "all_400_epochs_finite": all(row["all_epochs_finite"] for row in task_rows)
@@ -781,7 +800,11 @@ def snapshot_from_state(
         {"generated_at": generated_at, "artifacts": source_manifest},
     )
     (report_dir / "README.md").write_text(render_readme(summary), encoding="utf-8")
-    validation = validate_report(report_dir, expected_histories=len(tasks))
+    validation = validate_report(
+        report_dir,
+        expected_histories=len(tasks),
+        expected_tensorboard_events=sum(tensorboard_event_counts.values()),
+    )
     write_json(report_dir / "archive_validation.json", validation)
     write_json(
         report_dir / "artifact_manifest.json",
