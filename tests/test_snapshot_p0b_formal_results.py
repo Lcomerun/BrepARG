@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from tools.snapshot_p0b_formal_results import (
+    arm_aggregates,
     epoch_summary,
     summarize_task,
 )
@@ -78,3 +79,27 @@ def test_vq_usage_is_preserved():
     assert summary["final_perplexity"] == 1200.0
     assert summary["final_coverage"] == 0.9
     assert summary["final_unique_bins"] == 3686
+
+
+def test_capacity_vq_and_rvq_usage_are_preserved():
+    rows = []
+    for arm, value in (("vq_8192_64d_random", 0.02), ("rvq_2x4096_64d_random", 0.01)):
+        for seed in (3, 4):
+            task = {
+                "task_id": f"{arm}:seed{seed}",
+                "arm": arm,
+                "seed": seed,
+                "status": "COMPLETED",
+                "signature": f"{arm}-{seed}",
+                "signature_payload": {"precision": "bf16"},
+            }
+            epoch = _epoch(0, usage={"entropy_perplexity": 1000.0, "coverage": 0.5, "unique_bins": 2048})
+            epoch["val_loss"] = value
+            epoch["val_parent_cluster_reconstruction_mse"]["surface_curved_proxy"]["mse"] = value
+            assert epoch_summary(task, epoch)["entropy_perplexity"] == 1000.0
+            rows.append(summarize_task(task, {"config": {}}, [epoch]))
+
+    aggregates = arm_aggregates(
+        rows, ("vq_8192_64d_random", "rvq_2x4096_64d_random")
+    )
+    assert aggregates["pairwise"]["best_curved_parent_mse_ratio_left_over_right"] == 2.0

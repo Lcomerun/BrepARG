@@ -16,10 +16,11 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 10:25 +08:00) Verified the RTX 3060 is idle and no Python trainer is running. D: has about 43.7 GB free and E: about 3.6 TB, so new local training artifacts will use E: while the Git working tree remains on D:.
 - [x] (2026-08-17 10:25 +08:00) Reconfirmed the frozen Protocol V5 identities: protocol SHA-256 `6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3`, split SHA-256 `6ff0a0c3ee6a04ee056fa1ab982eb436a9f59d3d21f21f17babf34e6dc701d29`, train count 60,000, validation count 12,000, and zero parent overlap.
 - [x] (2026-08-17 11:09 +08:00) Implemented and tested VQ-8192/64D and two-stage RVQ-4096/64D, including independent RVQ stage usage, perplexity, coverage, and collapse evidence. Preserved the legacy three-item quantizer-info contract and forced RVQ residual subtraction to fp32 under bf16 input.
-- [x] (2026-08-17 11:09 +08:00) Implemented the fail-closed capacity launcher for seeds 3 and 4, 100 epochs, bf16, batch 128, LR `3e-4`, gradient clip 1.0, plateau decay, zero-nonfinite fuse, atomic resume, identical inventory digests, and output on E:. A non-mutating formal dry run produced exactly four signed tasks.
+- [x] (2026-08-17 11:09 +08:00) Implemented the fail-closed capacity launcher for seeds 3 and 4, 100 epochs, bf16, batch 128, LR `3e-4`, gradient clip 1.0, plateau decay, zero-nonfinite fuse, atomic resume, and identical inventory digests. A non-mutating formal dry run produced exactly four signed tasks; the later storage probe moved formal outputs from E: to D:.
 - [x] (2026-08-17 11:09 +08:00) Passed 176 focused and compatibility tests covering the capacity quantizers, launcher, stability lifecycle, prior P0-B behavior, fixed-cohort measurement, and P0-A snapshot/diagnostic paths.
 - [x] (2026-08-17 11:36 +08:00) Ran a first CUDA smoke. VQ-8192 was numerically finite, but fail-closed evidence validation exposed two producer omissions before RVQ started: scheduler metric and checkpoint parent-overlap counts. Corrected both at the producer, added contract regressions, and passed the 157-test capacity/stability/assembly compatibility suite.
-- [ ] Run bounded CUDA forward/backward and interruption/resume probes for both arms, then run all four formal 100-epoch tasks.
+- [x] (2026-08-17 11:51 +08:00) Completed a clean two-arm CUDA smoke on the healthy D: NTFS SSD. Both VQ-8192 and RVQ validators returned `valid=true`, with identical inventories, resume-compatible runtime evidence, and zero non-finite events.
+- [ ] Formal four-task training is running automatically from clean commit `aa66fef` under `D:\luolin\V13\local_runs\capacity_ab_60k_20260817`. At 12:13 +08:00 VQ-8192 seed 3 had reached epoch 11/99, GPU utilization was 98%, all finite counters were zero, validation perplexity was 1338.0, coverage 57.43%, and curved parent MSE 0.01705. Remaining: finish all four tasks and pass the formal validator.
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
 - [ ] Re-run the frozen 100 original-control CADs after each repair, preserve all 84 original strict-valid CADs, reach at least 95 strict-valid CADs, and publish the repair-to-restored/regressed-case map.
@@ -42,6 +43,9 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Observation: The first CUDA smoke proved the model path finite but was deliberately rejected as evidence because two signed facts were not repeated in downstream artifacts.
   Evidence: VQ-8192 completed all three train and two validation batches with no non-finite event. Validation reasons were limited to scheduler-schema and checkpoint parent-overlap mismatches. The failed root remains local diagnostic evidence; a new root is required after producer-side fixes.
+
+- Observation: The external E: volume cannot safely host checkpoint-heavy formal training.
+  Evidence: Windows reports the exFAT volume as `Warning / Full Repair Needed`; `py-spy` showed the smoke blocked inside `torch.save` at native `WriteFile`. A 256 MiB write to D: completed in about 0.18 seconds. The clean smoke and formal matrix therefore use D: and immediately restored sustained 96--98% GPU utilization after the one-time dataset scan and deduplication.
 
 ## Decision Log
 
@@ -67,6 +71,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Decision: Keep assembly repair and representation capacity as parallel implementations but merge their effects only after each has an unchanged-chain control result.
   Rationale: Changing quantization and assembly simultaneously would make recovered CADs impossible to attribute. The capacity A/B first uses the current chain; the repair track first uses original controls; only the final winner is measured through the repaired chain.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Keep formal training immutable at commit `aa66fef` and add capacity-aware Git-safe archival support without touching that running worktree's signed training sources.
+  Rationale: Editing the detached training worktree would invalidate its source hashes. The archival code is exercised independently and will only read the completed state after all four tasks validate.
   Date/Author: 2026-08-17 / Codex.
 
 ## Outcomes & Retrospective
@@ -150,3 +158,5 @@ Revision note 2026-08-17 10:25 +08:00: Created this plan after the paired VQ/byp
 Revision note 2026-08-17 11:09 +08:00: Recorded completion of the capacity implementation, the three-item quantizer-info compatibility fix, fp32 residual handling under bf16, the 176-test regression, and the non-mutating four-task formal dry run. The next capacity milestone is a clean-commit CUDA smoke followed by the resumable formal matrix.
 
 Revision note 2026-08-17 11:36 +08:00: Recorded the bounded CUDA smoke result and the evidence-schema repair. The next step remains a clean-commit two-arm CUDA smoke in a new output root, followed only on success by formal training.
+
+Revision note 2026-08-17 12:16 +08:00: Recorded the successful D:-hosted two-arm smoke, E: filesystem diagnosis, formal launch and first healthy metrics. Added the immutable-source decision and clarified that formal training is now an automatic background task rather than an unstarted milestone.

@@ -154,7 +154,32 @@ def parent_bucket_mse(row: Mapping[str, Any], bucket: str) -> float | None:
     return as_float(value)
 
 
-def validated_state(run_root: Path) -> dict[str, Any]:
+def validated_state(run_root: Path, *, capacity_ab: bool = False) -> dict[str, Any]:
+    if capacity_ab:
+        try:
+            from tools.run_capacity_ab_60k import validation_summary as capacity_validation
+            from tools.run_capacity_ab_60k import load_and_refresh as load_capacity_state
+        except ModuleNotFoundError:  # Direct ``python tools/...py`` execution.
+            from run_capacity_ab_60k import validation_summary as capacity_validation
+            from run_capacity_ab_60k import load_and_refresh as load_capacity_state
+
+        _path, refreshed = load_capacity_state(run_root)
+        validation = capacity_validation(refreshed)
+        reasons = list(validation.get("reasons") or [])
+        if refreshed.get("status") != "COMPLETED":
+            reasons.append(f"state status is {refreshed.get('status')!r}, expected COMPLETED")
+        if validation.get("formal_result_eligible") is not True:
+            reasons.append("formal_result_eligible is not true")
+        if validation.get("inventory_consistent") is not True:
+            reasons.append("inventory_consistent is not true")
+        if not validation.get("valid") or reasons:
+            raise RuntimeError(
+                "formal capacity A/B state is not valid: " + "; ".join(reasons)
+            )
+        refreshed["formal_result_eligible"] = validation["formal_result_eligible"]
+        refreshed["inventory_consistent"] = validation["inventory_consistent"]
+        return refreshed
+
     state = read_json(Path(run_root) / "p0b_state.json")
     refreshed = refresh_state(state)
     validation = validation_summary(refreshed)
@@ -208,7 +233,7 @@ def load_and_validate_history(
 
 def epoch_summary(task: Mapping[str, Any], row: Mapping[str, Any]) -> dict[str, Any]:
     usage = row.get("val_code_usage") or {}
-    has_codebook = str(task.get("arm")) == "vq_4096_64d_random"
+    has_codebook = str(task.get("arm")) != "continuous_bypass_64d"
     return {
         "task_id": task.get("task_id"),
         "arm": task.get("arm"),
@@ -256,7 +281,7 @@ def summarize_task(
     best_curved_epoch, best_curved = best_epoch(
         rows, lambda row: parent_bucket_mse(row, "surface_curved_proxy")
     )
-    has_codebook = str(task.get("arm")) == "vq_4096_64d_random"
+    has_codebook = str(task.get("arm")) != "continuous_bypass_64d"
     initial_usage = rows[0].get("val_code_usage") or {}
     final_usage = rows[-1].get("val_code_usage") or {}
     lr_reductions = sum(
@@ -315,9 +340,12 @@ def aggregate(values: Sequence[float]) -> dict[str, Any]:
     }
 
 
-def arm_aggregates(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+def arm_aggregates(
+    rows: Sequence[Mapping[str, Any]], arms: Sequence[str] | None = None
+) -> dict[str, Any]:
     result: dict[str, Any] = {}
-    for arm in ARMS:
+    observed_arms = tuple(arms or ARMS)
+    for arm in observed_arms:
         arm_rows = [row for row in rows if row.get("arm") == arm]
         result[arm] = {
             "best_val_mse": aggregate([float(row["best_val_mse"]) for row in arm_rows]),
@@ -337,18 +365,33 @@ def arm_aggregates(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         ]
         result[arm]["final_perplexity"] = aggregate(perplexities) if perplexities else None
         result[arm]["final_coverage"] = aggregate(coverages) if coverages else None
-    vq = result["vq_4096_64d_random"]
-    bypass = result["continuous_bypass_64d"]
-    result["vq_vs_bypass"] = {
-        "best_val_mse_ratio": vq["best_val_mse"]["mean"]
-        / bypass["best_val_mse"]["mean"],
-        "best_val_mse_absolute_gap": vq["best_val_mse"]["mean"]
-        - bypass["best_val_mse"]["mean"],
-        "best_curved_parent_mse_ratio": vq["best_curved_parent_mse"]["mean"]
-        / bypass["best_curved_parent_mse"]["mean"],
-        "best_curved_parent_mse_absolute_gap": vq["best_curved_parent_mse"]["mean"]
-        - bypass["best_curved_parent_mse"]["mean"],
-    }
+    if set(ARMS).issubset(result):
+        vq = result["vq_4096_64d_random"]
+        bypass = result["continuous_bypass_64d"]
+        result["vq_vs_bypass"] = {
+            "best_val_mse_ratio": vq["best_val_mse"]["mean"]
+            / bypass["best_val_mse"]["mean"],
+            "best_val_mse_absolute_gap": vq["best_val_mse"]["mean"]
+            - bypass["best_val_mse"]["mean"],
+            "best_curved_parent_mse_ratio": vq["best_curved_parent_mse"]["mean"]
+            / bypass["best_curved_parent_mse"]["mean"],
+            "best_curved_parent_mse_absolute_gap": vq["best_curved_parent_mse"]["mean"]
+            - bypass["best_curved_parent_mse"]["mean"],
+        }
+    elif len(observed_arms) == 2:
+        left, right = observed_arms
+        result["pairwise"] = {
+            "left_arm": left,
+            "right_arm": right,
+            "best_val_mse_ratio_left_over_right": (
+                result[left]["best_val_mse"]["mean"]
+                / result[right]["best_val_mse"]["mean"]
+            ),
+            "best_curved_parent_mse_ratio_left_over_right": (
+                result[left]["best_curved_parent_mse"]["mean"]
+                / result[right]["best_curved_parent_mse"]["mean"]
+            ),
+        }
     return result
 
 
@@ -441,7 +484,6 @@ def artifact_manifest(report_dir: Path) -> list[dict[str, Any]]:
 def render_readme(summary: Mapping[str, Any]) -> str:
     tasks = summary["tasks"]
     aggregate_rows = summary["aggregates"]
-    gap = aggregate_rows["vq_vs_bypass"]
     table = "\n".join(
         "| {arm} | {seed} | {best_val_mse:.8g} | {best_curved_parent_mse:.8g} | "
         "{ppl} | {coverage} | {nonfinite_events} |".format(
@@ -463,9 +505,32 @@ def render_readme(summary: Mapping[str, Any]) -> str:
         )
         for row in tasks
     )
-    return f"""# P0-B formal 60k VQ/bypass stability result
+    capacity_ab = summary.get("archive_kind") == "capacity_ab"
+    title = (
+        "Capacity A/B formal 60k VQ-8192/RVQ stability result"
+        if capacity_ab
+        else "P0-B formal 60k VQ/bypass stability result"
+    )
+    if capacity_ab:
+        interpretation = (
+            "- This archive is reconstruction and codebook-health evidence only. "
+            "The fixed 100-CAD unchanged-chain measurement decides the winner and "
+            "must include RVQ's downstream sequence cost."
+        )
+    else:
+        gap = aggregate_rows["vq_vs_bypass"]
+        interpretation = f"""- Learned VQ final codebook coverage is
+  `{100.0 * aggregate_rows['vq_4096_64d_random']['final_coverage']['mean']:.2f}%`
+  on average and final perplexity is
+  `{aggregate_rows['vq_4096_64d_random']['final_perplexity']['mean']:.2f}`.
+- Mean learned-VQ curved parent MSE is
+  `{gap['best_curved_parent_mse_ratio']:.3f}x` the continuous-bypass mean.
+  This metric is representation evidence, not an assembly-validity result.
+- The next decision requires the fixed 100-CAD, same-cohort assembly comparison
+  for learned VQ seed 3 and bypass seed 3."""
+    return f"""# {title}
 
-This is a lightweight, Git-safe archive of the completed formal P0-B run.
+This is a lightweight, Git-safe archive of the completed formal training run.
 The four tasks used 60,000 train patches, 12,000 validation patches, bf16,
 batch size 128, and 100 epochs. The launcher validator reports the run as
 formal-result eligible with identical train/validation inventories across all
@@ -480,15 +545,7 @@ four tasks.
 - All four tasks completed epochs 0 through 99 with zero skipped batches and
   zero non-finite loss, gradient, state-audit, validation-batch, or validation-
   sample events.
-- Learned VQ final codebook coverage is
-  `{100.0 * aggregate_rows['vq_4096_64d_random']['final_coverage']['mean']:.2f}%`
-  on average and final perplexity is
-  `{aggregate_rows['vq_4096_64d_random']['final_perplexity']['mean']:.2f}`.
-- Mean learned-VQ curved parent MSE is
-  `{gap['best_curved_parent_mse_ratio']:.3f}x` the continuous-bypass mean.
-  This metric is representation evidence, not an assembly-validity result.
-- The next decision requires the fixed 100-CAD, same-cohort assembly comparison
-  for learned VQ seed 3 and bypass seed 3.
+{interpretation}
 
 ## Evidence
 
@@ -540,6 +597,7 @@ def snapshot_from_state(
     state: Mapping[str, Any],
     *,
     refresh_existing: bool = False,
+    capacity_ab: bool = False,
 ) -> dict[str, Any]:
     run_root = Path(run_root).resolve()
     report_dir = Path(report_dir).resolve()
@@ -562,18 +620,26 @@ def snapshot_from_state(
         ):
             os.rmdir(directory)
     tasks = list(state.get("tasks") or [])
+    configuration = state.get("configuration") or {}
+    configured_arms = tuple(configuration.get("arms") or ())
+    configured_seeds = tuple((state.get("configuration") or {}).get("seeds") or ())
+    expected_tasks = (
+        {(str(arm), int(seed)) for arm in configured_arms for seed in configured_seeds}
+        if capacity_ab
+        else EXPECTED_TASKS
+    )
     observed_tasks = {task_key(task) for task in tasks}
-    if observed_tasks != EXPECTED_TASKS or len(tasks) != len(EXPECTED_TASKS):
+    if observed_tasks != expected_tasks or len(tasks) != len(expected_tasks):
         raise RuntimeError(
-            f"formal P0-B task matrix mismatch: expected {sorted(EXPECTED_TASKS)}, "
+            f"formal task matrix mismatch: expected {sorted(expected_tasks)}, "
             f"observed {sorted(observed_tasks)}"
         )
-    expected_epochs = int((state.get("configuration") or {}).get("epochs") or 0)
+    expected_epochs = int(configuration.get("epochs") or 0)
     if expected_epochs <= 0:
-        raise RuntimeError("formal P0-B state has no positive epoch target")
+        raise RuntimeError("formal state has no positive epoch target")
     inventories = [task_inventory(task) for task in tasks]
     if not inventories[0] or any(item != inventories[0] for item in inventories[1:]):
-        raise RuntimeError("formal P0-B tasks do not share one exact inventory")
+        raise RuntimeError("formal tasks do not share one exact inventory")
 
     source_manifest: list[dict[str, Any]] = []
     task_rows: list[dict[str, Any]] = []
@@ -620,9 +686,10 @@ def snapshot_from_state(
             copy_lightweight(source, target, run_root, source_manifest)
 
     generated_at = now()
-    aggregates = arm_aggregates(task_rows)
+    aggregates = arm_aggregates(task_rows, configured_arms if capacity_ab else ARMS)
     summary = {
-        "schema": "p0b-formal-results-v1",
+        "schema": "capacity-ab-formal-results-v1" if capacity_ab else "p0b-formal-results-v1",
+        "archive_kind": "capacity_ab" if capacity_ab else "p0b",
         "generated_at": generated_at,
         "source_run": run_root.name,
         "status": state.get("status"),
@@ -630,7 +697,7 @@ def snapshot_from_state(
         "inventory_consistent": state.get("inventory_consistent"),
         "configuration_signature": state.get("configuration_signature"),
         "configuration": {
-            key: (state.get("configuration") or {}).get(key)
+            key: configuration.get(key)
             for key in (
                 "arms",
                 "seeds",
@@ -643,6 +710,7 @@ def snapshot_from_state(
                 "smoke",
             )
         },
+        "protocol": state.get("protocol") if capacity_ab else None,
         "inventory": inventories[0],
         "tasks": task_rows,
         "aggregates": aggregates,
@@ -654,8 +722,7 @@ def snapshot_from_state(
             "skipped_train_batches": sum(
                 int(row["skipped_train_batches"]) for row in task_rows
             ),
-            "vq_100cad_assembly_required": True,
-            "bypass_100cad_assembly_required": True,
+            "fixed_100cad_assembly_required": True,
             "boundary_consistency_allowed": False,
             "sequence_or_ar_allowed": False,
         },
@@ -714,7 +781,7 @@ def snapshot_from_state(
         {"generated_at": generated_at, "artifacts": source_manifest},
     )
     (report_dir / "README.md").write_text(render_readme(summary), encoding="utf-8")
-    validation = validate_report(report_dir)
+    validation = validate_report(report_dir, expected_histories=len(tasks))
     write_json(report_dir / "archive_validation.json", validation)
     write_json(
         report_dir / "artifact_manifest.json",
@@ -724,13 +791,15 @@ def snapshot_from_state(
 
 
 def snapshot(
-    run_root: Path, report_dir: Path, *, refresh_existing: bool = False
+    run_root: Path, report_dir: Path, *, refresh_existing: bool = False,
+    capacity_ab: bool = False,
 ) -> dict[str, Any]:
     return snapshot_from_state(
         run_root,
         report_dir,
-        validated_state(run_root),
+        validated_state(run_root, capacity_ab=capacity_ab),
         refresh_existing=refresh_existing,
+        capacity_ab=capacity_ab,
     )
 
 
@@ -743,9 +812,15 @@ def main(argv: Sequence[str] | None = None) -> int:
         action="store_true",
         help="Replace only files inside an existing Git-safe report directory.",
     )
+    parser.add_argument(
+        "--capacity-ab",
+        action="store_true",
+        help="Archive a completed run_capacity_ab_60k.py state instead of P0-B.",
+    )
     args = parser.parse_args(argv)
     result = snapshot(
-        args.run_root, args.report_dir, refresh_existing=args.refresh_existing
+        args.run_root, args.report_dir, refresh_existing=args.refresh_existing,
+        capacity_ab=args.capacity_ab,
     )
     print(
         json.dumps(
