@@ -1,0 +1,15 @@
+{
+  "cad_id_set_sha256": "2e0bef5e1ed1c8db16d95cb1e044cdfddcb88084eb0a85b128038bf736411f4e",
+  "candidate_attempts": 16,
+  "candidate_cad_order_sha256": "8aef7b7a9a49c5f876faa720409bda5242cf086533d7ef76168a8434bf7ba6c8",
+  "provided": true,
+  "reference_attempts": 16,
+  "reference_attempts_sha256": "861a72f06c7a0ac1c776dc44c6896ac412e71e128ee3b46d90c45cb11cabd62b",
+  "reference_cad_order_sha256": "8aef7b7a9a49c5f876faa720409bda5242cf086533d7ef76168a8434bf7ba6c8",
+  "reference_report_name": "assembly_selector_invalid16_v3_20260817",
+  "same_cad_order": true,
+  "same_cad_set": true,
+  "same_parent_and_historical_strict_map": true,
+  "schema": "assembly-cohort-equivalence-v1",
+  "valid": true
+}

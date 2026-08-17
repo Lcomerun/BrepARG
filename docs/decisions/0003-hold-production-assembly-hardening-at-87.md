@@ -58,10 +58,22 @@ unchanged gate correctly rejected it. The Git-safe evidence is in
 `reports/assembly_selector_surface_precision_invalid16_20260818/` and
 `reports/assembly_selector_surface_precision_100cad_20260818/`.
 
+The next minimal selector fallback combines directed trim, high-precision
+surface fitting, and curve interpolation without local topology repair. At
+clean commit `ddf5ac6`, its 16-case pilot restored exactly the prior six plus
+`00008763...`; the conditional 100-CAD matrix reached 97 STEP-readable,
+90 native-valid, 91 strict-valid, and 88 both-valid, with 146 candidate
+attempts, all 84 controls retained, and zero worker or protocol failures.
+`00032101...` and `00076198...` remained rejected because their OCC-valid
+candidates changed semantic topology. The Git-safe evidence is in
+`reports/assembly_selector_surface_precision_interpolate_invalid16_20260818/`
+and
+`reports/assembly_selector_surface_precision_interpolate_100cad_20260818/`.
+
 The selector is now the best formally measured no-regression chain, but it is
-still five CADs below the predeclared promotion gate. Ten CADs remain
+still four CADs below the predeclared promotion gate. Nine CADs remain
 strict-invalid in the fixed cohort, including three construction errors and
-seven invalid STEP results. No later exploratory recovery is counted until it
+six invalid STEP results. No later exploratory recovery is counted until it
 passes the same clean-commit pilot and full fixed-cohort protocol.
 
 ## Decision
@@ -83,9 +95,9 @@ implementation without mutating the training checkout.
 
 Rejected. Zero regression is necessary but not sufficient. The fixed release
 gate is at least 95 strict-valid CADs out of 100, and the best formal result
-reaches 90.
+reaches 91.
 
-### Lower the gate after observing 87, 88, or 90 of 100
+### Lower the gate after observing 87, 88, 90, or 91 of 100
 
 Rejected. The gate was set before these implementations and remains the
 control against accepting repairs that only move a small subset of the failure
@@ -101,7 +113,7 @@ changing geometry outside the diagnosed face.
 
 The next assembly increment must target a remaining diagnosed failure family
 and first show a new strict-valid recovery on the frozen invalid subset while
-retaining all six currently restored CADs. A new candidate still needs a
+retaining all seven currently restored CADs. A new candidate still needs a
 signed 100-CAD matrix with at least 95 strict-valid CADs, all original 84
 retained, and zero regressions before the shared production source can change.
 The selector's complete geometry/topology gate remains unchanged; a
