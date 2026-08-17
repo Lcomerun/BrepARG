@@ -35,6 +35,7 @@ def test_profiles_are_independent_and_combined():
         "directed_trim_pcurve",
         "directed_trim_local_intersection_topology",
         "directed_trim_curve_rescue_local_intersection_topology",
+        "directed_trim_surface_precision_local_intersection_topology",
         "directed_trim_surface_precision_curve_rescue_local_intersection_topology",
         "directed_trim_local_pcurve_continuity",
         "combined",
@@ -46,6 +47,15 @@ def test_profiles_are_independent_and_combined():
     directed_local = parse_profiles(["directed_trim_local_intersection_topology"])[0]
     assert directed_local.enabled("directed_trim") is True
     assert directed_local.enabled("local_intersection_topology") is True
+    precision_without_curve_rescue = parse_profiles(
+        ["directed_trim_surface_precision_local_intersection_topology"]
+    )[0]
+    assert precision_without_curve_rescue.switches == (
+        "directed_trim",
+        "surface_fit_precision",
+        "local_intersection_topology",
+    )
+    assert not precision_without_curve_rescue.enabled("curve_fit_rescue")
     directed_pcurve = parse_profiles(
         ["directed_trim_local_pcurve_continuity"]
     )[0]

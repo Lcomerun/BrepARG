@@ -2,10 +2,11 @@
 
 The selector retains the current guarded directed/local-topology result whenever
 it is project-strict-valid.  Only a primary failure may try near-vertex
-reconciliation and then curve interpolation.  A fallback must additionally be
-native-valid, both-valid, and geometry/topology preserving before it may
-replace the primary output.  The runner keeps all failed candidates in a
-per-CAD selection record while retaining exactly one final denominator row.
+reconciliation, curve interpolation, and finally high-precision surface fitting.
+A fallback must additionally be native-valid, both-valid, and geometry/topology
+preserving before it may replace the primary output.  The runner keeps all
+failed candidates in a per-CAD selection record while retaining exactly one
+final denominator row.
 """
 
 from __future__ import annotations
@@ -86,9 +87,13 @@ SELECTOR_SWITCHES = ("failure_triggered_selector",)
 PRIMARY_PROFILE_NAME = "directed_trim_local_intersection_topology"
 NEAR_VERTEX_PROFILE_NAME = "near_vertex_reconciliation"
 INTERPOLATE_PROFILE_NAME = "directed_trim_curve_interpolate_local_intersection_topology"
+SURFACE_PRECISION_PROFILE_NAME = (
+    "directed_trim_surface_precision_local_intersection_topology"
+)
 FALLBACK_PROFILE_NAMES = (
     NEAR_VERTEX_PROFILE_NAME,
     INTERPOLATE_PROFILE_NAME,
+    SURFACE_PRECISION_PROFILE_NAME,
 )
 
 # This identity set is registered before executing the selector.  It comes
@@ -126,14 +131,15 @@ def canonical_result_sha256(result: Mapping[str, Any]) -> str:
 
 
 def selector_profiles() -> tuple[RepairProfile, tuple[RepairProfile, ...]]:
-    primary, near_vertex, interpolate = parse_profiles(
+    primary, near_vertex, interpolate, surface_precision = parse_profiles(
         [
             PRIMARY_PROFILE_NAME,
             NEAR_VERTEX_PROFILE_NAME,
             INTERPOLATE_PROFILE_NAME,
+            SURFACE_PRECISION_PROFILE_NAME,
         ]
     )
-    return primary, (near_vertex, interpolate)
+    return primary, (near_vertex, interpolate, surface_precision)
 
 
 def _validity_components(row: Mapping[str, Any]) -> dict[str, Any]:
@@ -212,6 +218,30 @@ def fallback_eligible(
     """Apply the auditable fallback predicate without trusting one status field."""
     reasons = candidate_rejection_reasons(row, geometry_gate)
     return not reasons, reasons
+
+
+def first_eligible_compact_fallback(
+    candidates: Sequence[Mapping[str, Any]],
+) -> str | None:
+    """Return the first semantically valid fallback in persisted route order."""
+    for candidate in candidates[1:]:
+        gate = candidate.get("geometry_topology_gate")
+        gate_valid, _ = validate_accepted_geometry_gate(gate)
+        if not gate_valid:
+            continue
+        eligible, _ = fallback_eligible(candidate, gate)
+        if eligible:
+            return str(candidate.get("profile"))
+    return None
+
+
+def expected_selected_profile(
+    candidates: Sequence[Mapping[str, Any]],
+) -> str:
+    """Recompute the fixed route decision from compact persisted evidence."""
+    if bool(candidates[0].get("strict_brep_valid")):
+        return PRIMARY_PROFILE_NAME
+    return first_eligible_compact_fallback(candidates) or PRIMARY_PROFILE_NAME
 
 
 def route_selector_candidates(
@@ -481,13 +511,16 @@ def validate_candidate_ledger(
             raise RuntimeError(
                 f"selector ledger ran fallback after strict primary: {cad_id}"
             )
-        if len(ordered) >= 3:
-            near_result = ordered[1]["result"]
-            near_gate = geometry_gate_for_candidate(near_result)
-            near_eligible, _ = fallback_eligible(near_result, near_gate)
-            if near_eligible:
+        for earlier_entry in ordered[1:-1]:
+            earlier_result = earlier_entry["result"]
+            earlier_gate = geometry_gate_for_candidate(earlier_result)
+            earlier_eligible, _ = fallback_eligible(
+                earlier_result, earlier_gate
+            )
+            if earlier_eligible:
                 raise RuntimeError(
-                    f"selector ledger ran interpolation after accepted near fallback: {cad_id}"
+                    "selector ledger ran a later fallback after an accepted "
+                    f"fallback: {cad_id}:{earlier_entry['profile']}"
                 )
 
 
@@ -560,6 +593,12 @@ def validate_final_candidate_bindings(
                     f"{cad_id}:{profile_name}"
                 )
         selected_profile = str(selection.get("selected_profile"))
+        expected_profile = expected_selected_profile(compact_candidates)
+        if selected_profile != expected_profile:
+            raise RuntimeError(
+                "selector final row did not select the first eligible candidate: "
+                f"{cad_id}: expected {expected_profile}, got {selected_profile}"
+            )
         selected_entries = [
             entry for entry in ordered_entries if str(entry["profile"]) == selected_profile
         ]
@@ -659,6 +698,12 @@ def validate_selector_row(row: Mapping[str, Any], source: Mapping[str, Any]) -> 
             and selected_candidate.get("both_valid") is True
         ):
             raise ValueError("selector accepted a fallback without all required gates")
+    expected_profile = expected_selected_profile(candidates)
+    if selected_profile != expected_profile:
+        raise ValueError(
+            "selector did not select the first eligible candidate: "
+            f"expected {expected_profile}, got {selected_profile}"
+        )
     selected_candidates = [
         candidate for candidate in candidates
         if candidate.get("profile") == selected_profile

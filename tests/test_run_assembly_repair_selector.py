@@ -17,6 +17,7 @@ from tools.run_assembly_repair_matrix import (
     sha256_file,
 )
 from tools.run_assembly_repair_selector import (
+    CANDIDATE_SCHEMA,
     EXPECTED_BOTH_VALID_RESTORATIONS,
     EXPECTED_FALLBACK_ACCEPTED_IDS,
     FALLBACK_PROFILE_NAMES,
@@ -25,7 +26,10 @@ from tools.run_assembly_repair_selector import (
     PRIMARY_PROFILE_NAME,
     SELECTOR_PROFILE_NAME,
     SELECTOR_SCHEMA,
+    SURFACE_PRECISION_PROFILE_NAME,
+    canonical_result_sha256,
     candidate_ledger_entry,
+    compact_candidate,
     fallback_eligible,
     geometry_gate_for_candidate,
     route_selector_candidates,
@@ -222,6 +226,29 @@ def test_strict_only_near_is_rejected_before_interpolation_passes():
     assert "geometry_topology_gate" not in near
 
 
+def test_surface_precision_runs_only_after_earlier_fallbacks_fail():
+    candidates = {
+        PRIMARY_PROFILE_NAME: _candidate(PRIMARY_PROFILE_NAME),
+        NEAR_VERTEX_PROFILE_NAME: _candidate(NEAR_VERTEX_PROFILE_NAME),
+        INTERPOLATE_PROFILE_NAME: _candidate(INTERPOLATE_PROFILE_NAME),
+        SURFACE_PRECISION_PROFILE_NAME: _candidate(
+            SURFACE_PRECISION_PROFILE_NAME, strict=True
+        ),
+    }
+    calls = []
+
+    selected, selection = route_selector_candidates(
+        run_candidate=lambda profile: (
+            calls.append(profile.name) or candidates[profile.name]
+        ),
+        geometry_gate_for=geometry_gate_for_candidate,
+    )
+
+    assert calls == [PRIMARY_PROFILE_NAME, *FALLBACK_PROFILE_NAMES]
+    assert selected["profile"] == SURFACE_PRECISION_PROFILE_NAME
+    assert selection["fallback_accepted"] is True
+
+
 def test_gate_failure_retains_primary_when_no_fallback_passes():
     candidates = {
         PRIMARY_PROFILE_NAME: _candidate(PRIMARY_PROFILE_NAME),
@@ -229,6 +256,9 @@ def test_gate_failure_retains_primary_when_no_fallback_passes():
             NEAR_VERTEX_PROFILE_NAME, strict=True, gate=False
         ),
         INTERPOLATE_PROFILE_NAME: _candidate(INTERPOLATE_PROFILE_NAME),
+        SURFACE_PRECISION_PROFILE_NAME: _candidate(
+            SURFACE_PRECISION_PROFILE_NAME
+        ),
     }
 
     selected, selection = route_selector_candidates(
@@ -275,6 +305,9 @@ def test_weak_accepted_gate_is_rejected_by_route():
             NEAR_VERTEX_PROFILE_NAME, strict=True
         ),
         INTERPOLATE_PROFILE_NAME: _candidate(INTERPOLATE_PROFILE_NAME),
+        SURFACE_PRECISION_PROFILE_NAME: _candidate(
+            SURFACE_PRECISION_PROFILE_NAME
+        ),
     }
     candidates[NEAR_VERTEX_PROFILE_NAME][
         "selector_geometry_topology_gate"
@@ -307,6 +340,18 @@ def _selection(primary_strict, selected_profile, selected_valid, *, worker_failu
         candidates.extend(
             [near, _candidate(INTERPOLATE_PROFILE_NAME, strict=selected_valid)]
         )
+    elif selected_profile == SURFACE_PRECISION_PROFILE_NAME:
+        near = _candidate(NEAR_VERTEX_PROFILE_NAME)
+        interpolate = _candidate(INTERPOLATE_PROFILE_NAME)
+        if worker_failure:
+            near["status"] = "worker_process_exit"
+        candidates.extend(
+            [
+                near,
+                interpolate,
+                _candidate(SURFACE_PRECISION_PROFILE_NAME, strict=selected_valid),
+            ]
+        )
     return {
         "schema": SELECTOR_SCHEMA,
         "selected_profile": selected_profile,
@@ -330,7 +375,11 @@ def _summary_rows():
             selected_profile = (
                 NEAR_VERTEX_PROFILE_NAME
                 if cad_id.startswith("00000444")
-                else INTERPOLATE_PROFILE_NAME
+                else (
+                    SURFACE_PRECISION_PROFILE_NAME
+                    if cad_id.startswith("00051587")
+                    else INTERPOLATE_PROFILE_NAME
+                )
             )
             selection = _selection(False, selected_profile, True)
             valid = True
@@ -424,6 +473,39 @@ def test_candidate_ledger_rejects_fallback_after_strict_primary():
         validate_candidate_ledger(entries, [source])
 
 
+def test_candidate_ledger_rejects_surface_after_eligible_interpolation():
+    source = {
+        "cad_id": "cad-1",
+        "parent_id": "parent",
+        "source_path": "input.pkl",
+        "brep_valid": False,
+    }
+    primary, near, interpolate, surface_precision = parse_profiles(
+        [PRIMARY_PROFILE_NAME, *FALLBACK_PROFILE_NAMES]
+    )
+    entries = [
+        candidate_ledger_entry(
+            source, primary, _ledger_result(source, primary.name, strict=False)
+        ),
+        candidate_ledger_entry(
+            source, near, _ledger_result(source, near.name, strict=False)
+        ),
+        candidate_ledger_entry(
+            source,
+            interpolate,
+            _ledger_result(source, interpolate.name, strict=True),
+        ),
+        candidate_ledger_entry(
+            source,
+            surface_precision,
+            _ledger_result(source, surface_precision.name, strict=True),
+        ),
+    ]
+
+    with pytest.raises(RuntimeError, match="later fallback after an accepted"):
+        validate_candidate_ledger(entries, [source])
+
+
 def test_candidate_ledger_rejects_tampered_result_after_hash_binding():
     source = {
         "cad_id": "cad-1",
@@ -506,6 +588,119 @@ def test_selector_row_rejects_weak_selected_fallback_gate():
 
     with pytest.raises(ValueError, match="invalid geometry gate"):
         validate_selector_row(row, source)
+
+
+def test_selector_row_rejects_skipping_eligible_interpolation():
+    source = {
+        "cad_id": "cad-1",
+        "parent_id": "parent",
+        "source_path": "input.pkl",
+        "brep_valid": False,
+    }
+    candidates = {
+        PRIMARY_PROFILE_NAME: _candidate(PRIMARY_PROFILE_NAME),
+        NEAR_VERTEX_PROFILE_NAME: _candidate(NEAR_VERTEX_PROFILE_NAME),
+        INTERPOLATE_PROFILE_NAME: _candidate(INTERPOLATE_PROFILE_NAME),
+        SURFACE_PRECISION_PROFILE_NAME: _candidate(
+            SURFACE_PRECISION_PROFILE_NAME, strict=True
+        ),
+    }
+    selected, selection = route_selector_candidates(
+        run_candidate=lambda profile: candidates[profile.name],
+        geometry_gate_for=geometry_gate_for_candidate,
+    )
+    skipped = selection["candidates"][2]
+    skipped.update(
+        status="both_valid",
+        step_saved=True,
+        native_brep_valid=True,
+        strict_brep_valid=True,
+        both_valid=True,
+        geometry_topology_gate=_complete_accepted_geometry_gate(),
+        rejection_reasons=[],
+    )
+    row = {
+        "schema": SELECTOR_SCHEMA,
+        "cad_id": source["cad_id"],
+        "parent_id": source["parent_id"],
+        "profile": SELECTOR_PROFILE_NAME,
+        "switches": ["failure_triggered_selector"],
+        "historical_strict_valid": source["brep_valid"],
+        "source_path": source["source_path"],
+        "status": selected["status"],
+        "step_saved": selected["step_saved"],
+        "native_brep_valid": selected["native_brep_valid"],
+        "strict_brep_valid": selected["strict_brep_valid"],
+        "both_valid": selected["both_valid"],
+        "selection": selection,
+    }
+
+    with pytest.raises(ValueError, match="first eligible candidate"):
+        validate_selector_row(row, source)
+
+
+def test_final_bindings_reject_skipping_eligible_interpolation():
+    source = {
+        "cad_id": "cad-1",
+        "parent_id": "parent",
+        "source_path": "input.pkl",
+        "brep_valid": False,
+    }
+    primary, near, interpolate, surface_precision = parse_profiles(
+        [PRIMARY_PROFILE_NAME, *FALLBACK_PROFILE_NAMES]
+    )
+    raw = {
+        profile.name: _ledger_result(source, profile.name, strict=False)
+        for profile in (primary, near, interpolate)
+    }
+    raw[surface_precision.name] = _ledger_result(
+        source, surface_precision.name, strict=True
+    )
+    _, selection = route_selector_candidates(
+        run_candidate=lambda profile: raw[profile.name],
+        geometry_gate_for=geometry_gate_for_candidate,
+    )
+    interpolation = raw[interpolate.name]
+    interpolation.update(
+        status="both_valid",
+        native_brep_valid=True,
+        strict_brep_valid=True,
+        both_valid=True,
+        selector_geometry_topology_gate=_complete_accepted_geometry_gate(),
+    )
+    selection["candidates"][2] = compact_candidate(
+        interpolation,
+        geometry_gate=interpolation["selector_geometry_topology_gate"],
+        rejection_reasons=[],
+    )
+    entries = []
+    for order, profile in enumerate(
+        (primary, near, interpolate, surface_precision)
+    ):
+        result = raw[profile.name]
+        entries.append(
+            {
+                "schema": CANDIDATE_SCHEMA,
+                "cad_id": source["cad_id"],
+                "profile": profile.name,
+                "attempt_order": order,
+                "result": result,
+                "result_sha256": canonical_result_sha256(result),
+            }
+        )
+    selected = raw[surface_precision.name]
+    row = {
+        "cad_id": source["cad_id"],
+        "status": selected["status"],
+        "step_saved": selected["step_saved"],
+        "native_brep_valid": selected["native_brep_valid"],
+        "strict_brep_valid": selected["strict_brep_valid"],
+        "both_valid": selected["both_valid"],
+        "selection": selection,
+    }
+
+    with pytest.raises(RuntimeError, match="first eligible candidate"):
+        validate_final_candidate_bindings([row], entries)
 
 
 def test_final_selector_evidence_must_match_candidate_ledger_fingerprint():
