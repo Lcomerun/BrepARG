@@ -1,0 +1,10 @@
+{
+  "cases": 16,
+  "forbidden_artifacts": [],
+  "schema": "p0a-face-wire-crossing-diagnosis-v2",
+  "source_bytes_archived": false,
+  "step_bytes_archived": false,
+  "step_diagnosis_available": 11,
+  "step_diagnosis_unavailable": 5,
+  "valid": true
+}

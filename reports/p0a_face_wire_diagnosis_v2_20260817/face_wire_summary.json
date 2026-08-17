@@ -1,0 +1,414 @@
+{
+  "cases": 16,
+  "edge_position_basis": "occ_1_based",
+  "generated_at": "2026-08-17T14:29:25+08:00",
+  "historical_step_saved": 11,
+  "input_kind": "p0a_stage_aware_baseline_attempts",
+  "input_sha256": "2a996faa68bc308fea6c7e5b9061f53a37970d74d2d64fb5994ba840bf74e490",
+  "occurrence_case_counts": {
+    "adjacent": 6,
+    "closure": 4,
+    "non_adjacent": 2,
+    "pcurve_gap": 2,
+    "unavailable": 5
+  },
+  "occurrence_counts": {
+    "adjacent": 11,
+    "closure": 5,
+    "non_adjacent": 4,
+    "pcurve_gap": 7,
+    "unavailable": 5
+  },
+  "occurrence_status_counts": {
+    "detected": 27,
+    "unavailable_no_saved_step": 5
+  },
+  "occurrences_by_cad": [
+    {
+      "cad_id": "00002441_179a8df075c94d0596b1f20d_step_010",
+      "edge_positions": [
+        2,
+        3
+      ],
+      "face_index": 6,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00002441_179a8df075c94d0596b1f20d_step_010",
+      "edge_positions": [
+        3,
+        4
+      ],
+      "face_index": 6,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00002441_179a8df075c94d0596b1f20d_step_010",
+      "edge_positions": [
+        4,
+        5
+      ],
+      "face_index": 8,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00008763_affd199038524a1c8e3b7ad4_step_001",
+      "edge_positions": [
+        6,
+        1
+      ],
+      "face_index": 17,
+      "kind": "closure",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00016845_33dbc9e6ea684970be61af74_step_000",
+      "edge_positions": [],
+      "kind": "unavailable",
+      "status": "unavailable_no_saved_step"
+    },
+    {
+      "cad_id": "00029780_a4788d5955c04fe1886666b7_step_000",
+      "edge_positions": [
+        7,
+        8
+      ],
+      "face_index": 24,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+      "edge_positions": [],
+      "kind": "unavailable",
+      "status": "unavailable_no_saved_step"
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "edge_positions": [
+        2,
+        4
+      ],
+      "face_index": 3,
+      "kind": "non_adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "distance_2d": 0.6851937107420764,
+      "edge_positions": [
+        1,
+        2
+      ],
+      "face_index": 3,
+      "kind": "pcurve_gap",
+      "occ_method": "CheckGap2d",
+      "relation": "adjacent",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "distance_2d": 0.6851961029419138,
+      "edge_positions": [
+        2,
+        3
+      ],
+      "face_index": 3,
+      "kind": "pcurve_gap",
+      "occ_method": "CheckGap2d",
+      "relation": "adjacent",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "distance_2d": 0.6851318511961527,
+      "edge_positions": [
+        3,
+        4
+      ],
+      "face_index": 3,
+      "kind": "pcurve_gap",
+      "occ_method": "CheckGap2d",
+      "relation": "adjacent",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "edge_positions": [
+        2,
+        4
+      ],
+      "face_index": 4,
+      "kind": "non_adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "distance_2d": 0.6851970672305323,
+      "edge_positions": [
+        1,
+        2
+      ],
+      "face_index": 4,
+      "kind": "pcurve_gap",
+      "occ_method": "CheckGap2d",
+      "relation": "adjacent",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "distance_2d": 0.6851926839075988,
+      "edge_positions": [
+        2,
+        3
+      ],
+      "face_index": 4,
+      "kind": "pcurve_gap",
+      "occ_method": "CheckGap2d",
+      "relation": "adjacent",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "distance_2d": 0.6851284954851493,
+      "edge_positions": [
+        3,
+        4
+      ],
+      "face_index": 4,
+      "kind": "pcurve_gap",
+      "occ_method": "CheckGap2d",
+      "relation": "adjacent",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+      "edge_positions": [
+        2,
+        3
+      ],
+      "face_index": 3,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+      "edge_positions": [
+        4,
+        5
+      ],
+      "face_index": 12,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+      "edge_positions": [
+        1,
+        2
+      ],
+      "face_index": 43,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00051587_446e8810d6884cae80689579_step_000",
+      "edge_positions": [
+        2,
+        4
+      ],
+      "face_index": 15,
+      "kind": "non_adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00051587_446e8810d6884cae80689579_step_000",
+      "edge_positions": [
+        2,
+        4
+      ],
+      "face_index": 20,
+      "kind": "non_adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00051602_7f1947595ae247e0a4a32f43_step_000",
+      "edge_positions": [],
+      "kind": "unavailable",
+      "status": "unavailable_no_saved_step"
+    },
+    {
+      "cad_id": "00061931_dcdd8a95feac4121adfd341f_step_000",
+      "edge_positions": [],
+      "kind": "unavailable",
+      "status": "unavailable_no_saved_step"
+    },
+    {
+      "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+      "edge_positions": [
+        2,
+        1
+      ],
+      "face_index": 3,
+      "kind": "closure",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+      "edge_positions": [
+        1,
+        2
+      ],
+      "face_index": 3,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00067160_2a27016aa44f42c69c1079f7_step_000",
+      "edge_positions": [
+        1,
+        2
+      ],
+      "face_index": 17,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "edge_positions": [
+        2,
+        1
+      ],
+      "face_index": 35,
+      "kind": "closure",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "edge_positions": [
+        1,
+        2
+      ],
+      "face_index": 35,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "edge_positions": [
+        2,
+        1
+      ],
+      "face_index": 36,
+      "kind": "closure",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "edge_positions": [
+        1,
+        2
+      ],
+      "face_index": 36,
+      "kind": "adjacent",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00087341_6a73c5e821934d3fe4d0d555_step_000",
+      "edge_positions": [],
+      "kind": "unavailable",
+      "status": "unavailable_no_saved_step"
+    },
+    {
+      "cad_id": "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "edge_positions": [
+        24,
+        1
+      ],
+      "face_index": 48,
+      "kind": "closure",
+      "occ_method": "CheckIntersectingEdges",
+      "status": "detected",
+      "wire_index": 0
+    },
+    {
+      "cad_id": "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "distance_2d": 0.007011742875557103,
+      "edge_positions": [
+        13,
+        14
+      ],
+      "face_index": 48,
+      "kind": "pcurve_gap",
+      "occ_method": "CheckGap2d",
+      "relation": "adjacent",
+      "status": "detected",
+      "wire_index": 0
+    }
+  ],
+  "schema": "p0a-face-wire-crossing-diagnosis-v2",
+  "self_intersection_wire_count": 16,
+  "self_intersection_wires_with_classified_occurrences": 16,
+  "self_intersection_wires_without_classified_occurrences": [],
+  "source_bytes_archived": false,
+  "source_cases_sha256": "83a82544c60d6e15b31e2683dd75d734e9a13b9df48cde02ea266c1287ffba23",
+  "source_run_name": "p0a_face_wire_crossing_v2_verified_20260817",
+  "source_topology_suspicious_cases": 10,
+  "step_bytes_archived": false,
+  "step_diagnosis_available": 11,
+  "step_diagnosis_unavailable": 5,
+  "unavailable_step_cad_ids": [
+    "00016845_33dbc9e6ea684970be61af74_step_000",
+    "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+    "00051602_7f1947595ae247e0a4a32f43_step_000",
+    "00061931_dcdd8a95feac4121adfd341f_step_000",
+    "00087341_6a73c5e821934d3fe4d0d555_step_000"
+  ]
+}

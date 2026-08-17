@@ -1,0 +1,25 @@
+{
+  "artifacts": [
+    {
+      "bytes": 260,
+      "path": "archive_validation.json",
+      "sha256": "673077b00072de4ced2705353fe5e7f28cd218a338de8cccc98f55c3e1e00a69"
+    },
+    {
+      "bytes": 183336,
+      "path": "face_wire_cases.jsonl",
+      "sha256": "4bd30e240fa06e7969a680ff63fa1caca5d27569bbd975c19ea1ee5e1b96dce9"
+    },
+    {
+      "bytes": 10707,
+      "path": "face_wire_summary.json",
+      "sha256": "332075c1574f67e152893cd489e8520d04ce2ce9454e7b1397d8a1591536c803"
+    },
+    {
+      "bytes": 1494,
+      "path": "README.md",
+      "sha256": "d61bd83dff8432a8535181b48e8fd9dd7d4e82cc49050e421819a30b16b927b3"
+    }
+  ],
+  "generated_at": "2026-08-17T14:29:25+08:00"
+}

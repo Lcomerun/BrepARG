@@ -33,7 +33,20 @@ except ImportError:  # direct script execution
 
 
 SCHEMA = "p0a-face-wire-diagnosis-v1"
+V2_SCHEMA = "p0a-face-wire-crossing-diagnosis-v2"
 EXPECTED_INVALID_CADS = 16
+EXPECTED_STEP_CASES = 11
+EXPECTED_PRE_STEP_CASES = 5
+OCCURRENCE_KINDS = (
+    "adjacent",
+    "closure",
+    "non_adjacent",
+    "self_only",
+    "pcurve_gap",
+    "seam",
+    "disconnected",
+    "unavailable",
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -199,6 +212,285 @@ def _wire_row(*, face_index: int, wire_index: int, wire: Any, face: Any) -> dict
     }
 
 
+def crossing_pair_candidates(edge_count: int) -> list[dict[str, Any]]:
+    """Return every cyclic edge-pair check exactly once using OCC positions.
+
+    OCC wire positions are one-based.  Position 1's predecessor is the final
+    edge, so that pair is reported as ``closure``.  Consecutive positions 2
+    through n are ``adjacent``.  Every remaining unordered pair has cyclic
+    distance greater than one and is ``non_adjacent``.
+    """
+    count = int(edge_count)
+    if count < 2:
+        return []
+    candidates = [
+        {
+            "kind": "closure",
+            "edge_positions": [count, 1],
+            "check_arguments": [1],
+        }
+    ]
+    candidates.extend(
+        {
+            "kind": "adjacent",
+            "edge_positions": [current - 1, current],
+            "check_arguments": [current],
+        }
+        for current in range(2, count + 1)
+    )
+    for first in range(1, count + 1):
+        for second in range(first + 1, count + 1):
+            cyclic_distance = min(second - first, count - (second - first))
+            if cyclic_distance <= 1:
+                continue
+            candidates.append(
+                {
+                    "kind": "non_adjacent",
+                    "edge_positions": [first, second],
+                    "check_arguments": [first, second],
+                }
+            )
+    return candidates
+
+
+def _occurrence(
+    kind: str,
+    edge_positions: Sequence[int],
+    status: str,
+    **details: Any,
+) -> dict[str, Any]:
+    row = {
+        "kind": str(kind),
+        "edge_positions": [int(value) for value in edge_positions],
+        "status": str(status),
+    }
+    row.update(details)
+    return row
+
+
+def _call_occ_check(
+    analysis: Any,
+    method_name: str,
+    arguments: Sequence[int],
+    *,
+    kind: str,
+    edge_positions: Sequence[int],
+    pcurve_available: bool = True,
+    details: Mapping[str, Any] | None = None,
+) -> dict[str, Any] | None:
+    """Turn one OCC Boolean check into explicit detected/unavailable evidence."""
+    extra = dict(details or {})
+    if not pcurve_available:
+        return _occurrence(
+            kind,
+            edge_positions,
+            "occ_unavailable_no_pcurve",
+            occ_method=method_name,
+            **extra,
+        )
+    try:
+        detected = bool(getattr(analysis, method_name)(*map(int, arguments)))
+    except Exception as exc:  # OCC raises several wrapped Standard_* failures.
+        return _occurrence(
+            kind,
+            edge_positions,
+            "occ_fail",
+            occ_method=method_name,
+            occ_error_type=type(exc).__name__,
+            **extra,
+        )
+    if not detected:
+        return None
+    return _occurrence(
+        kind,
+        edge_positions,
+        "detected",
+        occ_method=method_name,
+        **extra,
+    )
+
+
+def collect_wire_occurrences(
+    analysis: Any,
+    *,
+    edge_count: int,
+    pcurve_positions: set[int] | None = None,
+    seam_positions: set[int] | None = None,
+) -> list[dict[str, Any]]:
+    """Collect independent crossing, gap, seam, and connectivity evidence."""
+    count = int(edge_count)
+    pcurves = set(range(1, count + 1)) if pcurve_positions is None else set(pcurve_positions)
+    seams = set() if seam_positions is None else set(seam_positions)
+    occurrences: list[dict[str, Any]] = []
+
+    for position in range(1, count + 1):
+        row = _call_occ_check(
+            analysis,
+            "CheckSelfIntersectingEdge",
+            [position],
+            kind="self_only",
+            edge_positions=[position],
+            pcurve_available=position in pcurves,
+        )
+        if row is not None:
+            occurrences.append(row)
+
+    for candidate in crossing_pair_candidates(count):
+        positions = candidate["edge_positions"]
+        row = _call_occ_check(
+            analysis,
+            "CheckIntersectingEdges",
+            candidate["check_arguments"],
+            kind=candidate["kind"],
+            edge_positions=positions,
+            pcurve_available=all(position in pcurves for position in positions),
+        )
+        if row is not None:
+            occurrences.append(row)
+
+    boundary_pairs = [
+        ([count, 1], 1, "closure"),
+        *[([position - 1, position], position, "adjacent") for position in range(2, count + 1)],
+    ] if count >= 2 else []
+    for positions, current, relation in boundary_pairs:
+        gap = _call_occ_check(
+            analysis,
+            "CheckGap2d",
+            [current],
+            kind="pcurve_gap",
+            edge_positions=positions,
+            pcurve_available=all(position in pcurves for position in positions),
+            details={"relation": relation},
+        )
+        if gap is not None:
+            if gap["status"] == "detected":
+                try:
+                    gap["distance_2d"] = float(analysis.MinDistance2d())
+                except Exception as exc:
+                    gap["distance_status"] = "occ_fail"
+                    gap["distance_error_type"] = type(exc).__name__
+            occurrences.append(gap)
+        disconnected = _call_occ_check(
+            analysis,
+            "CheckConnected",
+            [current],
+            kind="disconnected",
+            edge_positions=positions,
+            details={"relation": relation},
+        )
+        if disconnected is not None:
+            occurrences.append(disconnected)
+
+    for position in sorted(seams):
+        row = _call_occ_check(
+            analysis,
+            "CheckSeam",
+            [position],
+            kind="seam",
+            edge_positions=[position],
+            pcurve_available=position in pcurves,
+        )
+        if row is not None:
+            occurrences.append(row)
+    return occurrences
+
+
+def _wire_row_v2(*, face_index: int, wire_index: int, wire: Any, face: Any) -> dict[str, Any]:
+    """Locate the exact 1-based OCC edge positions behind every wire defect."""
+    from OCC.Core.BRep import BRep_Tool
+    from OCC.Core.ShapeAnalysis import ShapeAnalysis_Wire
+    from OCC.Core.ShapeFix import ShapeFix_Wire
+
+    fixer = ShapeFix_Wire(wire, face, 0.01)
+    fixer.Load(wire)
+    fixer.SetFace(face)
+    fixer.SetPrecision(0.01)
+    fixer.SetMaxTolerance(1.0)
+    fixer.SetMinTolerance(1e-4)
+    fixer.Perform()
+    fixed_wire = fixer.Wire()
+    analysis = ShapeAnalysis_Wire(fixed_wire, face, 0.01)
+    analysis.Load(fixed_wire)
+    analysis.SetPrecision(0.01)
+    analysis.SetSurface(BRep_Tool.Surface(face))
+    wire_data = analysis.WireData()
+    edge_count = int(analysis.NbEdges())
+    aggregate_occurrences: list[dict[str, Any]] = []
+    try:
+        aggregate_self_intersection = bool(analysis.CheckSelfIntersection())
+        crossing_detail_status = (
+            "diagnosed" if aggregate_self_intersection
+            else "not_applicable_aggregate_clean"
+        )
+    except Exception as exc:
+        aggregate_self_intersection = None
+        crossing_detail_status = "occ_fail"
+        aggregate_occurrences.append(
+            _occurrence(
+                "unavailable",
+                [],
+                "occ_fail",
+                occ_method="CheckSelfIntersection",
+                occ_error_type=type(exc).__name__,
+            )
+        )
+    pcurve_positions: set[int] = set()
+    seam_positions: set[int] = set()
+    pcurve_probe_failures: list[dict[str, Any]] = []
+    for position in range(1, edge_count + 1):
+        edge = wire_data.Edge(position)
+        try:
+            pcurve, _first, _last = BRep_Tool.CurveOnSurface(edge, face)
+            if pcurve is not None:
+                pcurve_positions.add(position)
+        except Exception as exc:
+            pcurve_probe_failures.append(
+                _occurrence(
+                    "unavailable",
+                    [position],
+                    "occ_fail",
+                    occ_method="BRep_Tool.CurveOnSurface",
+                    occ_error_type=type(exc).__name__,
+                )
+            )
+        try:
+            if BRep_Tool.IsClosed(edge, face):
+                seam_positions.add(position)
+        except Exception as exc:
+            pcurve_probe_failures.append(
+                _occurrence(
+                    "unavailable",
+                    [position],
+                    "occ_fail",
+                    occ_method="BRep_Tool.IsClosed",
+                    occ_error_type=type(exc).__name__,
+                )
+            )
+    occurrences = list(aggregate_occurrences)
+    if aggregate_self_intersection is True:
+        occurrences.extend(
+            collect_wire_occurrences(
+                analysis,
+                edge_count=edge_count,
+                pcurve_positions=pcurve_positions,
+                seam_positions=seam_positions,
+            )
+        )
+        occurrences.extend(pcurve_probe_failures)
+    return {
+        "face_index": int(face_index),
+        "wire_index": int(wire_index),
+        "edge_count": edge_count,
+        "edge_position_basis": "occ_1_based",
+        "aggregate_self_intersection": aggregate_self_intersection,
+        "crossing_detail_status": crossing_detail_status,
+        "pcurve_edge_positions": sorted(pcurve_positions),
+        "seam_edge_positions": sorted(seam_positions),
+        "occurrences": occurrences,
+        "occurrence_kinds": sorted({row["kind"] for row in occurrences}),
+    }
+
+
 def diagnose_step_face_wires(step_path: Path, *, breparg_root: Path) -> dict[str, Any]:
     """Diagnose every STEP face/wire with exactly the P0-A OCC wire semantics."""
     root = Path(breparg_root).resolve()
@@ -262,6 +554,125 @@ def diagnose_step_face_wires(step_path: Path, *, breparg_root: Path) -> dict[str
     }
 
 
+def diagnose_step_face_wires_v2(step_path: Path, *, breparg_root: Path) -> dict[str, Any]:
+    """Diagnose exact crossing modes while preserving unavailable OCC evidence."""
+    root = Path(breparg_root).resolve()
+    if str(root) not in sys.path:
+        sys.path.insert(0, str(root))
+    from OCC.Core.IFSelect import IFSelect_RetDone
+    from OCC.Core.STEPControl import STEPControl_Reader
+    from OCC.Core.TopAbs import TopAbs_FACE, TopAbs_WIRE
+    from OCC.Core.TopExp import TopExp_Explorer
+    from OCC.Core.TopoDS import topods_Face, topods_Wire
+
+    reader = STEPControl_Reader()
+    try:
+        read_status = reader.ReadFile(str(step_path))
+    except Exception as exc:
+        return {
+            "status": "occ_fail",
+            "occ_error_type": type(exc).__name__,
+            "faces": [],
+            "wires": [],
+            "occurrences": [
+                _occurrence(
+                    "unavailable",
+                    [],
+                    "occ_fail",
+                    occ_method="STEPControl_Reader.ReadFile",
+                    occ_error_type=type(exc).__name__,
+                )
+            ],
+        }
+    if read_status != IFSelect_RetDone:
+        return {
+            "status": "step_read_failed",
+            "faces": [],
+            "wires": [],
+            "occurrences": [
+                _occurrence("unavailable", [], "step_read_failed")
+            ],
+        }
+    reader.TransferRoots()
+    shape = reader.OneShape()
+    wires: list[dict[str, Any]] = []
+    faces: list[dict[str, Any]] = []
+    face_explorer = TopExp_Explorer(shape, TopAbs_FACE)
+    face_index = 0
+    while face_explorer.More():
+        face = topods_Face(face_explorer.Current())
+        wire_explorer = TopExp_Explorer(face, TopAbs_WIRE)
+        face_wires: list[dict[str, Any]] = []
+        wire_index = 0
+        while wire_explorer.More():
+            try:
+                row = _wire_row_v2(
+                    face_index=face_index,
+                    wire_index=wire_index,
+                    wire=topods_Wire(wire_explorer.Current()),
+                    face=face,
+                )
+            except Exception as exc:
+                row = {
+                    "face_index": int(face_index),
+                    "wire_index": int(wire_index),
+                    "edge_count": 0,
+                    "edge_position_basis": "occ_1_based",
+                    "pcurve_edge_positions": [],
+                    "seam_edge_positions": [],
+                    "occurrences": [
+                        _occurrence(
+                            "unavailable",
+                            [],
+                            "occ_fail",
+                            occ_method="wire_diagnosis",
+                            occ_error_type=type(exc).__name__,
+                        )
+                    ],
+                    "occurrence_kinds": ["unavailable"],
+                }
+            face_wires.append(row)
+            wires.append(row)
+            wire_explorer.Next()
+            wire_index += 1
+        face_occurrences = [
+            occurrence
+            for wire_row in face_wires
+            for occurrence in wire_row["occurrences"]
+        ]
+        faces.append(
+            {
+                "face_index": int(face_index),
+                "wire_count": len(face_wires),
+                "wires_with_occurrences": [
+                    row["wire_index"] for row in face_wires if row["occurrences"]
+                ],
+                "occurrence_kinds": sorted(
+                    {row["kind"] for row in face_occurrences}
+                ),
+            }
+        )
+        face_explorer.Next()
+        face_index += 1
+    occurrences = [
+        {
+            "face_index": row["face_index"],
+            "wire_index": row["wire_index"],
+            **occurrence,
+        }
+        for row in wires
+        for occurrence in row["occurrences"]
+    ]
+    return {
+        "status": "diagnosed",
+        "edge_position_basis": "occ_1_based",
+        "faces": faces,
+        "wires": wires,
+        "occurrences": occurrences,
+        "occurrence_kinds": sorted({row["kind"] for row in occurrences}),
+    }
+
+
 def build_case_row(source: Mapping[str, Any], *, breparg_root: Path) -> dict[str, Any]:
     """Produce one report row; never infer a STEP diagnosis when none exists."""
     source_path = Path(str(source["source_path"]))
@@ -296,6 +707,51 @@ def build_case_row(source: Mapping[str, Any], *, breparg_root: Path) -> dict[str
     return row
 
 
+def build_case_row_v2(source: Mapping[str, Any], *, breparg_root: Path) -> dict[str, Any]:
+    """Produce one v2 row with explicit no-STEP and OCC-failure states."""
+    source_path = Path(str(source["source_path"]))
+    if not source_path.is_file():
+        raise FileNotFoundError(source_path)
+    with source_path.open("rb") as handle:
+        parsed = pickle.load(handle)
+    step_saved = bool(source.get("step_saved"))
+    step_path = Path(str(source.get("step_path") or "")) if step_saved else None
+    row: dict[str, Any] = {
+        "schema": V2_SCHEMA,
+        "cad_id": str(source["cad_id"]),
+        "parent_id": source.get("parent_id"),
+        "historical_status": source.get("status"),
+        "historical_step_saved": step_saved,
+        "source_pickle_sha256": sha256_file(source_path),
+        "source_topology": source_topology_summary(parsed),
+    }
+    if not step_saved or step_path is None or not step_path.is_file():
+        row.update(
+            step_diagnosis_available=False,
+            step_diagnosis={
+                "status": "unavailable_no_saved_step",
+                "edge_position_basis": "occ_1_based",
+                "faces": [],
+                "wires": [],
+                "occurrences": [
+                    _occurrence("unavailable", [], "unavailable_no_saved_step")
+                ],
+                "occurrence_kinds": ["unavailable"],
+            },
+        )
+        return row
+    face_wire = diagnose_step_face_wires_v2(step_path, breparg_root=breparg_root)
+    diagnosed = face_wire.get("status") == "diagnosed"
+    row.update(
+        step_diagnosis_available=diagnosed,
+        step_sha256=sha256_file(step_path),
+        step_diagnosis=face_wire,
+    )
+    if diagnosed:
+        row["validity_components"] = diagnose_step(step_path, breparg_root=breparg_root)
+    return row
+
+
 def summarize(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     """Summarize direct step observations without silently dropping no-STEP cases."""
     observed = [row for row in rows if row.get("step_diagnosis_available")]
@@ -322,6 +778,80 @@ def summarize(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     }
 
 
+def summarize_v2(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Aggregate v2 occurrence kinds without treating missing evidence as clean."""
+    observed = [row for row in rows if row.get("step_diagnosis_available")]
+    unavailable = [row for row in rows if not row.get("step_diagnosis_available")]
+    occurrences = [
+        {"cad_id": str(row["cad_id"]), **occurrence}
+        for row in rows
+        for occurrence in (row.get("step_diagnosis") or {}).get("occurrences", [])
+    ]
+    kind_counts = Counter(str(row["kind"]) for row in occurrences)
+    kind_cases = {
+        kind: len({row["cad_id"] for row in occurrences if row["kind"] == kind})
+        for kind in OCCURRENCE_KINDS
+    }
+    status_counts = Counter(str(row["status"]) for row in occurrences)
+    wire_keys = {
+        (str(row["cad_id"]), int(row["face_index"]), int(row["wire_index"]))
+        for row in occurrences
+        if row["kind"] != "unavailable"
+    }
+    detailed_wire_keys = {
+        (str(row["cad_id"]), int(wire["face_index"]), int(wire["wire_index"]))
+        for row in observed
+        for wire in (row.get("step_diagnosis") or {}).get("wires", [])
+        if wire.get("aggregate_self_intersection") is True
+    }
+    return {
+        "schema": V2_SCHEMA,
+        "cases": len(rows),
+        "edge_position_basis": "occ_1_based",
+        "step_diagnosis_available": len(observed),
+        "step_diagnosis_unavailable": len(unavailable),
+        "historical_step_saved": sum(bool(row.get("historical_step_saved")) for row in rows),
+        "occurrence_counts": {
+            kind: int(kind_counts.get(kind, 0)) for kind in OCCURRENCE_KINDS
+        },
+        "occurrence_case_counts": kind_cases,
+        "occurrence_status_counts": dict(sorted(status_counts.items())),
+        "self_intersection_wire_count": len(detailed_wire_keys),
+        "self_intersection_wires_with_classified_occurrences": len(
+            detailed_wire_keys & wire_keys
+        ),
+        "self_intersection_wires_without_classified_occurrences": [
+            {"cad_id": cad_id, "face_index": face_index, "wire_index": wire_index}
+            for cad_id, face_index, wire_index in sorted(detailed_wire_keys - wire_keys)
+        ],
+        "occurrences_by_cad": occurrences,
+        "source_topology_suspicious_cases": sum(
+            bool((row.get("source_topology") or {}).get("suspicious_faces"))
+            for row in rows
+        ),
+        "unavailable_step_cad_ids": sorted(
+            str(row["cad_id"]) for row in unavailable
+        ),
+    }
+
+
+def validate_v2_population(summary: Mapping[str, Any]) -> None:
+    """Fail closed unless v2 uses the complete stage-aware 16-case baseline."""
+    expected = {
+        "cases": EXPECTED_INVALID_CADS,
+        "step_diagnosis_available": EXPECTED_STEP_CASES,
+        "step_diagnosis_unavailable": EXPECTED_PRE_STEP_CASES,
+        "historical_step_saved": EXPECTED_STEP_CASES,
+    }
+    mismatches = [
+        f"{key}={summary.get(key)!r} expected {value!r}"
+        for key, value in expected.items()
+        if summary.get(key) != value
+    ]
+    if mismatches:
+        raise ValueError("v2 P0-A population mismatch: " + "; ".join(mismatches))
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     inputs = parser.add_mutually_exclusive_group(required=True)
@@ -329,7 +859,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     inputs.add_argument("--p0a-attempts", type=Path)
     parser.add_argument("--breparg-root", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--schema-version", choices=("v1", "v2"), default="v1")
     args = parser.parse_args(argv)
+
+    if args.schema_version == "v2" and args.p0a_attempts is None:
+        parser.error("v2 requires --p0a-attempts from the stage-aware P0-A run")
 
     if args.p0a_attempts is not None:
         selected = frozen_p0a_baseline_rows(args.p0a_attempts)
@@ -339,10 +873,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         selected = frozen_original_invalid_rows(args.calibration_manifest)
         input_path = args.calibration_manifest
         input_kind = "historical_calibration_manifest"
-    rows = [build_case_row(row, breparg_root=args.breparg_root) for row in selected]
+    builder = build_case_row_v2 if args.schema_version == "v2" else build_case_row
+    rows = [builder(row, breparg_root=args.breparg_root) for row in selected]
     args.output_dir.mkdir(parents=True, exist_ok=True)
     write_jsonl(args.output_dir / "face_wire_cases.jsonl", rows)
-    summary = summarize(rows)
+    summary = summarize_v2(rows) if args.schema_version == "v2" else summarize(rows)
+    if args.schema_version == "v2":
+        validate_v2_population(summary)
     summary.update(
         input_kind=input_kind,
         input_path=str(Path(input_path).resolve()),

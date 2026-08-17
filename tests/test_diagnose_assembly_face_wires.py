@@ -1,11 +1,37 @@
+import pickle
+
 import numpy as np
 
 from tools.diagnose_assembly_face_wires import (
     _edge_walk_issue,
+    build_case_row_v2,
+    collect_wire_occurrences,
+    crossing_pair_candidates,
     frozen_p0a_baseline_rows,
     source_topology_summary,
     summarize,
+    summarize_v2,
 )
+
+
+class CrossingAnalysis:
+    def __init__(self, detected):
+        self.detected = {tuple(values) for values in detected}
+
+    def CheckSelfIntersectingEdge(self, _position):
+        return False
+
+    def CheckIntersectingEdges(self, *positions):
+        return tuple(positions) in self.detected
+
+    def CheckGap2d(self, _position):
+        return False
+
+    def CheckConnected(self, _position):
+        return False
+
+    def CheckSeam(self, _position):
+        return False
 
 
 def test_source_topology_reports_only_concrete_local_issues():
@@ -52,3 +78,96 @@ def test_p0a_baseline_selector_uses_stage_aware_baseline(tmp_path):
     path.write_text("".join(__import__("json").dumps(row) + "\n" for row in rows), encoding="utf-8")
     selected = frozen_p0a_baseline_rows(path)
     assert [row["cad_id"] for row in selected] == sorted(f"cad-{index}" for index in range(16))
+
+
+def test_v2_occurrences_classify_adjacent_pair_with_one_based_positions():
+    rows = collect_wire_occurrences(
+        CrossingAnalysis({(3,)}), edge_count=5
+    )
+    assert [row for row in rows if row["kind"] == "adjacent"] == [{
+        "kind": "adjacent",
+        "edge_positions": [2, 3],
+        "status": "detected",
+        "occ_method": "CheckIntersectingEdges",
+    }]
+
+
+def test_v2_occurrences_classify_only_n_to_one_as_closure():
+    rows = collect_wire_occurrences(
+        CrossingAnalysis({(1,)}), edge_count=5
+    )
+    assert [row for row in rows if row["kind"] == "closure"] == [{
+        "kind": "closure",
+        "edge_positions": [5, 1],
+        "status": "detected",
+        "occ_method": "CheckIntersectingEdges",
+    }]
+    assert crossing_pair_candidates(5)[0]["edge_positions"] == [5, 1]
+
+
+def test_v2_occurrences_classify_only_cyclic_distance_gt_one_as_non_adjacent():
+    rows = collect_wire_occurrences(
+        CrossingAnalysis({(1, 3), (1, 5)}), edge_count=5
+    )
+    assert [row["edge_positions"] for row in rows if row["kind"] == "non_adjacent"] == [[1, 3]]
+    assert not any(
+        row["kind"] == "non_adjacent" and row["edge_positions"] == [1, 5]
+        for row in rows
+    )
+
+
+def test_v2_no_step_case_is_explicitly_unavailable(tmp_path):
+    source = tmp_path / "source.pkl"
+    parsed = {
+        "faceEdge_adj": [[0, 1, 2]],
+        "edgeCorner_adj": np.asarray([[0, 1], [1, 2], [2, 0]], dtype=np.int64),
+        "edge_ncs": np.asarray([
+            [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+            [[1.0, 0.0, 0.0], [1.0, 1.0, 0.0]],
+            [[1.0, 1.0, 0.0], [0.0, 0.0, 0.0]],
+        ]),
+    }
+    with source.open("wb") as handle:
+        pickle.dump(parsed, handle)
+    row = build_case_row_v2(
+        {
+            "cad_id": "no-step",
+            "source_path": str(source),
+            "step_saved": False,
+            "status": "assembly_error",
+        },
+        breparg_root=tmp_path / "unused",
+    )
+    assert row["step_diagnosis_available"] is False
+    assert row["step_diagnosis"]["occurrences"] == [{
+        "kind": "unavailable",
+        "edge_positions": [],
+        "status": "unavailable_no_saved_step",
+    }]
+
+
+def test_v2_summary_keeps_zero_count_occurrence_categories_explicit():
+    summary = summarize_v2([{
+        "cad_id": "no-step",
+        "historical_step_saved": False,
+        "step_diagnosis_available": False,
+        "source_topology": {"suspicious_faces": []},
+        "step_diagnosis": {
+            "wires": [],
+            "occurrences": [{
+                "kind": "unavailable",
+                "edge_positions": [],
+                "status": "unavailable_no_saved_step",
+            }],
+        },
+    }])
+    assert summary["occurrence_counts"] == {
+        "adjacent": 0,
+        "closure": 0,
+        "non_adjacent": 0,
+        "self_only": 0,
+        "pcurve_gap": 0,
+        "seam": 0,
+        "disconnected": 0,
+        "unavailable": 1,
+    }
