@@ -142,6 +142,68 @@ def repair_diagnostics_summary(
     return result
 
 
+def cohort_equivalence(
+    candidate_rows: Sequence[Mapping[str, Any]],
+    reference_attempts: Path,
+) -> dict[str, Any]:
+    """Prove CAD identity/control-map equality without carrying local paths."""
+    reference_path = Path(reference_attempts)
+    reference_rows = read_jsonl(reference_path)
+
+    def normalized(
+        rows: Sequence[Mapping[str, Any]], *, label: str
+    ) -> tuple[list[str], dict[str, dict[str, Any]]]:
+        order: list[str] = []
+        values: dict[str, dict[str, Any]] = {}
+        for index, row in enumerate(rows):
+            cad_id = str(row.get("cad_id") or "")
+            if not cad_id:
+                raise RuntimeError(f"{label} cohort row {index} has no cad_id")
+            if cad_id in values:
+                raise RuntimeError(f"{label} cohort repeats CAD {cad_id}")
+            historical = row.get("historical_strict_valid")
+            if type(historical) is not bool:
+                raise RuntimeError(
+                    f"{label} cohort CAD {cad_id} has non-boolean historical strict value"
+                )
+            values[cad_id] = {
+                "parent_id": row.get("parent_id"),
+                "historical_strict_valid": historical,
+            }
+            order.append(cad_id)
+        return order, values
+
+    candidate_order, candidate_map = normalized(candidate_rows, label="candidate")
+    reference_order, reference_map = normalized(reference_rows, label="reference")
+    candidate_set = sorted(candidate_map)
+    reference_set = sorted(reference_map)
+    id_set_digest = hashlib.sha256(
+        ("\n".join(candidate_set) + "\n").encode("utf-8")
+    ).hexdigest()
+    equivalent = bool(candidate_set == reference_set and candidate_map == reference_map)
+    if not equivalent:
+        raise RuntimeError(
+            "reference report does not match the candidate CAD/control cohort"
+        )
+    return {
+        "schema": "assembly-cohort-equivalence-v1",
+        "reference_attempts_sha256": sha256_file(reference_path),
+        "reference_attempts": len(reference_rows),
+        "candidate_attempts": len(candidate_rows),
+        "cad_id_set_sha256": id_set_digest,
+        "reference_cad_order_sha256": hashlib.sha256(
+            ("\n".join(reference_order) + "\n").encode("utf-8")
+        ).hexdigest(),
+        "candidate_cad_order_sha256": hashlib.sha256(
+            ("\n".join(candidate_order) + "\n").encode("utf-8")
+        ).hexdigest(),
+        "same_cad_set": True,
+        "same_parent_and_historical_strict_map": True,
+        "same_cad_order": reference_order == candidate_order,
+        "valid": True,
+    }
+
+
 def archive_solid_topology_diagnosis(
     source: Path, report_dir: Path
 ) -> dict[str, Any]:
@@ -188,6 +250,7 @@ def snapshot(
     *,
     label: str,
     solid_topology_diagnosis: Optional[Path] = None,
+    reference_report_dir: Optional[Path] = None,
 ) -> dict[str, Any]:
     run_root, report_dir = Path(run_root).resolve(), Path(report_dir).resolve()
     source = run_root / "assembly_repair_matrix.jsonl"
@@ -208,6 +271,18 @@ def snapshot(
     summary_sha256 = sha256_file(summary_path)
     if run_manifest.get("summary_sha256") != summary_sha256:
         raise RuntimeError("assembly repair summary hash does not match signed run manifest")
+    cohort_binding = {"provided": False}
+    if reference_report_dir is not None:
+        reference_attempts = (
+            Path(reference_report_dir).resolve() / "assembly_repair_attempts.jsonl"
+        )
+        if not reference_attempts.is_file():
+            raise FileNotFoundError(reference_attempts)
+        cohort_binding = {
+            "provided": True,
+            "reference_report_name": Path(reference_report_dir).resolve().name,
+            **cohort_equivalence(rows, reference_attempts),
+        }
     report_dir.mkdir(parents=True, exist_ok=True)
     if any(report_dir.iterdir()):
         raise RuntimeError(f"report directory must be empty: {report_dir}")
@@ -230,6 +305,11 @@ def snapshot(
         if solid_topology_diagnosis is not None
         else {"archived": False}
     )
+    if cohort_binding["provided"]:
+        write_text_lf(
+            report_dir / "cohort_equivalence.json",
+            json.dumps(cohort_binding, indent=2, sort_keys=True) + "\n",
+        )
     source_binding = {
         "label": label, "source_run_name": run_root.name,
         "source_manifest_bytes": source.stat().st_size,
@@ -241,6 +321,7 @@ def snapshot(
         "step_files_local": sum(bool(row.get("step_saved")) for row in rows),
         "step_bytes_archived": False, "source_pickles_archived": False,
         "solid_topology_diagnosis": topology_diagnosis_binding,
+        "cohort_equivalence": cohort_binding,
     }
     archived_summary = {**summary, "label": label, "generated_at": now(), "source_binding": source_binding}
     write_text_lf(
@@ -281,6 +362,11 @@ boundary consistency, sequence regeneration, or AR training.
         "solid_topology_diagnosis_archived": bool(
             topology_diagnosis_binding["archived"]
         ),
+        "cohort_equivalence_valid": (
+            bool(cohort_binding["valid"])
+            if cohort_binding["provided"]
+            else None
+        ),
         "forbidden_artifacts": forbidden,
     }
     write_text_lf(
@@ -305,6 +391,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--label", required=True)
     parser.add_argument("--solid-topology-diagnosis", type=Path)
+    parser.add_argument(
+        "--reference-report-dir",
+        type=Path,
+        help="Require CAD, parent, and historical strict-control equality with a prior snapshot.",
+    )
     args = parser.parse_args(argv)
     print(
         json.dumps(
@@ -313,6 +404,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 args.report_dir,
                 label=args.label,
                 solid_topology_diagnosis=args.solid_topology_diagnosis,
+                reference_report_dir=args.reference_report_dir,
             ),
             indent=2,
         )

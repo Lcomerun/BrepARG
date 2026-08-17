@@ -1,4 +1,4 @@
-# ADR-0003: Hold production assembly hardening at 87 of 100
+# ADR-0003: Hold production assembly hardening below the 95 of 100 gate
 
 ## Status
 
@@ -26,12 +26,25 @@ checks, and OCC builder/shell/solid checks. Every production attempt ran in a
 separate worker process. The frozen original-control cohort was then rerun
 with the exact 100-CAD manifest.
 
-The signed run recovered three historical failures, preserved all 84
-historically strict-valid controls, and produced STEP for all 100 CADs.
+The first signed production run recovered three historical failures, preserved
+all 84 historically strict-valid controls, and produced STEP for all 100 CADs.
 Project-strict validity was 87 of 100, eight below the predeclared 95 of 100
-promotion gate. The remaining thirteen strict failures retain diagnosed wire
-self-intersections or invalid native BReps. Earlier bounded pcurve-continuity
-and selective curve-rescue probes did not add recoveries beyond this result.
+promotion gate.
+
+The separately proven `single_solid` near-vertex reconciliation was then
+composed with the isolated production backend in the matrix runner, not
+applied to the shared upstream source. It remaps only same-face, one-to-one
+mutually nearest endpoint-id pairs within `2e-4`, and moves only endpoints in
+accepted pairs to their shared representative before production construction.
+The signed composition at commit `aeec941` wrote 100 of 100 STEP files,
+recovered the disjoint `00000444_4ed4c78d6d754aac90876fc2_step_003`, retained
+the three prior recoveries, preserved every original strict-valid control, and
+reached 88 strict-valid, 90 native-valid, and 86 both-valid CADs. The
+Git-safe report verifies that its CAD set and per-CAD parent/historical-strict
+map equal the prior production 100-CAD report despite a reconstructed sorted
+input order. This is the best production result so far, but remains seven
+below the promotion gate. The remaining twelve strict failures retain
+diagnosed wire self-intersections, free-edge, or native-solid defects.
 
 ## Decision
 
@@ -51,12 +64,14 @@ implementation without mutating the training checkout.
 ### Apply the patch because it has zero regressions
 
 Rejected. Zero regression is necessary but not sufficient. The fixed release
-gate is at least 95 strict-valid CADs out of 100, and this result reaches 87.
+gate is at least 95 strict-valid CADs out of 100, and the best result reaches
+88.
 
-### Lower the gate after observing 87 of 100
+### Lower the gate after observing 87 or 88 of 100
 
-Rejected. The gate was set before this implementation and remains the control
-against accepting repairs that only move a small subset of the failure family.
+Rejected. The gate was set before these implementations and remains the
+control against accepting repairs that only move a small subset of the failure
+family.
 
 ### Retry broad ShapeFix or pcurve mutation globally
 
@@ -68,6 +83,6 @@ changing geometry outside the diagnosed face.
 
 The next assembly increment must target a remaining diagnosed failure family
 and first show a new strict-valid recovery on the frozen invalid subset while
-retaining the three existing recoveries. A new candidate still needs a signed
+retaining all four existing recoveries. A new candidate still needs a signed
 100-CAD matrix with at least 95 strict-valid CADs, all original 84 retained,
 and zero regressions before the shared production source can change.

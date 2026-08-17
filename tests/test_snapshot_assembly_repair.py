@@ -184,3 +184,59 @@ def test_snapshot_rejects_absolute_path_in_solid_topology_diagnosis(tmp_path):
             label="solid",
             solid_topology_diagnosis=diagnosis,
         )
+
+
+def test_snapshot_binds_equivalent_reference_cohort_without_paths(tmp_path):
+    run = _single_solid_run(tmp_path)
+    reference = tmp_path / "reference"
+    reference.mkdir()
+    (reference / "assembly_repair_attempts.jsonl").write_text(
+        json.dumps(
+            {
+                "cad_id": "cad",
+                "parent_id": "parent",
+                "historical_strict_valid": False,
+            }
+        )
+        + "\n"
+    )
+
+    result = snapshot(
+        run,
+        tmp_path / "report",
+        label="equivalent",
+        reference_report_dir=reference,
+    )
+
+    assert result["cohort_equivalence_valid"] is True
+    binding = json.loads(
+        (tmp_path / "report" / "cohort_equivalence.json").read_text()
+    )
+    assert binding["valid"] is True
+    assert binding["same_cad_set"] is True
+    assert binding["same_parent_and_historical_strict_map"] is True
+    assert str(tmp_path) not in json.dumps(binding, sort_keys=True)
+
+
+def test_snapshot_rejects_non_equivalent_reference_cohort(tmp_path):
+    run = _single_solid_run(tmp_path)
+    reference = tmp_path / "reference"
+    reference.mkdir()
+    (reference / "assembly_repair_attempts.jsonl").write_text(
+        json.dumps(
+            {
+                "cad_id": "other",
+                "parent_id": "parent",
+                "historical_strict_valid": False,
+            }
+        )
+        + "\n"
+    )
+
+    with pytest.raises(RuntimeError, match="does not match"):
+        snapshot(
+            run,
+            tmp_path / "report",
+            label="mismatch",
+            reference_report_dir=reference,
+        )

@@ -1,0 +1,46 @@
+{
+  "attempts": 100,
+  "payload": {
+    "assembly_backend": "production",
+    "breparg_runtime": {
+      "utils_sha256": "e0ea92cc433ab64bf156b12aad3432a8bd8741c911f33a235b6a7c276aae2d37"
+    },
+    "calibration_manifest_sha256": "8fbd042579584551fd8cdf444f2fdf067c5da7a852f9f1a0fcbf37df56fa2c80",
+    "full_cohort_count": 100,
+    "full_cohort_signature": "f3deb3a3ecaaecc1bb1be3a52c2a65bf3f008d1d35031a4f9ec203370ba8c1d8",
+    "historical_invalid_only": false,
+    "isolate_cad_workers": true,
+    "joint_iterations": 200,
+    "matrix_schema": "assembly-repair-matrix-v1",
+    "max_cads": null,
+    "profiles": [
+      {
+        "name": "single_solid",
+        "switches": [
+          "single_solid"
+        ]
+      }
+    ],
+    "repository": {
+      "commit": "aeec941c159bf5c490e81129defed7f5f8f33e69",
+      "dirty": false,
+      "source_sha256": {
+        "tools/assembly_repair.py": "16c14e82bd74e683598e7c55c83c2ab1bdd13894a44cd11b5bb618d2e3546914",
+        "tools/directed_trim_assembly.py": "0daa093ddc1b22b76072925837203e072942363baadd3053fb1eabcced6504c2",
+        "tools/local_wire_topology_repair.py": "8a02ca1c823c7533f1eac85a0330080b7840a7881b2b4b143c869cf1a0b7852c",
+        "tools/run_assembly_calibration_oracle.py": "ae589503963f45e2cc5d195da4b2ebc1d865c57bc7e5b3efb53f77faecf9d21f",
+        "tools/run_assembly_repair_matrix.py": "83880d0da3970ae69d75232d1dfa0140ba711d7fccfc39e164633e31ce784629",
+        "tools/solid_topology_repair.py": "c70dafdf1aa5e4fe7df58eb4732a12736fea79757d1847fd0d0164ffa6272778"
+      },
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "schema": "assembly-repair-run-v2",
+    "selected_cohort_count": 100,
+    "selected_cohort_signature": "f3deb3a3ecaaecc1bb1be3a52c2a65bf3f008d1d35031a4f9ec203370ba8c1d8",
+    "worker_timeout_seconds": 300.0
+  },
+  "schema": "assembly-repair-run-v2",
+  "signature": "34edca316ac8bf4dbfbd52ced9b0934602bed9f8b2ac9fd7368f4ee9646dbcbe",
+  "status": "COMPLETED",
+  "summary_sha256": "bd4d9b5ac967b67862c7e935ae27d1e2e7bd878d5e0d4e38468f65384eed66ef"
+}

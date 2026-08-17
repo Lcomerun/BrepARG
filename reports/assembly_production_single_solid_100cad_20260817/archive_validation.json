@@ -1,0 +1,14 @@
+{
+  "attempts": 100,
+  "cohort_equivalence_valid": true,
+  "forbidden_artifacts": [],
+  "profiles": {
+    "single_solid": 100
+  },
+  "repair_diagnostics_present": true,
+  "run_signature": "34edca316ac8bf4dbfbd52ced9b0934602bed9f8b2ac9fd7368f4ee9646dbcbe",
+  "run_status": "COMPLETED",
+  "solid_topology_diagnosis_archived": false,
+  "summary_sha256": "bd4d9b5ac967b67862c7e935ae27d1e2e7bd878d5e0d4e38468f65384eed66ef",
+  "valid": true
+}
