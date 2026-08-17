@@ -1,0 +1,174 @@
+{
+  "schema": "assembly-graph-preserving-trim-negative-v1",
+  "generated_at": "2026-08-18T04:19:53+08:00",
+  "decision": {
+    "candidate_promoted": false,
+    "production_constructor_changed": false,
+    "selector_gate_relaxed": false,
+    "reason": "No tested candidate preserved the source graph and passed schema-v2 geometry/topology checks."
+  },
+  "source_bindings": [
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "bytes": 369466,
+      "sha256": "d256156b02d6e758db80fd29beeb3d7d80d435d303f2a7de7dce4a7c04028a43",
+      "archived": false
+    },
+    {
+      "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "bytes": 1150480,
+      "sha256": "eb15e16897c84a3511b0fe3456d150517953ba49304a323cb96de9319459fa84",
+      "archived": false
+    }
+  ],
+  "safe_reproduction": {
+    "attempts": 8,
+    "worker_or_protocol_failures": 0,
+    "selector_eligible": 0,
+    "local_report": {
+      "bytes": 105291,
+      "sha256": "0e2b650fd0b522fb68df43cae0c4fc9c4f786541f8819f99fdb0f357fbbbcb9d",
+      "archived": false
+    },
+    "rows": [
+      {
+        "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+        "variant": "historical_1e3",
+        "input": {"faces": 14, "edges": 28, "vertices": 18},
+        "candidate": {"faces": 14, "edges": 28, "vertices": 16},
+        "native_valid": true,
+        "strict_valid": true,
+        "selector_eligible": false,
+        "bbox_relative_delta": 0.016819196724366072,
+        "rejection_reasons": [
+          "geometry_gate:vertex_count_equal",
+          "geometry_gate:vertex_edge_incidence_equal"
+        ],
+        "nearest_source_vertex_merge_groups": [[3, 7], [6, 9]]
+      },
+      {
+        "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+        "variant": "minimal_no_topology_1e3_to_1e5",
+        "sewing_tolerances": [0.001, 0.0001, 0.00001],
+        "input": {"faces": 14, "edges": 28, "vertices": 18},
+        "candidate": {"faces": 14, "edges": 28, "vertices": 15},
+        "native_valid": true,
+        "strict_valid": true,
+        "selector_eligible": false,
+        "bbox_relative_delta": 0.016819196724366072,
+        "rejection_reasons": [
+          "geometry_gate:vertex_count_equal",
+          "geometry_gate:vertex_edge_incidence_equal"
+        ],
+        "nearest_source_vertex_merge_groups": [[3, 7, 8], [6, 9]],
+        "tolerance_scan_changed_decision": false
+      },
+      {
+        "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+        "variant": "historical_1e3",
+        "input": {"faces": 43, "edges": 106, "vertices": 68, "face_edge_occurrences": 212},
+        "candidate": {"faces": 43, "edges": 104, "vertices": 65, "face_edge_occurrences": 208},
+        "native_valid": true,
+        "strict_valid": true,
+        "selector_eligible": false,
+        "bbox_relative_delta": 0.049597741645367344,
+        "rejection_reasons": [
+          "geometry_gate:edge_count_equal",
+          "geometry_gate:vertex_count_equal",
+          "geometry_gate:face_edge_occurrences_equal",
+          "geometry_gate:face_edge_incidence_equal",
+          "geometry_gate:edge_face_incidence_equal",
+          "geometry_gate:vertex_edge_incidence_equal",
+          "geometry_gate:bbox_within_tolerance"
+        ],
+        "nearest_source_vertex_merge_groups": [[10, 66], [11, 62, 67]]
+      },
+      {
+        "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+        "variant": "minimal_no_topology_1e3_to_1e5",
+        "sewing_tolerances": [0.001, 0.0001, 0.00001],
+        "input": {"faces": 43, "edges": 106, "vertices": 68, "face_edge_occurrences": 212},
+        "solid_before_step": {"faces": 43, "edges": 106, "vertices": 66, "face_edge_occurrences": 212},
+        "candidate": {"faces": 43, "edges": 106, "vertices": 65, "face_edge_occurrences": 212},
+        "native_valid": false,
+        "strict_valid": false,
+        "selector_eligible": false,
+        "wire_self_intersections": 1,
+        "bbox_relative_delta": 0.049597741645367344,
+        "rejection_reasons": [
+          "geometry_gate:vertex_count_equal",
+          "geometry_gate:face_edge_incidence_equal",
+          "geometry_gate:vertex_edge_incidence_equal",
+          "geometry_gate:no_wire_self_intersections",
+          "geometry_gate:bbox_within_tolerance"
+        ],
+        "nearest_source_vertex_merge_groups": [[10, 66], [11, 62, 67]],
+        "self_intersection": {
+          "candidate_face_ordinal": 10,
+          "candidate_wire_ordinal": 0,
+          "candidate_wire_edge_count": 2,
+          "source_face_index_best_match": 28,
+          "source_face_edge_indices": [86, 91, 92, 93],
+          "intersecting_source_edge_indices": [86, 91],
+          "source_edge_match_best_rms_normalized": {
+            "86": 0.0001246525513855066,
+            "91": 0.00012650872032695317
+          }
+        },
+        "tolerance_scan_changed_decision": false
+      }
+    ]
+  },
+  "first_topology_change": [
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "stage": "ShapeFix_Face",
+      "face_index": 4,
+      "before": {"edges": 4, "vertices": 4},
+      "after": {"edges": 4, "vertices": 3}
+    },
+    {
+      "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "stage": "ShapeFix_Face",
+      "faces": [
+        {"face_index": 28, "before": {"edges": 4, "vertices": 4}, "after": {"edges": 2, "vertices": 2}},
+        {"face_index": 29, "before": {"edges": 4, "vertices": 4}, "after": {"edges": 2, "vertices": 2}},
+        {"face_index": 36, "before": {"edges": 4, "vertices": 4}, "after": {"edges": 4, "vertices": 3}}
+      ]
+    }
+  ],
+  "explicit_source_vertex_negative_control": {
+    "local_report_sha256": "3763b44e0f7c2752e0a09c785444cdf68c90289c6849ee44f1a28a913429eaa0",
+    "archived": false,
+    "rows": [
+      {"cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000", "input_vertices": 18, "candidate_vertices": 14, "selector_eligible": false},
+      {"cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000", "input_vertices": 68, "candidate_vertices": 64, "selector_eligible": false}
+    ],
+    "decision": "Do not promote explicit source vertices; they increased vertex collapse."
+  },
+  "unsafe_native_exit_controls": {
+    "return_code": 3221225477,
+    "return_code_hex": "0xC0000005",
+    "classification": "Windows access violation in isolated OCC worker",
+    "attempts": 12,
+    "variants": {
+      "skip_face_fix": 4,
+      "orientation_only": 4,
+      "copy_then_topology_guarded_fix": 4
+    },
+    "local_report_sha256": [
+      "e646aa918e752d4d393bec6525d8fee99396311089fab1cb2e1043be2b21d93d",
+      "20c3e0d97b5ce7067a675769b3566bcdd0b3c53c0b99744c1b34150155246a7b"
+    ],
+    "archived": false,
+    "decision": "These strategies are excluded from the reproducible probe and must not enter production."
+  },
+  "artifact_policy": {
+    "git_safe": true,
+    "step_archived": false,
+    "pickle_archived": false,
+    "raw_geometry_archived": false,
+    "numpy_archived": false,
+    "checkpoint_archived": false
+  }
+}
