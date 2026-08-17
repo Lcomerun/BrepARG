@@ -6,6 +6,7 @@ from tools.assembly_repair import (
     RepairProfile,
     curve_fit_attempts,
     directed_face_loops,
+    guarded_directed_face_loops,
     historical_face_loops,
     orient_ordered_loop,
     parse_profiles,
@@ -76,6 +77,27 @@ def test_open_or_branching_topology_is_rejected():
     adjacency = np.asarray([[0, 1], [1, 2]], dtype=np.int64)
     with pytest.raises(ValueError, match="open or branching"):
         directed_face_loops([0, 1], adjacency)
+
+
+def test_guarded_directed_loop_falls_back_to_historical_on_unproven_topology():
+    adjacency = np.asarray([[0, 1], [2, 3], [3, 4]], dtype=np.int64)
+    historical = historical_face_loops([0, 1, 2], adjacency)
+
+    loops, diagnostics = guarded_directed_face_loops([0, 1, 2], adjacency)
+
+    assert loops == historical
+    assert diagnostics["mode"] == "historical_fallback_unproven_topology"
+    assert "cannot be oriented" in diagnostics["historical_orientation_error"]
+    assert "open or branching" in diagnostics["regroup_error"]
+
+
+def test_guarded_directed_loop_prefers_closed_orientation():
+    adjacency = np.asarray([[0, 1], [2, 1], [2, 0]], dtype=np.int64)
+
+    loops, diagnostics = guarded_directed_face_loops([0, 1, 2], adjacency)
+
+    assert diagnostics == {"mode": "historical_order_oriented"}
+    assert loops == [[(0, False), (1, True), (2, False)]]
 
 
 def test_curve_sanitizer_removes_only_consecutive_duplicates():
