@@ -64,6 +64,7 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 21:02 +08:00) Closed the second selector review before formal execution. A serialized positive gate is now accepted only after complete schema-v2 checks, thresholds, finite metrics, incidence, and sample-accounting validation in routing, ledger recovery, and final-row validation. The effective post-reconciliation vertex-edge incidence is measured explicitly. Parent and child bind the exact pickle bytes passed to `pickle.loads`, and code, `BrepARG/utils.py`, and every selected pickle are rehashed both after acquiring the run lock and before completion. The Git-safe gate snapshot includes all new incidence and accounting evidence. The seven-file focused suite passed `95` tests and `git diff --check` passed.
 - [ ] Rebase the reviewed selector commit onto the current remote hardening branch, push it without force, then run the selector first on the frozen 16 original failures and only then on all 100 original-control CADs. Its pre-registered acceptance condition is exactly the expected six both-valid restorations, at least `90/100` strict-valid, at least `87/100` both-valid, all original 84 strict-valid controls preserved, and zero worker/protocol failures. A miss fails the selector rather than changing the gate.
 - [ ] Implement the remaining assembly repairs as independent, diagnosed-entity-local switches, with tests and one commit per logically independent repair.
+- [x] (2026-08-17 23:24 +08:00) Completed the periodic-surface UV branch prototype as an isolated pcurve-only primitive. Its dynamic program closes integer-period UV branch gaps on copied edges and the OCC test proves unchanged sampled 3D curves, face/edge/vertex incidence, and geometry. The frozen failed faces are fitted as non-periodic surfaces, so this primitive is not connected to a production profile and no formal CAD matrix is justified.
 - [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
 - [x] (2026-08-17 12:51 +08:00) Added an idempotent local `run_assembly_repair_matrix.py` coordinator with independent and combined profiles, fixed 100-CAD identity checks, attempts-based strict/native/both-valid counts, and restored/unchanged/regressed CAD maps. A one-CAD real OCC smoke completed as both-valid.
 - [x] (2026-08-17 13:00 +08:00) Ran development pilots on all 16 historical failures. The all-switch profile restored 0/16 and failed early on 7; independent directed trim restored exactly the two historical wire-build failures, while curve fallback, continuity-only, and single-solid restored none. This is negative pilot evidence, not the formal 100-CAD result; the next repair must target self-intersecting pcurves/wires locally rather than globally reordering every face.
@@ -182,6 +183,21 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - Observation: A signed start-of-run source hash does not prove which pickle bytes the isolated worker actually deserialized.
   Evidence: The selector payload was originally built before worker launch, while the child reopened the source path later. The hardened worker hashes one byte string, deserializes that same string with `pickle.loads`, rehashes the path after load, and returns both bindings; the parent checks those plus a post-worker hash against the signed payload. Any mismatch becomes a protocol failure rather than an assembly result.
 
+- Observation: A native/strict/both-valid fallback can still be semantically unsafe when it changes the CAD's discrete topology.
+  Evidence: For `00051587_446e8810d6884cae80689579_step_000`, interpolation met all continuous residual thresholds but changed the post-joint input from 24 faces, 48 edges, and 28 vertices to 25 faces, 49 edges, and 27 vertices. Face-edge, edge-face, and vertex-edge incidence multisets also differed. The schema-v2 gate rejected it, leaving the formal selector pilot at 5/16 rather than the required 6/16 both-valid restores.
+
+- Observation: Automatic training resume can legitimately produce multiple TensorBoard event files for one task.
+  Evidence: RVQ seed 4 has two event files, one before and one after its Windows checkpoint-replace recovery. The first Git-safe archiver rejected the completed formal run because it assumed exactly one event per task. The archive now requires at least one event per task, preserves every segment, records a per-task count, and validates the exact total copied count.
+
+- Observation: A worktree-valid artifact manifest is not necessarily a Git-blob-valid manifest on Windows.
+  Evidence: The original P0-B archive was numerically complete and contained no model bytes, but 25 of 37 manifest entries differed after Git normalized CRLF text to LF. The same archive also retained 152 absolute-path occurrences across 16 task JSON files. Canonical LF output, explicit text attributes, structured JSON path redaction, and separate source/archive hashes are now part of the snapshot contract.
+
+- Observation: Lower reconstruction error within the capacity sweep did not imply better strict assembly validity.
+  Evidence: RVQ seed 3 reached a lower best curved parent MSE than VQ-8192 seed 3 (`0.00199845` versus `0.00230432`), while their fixed-cohort curved-MSE medians were nearly identical (`0.000221650` versus `0.000221517`). RVQ nevertheless assembled at 65/100 strict versus VQ-8192 at 69/100. This validates the pre-registered choice to use paired strict validity rather than reconstruction MSE as the capacity decision endpoint.
+
+- Observation: The frozen self-intersection faces do not expose periodic fitted surfaces even when their UV curves look like branch-wrap failures.
+  Evidence: Direct OCC inspection of the remaining `00008763`, `00032101`, `00047472`, `00063055`, `00076198`, and `00095733` bad faces reports `IsUPeriodic=False`, `IsVPeriodic=False`, and fitted bounds `(0,1)x(0,1)`. Integer-period pcurve translation therefore cannot be applied to those cases without inventing a surface period.
+
 ## Decision Log
 
 - Decision: Compare one 8192-entry learned codebook with two sequential 4096-entry residual codebooks, both using 64-dimensional code vectors and `anchor='random'`.
@@ -286,6 +302,26 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Decision: Treat selector evidence as formal only after full topological, input, candidate, and snapshot binding checks; do not promote the earlier two one-CAD smoke runs.
   Rationale: A numeric geometry residual alone does not prove that every output boundary element was measured, and a profile-name-only ledger link cannot protect a resumed output from content drift. The v2 contract requires vertex and incidence invariants, full curve/sample accounting, canonical candidate fingerprints, source-pickle and code hashes, durable JSONL prefixes, and snapshot revalidation of both local ledgers before a result can be Git-safe.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Do not run the full 100-CAD selector after the formal 16-case pilot misses its exact pre-registered restoration and accepted-fallback identities.
+  Rationale: The missing `00051587...` candidate is close in continuous geometry but has a different topology. Changing its expectation, loosening topology checks, or running the full cohort anyway after seeing that result would invalidate the selector proof. The signed negative result is archived instead.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Treat all TensorBoard segments produced by a signature-compatible resumed task as first-class evidence.
+  Rationale: A resumed process has a new event writer and therefore a second event file. Requiring exactly one file would discard valid evidence or falsely reject a fully validated run. The archive still rejects zero event files, copies every small segment, and hashes every copied artifact.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Keep exact source hashes while publishing path-redacted task JSON and Git-canonical LF report bytes.
+  Rationale: Machine paths are not scientific inputs and should not be needed to read the archive on another device. The source-to-archive manifest therefore binds both byte streams and names the JSON transformation, while logs and TensorBoard events remain identity copies. This preserves provenance without making a local drive layout part of the public evidence contract.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Select `vq_8192_64d_random` and reject RVQ for the downstream representation path.
+  Rationale: VQ-8192 reaches 69/100 strict validity, only one point below same-scale bypass and inside the pre-registered 5-point capacity gate. RVQ reaches 65/100; its five paired wins versus nine losses are not significant (`p=0.42395`) and cannot justify an estimated 36 percent longer sequence. This selection resolves quantizer capacity only and does not waive the assembly-chain gate.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Prototype periodic UV branch selection without `ShapeFix_Face` geometry modification and keep it disconnected from production assembly profiles until its pcurve-only invariants are proven.
+  Rationale: The prior broad pcurve-continuity treatment enabled `ModifyGeometryMode(True)` and added no frozen-cohort recovery. `BRep_Builder.UpdateEdge` has a dedicated two-dimensional curve overload, so a copied face can instead translate only a diagnosed edge's pcurve by an integer surface period while preserving the original 3D edge curve and discrete incidence exactly.
   Date/Author: 2026-08-17 / Codex.
 
 ## Outcomes & Retrospective
@@ -471,3 +507,20 @@ Revision note 2026-08-17 20:05 +08:00: Added the failure-triggered selector, its
 Revision note 2026-08-17 20:29 +08:00: Recorded the pre-pilot selector review and closed its evidence blockers. Geometry-gate schema v2 binds vertices and face/edge incidence and rejects every unprojectable or unsampled boundary element; candidate results, source pickles, execution sources, matrix/ledger hashes, and Git-safe snapshots are now cross-bound. JSONL resume is durable and may repair only an unterminated tail write. The earlier one-CAD smoke outputs remain development-only, and the next formal action is a clean-commit 16-invalid pilot.
 
 Revision note 2026-08-17 21:02 +08:00: Closed the second pre-pilot review findings. Positive geometry gates now require full semantic validation, effective vertex-edge incidence is bound after topology remapping, workers prove the exact pickle bytes they deserialize, completion rechecks every code/runtime/input hash, and the Git-safe snapshot retains the new proof fields. The focused suite now passes 95 tests; the next action remains a clean commit followed by a new-root 16-invalid pilot.
+
+Revision note 2026-08-17 21:30 +08:00: Recorded the selector's initial negative
+16-case result and retained the topology gate; no full cohort was run from that
+incomplete selector proof.
+
+Revision note 2026-08-17 22:50 +08:00: Registered a bounded periodic-surface UV
+branch prototype. It is restricted to integer-period translations of copied-edge
+pcurves, must prove exact topology/incidence and sampled 3D-curve preservation,
+and remains outside production profiles until it passes its isolated gates.
+
+Revision note 2026-08-17 21:30 +08:00: Recorded completion and formal validation of all four schema-v2 capacity tasks, the live 100-CAD capacity measurement, and the formal negative selector pilot. The selector misses one pre-registered restore because the otherwise valid candidate changes topology, so the full 100-CAD selector is explicitly blocked. Added Git-safe support for multiple TensorBoard event segments after a signature-compatible automatic resume and archived both the capacity training evidence and selector negative result.
+
+Revision note 2026-08-17 21:45 +08:00: Recorded the completed fixed-cohort capacity measurement and selected VQ-8192. It reaches 69/100 strict against bypass at 70/100, while RVQ reaches 65/100 and has no significant paired advantage. Archived the 100-paired-row, 300-attempt Git-safe report, updated ADR-0002 with the measured decision, and kept boundary consistency, sequence regeneration, and AR blocked on the unresolved assembly-chain gate.
+
+Revision note 2026-08-17 22:50 +08:00: Hardened the P0-B formal archive against machine-path leakage and Windows/Git line-ending hash drift. Added separate source/archive bindings and residual-path rejection, regenerated the lightweight evidence without changing metrics, and expanded the paired runtime manifest so the shared unrepaired-chain parameters and repository-owned source blobs are independently auditable from Git.
+
+Revision note 2026-08-17 23:15 +08:00: Registered a bounded periodic-surface UV branch prototype. It must use only integer-period translations of copied-edge pcurves, prove exact topology/incidence and sampled 3D-curve preservation, and remain outside production profiles and formal CAD matrices until the prototype passes.
