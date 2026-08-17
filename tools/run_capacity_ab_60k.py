@@ -890,10 +890,15 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
             .get("surface_curved_proxy", {})
             .get("mse")
         )
+        rounded_curved = (
+            round(float(curved), 8)
+            if isinstance(curved, (int, float)) and math.isfinite(float(curved))
+            else None
+        )
         if expected_metric == "curved_parent_mse":
-            if row.get("scheduler_metric") != curved:
+            if row.get("scheduler_metric") != rounded_curved:
                 reasons.append(f"epoch {epoch}: scheduler_metric is not curved parent MSE")
-            if row.get("plateau_value") != curved:
+            if row.get("plateau_value") != rounded_curved:
                 reasons.append(f"epoch {epoch}: plateau_value is not curved parent MSE")
         if row.get("experiment_signature") != task["signature"]:
             reasons.append(f"epoch {epoch}: experiment signature mismatch")

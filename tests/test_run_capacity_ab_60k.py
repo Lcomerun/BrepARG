@@ -88,6 +88,26 @@ def test_validator_rejects_declared_curved_scheduler_running_on_global_val(
     assert any("scheduler_metric is not curved" in reason for reason in result["reasons"])
 
 
+def test_validator_compares_scheduler_to_serialized_curved_precision(
+    tmp_path, monkeypatch
+):
+    config = make_inputs(tmp_path, monkeypatch)
+    task = launcher.build_task(config, "vq_8192_64d_random", 3)
+    materialize_success(task)
+    payload = json.loads(Path(task["history"]).read_text(encoding="utf-8"))
+    payload["history"][0]["val_parent_cluster_reconstruction_mse"][
+        "surface_curved_proxy"
+    ]["mse"] = 0.10000000495337164
+    Path(task["history"]).write_text(json.dumps(payload), encoding="utf-8")
+    rolling = torch.load(task["rolling_checkpoint"], map_location="cpu", weights_only=False)
+    rolling["history"] = payload["history"]
+    torch.save(rolling, task["rolling_checkpoint"])
+
+    result = launcher.validate_task(task, formal=True)
+
+    assert result["valid"] is True, result["reasons"]
+
+
 def test_existing_state_rejects_environment_drift(tmp_path, monkeypatch):
     config = make_inputs(tmp_path, monkeypatch)
     path, state = launcher.ensure_state(config)
