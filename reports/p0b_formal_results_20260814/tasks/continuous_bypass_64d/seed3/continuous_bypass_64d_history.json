@@ -127,7 +127,7 @@
       }
     },
     "experiment_signature": "6b02501165f3692c78e95c30f9f4c04ec64e8b3ce4a5a470cf760d11b26c9503",
-    "rolling_checkpoint_path": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\continuous_bypass_64d_rolling.pt",
+    "rolling_checkpoint_path": "<MACHINE_LOCAL_PATH>/continuous_bypass_64d_rolling.pt",
     "min_epochs": 100,
     "patience": 100,
     "min_delta": 1e-05,

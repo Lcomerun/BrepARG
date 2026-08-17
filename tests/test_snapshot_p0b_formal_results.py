@@ -1,10 +1,21 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
+import pytest
+
 from tools.snapshot_p0b_formal_results import (
+    MACHINE_LOCAL_PATH,
     arm_aggregates,
+    artifact_manifest,
+    copy_lightweight,
     epoch_summary,
+    redact_machine_local_paths,
     summarize_task,
     validate_report,
+    write_csv,
+    write_json,
 )
 
 
@@ -127,3 +138,135 @@ def test_validate_report_accepts_multiple_tensorboard_segments_after_resume(tmp_
 
     assert validation["histories"] == 4
     assert validation["tensorboard_events"] == 5
+    assert validation["machine_absolute_paths"] is False
+
+
+def test_redact_machine_local_paths_recurses_without_changing_relative_paths():
+    payload = {
+        "windows": r"D:\runs\seed3\best.pt",
+        "posix": "/home/user/runs/history.json",
+        "workspace": "/workspace/runs/report.json",
+        "relative": "tasks/seed3/history.json",
+        "nested": [r"C:/Users/YU/env/python.exe"],
+    }
+
+    redacted = redact_machine_local_paths(payload)
+
+    assert redacted["windows"] == f"{MACHINE_LOCAL_PATH}/best.pt"
+    assert redacted["posix"] == f"{MACHINE_LOCAL_PATH}/history.json"
+    assert redacted["workspace"] == f"{MACHINE_LOCAL_PATH}/report.json"
+    assert redacted["relative"] == "tasks/seed3/history.json"
+    assert redacted["nested"] == [f"{MACHINE_LOCAL_PATH}/python.exe"]
+
+
+def test_copy_lightweight_redacts_json_and_binds_source_and_archive_hashes(tmp_path):
+    run_root = tmp_path / "run"
+    source = run_root / "tasks" / "seed3" / "history.json"
+    source.parent.mkdir(parents=True)
+    source.write_text(
+        json.dumps(
+            {
+                "checkpoint": r"D:\runs\seed3\best.pt",
+                "relative": "tasks/seed3/best.pt",
+            }
+        ),
+        encoding="utf-8",
+    )
+    target = tmp_path / "report" / "tasks" / "arm" / "seed3" / source.name
+    manifest = []
+
+    copy_lightweight(source, target, run_root, tmp_path / "report", manifest)
+
+    archived = json.loads(target.read_text(encoding="utf-8"))
+    assert archived["checkpoint"] == f"{MACHINE_LOCAL_PATH}/best.pt"
+    assert archived["relative"] == "tasks/seed3/best.pt"
+    assert b"\r" not in target.read_bytes()
+    assert manifest == [
+        {
+            "source_relative_path": "tasks/seed3/history.json",
+            "archive_relative_path": "tasks/arm/seed3/history.json",
+            "bytes": source.stat().st_size,
+            "sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+            "source_bytes": source.stat().st_size,
+            "source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+            "archive_bytes": target.stat().st_size,
+            "archive_sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
+            "transformation": "json_machine_paths_redacted",
+        }
+    ]
+
+
+def test_copy_lightweight_preserves_non_json_bytes(tmp_path):
+    run_root = tmp_path / "run"
+    source = run_root / "tensorboard" / "events.out.tfevents.1"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(b"event\r\nbytes\x00")
+    target = tmp_path / "report" / "tensorboard" / source.name
+    manifest = []
+
+    copy_lightweight(source, target, run_root, tmp_path / "report", manifest)
+
+    assert target.read_bytes() == source.read_bytes()
+    assert manifest[0]["transformation"] == "identity"
+    assert manifest[0]["source_sha256"] == manifest[0]["archive_sha256"]
+
+
+def test_copy_lightweight_transcodes_windows_log_and_keeps_both_hashes(tmp_path):
+    run_root = tmp_path / "run"
+    source = run_root / "logs" / "stdout.log"
+    source.parent.mkdir(parents=True)
+    source.write_bytes("超参\r\nsecond\r\n".encode("gb18030"))
+    target = tmp_path / "report" / "logs" / source.name
+    manifest = []
+
+    copy_lightweight(source, target, run_root, tmp_path / "report", manifest)
+
+    assert target.read_bytes() == "超参\nsecond\n".encode("utf-8")
+    assert manifest[0]["transformation"] == "text_utf8_lf"
+    assert manifest[0]["source_sha256"] != manifest[0]["archive_sha256"]
+
+
+def test_generated_text_is_canonical_lf_and_manifest_matches_bytes(tmp_path):
+    report = tmp_path / "report"
+    write_json(report / "summary.json", {"status": "ok"})
+    write_csv(report / "metrics.csv", [{"epoch": 0}], ["epoch"])
+
+    manifest = artifact_manifest(report)
+
+    for artifact in manifest:
+        data = (report / artifact["path"]).read_bytes()
+        assert b"\r" not in data
+        assert artifact["bytes"] == len(data)
+        assert artifact["sha256"] == hashlib.sha256(data).hexdigest()
+
+
+def test_validate_report_rejects_absolute_path_in_json(tmp_path):
+    for index in range(4):
+        task_dir = tmp_path / "tasks" / f"arm{index}" / "seed3"
+        task_dir.mkdir(parents=True)
+        write_json(task_dir / f"arm{index}_history.json", {"path": "relative"})
+        tensorboard_dir = tmp_path / "tensorboard" / f"arm{index}" / "seed3"
+        tensorboard_dir.mkdir(parents=True)
+        (tensorboard_dir / f"events.out.tfevents.{index}.0").write_bytes(b"event")
+    (tmp_path / "leak.json").write_text(
+        json.dumps({"path": r"D:\local\secret.json"}), encoding="utf-8"
+    )
+
+    with pytest.raises(RuntimeError, match="absolute path"):
+        validate_report(tmp_path)
+
+
+def test_validate_report_rejects_absolute_path_embedded_in_string(tmp_path):
+    for index in range(4):
+        task_dir = tmp_path / "tasks" / f"arm{index}" / "seed3"
+        task_dir.mkdir(parents=True)
+        write_json(task_dir / f"arm{index}_history.json", {"path": "relative"})
+        tensorboard_dir = tmp_path / "tensorboard" / f"arm{index}" / "seed3"
+        tensorboard_dir.mkdir(parents=True)
+        (tensorboard_dir / f"events.out.tfevents.{index}.0").write_bytes(b"event")
+    (tmp_path / "leak.json").write_text(
+        json.dumps({"command": r"python D:\local\script.py"}), encoding="utf-8"
+    )
+
+    with pytest.raises(RuntimeError, match="absolute path"):
+        validate_report(tmp_path)

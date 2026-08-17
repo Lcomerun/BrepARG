@@ -1,8 +1,9 @@
 {
-  "bytes": 4865091,
+  "bytes": 4744146,
   "files": 36,
   "forbidden_artifacts": [],
   "histories": 4,
+  "machine_absolute_paths": false,
   "tensorboard_events": 4,
   "valid": true
 }

@@ -13,6 +13,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import shutil
 import statistics
 from datetime import datetime, timezone
@@ -49,6 +50,9 @@ FORBIDDEN_SUFFIXES = {
     ".stp",
 }
 MAX_LIGHTWEIGHT_FILE_BYTES = 8 * 1024 * 1024
+MACHINE_LOCAL_PATH = "<MACHINE_LOCAL_PATH>"
+WINDOWS_ABSOLUTE_PATH = re.compile(r"(?:^|\s|=)(?:[A-Za-z]:[\\/]|\\\\)")
+POSIX_ABSOLUTE_PATH = re.compile(r"(?:^|\s|=)/")
 TASK_SUMMARY_FIELDS = (
     "task_id",
     "arm",
@@ -121,20 +125,79 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def write_json(path: Path, payload: Any) -> None:
+def write_json(path: Path, payload: Any, *, sort_keys: bool = True) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=True) + "\n",
-        encoding="utf-8",
-    )
+    payload = redact_machine_local_paths(payload)
+    assert_no_machine_local_paths(payload, path.name)
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(
+            json.dumps(payload, indent=2, sort_keys=sort_keys, ensure_ascii=True) + "\n"
+        )
 
 
 def write_csv(path: Path, rows: Iterable[Mapping[str, Any]], fields: Sequence[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows({field: row.get(field) for field in fields} for row in rows)
+
+
+def write_text_lf(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    with path.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(normalized)
+
+
+def read_log_text(path: Path) -> str:
+    data = Path(path).read_bytes()
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        # The completed Windows P0-B console logs use the system GBK code
+        # page. GB18030 is its strict superset and is available cross-platform.
+        return data.decode("gb18030")
+
+
+def _is_machine_local_absolute_path(value: str) -> bool:
+    return bool(
+        WINDOWS_ABSOLUTE_PATH.search(value)
+        or value.startswith("\\\\")
+        or POSIX_ABSOLUTE_PATH.search(value)
+    )
+
+
+def redact_machine_local_paths(value: Any) -> Any:
+    """Remove absolute machine paths from a JSON-compatible value.
+
+    The basename is retained when available so checkpoint and artifact roles
+    remain readable, but no drive, user directory, or local run root survives.
+    Source identity is recorded separately by ``copy_lightweight``.
+    """
+    if isinstance(value, Mapping):
+        return {str(key): redact_machine_local_paths(child) for key, child in value.items()}
+    if isinstance(value, list):
+        return [redact_machine_local_paths(child) for child in value]
+    if isinstance(value, tuple):
+        return [redact_machine_local_paths(child) for child in value]
+    if not isinstance(value, str) or not _is_machine_local_absolute_path(value):
+        return value
+
+    normalized = value.replace("\\", "/").rstrip("/")
+    basename = normalized.rsplit("/", 1)[-1]
+    return f"{MACHINE_LOCAL_PATH}/{basename}" if basename else MACHINE_LOCAL_PATH
+
+
+def assert_no_machine_local_paths(value: Any, location: str = "payload") -> None:
+    if isinstance(value, Mapping):
+        for key, child in value.items():
+            assert_no_machine_local_paths(child, f"{location}.{key}")
+    elif isinstance(value, (list, tuple)):
+        for index, child in enumerate(value):
+            assert_no_machine_local_paths(child, f"{location}[{index}]")
+    elif isinstance(value, str) and _is_machine_local_absolute_path(value):
+        raise RuntimeError(f"Git-safe archive contains absolute path at {location}")
 
 
 def as_float(value: Any) -> float | None:
@@ -396,13 +459,21 @@ def arm_aggregates(
 
 
 def copy_lightweight(
-    source: Path, target: Path, run_root: Path, source_manifest: list[dict[str, Any]]
+    source: Path,
+    target: Path,
+    run_root: Path,
+    report_dir: Path,
+    source_manifest: list[dict[str, Any]],
 ) -> None:
     source = source.resolve()
     try:
         relative_source = source.relative_to(run_root.resolve())
     except ValueError as exc:
         raise RuntimeError(f"archive source is outside run root: {source}") from exc
+    try:
+        relative_target = target.resolve().relative_to(Path(report_dir).resolve())
+    except ValueError as exc:
+        raise RuntimeError(f"archive target is outside report directory: {target}") from exc
     if not source.is_file():
         raise FileNotFoundError(source)
     if source.suffix.lower() in FORBIDDEN_SUFFIXES:
@@ -410,19 +481,35 @@ def copy_lightweight(
     if source.stat().st_size > MAX_LIGHTWEIGHT_FILE_BYTES:
         raise RuntimeError(f"lightweight artifact exceeds size cap: {source}")
     target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(source, target)
     source_hash = sha256_file(source)
+    transformation = "identity"
+    if source.suffix.lower() == ".json":
+        payload = json.loads(source.read_text(encoding="utf-8"))
+        payload = redact_machine_local_paths(payload)
+        assert_no_machine_local_paths(payload, relative_source.as_posix())
+        # Preserve producer key order so path redaction changes only the
+        # machine-local values instead of rewriting every evidence line.
+        write_json(target, payload, sort_keys=False)
+        transformation = "json_machine_paths_redacted"
+    elif source.suffix.lower() == ".log":
+        write_text_lf(target, read_log_text(source))
+        transformation = "text_utf8_lf"
+    else:
+        shutil.copy2(source, target)
     target_hash = sha256_file(target)
-    if source_hash != target_hash:
+    if transformation == "identity" and source_hash != target_hash:
         raise RuntimeError(f"copied artifact hash mismatch: {source}")
     source_manifest.append(
         {
             "source_relative_path": relative_source.as_posix(),
-            "archive_relative_path": target.relative_to(target.parents[3]).as_posix()
-            if len(target.parents) > 3
-            else target.name,
+            "archive_relative_path": relative_target.as_posix(),
             "bytes": source.stat().st_size,
             "sha256": source_hash,
+            "source_bytes": source.stat().st_size,
+            "source_sha256": source_hash,
+            "archive_bytes": target.stat().st_size,
+            "archive_sha256": target_hash,
+            "transformation": transformation,
         }
     )
 
@@ -552,15 +639,17 @@ four tasks.
 - `training_summary.json` and `training_summary.csv`: four-task metrics,
   inventory binding, finite-state totals, and cross-seed aggregates.
 - `epoch_metrics.csv`: compact metrics for all 400 epochs.
-- `tasks/`: exact history, task manifest, train report, and sweep JSON files.
-- `logs/`: exact stdout/stderr plus `log_summary.json`.
+- `tasks/`: metric-complete history, task manifest, train report, and sweep
+  JSON files with machine-local absolute paths replaced by a stable marker.
+- `logs/`: complete stdout/stderr normalized to portable UTF-8/LF text plus
+  `log_summary.json`; original and archived hashes are both retained.
 - `tensorboard/`: all `{summary['tensorboard_event_count']}` small TensorBoard
   event files. A task may have more than one file after an automatic resume;
   every segment is preserved and hash-bound.
 - `checkpoint_manifest.json`: size and SHA-256 for all 12 local checkpoints.
   It does not contain checkpoint bytes.
-- `source_archive_manifest.json`: source-to-archive hash binding for copied
-  lightweight artifacts.
+- `source_archive_manifest.json`: separate source/archive size and SHA-256
+  bindings plus the named path-redaction or identity transformation.
 - `artifact_manifest.json`: size and SHA-256 for every archived file.
 
 No checkpoint, pickle, NumPy array, raw protocol data, CAD, or STEP file is
@@ -594,6 +683,11 @@ def validate_report(
         raise RuntimeError(
             f"expected {expected_events} TensorBoard events, found {len(events)}"
         )
+    for path in files:
+        if path.suffix.lower() != ".json":
+            continue
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        assert_no_machine_local_paths(payload, path.relative_to(report_dir).as_posix())
     return {
         "valid": True,
         "files": len(files),
@@ -601,6 +695,7 @@ def validate_report(
         "histories": len(histories),
         "tensorboard_events": len(events),
         "forbidden_artifacts": forbidden,
+        "machine_absolute_paths": False,
     }
 
 
@@ -671,7 +766,9 @@ def snapshot_from_state(
             "sweep": Path(str(task["sweep"])),
         }
         for source in sources.values():
-            copy_lightweight(source, target_task / source.name, run_root, source_manifest)
+            copy_lightweight(
+                source, target_task / source.name, run_root, report_dir, source_manifest
+            )
         for attempt in task.get("attempts") or []:
             number = int(attempt["attempt"])
             for stream in ("stdout", "stderr"):
@@ -683,7 +780,7 @@ def snapshot_from_state(
                     / f"seed{task['seed']}"
                     / f"attempt_{number:03d}.{stream}.log"
                 )
-                copy_lightweight(source, target, run_root, source_manifest)
+                copy_lightweight(source, target, run_root, report_dir, source_manifest)
                 logs.append(log_summary(target, task, number, stream))
         tensorboard_root = Path(str(task["task_root"])) / "tensorboard"
         events = sorted(tensorboard_root.rglob("events.out.tfevents.*"))
@@ -698,7 +795,7 @@ def snapshot_from_state(
                 / f"seed{task['seed']}"
                 / source.name
             )
-            copy_lightweight(source, target, run_root, source_manifest)
+            copy_lightweight(source, target, run_root, report_dir, source_manifest)
 
     generated_at = now()
     aggregates = arm_aggregates(task_rows, configured_arms if capacity_ab else ARMS)
@@ -799,7 +896,10 @@ def snapshot_from_state(
         report_dir / "source_archive_manifest.json",
         {"generated_at": generated_at, "artifacts": source_manifest},
     )
-    (report_dir / "README.md").write_text(render_readme(summary), encoding="utf-8")
+    with (report_dir / "README.md").open(
+        "w", encoding="utf-8", newline="\n"
+    ) as handle:
+        handle.write(render_readme(summary))
     validation = validate_report(
         report_dir,
         expected_histories=len(tasks),

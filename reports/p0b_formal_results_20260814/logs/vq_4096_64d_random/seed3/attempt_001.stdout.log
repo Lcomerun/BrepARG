@@ -1,6 +1,6 @@
 [12:25:46] ===== STAGE vqsweep =====
-[12:25:46] VQSWEEP: FSQ-VQVAE ³¬²Î¶Ô±È(¶ÌÑµÑ¡×îÓÅ)
-[12:30:16]   sweep Êı¾İ: train=60000 val=12000  (¶ÌÑµ 15 ep)
+[12:25:46] VQSWEEP: FSQ-VQVAE è¶…å‚å¯¹æ¯”(çŸ­è®­é€‰æœ€ä¼˜)
+[12:30:16]   sweep æ•°æ®: train=60000 val=12000  (çŸ­è®­ 15 ep)
 [12:31:21]   vq_4096_64d_random ep   0 train=0.28954 val=0.05733 best=0.05733 finite_train=469/469 finite_val=94/94
 [12:41:56]   vq_4096_64d_random ep  10 train=0.00882 val=0.00583 best=0.00563 finite_train=469/469 finite_val=94/94
 [12:52:31]   vq_4096_64d_random ep  20 train=0.00484 val=0.00366 best=0.00304 finite_train=469/469 finite_val=94/94

@@ -5,13 +5,21 @@ reports/p0a_assembly_chain_evidence_20260817/*.json text eol=lf
 reports/p0a_assembly_chain_evidence_20260817/*.jsonl text eol=lf
 reports/p0a_assembly_chain_evidence_20260817/*.csv text eol=lf
 reports/p0a_assembly_chain_evidence_20260817/*.md text eol=lf
+reports/p0b_formal_results_20260814/**/*.json text eol=lf
+reports/p0b_formal_results_20260814/*.json text eol=lf
+reports/p0b_formal_results_20260814/*.csv text eol=lf
+reports/p0b_formal_results_20260814/*.md text eol=lf
+reports/p0b_paired_assembly_measurement_20260817/*.json text eol=lf
+reports/p0b_paired_assembly_measurement_20260817/*.csv text eol=lf
+reports/p0b_paired_assembly_measurement_20260817/*.md text eol=lf
 reports/assembly_repair_single_solid_100cad_20260817/*.json text eol=lf
 reports/assembly_repair_single_solid_100cad_20260817/*.jsonl text eol=lf
 reports/assembly_repair_single_solid_100cad_20260817/*.md text eol=lf
 reports/training_results/**/*.log -text
 reports/training_results/**/events.out.tfevents.* -text
 reports/tensorboard/**/events.out.tfevents.* -text
-reports/**/logs/*.log -text
+reports/**/logs/*.log text eol=lf
+reports/**/logs/**/*.log text eol=lf
 reports/**/tensorboard/**/events.out.tfevents.* -text
 # Exported upstream patches preserve source whitespace for direct git apply.
 patches/upstream/*.patch -whitespace

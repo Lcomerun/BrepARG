@@ -2,11 +2,11 @@
   "logs": [
     {
       "attempt": 1,
-      "bytes": 1646,
+      "bytes": 1642,
       "last_nonempty_line": "[17:51:07] DONE {'vqsweep': 'PASS'} in 106.0min",
       "line_count": 17,
       "nonempty_line_count": 17,
-      "sha256": "5a0d9f2fea19d0d750d840f5532fd7eb86d9e43097389382c1392d85dd67e1ef",
+      "sha256": "54d9bd694b2ea541bf1a032679b1bed1d6fd896136d07212a31298ac66557320",
       "stream": "stdout",
       "task_id": "continuous_bypass_64d:seed3"
     },
@@ -22,11 +22,11 @@
     },
     {
       "attempt": 1,
-      "bytes": 1646,
+      "bytes": 1642,
       "last_nonempty_line": "[19:37:13] DONE {'vqsweep': 'PASS'} in 106.1min",
       "line_count": 17,
       "nonempty_line_count": 17,
-      "sha256": "f62086501156a76dca1a3b20c84af7bb981a2a91f39259e57c0d1d16e39a5391",
+      "sha256": "99226985c06e9b5640430fefcede79aa8a37cc5aa149a08e32b0cb02eb27e8e3",
       "stream": "stdout",
       "task_id": "continuous_bypass_64d:seed4"
     },
@@ -42,11 +42,11 @@
     },
     {
       "attempt": 1,
-      "bytes": 1610,
+      "bytes": 1606,
       "last_nonempty_line": "[14:16:06] DONE {'vqsweep': 'PASS'} in 110.3min",
       "line_count": 17,
       "nonempty_line_count": 17,
-      "sha256": "b7a8f9c6cbff4af30cb25b6e43419a7ff40084df3d7f2f9c6b1faaa1c4158936",
+      "sha256": "930e6bf18fc31fb06bccaf871eed03b9ddc3ac209267408a620783336cf0b879",
       "stream": "stdout",
       "task_id": "vq_4096_64d_random:seed3"
     },
@@ -62,11 +62,11 @@
     },
     {
       "attempt": 1,
-      "bytes": 1610,
+      "bytes": 1606,
       "last_nonempty_line": "[16:05:05] DONE {'vqsweep': 'PASS'} in 108.9min",
       "line_count": 17,
       "nonempty_line_count": 17,
-      "sha256": "72c4291a84739ef6bf2a2a8e27eb5729ef59d4a5f1c0c21387b523514cd9d8ac",
+      "sha256": "c9b3401a7dd97b5965a077c1ed571173ab33819f5838b582bfde42d866fcddb6",
       "stream": "stdout",
       "task_id": "vq_4096_64d_random:seed4"
     },

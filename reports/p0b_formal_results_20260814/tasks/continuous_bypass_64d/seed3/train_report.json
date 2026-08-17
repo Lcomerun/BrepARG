@@ -13,7 +13,7 @@
     "vq_bs": 128,
     "vq_val_samples": 12000,
     "protocol_v2": true,
-    "vq_tb_log_dir": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\tensorboard",
+    "vq_tb_log_dir": "<MACHINE_LOCAL_PATH>/tensorboard",
     "ar_epochs": 120,
     "ar_bs": 32,
     "vq_min_epochs": 100,
@@ -25,7 +25,7 @@
     "vq_grad_clip": 1.0,
     "vq_strict_nonfinite": true,
     "vq_auto_resume": true,
-    "vq_rolling_checkpoint": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\continuous_bypass_64d_rolling.pt",
+    "vq_rolling_checkpoint": "<MACHINE_LOCAL_PATH>/continuous_bypass_64d_rolling.pt",
     "vq_lr": 0.0003,
     "vq_resume_from": null,
     "vq_history_in": null,
@@ -69,15 +69,15 @@
         },
         "launch": {
           "argv": [
-            "D:\\luolin\\V13\\v6git\\breparg_improvements\\train.py",
+            "<MACHINE_LOCAL_PATH>/train.py",
             "--stage",
             "vqsweep"
           ],
           "relevant_env": {
             "NS_DISABLE_AMP_VQVAE": "0",
-            "NS_OUT": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3",
-            "NS_OUTBASE": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814",
-            "NS_PROTOCOL_DIR": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol",
+            "NS_OUT": "<MACHINE_LOCAL_PATH>/seed3",
+            "NS_OUTBASE": "<MACHINE_LOCAL_PATH>/p0b_stability_vq_bypass_60k_20260814",
+            "NS_PROTOCOL_DIR": "<MACHINE_LOCAL_PATH>/protocol",
             "NS_PROTOCOL_V2": "1",
             "NS_VQ_AUTO_RESUME": "1",
             "NS_VQ_BALANCE_BY_PARENT": "1",
@@ -100,7 +100,7 @@
             "NS_VQ_PLATEAU_METRIC": "curved_parent_mse",
             "NS_VQ_PRECISION": "bf16",
             "NS_VQ_REQUIRE_EXACT_CAPS": "1",
-            "NS_VQ_ROLLING_CHECKPOINT": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\continuous_bypass_64d_rolling.pt",
+            "NS_VQ_ROLLING_CHECKPOINT": "<MACHINE_LOCAL_PATH>/continuous_bypass_64d_rolling.pt",
             "NS_VQ_SAMPLES": "60000",
             "NS_VQ_SAVE_FINAL": "1",
             "NS_VQ_SCHEDULER_FACTOR": "0.5",
@@ -111,7 +111,7 @@
             "NS_VQ_SWEEP_ARMS": "continuous_bypass_64d",
             "NS_VQ_SWEEP_EPOCHS": "100",
             "NS_VQ_SWEEP_TRAIN_CAP": "60000",
-            "NS_VQ_TB_LOG_DIR": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\tensorboard",
+            "NS_VQ_TB_LOG_DIR": "<MACHINE_LOCAL_PATH>/tensorboard",
             "NS_VQ_VAL_SAMPLES": "12000"
           }
         },
@@ -222,8 +222,8 @@
           "lr": 0.0003,
           "best_val_recon": 0.00051,
           "epochs_ran": 100,
-          "history_path": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\continuous_bypass_64d_history.json",
-          "tensorboard_dir": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\tensorboard\\continuous_bypass_64d",
+          "history_path": "<MACHINE_LOCAL_PATH>/continuous_bypass_64d_history.json",
+          "tensorboard_dir": "<MACHINE_LOCAL_PATH>/continuous_bypass_64d",
           "final_val_metrics": {
             "code_usage": {
               "tokens": 48000,
@@ -354,9 +354,9 @@
           },
           "checkpoint_epoch": 98,
           "checkpoint_val_recon": 0.00050906,
-          "checkpoint_best": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\continuous_bypass_64d_best.pt",
-          "checkpoint_final": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\continuous_bypass_64d_final.pt",
-          "checkpoint_rolling": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\continuous_bypass_64d\\seed3\\continuous_bypass_64d_rolling.pt",
+          "checkpoint_best": "<MACHINE_LOCAL_PATH>/continuous_bypass_64d_best.pt",
+          "checkpoint_final": "<MACHINE_LOCAL_PATH>/continuous_bypass_64d_final.pt",
+          "checkpoint_rolling": "<MACHINE_LOCAL_PATH>/continuous_bypass_64d_rolling.pt",
           "experiment_signature": "6b02501165f3692c78e95c30f9f4c04ec64e8b3ce4a5a470cf760d11b26c9503",
           "precision": {
             "name": "bf16",

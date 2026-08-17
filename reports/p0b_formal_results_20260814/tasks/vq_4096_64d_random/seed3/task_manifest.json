@@ -1,7 +1,7 @@
 {
   "command": [
-    "C:\\Users\\YU\\.conda\\envs\\brepgen_env\\python.exe",
-    "D:\\luolin\\V13\\v6git\\breparg_improvements\\train.py",
+    "<MACHINE_LOCAL_PATH>/python.exe",
+    "<MACHINE_LOCAL_PATH>/train.py",
     "--stage",
     "vqsweep"
   ],
@@ -9,11 +9,11 @@
   "environment": {
     "GIT_CONFIG_COUNT": "1",
     "GIT_CONFIG_KEY_0": "safe.directory",
-    "GIT_CONFIG_VALUE_0": "D:/luolin/V13/v6git",
+    "GIT_CONFIG_VALUE_0": "<MACHINE_LOCAL_PATH>/v6git",
     "NS_DISABLE_AMP_VQVAE": "0",
-    "NS_OUT": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\vq_4096_64d_random\\seed3",
-    "NS_OUTBASE": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814",
-    "NS_PROTOCOL_DIR": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol",
+    "NS_OUT": "<MACHINE_LOCAL_PATH>/seed3",
+    "NS_OUTBASE": "<MACHINE_LOCAL_PATH>/p0b_stability_vq_bypass_60k_20260814",
+    "NS_PROTOCOL_DIR": "<MACHINE_LOCAL_PATH>/protocol",
     "NS_PROTOCOL_V2": "1",
     "NS_VQ_AUTO_RESUME": "1",
     "NS_VQ_BALANCE_BY_PARENT": "1",
@@ -36,7 +36,7 @@
     "NS_VQ_PLATEAU_METRIC": "curved_parent_mse",
     "NS_VQ_PRECISION": "bf16",
     "NS_VQ_REQUIRE_EXACT_CAPS": "1",
-    "NS_VQ_ROLLING_CHECKPOINT": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\vq_4096_64d_random\\seed3\\vq_4096_64d_random_rolling.pt",
+    "NS_VQ_ROLLING_CHECKPOINT": "<MACHINE_LOCAL_PATH>/vq_4096_64d_random_rolling.pt",
     "NS_VQ_SAMPLES": "60000",
     "NS_VQ_SAVE_FINAL": "1",
     "NS_VQ_SCHEDULER_FACTOR": "0.5",
@@ -47,7 +47,7 @@
     "NS_VQ_SWEEP_ARMS": "vq_4096_64d_random",
     "NS_VQ_SWEEP_EPOCHS": "100",
     "NS_VQ_SWEEP_TRAIN_CAP": "60000",
-    "NS_VQ_TB_LOG_DIR": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\vq_4096_64d_random\\seed3\\tensorboard",
+    "NS_VQ_TB_LOG_DIR": "<MACHINE_LOCAL_PATH>/tensorboard",
     "NS_VQ_VAL_SAMPLES": "12000"
   },
   "schema": "p0b-stability-retest-v1",

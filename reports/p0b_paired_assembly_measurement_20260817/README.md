@@ -21,4 +21,6 @@ The GT 84%, bypass@300k 70%, and FSQ@300k 49% values are historical strict-only 
 
 ## Runtime evidence
 
-`measurement_runtime_manifest.json` records the completed calibration/audit stages, return codes, cohort identity hash, checkpoint SHA-256 values, and the four local log hashes. It intentionally omits machine-local paths, STEP bytes, checkpoint bytes, and raw CAD data.
+`measurement_runtime_manifest.json` records the completed calibration/audit stages, return codes, cohort identity hash, checkpoint SHA-256 values, four local log hashes, path-redacted argv templates, and Git blob/SHA-256 bindings for the repository-owned calibration and OCC-audit tools. It confirms that both arms used `max_cads=100`, seed `20260809`, CUDA, batch size `64`, and `joint_iterations=200`; only checkpoint and arm-local input/output paths differ.
+
+The manifest intentionally omits machine-local paths, STEP bytes, checkpoint bytes, raw CAD data, and upstream `BrepARG/` source. Both arms used the same local `BrepARG` root, but the archived evidence does not independently bind those upstream bytes; this limitation is explicit rather than inferred away.

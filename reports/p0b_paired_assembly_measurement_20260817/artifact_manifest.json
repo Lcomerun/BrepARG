@@ -1,8 +1,8 @@
 {
   "policy": "Checkpoint, STEP, NPZ, raw CAD, and upstream BrepARG bytes remain local.",
   "artifacts": [
-    {"path": "README.md", "bytes": 1772, "sha256": "7f1c5bf54fa566e787b75b112ee3b0f0b82e45f1a8096df4f125eeb49ba7834b"},
-    {"path": "measurement_runtime_manifest.json", "bytes": 3606, "sha256": "c66eea9513836d22721594b43afe30732a71d93707393917fae2ab0e33222817"},
+    {"path": "README.md", "bytes": 2271, "sha256": "240ccbb20b12cc591daaa27e1b617d7a1ce363d76d7fe94190397daccff9f855"},
+    {"path": "measurement_runtime_manifest.json", "bytes": 6024, "sha256": "f17983bad8200b938919d68042b1e74499a098ab64916d6db3f112813adb7987"},
     {"path": "p0b_paired_assembly_measurement.csv", "bytes": 47647, "sha256": "4bba8ba329580564a0f0aac4a66e040bcb8eb9d399f72b5c7c4e6999b0e3d4db"},
     {"path": "p0b_paired_assembly_measurement.json", "bytes": 2735, "sha256": "1477c8ecef7f6591bf3a6c924b7e50d94bb00ee6b75801704c9ffdfe1add2b36"},
     {"path": "p0b_paired_assembly_measurement.md", "bytes": 1118, "sha256": "e59ffe0e8ea81a680624c14bcc6cba4380eb778bdc683833abc58ed6874f7a7f"}

@@ -1,5 +1,5 @@
 {
-  "schema": "p0b-paired-assembly-runtime-v1",
+  "schema": "p0b-paired-assembly-runtime-v2",
   "status": "COMPLETED",
   "completed_at": "2026-08-17T00:59:16+08:00",
   "measurement_signature": "ffe611ae962490aa374820f66c7348436c6a154dc98e98947ca3b8f851a5bceb",
@@ -14,27 +14,88 @@
     "continuous_bypass_64d": "0be5396fe98f1e05b775b2a41485136470d6e6dadba6a3492fa6eed8cd8ff5df",
     "vq_4096_64d_random": "01a8be31d9b6632617fe75cac59400cdc42b3d95b5b257d41c9003dcdb888827"
   },
+  "assembly_chain_contract": {
+    "unrepaired_chain": true,
+    "same_parameters_verified_between_arms": true,
+    "only_arm_specific_arguments": [
+      "--checkpoint",
+      "--manifest",
+      "--step-root",
+      "--output-dir"
+    ],
+    "max_cads": 100,
+    "selection_seed": 20260809,
+    "device": "cuda",
+    "batch_size": 64,
+    "joint_iterations": 200,
+    "attempts_denominator_includes_all_failures": true,
+    "calibration_argv_template": [
+      "<PYTHON>",
+      "tools/run_assembly_calibration_oracle.py",
+      "--protocol-dir", "<PROTOCOL_DIR>",
+      "--max-cads", "100",
+      "--seed", "20260809",
+      "--breparg-root", "<BREPARG_ROOT>",
+      "--checkpoint", "<ARM>=<CHECKPOINT>",
+      "--output-dir", "<ARM_CALIBRATION_DIR>",
+      "--device", "cuda",
+      "--batch-size", "64",
+      "--joint-iterations", "200"
+    ],
+    "validity_audit_argv_template": [
+      "<PYTHON>",
+      "tools/audit_assembly_step_validity.py",
+      "--manifest", "<ARM_CALIBRATION_MANIFEST>",
+      "--breparg-root", "<BREPARG_ROOT>",
+      "--step-root", "<ARM_STEP_ROOT>",
+      "--output-dir", "<ARM_AUDIT_DIR>"
+    ],
+    "repository_source_binding": {
+      "pre_run_commit": "37e5dd8967db14678e05a64873670403929962e0",
+      "paired_measurement_commit": "09b09da0efbf8eb01dca6554ad5f223ca6f8949f",
+      "archive_commit": "82a236aca9b65ecb0005a384d4e89213f7e79437",
+      "chain_blobs_identical_across_commits": true,
+      "run_assembly_calibration_oracle.py": {
+        "git_blob_oid": "6b5197ce7e7020dfd1f2b5bdea65ee8652396547",
+        "sha256": "8e1d9026d264352d84d0b92afcbec3491eb54d068ce97a582af94b2aca919911"
+      },
+      "audit_assembly_step_validity.py": {
+        "git_blob_oid": "56731315ce32f106799499c32143d9bc4439a771",
+        "sha256": "51de0f9766fa9a86734571fff13b533e7cae433e8b2c6799f6082e8a5e6352b2"
+      }
+    },
+    "upstream_breparg_source_archived": false,
+    "source_binding_limitation": "The report proves both arms used one BrepARG root but does not archive or independently bind those upstream source bytes."
+  },
   "commands": [
     {
       "stage": "calibration_vq_4096_64d_random",
+      "arm": "vq_4096_64d_random",
+      "argv_profile": "calibration_argv_template",
       "started_at": "2026-08-17T00:47:08+08:00",
       "finished_at": "2026-08-17T00:53:06+08:00",
       "returncode": 0
     },
     {
       "stage": "validity_audit_vq_4096_64d_random",
+      "arm": "vq_4096_64d_random",
+      "argv_profile": "validity_audit_argv_template",
       "started_at": "2026-08-17T00:53:06+08:00",
       "finished_at": "2026-08-17T00:53:21+08:00",
       "returncode": 0
     },
     {
       "stage": "calibration_continuous_bypass_64d",
+      "arm": "continuous_bypass_64d",
+      "argv_profile": "calibration_argv_template",
       "started_at": "2026-08-17T00:53:21+08:00",
       "finished_at": "2026-08-17T00:59:04+08:00",
       "returncode": 0
     },
     {
       "stage": "validity_audit_continuous_bypass_64d",
+      "arm": "continuous_bypass_64d",
+      "argv_profile": "validity_audit_argv_template",
       "started_at": "2026-08-17T00:59:04+08:00",
       "finished_at": "2026-08-17T00:59:16+08:00",
       "returncode": 0

@@ -64,7 +64,8 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 13:15 +08:00) Tested an explicit OCC `ShapeFix_Wire`/`ShapeFix_Face` pcurve self-intersection mode twice on the same 16 failures. It retained the two directed-trim wire-build recoveries but restored none of the ten self-intersection cases. Generic OCC self-intersection repair is therefore rejected as the next global switch; the formal 95/100 GT gate remains unmet.
 - [ ] Re-run the frozen 100 original-control CADs after each repair, preserve all 84 original strict-valid CADs, reach at least 95 strict-valid CADs, and publish the repair-to-restored/regressed-case map.
 - [ ] Re-measure the selected capacity arm through the repaired chain and apply the final release gate.
-- [x] (2026-08-17 21:45 +08:00) Snapshotted Git-safe capacity training evidence into `reports/capacity_ab_60k_v2_20260817/`, the selector negative result into `reports/assembly_selector_invalid16_v3_20260817/`, and the fixed-cohort capacity decision into `reports/capacity_ab_assembly_measurement_20260817/`. Validation found no checkpoint, raw-data, STEP, pickle, or NumPy content; the fixed-cohort report also contains no machine paths. The complete training histories retain hash-bound machine-local paths for reproducibility, but no referenced model or data bytes are committed. The evidence is committed and pushed normally to `protocol-v5-assembly-selector`.
+- [x] (2026-08-17 21:45 +08:00) Snapshotted Git-safe capacity training evidence into `reports/capacity_ab_60k_v2_20260817/`, the selector negative result into `reports/assembly_selector_invalid16_v3_20260817/`, and the fixed-cohort capacity decision into `reports/capacity_ab_assembly_measurement_20260817/`. Validation found no checkpoint, raw-data, STEP, pickle, or NumPy content; the fixed-cohort report also contains no machine paths. The evidence is committed and pushed normally to `protocol-v5-assembly-selector`.
+- [x] (2026-08-17 22:50 +08:00) Hardened the earlier P0-B formal archive after a Git-blob audit found two evidence defects: 16 copied task JSON files retained machine-local absolute paths, and 25 of 37 manifest entries described Windows CRLF worktree bytes rather than Git's LF blobs. The snapshotter now redacts JSON paths, records separate source and archive SHA-256/size bindings, writes JSON as canonical LF, transcodes Windows GBK console logs to UTF-8/LF, rejects residual absolute paths, and preserves TensorBoard events byte-for-byte. The paired 100-CAD runtime manifest now includes path-free argv templates, the exact shared `max_cads=100`, seed `20260809`, CUDA, batch `64`, and `joint_iterations=200` contract, plus Git blob and SHA-256 bindings for the calibration and OCC-audit tools. Upstream `BrepARG/` bytes remain excluded and their unbound-source limitation is explicit.
 
 ## Surprises & Discoveries
 
@@ -179,6 +180,9 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - Observation: Automatic training resume can legitimately produce multiple TensorBoard event files for one task.
   Evidence: RVQ seed 4 has two event files, one before and one after its Windows checkpoint-replace recovery. The first Git-safe archiver rejected the completed formal run because it assumed exactly one event per task. The archive now requires at least one event per task, preserves every segment, records a per-task count, and validates the exact total copied count.
 
+- Observation: A worktree-valid artifact manifest is not necessarily a Git-blob-valid manifest on Windows.
+  Evidence: The original P0-B archive was numerically complete and contained no model bytes, but 25 of 37 manifest entries differed after Git normalized CRLF text to LF. The same archive also retained 152 absolute-path occurrences across 16 task JSON files. Canonical LF output, explicit text attributes, structured JSON path redaction, and separate source/archive hashes are now part of the snapshot contract.
+
 - Observation: Lower reconstruction error within the capacity sweep did not imply better strict assembly validity.
   Evidence: RVQ seed 3 reached a lower best curved parent MSE than VQ-8192 seed 3 (`0.00199845` versus `0.00230432`), while their fixed-cohort curved-MSE medians were nearly identical (`0.000221650` versus `0.000221517`). RVQ nevertheless assembled at 65/100 strict versus VQ-8192 at 69/100. This validates the pre-registered choice to use paired strict validity rather than reconstruction MSE as the capacity decision endpoint.
 
@@ -288,6 +292,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
   Rationale: A resumed process has a new event writer and therefore a second event file. Requiring exactly one file would discard valid evidence or falsely reject a fully validated run. The archive still rejects zero event files, copies every small segment, and hashes every copied artifact.
   Date/Author: 2026-08-17 / Codex.
 
+- Decision: Keep exact source hashes while publishing path-redacted task JSON and Git-canonical LF report bytes.
+  Rationale: Machine paths are not scientific inputs and should not be needed to read the archive on another device. The source-to-archive manifest therefore binds both byte streams and names the JSON transformation, while logs and TensorBoard events remain identity copies. This preserves provenance without making a local drive layout part of the public evidence contract.
+  Date/Author: 2026-08-17 / Codex.
+
 - Decision: Select `vq_8192_64d_random` and reject RVQ for the downstream representation path.
   Rationale: VQ-8192 reaches 69/100 strict validity, only one point below same-scale bypass and inside the pre-registered 5-point capacity gate. RVQ reaches 65/100; its five paired wins versus nine losses are not significant (`p=0.42395`) and cannot justify an estimated 36 percent longer sequence. This selection resolves quantizer capacity only and does not waive the assembly-chain gate.
   Date/Author: 2026-08-17 / Codex.
@@ -382,7 +390,7 @@ Completed capacity decision:
     RVQ-vs-VQ McNemar p:     0.4239501953125
     selected arm:            vq_8192_64d_random
 
-No new local checkpoint is copied into Git. For every checkpoint used in a conclusion, the report records its absolute local role, byte size, SHA-256, arm, seed, epoch, experiment signature, protocol identity, and exact inventory identity.
+No new local checkpoint is copied into Git. For every checkpoint used in a conclusion, the report records its run-relative role, byte size, SHA-256, arm, seed, epoch, experiment signature, protocol identity, and exact inventory identity.
 
 ## Interfaces and Dependencies
 
@@ -449,3 +457,5 @@ Revision note 2026-08-17 21:02 +08:00: Closed the second pre-pilot review findin
 Revision note 2026-08-17 21:30 +08:00: Recorded completion and formal validation of all four schema-v2 capacity tasks, the live 100-CAD capacity measurement, and the formal negative selector pilot. The selector misses one pre-registered restore because the otherwise valid candidate changes topology, so the full 100-CAD selector is explicitly blocked. Added Git-safe support for multiple TensorBoard event segments after a signature-compatible automatic resume and archived both the capacity training evidence and selector negative result.
 
 Revision note 2026-08-17 21:45 +08:00: Recorded the completed fixed-cohort capacity measurement and selected VQ-8192. It reaches 69/100 strict against bypass at 70/100, while RVQ reaches 65/100 and has no significant paired advantage. Archived the 100-paired-row, 300-attempt Git-safe report, updated ADR-0002 with the measured decision, and kept boundary consistency, sequence regeneration, and AR blocked on the unresolved assembly-chain gate.
+
+Revision note 2026-08-17 22:50 +08:00: Hardened the P0-B formal archive against machine-path leakage and Windows/Git line-ending hash drift. Added separate source/archive bindings and residual-path rejection, regenerated the lightweight evidence without changing metrics, and expanded the paired runtime manifest so the shared unrepaired-chain parameters and repository-owned source blobs are independently auditable from Git.

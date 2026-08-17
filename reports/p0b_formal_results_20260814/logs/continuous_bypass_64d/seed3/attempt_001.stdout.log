@@ -1,6 +1,6 @@
 [16:05:08] ===== STAGE vqsweep =====
-[16:05:08] VQSWEEP: FSQ-VQVAE ³¬²Î¶Ô±È(¶ÌÑµÑ¡×îÓÅ)
-[16:08:19]   sweep Êı¾İ: train=60000 val=12000  (¶ÌÑµ 15 ep)
+[16:05:08] VQSWEEP: FSQ-VQVAE è¶…å‚å¯¹æ¯”(çŸ­è®­é€‰æœ€ä¼˜)
+[16:08:19]   sweep æ•°æ®: train=60000 val=12000  (çŸ­è®­ 15 ep)
 [16:09:21]   continuous_bypass_64d ep   0 train=0.08669 val=0.02934 best=0.02934 finite_train=469/469 finite_val=94/94
 [16:19:39]   continuous_bypass_64d ep  10 train=0.00160 val=0.00178 best=0.00178 finite_train=469/469 finite_val=94/94
 [16:29:56]   continuous_bypass_64d ep  20 train=0.00085 val=0.00136 best=0.00123 finite_train=469/469 finite_val=94/94

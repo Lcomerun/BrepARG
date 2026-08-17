@@ -133,7 +133,7 @@
       }
     },
     "experiment_signature": "de93614d0bdace4dcb93a629db1eeab10dbe2e9af7d9f818cdf370fb57c6ec66",
-    "rolling_checkpoint_path": "D:\\luolin\\V13\\local_runs\\p0b_stability_vq_bypass_60k_20260814\\tasks\\vq_4096_64d_random\\seed3\\vq_4096_64d_random_rolling.pt",
+    "rolling_checkpoint_path": "<MACHINE_LOCAL_PATH>/vq_4096_64d_random_rolling.pt",
     "min_epochs": 100,
     "patience": 100,
     "min_delta": 1e-05,
