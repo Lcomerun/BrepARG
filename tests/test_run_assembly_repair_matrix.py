@@ -73,6 +73,14 @@ def test_profile_kwargs_keep_switches_independent():
     assert precision_without_curve_rescue["surface_fit_precision"] is True
     assert precision_without_curve_rescue["curve_fit_rescue"] is False
     assert precision_without_curve_rescue["local_intersection_topology"] is True
+    precision_interpolate = profile_kwargs(
+        parse_profiles(["directed_trim_surface_precision_curve_interpolate"])[0]
+    )
+    assert precision_interpolate["directed_trim"] is True
+    assert precision_interpolate["surface_fit_precision"] is True
+    assert precision_interpolate["curve_interpolate"] is True
+    assert precision_interpolate["curve_fit_rescue"] is False
+    assert precision_interpolate["local_intersection_topology"] is False
     assert profile_kwargs(
         RepairProfile(
             "local_intersection_topology", ("local_intersection_topology",)

@@ -2,11 +2,12 @@
 
 The selector retains the current guarded directed/local-topology result whenever
 it is project-strict-valid.  Only a primary failure may try near-vertex
-reconciliation, curve interpolation, and finally high-precision surface fitting.
-A fallback must additionally be native-valid, both-valid, and geometry/topology
-preserving before it may replace the primary output.  The runner keeps all
-failed candidates in a per-CAD selection record while retaining exactly one
-final denominator row.
+reconciliation, curve interpolation, high-precision surface fitting with local
+topology repair, and finally high-precision surface fitting with curve
+interpolation.  A fallback must additionally be native-valid, both-valid, and
+geometry/topology preserving before it may replace the primary output.  The
+runner keeps all failed candidates in a per-CAD selection record while retaining
+exactly one final denominator row.
 """
 
 from __future__ import annotations
@@ -90,10 +91,14 @@ INTERPOLATE_PROFILE_NAME = "directed_trim_curve_interpolate_local_intersection_t
 SURFACE_PRECISION_PROFILE_NAME = (
     "directed_trim_surface_precision_local_intersection_topology"
 )
+SURFACE_PRECISION_CURVE_INTERPOLATE_PROFILE_NAME = (
+    "directed_trim_surface_precision_curve_interpolate"
+)
 FALLBACK_PROFILE_NAMES = (
     NEAR_VERTEX_PROFILE_NAME,
     INTERPOLATE_PROFILE_NAME,
     SURFACE_PRECISION_PROFILE_NAME,
+    SURFACE_PRECISION_CURVE_INTERPOLATE_PROFILE_NAME,
 )
 
 # This identity set is registered before executing the selector.  It comes
@@ -107,6 +112,7 @@ EXPECTED_BOTH_VALID_RESTORATIONS = frozenset(
         "00029780_a4788d5955c04fe1886666b7_step_000",
         "00032004_b91639b3cc4b41c7bf6a854d_step_000",
         "00051587_446e8810d6884cae80689579_step_000",
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
     }
 )
 EXPECTED_FALLBACK_ACCEPTED_IDS = frozenset(
@@ -114,6 +120,7 @@ EXPECTED_FALLBACK_ACCEPTED_IDS = frozenset(
         "00000444_4ed4c78d6d754aac90876fc2_step_003",
         "00002441_179a8df075c94d0596b1f20d_step_010",
         "00051587_446e8810d6884cae80689579_step_000",
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
     }
 )
 
@@ -131,15 +138,27 @@ def canonical_result_sha256(result: Mapping[str, Any]) -> str:
 
 
 def selector_profiles() -> tuple[RepairProfile, tuple[RepairProfile, ...]]:
-    primary, near_vertex, interpolate, surface_precision = parse_profiles(
+    (
+        primary,
+        near_vertex,
+        interpolate,
+        surface_precision,
+        surface_precision_curve_interpolate,
+    ) = parse_profiles(
         [
             PRIMARY_PROFILE_NAME,
             NEAR_VERTEX_PROFILE_NAME,
             INTERPOLATE_PROFILE_NAME,
             SURFACE_PRECISION_PROFILE_NAME,
+            SURFACE_PRECISION_CURVE_INTERPOLATE_PROFILE_NAME,
         ]
     )
-    return primary, (near_vertex, interpolate, surface_precision)
+    return primary, (
+        near_vertex,
+        interpolate,
+        surface_precision,
+        surface_precision_curve_interpolate,
+    )
 
 
 def _validity_components(row: Mapping[str, Any]) -> dict[str, Any]:
@@ -1037,7 +1056,7 @@ def summarize_selector(
             "protocol_passed": selector_protocol_passed,
         },
         # This is intentionally distinct from the P0-A release gate.  Passing
-        # the selector's registered 90/87 proof does not waive the 95/100
+        # the selector's registered proof does not waive the 95/100
         # assembly-release requirement.
         "selector_protocol_passed": selector_protocol_passed,
         "accepted_profiles": [],
