@@ -1,0 +1,45 @@
+{
+  "attempts": 16,
+  "payload": {
+    "breparg_runtime": {
+      "utils_sha256": "e2509a844db0a9e0f8eaf670fffb9d4ad9e240af755155d25891d37b4468d521"
+    },
+    "calibration_manifest_sha256": "61730dd69a22f2fadc5a4cb007da6e7dc2fc03bba93f3cc64b37c09ade3de875",
+    "full_cohort_count": 100,
+    "full_cohort_signature": "e3003eb09d8822bfb6cb0d1a97e017a57823a24e74256daf44d7daf7afee1904",
+    "historical_invalid_only": true,
+    "isolate_cad_workers": true,
+    "joint_iterations": 200,
+    "matrix_schema": "assembly-repair-matrix-v1",
+    "max_cads": null,
+    "profiles": [
+      {
+        "name": "directed_trim_curve_rescue_local_intersection_topology",
+        "switches": [
+          "directed_trim",
+          "curve_fit_rescue",
+          "local_intersection_topology"
+        ]
+      }
+    ],
+    "repository": {
+      "commit": "6f7436da50a5f455fd9af3c806676ac0f49b8f9f",
+      "dirty": true,
+      "source_sha256": {
+        "tools/assembly_repair.py": "17316723ae23f1ddff614b64d41698149a079bccb96150cc75435555386e2758",
+        "tools/directed_trim_assembly.py": "86314ab77b3dffe963427e3493662869f05839e0805d9018a51cd005238910c2",
+        "tools/local_wire_topology_repair.py": "94ca7115851568fca9835a8496dbbf77501c1206125c453d8420e3e39112b63b",
+        "tools/run_assembly_repair_matrix.py": "0573fdd6a643a31625168d6b2022fcb6222803b73a211c8b91857d66293c27c7"
+      },
+      "status_sha256": "ff37f2592dafdcb0776a53d14480e8c5a50ed60f11b97e081f9ecc5f69986b60"
+    },
+    "schema": "assembly-repair-run-v2",
+    "selected_cohort_count": 16,
+    "selected_cohort_signature": "892eb91d361eb07dbd6e13aba4f8142356f99a9079138fc91cc49569f4166e74",
+    "worker_timeout_seconds": 180.0
+  },
+  "schema": "assembly-repair-run-v2",
+  "signature": "66972a01f8d1e2111649944463f5c753368fcde80ab600727f355bfdb1f83dab",
+  "status": "COMPLETED_PARTIAL",
+  "summary_sha256": "4a9681c1722cbd21af8707264b6bbbc23b8afe98706b08c25a5331278bc4fbdc"
+}

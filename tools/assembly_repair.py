@@ -16,6 +16,7 @@ import numpy as np
 REPAIR_SWITCHES = (
     "directed_trim",
     "curve_fit_fallback",
+    "curve_fit_rescue",
     "wire_continuity",
     "single_solid",
     "pcurve_self_intersection",
@@ -34,12 +35,21 @@ class RepairProfile:
             raise ValueError(f"unknown assembly repair switches: {unknown}")
         if len(set(self.switches)) != len(self.switches):
             raise ValueError("assembly repair switches must be unique")
-        incompatible = {"pcurve_self_intersection", "local_intersection_topology"}
-        if incompatible <= set(self.switches):
-            raise ValueError(
+        incompatible_pairs = (
+            (
+                {"pcurve_self_intersection", "local_intersection_topology"},
                 "pcurve_self_intersection and local_intersection_topology are "
-                "alternative OCC repair strategies and cannot be combined"
-            )
+                "alternative OCC repair strategies and cannot be combined",
+            ),
+            (
+                {"curve_fit_fallback", "curve_fit_rescue"},
+                "curve_fit_fallback and curve_fit_rescue are alternative curve "
+                "repair strategies and cannot be combined",
+            ),
+        )
+        for incompatible, message in incompatible_pairs:
+            if incompatible <= set(self.switches):
+                raise ValueError(message)
 
     def enabled(self, name: str) -> bool:
         return name in self.switches
@@ -63,9 +73,14 @@ DIRECTED_LOCAL_TOPOLOGY_PROFILE = RepairProfile(
     "directed_trim_local_intersection_topology",
     ("directed_trim", "local_intersection_topology"),
 )
+DIRECTED_RESCUE_LOCAL_TOPOLOGY_PROFILE = RepairProfile(
+    "directed_trim_curve_rescue_local_intersection_topology",
+    ("directed_trim", "curve_fit_rescue", "local_intersection_topology"),
+)
 DEFAULT_PROFILES = (
     BASELINE_PROFILE, *INDIVIDUAL_PROFILES, DIRECTED_CURVE_PROFILE, PCURVE_PROFILE,
-    DIRECTED_LOCAL_TOPOLOGY_PROFILE, COMBINED_PROFILE
+    DIRECTED_LOCAL_TOPOLOGY_PROFILE, DIRECTED_RESCUE_LOCAL_TOPOLOGY_PROFILE,
+    COMBINED_PROFILE
 )
 
 

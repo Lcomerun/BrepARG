@@ -50,6 +50,7 @@ def construct_brep_directed(
     single_solid: bool = True,
     pcurve_self_intersection: bool = False,
     local_intersection_topology: bool = False,
+    curve_fit_rescue: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks."""
     root = Path(breparg_root).resolve()
@@ -96,44 +97,95 @@ def construct_brep_directed(
 
     edges = []
     curve_tolerances = []
+    historical_fit_attempts = ((0, 8, 5e-3), (0, 8, 8e-3), (0, 8, 5e-2))
     for edge_index, points in enumerate(edge_wcs):
+        raw_points = np.asarray(points, dtype=np.float64)
+        fit_passes = []
         if curve_fit_fallback:
-            cleaned, point_stats = sanitize_curve_points(points)
-            fit_attempts = curve_fit_attempts()
+            cleaned, point_stats = sanitize_curve_points(raw_points)
+            fit_passes.append(
+                ("fallback_sanitized", cleaned, point_stats, curve_fit_attempts())
+            )
         else:
-            cleaned = np.asarray(points, dtype=np.float64)
-            point_stats = {"input_points": len(cleaned), "retained_points": len(cleaned)}
-            fit_attempts = ((0, 8, 5e-3), (0, 8, 8e-3), (0, 8, 5e-2))
-        values = TColgp_Array1OfPnt(1, len(cleaned))
-        for point_index, point in enumerate(cleaned, 1):
-            values.SetValue(point_index, gp_Pnt(*map(float, point)))
+            fit_passes.append(
+                (
+                    "historical",
+                    raw_points,
+                    {"input_points": len(raw_points), "retained_points": len(raw_points)},
+                    historical_fit_attempts,
+                )
+            )
         curve = None
-        for min_degree, max_degree, tolerance in fit_attempts:
-            attempt = {
-                "edge_index": edge_index, "min_degree": min_degree,
-                "max_degree": max_degree, "tolerance": tolerance,
-                **point_stats, "status": "pending",
-            }
-            try:
-                fitter = GeomAPI_PointsToBSpline(
-                    values, min_degree, max_degree, GeomAbs_C2, tolerance
-                )
-                if fitter.IsDone():
-                    curve = fitter.Curve()
-                    curve_tolerances.append(tolerance)
-                    attempt["status"] = "succeeded"
-                    diagnostics["curve_fit_attempts"].append(attempt)
-                    break
-                attempt["status"] = "not_done"
-            except Exception as exc:
-                attempt.update(
-                    status="failed", error_type=type(exc).__name__, error=str(exc)
-                )
-            diagnostics["curve_fit_attempts"].append(attempt)
+        for fit_mode, candidate_points, point_stats, fit_attempts in fit_passes:
+            values = TColgp_Array1OfPnt(1, len(candidate_points))
+            for point_index, point in enumerate(candidate_points, 1):
+                values.SetValue(point_index, gp_Pnt(*map(float, point)))
+            for min_degree, max_degree, tolerance in fit_attempts:
+                attempt = {
+                    "edge_index": edge_index, "fit_mode": fit_mode,
+                    "min_degree": min_degree,
+                    "max_degree": max_degree, "tolerance": tolerance,
+                    **point_stats, "status": "pending",
+                }
+                try:
+                    fitter = GeomAPI_PointsToBSpline(
+                        values, min_degree, max_degree, GeomAbs_C2, tolerance
+                    )
+                    if fitter.IsDone():
+                        curve = fitter.Curve()
+                        curve_tolerances.append(tolerance)
+                        attempt["status"] = "succeeded"
+                        diagnostics["curve_fit_attempts"].append(attempt)
+                        break
+                    attempt["status"] = "not_done"
+                except Exception as exc:
+                    attempt.update(
+                        status="failed", error_type=type(exc).__name__, error=str(exc)
+                    )
+                diagnostics["curve_fit_attempts"].append(attempt)
             if curve is not None:
                 break
-            else:
-                continue
+        if curve is None and curve_fit_rescue and not curve_fit_fallback:
+            try:
+                cleaned, point_stats = sanitize_curve_points(raw_points)
+                values = TColgp_Array1OfPnt(1, len(cleaned))
+                for point_index, point in enumerate(cleaned, 1):
+                    values.SetValue(point_index, gp_Pnt(*map(float, point)))
+                for min_degree, max_degree, tolerance in curve_fit_attempts():
+                    attempt = {
+                        "edge_index": edge_index, "fit_mode": "rescue_sanitized",
+                        "min_degree": min_degree,
+                        "max_degree": max_degree, "tolerance": tolerance,
+                        **point_stats, "status": "pending",
+                    }
+                    try:
+                        fitter = GeomAPI_PointsToBSpline(
+                            values, min_degree, max_degree, GeomAbs_C2, tolerance
+                        )
+                        if fitter.IsDone():
+                            curve = fitter.Curve()
+                            curve_tolerances.append(tolerance)
+                            attempt["status"] = "succeeded"
+                            diagnostics["curve_fit_attempts"].append(attempt)
+                            break
+                        attempt["status"] = "not_done"
+                    except Exception as exc:
+                        attempt.update(
+                            status="failed", error_type=type(exc).__name__, error=str(exc)
+                        )
+                    diagnostics["curve_fit_attempts"].append(attempt)
+            except ValueError as exc:
+                diagnostics["curve_fit_attempts"].append(
+                    {
+                        "edge_index": edge_index,
+                        "fit_mode": "rescue_sanitized",
+                        "status": "sanitize_failed",
+                        "input_points": len(raw_points),
+                        "retained_points": 0,
+                        "error_type": type(exc).__name__,
+                        "error": str(exc),
+                    }
+                )
         if curve is None:
             raise RuntimeError(f"curve_fit_not_done edge={edge_index}")
         builder = BRepBuilderAPI_MakeEdge(curve)

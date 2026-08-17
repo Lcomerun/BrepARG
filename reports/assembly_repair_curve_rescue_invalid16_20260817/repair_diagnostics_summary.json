@@ -1,0 +1,68 @@
+{
+  "directed_trim_loop_policies": {
+    "cad_ids_by_mode": {
+      "historical_fallback_unproven_topology": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00061931_dcdd8a95feac4121adfd341f_step_000",
+        "00067160_2a27016aa44f42c69c1079f7_step_000",
+        "00087341_6a73c5e821934d3fe4d0d555_step_000",
+        "00095733_8b325d2fcb27ec9e79388602_step_000"
+      ],
+      "historical_order_oriented": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
+        "00016845_33dbc9e6ea684970be61af74_step_000",
+        "00029780_a4788d5955c04fe1886666b7_step_000",
+        "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+        "00032101_674d8fea687f4d9bbca6599b_step_000",
+        "00047472_197769bbdd814278b715d88a_step_000",
+        "00051587_446e8810d6884cae80689579_step_000",
+        "00051602_7f1947595ae247e0a4a32f43_step_000",
+        "00061931_dcdd8a95feac4121adfd341f_step_000",
+        "00063055_e309c689b9b44f0686f47966_step_000",
+        "00067160_2a27016aa44f42c69c1079f7_step_000",
+        "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+        "00087341_6a73c5e821934d3fe4d0d555_step_000",
+        "00095733_8b325d2fcb27ec9e79388602_step_000"
+      ],
+      "regrouped_directed": [
+        "00016845_33dbc9e6ea684970be61af74_step_000",
+        "00032004_b91639b3cc4b41c7bf6a854d_step_000"
+      ]
+    },
+    "face_decision_count": 458,
+    "mode_counts": {
+      "historical_fallback_unproven_topology": 48,
+      "historical_order_oriented": 405,
+      "regrouped_directed": 5
+    }
+  },
+  "local_intersection_topology": {
+    "accepted_cad_ids": [
+      "00029780_a4788d5955c04fe1886666b7_step_000",
+      "00051602_7f1947595ae247e0a4a32f43_step_000"
+    ],
+    "accepted_face_count": 2,
+    "attempted_cad_ids": [
+      "00002441_179a8df075c94d0596b1f20d_step_010",
+      "00008763_affd199038524a1c8e3b7ad4_step_001",
+      "00029780_a4788d5955c04fe1886666b7_step_000",
+      "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "00047472_197769bbdd814278b715d88a_step_000",
+      "00051587_446e8810d6884cae80689579_step_000",
+      "00051602_7f1947595ae247e0a4a32f43_step_000",
+      "00061931_dcdd8a95feac4121adfd341f_step_000",
+      "00067160_2a27016aa44f42c69c1079f7_step_000",
+      "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "00087341_6a73c5e821934d3fe4d0d555_step_000",
+      "00095733_8b325d2fcb27ec9e79388602_step_000"
+    ],
+    "attempted_face_count": 23,
+    "reason_counts": {
+      "accepted": 2,
+      "candidate_rejected": 5,
+      "geometry_preservation_failed": 16
+    }
+  }
+}

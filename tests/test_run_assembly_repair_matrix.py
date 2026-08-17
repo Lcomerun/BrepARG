@@ -34,6 +34,7 @@ def _rows(profile, values):
 def test_profile_kwargs_keep_switches_independent():
     assert profile_kwargs(RepairProfile("baseline")) == {
         "directed_trim": False, "curve_fit_fallback": False,
+        "curve_fit_rescue": False,
         "wire_continuity": False, "single_solid": False,
         "pcurve_self_intersection": False,
         "local_intersection_topology": False,
@@ -46,6 +47,9 @@ def test_profile_kwargs_keep_switches_independent():
             "local_intersection_topology", ("local_intersection_topology",)
         )
     )["local_intersection_topology"] is True
+    assert profile_kwargs(
+        RepairProfile("curve_fit_rescue", ("curve_fit_rescue",))
+    )["curve_fit_rescue"] is True
 
 
 def test_summary_records_restoration_and_regression():

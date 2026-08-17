@@ -248,13 +248,15 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
     if profile.name == "baseline":
         return {
             "directed_trim": False, "curve_fit_fallback": False,
+            "curve_fit_rescue": False,
             "wire_continuity": False, "single_solid": False,
             "pcurve_self_intersection": False,
             "local_intersection_topology": False,
         }
     return {name: profile.enabled(name) for name in (
-        "directed_trim", "curve_fit_fallback", "wire_continuity", "single_solid",
-        "pcurve_self_intersection", "local_intersection_topology",
+        "directed_trim", "curve_fit_fallback", "curve_fit_rescue",
+        "wire_continuity", "single_solid", "pcurve_self_intersection",
+        "local_intersection_topology",
     )}
 
 

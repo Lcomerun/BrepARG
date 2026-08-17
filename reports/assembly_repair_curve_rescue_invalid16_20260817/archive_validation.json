@@ -1,0 +1,12 @@
+{
+  "attempts": 16,
+  "forbidden_artifacts": [],
+  "profiles": {
+    "directed_trim_curve_rescue_local_intersection_topology": 16
+  },
+  "repair_diagnostics_present": true,
+  "run_signature": "66972a01f8d1e2111649944463f5c753368fcde80ab600727f355bfdb1f83dab",
+  "run_status": "COMPLETED_PARTIAL",
+  "summary_sha256": "4a9681c1722cbd21af8707264b6bbbc23b8afe98706b08c25a5331278bc4fbdc",
+  "valid": true
+}

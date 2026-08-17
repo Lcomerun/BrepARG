@@ -20,6 +20,7 @@ def test_profiles_are_independent_and_combined():
         "baseline",
         "directed_trim",
         "curve_fit_fallback",
+        "curve_fit_rescue",
         "wire_continuity",
         "single_solid",
         "pcurve_self_intersection",
@@ -27,6 +28,7 @@ def test_profiles_are_independent_and_combined():
         "directed_trim_curve_fit",
         "directed_trim_pcurve",
         "directed_trim_local_intersection_topology",
+        "directed_trim_curve_rescue_local_intersection_topology",
         "combined",
     ]
     assert parse_profiles(["directed_trim"])[0].enabled("directed_trim")
@@ -43,6 +45,11 @@ def test_profiles_are_independent_and_combined():
         RepairProfile(
             "ambiguous",
             ("pcurve_self_intersection", "local_intersection_topology"),
+        )
+    with pytest.raises(ValueError, match="alternative curve repair strategies"):
+        RepairProfile(
+            "ambiguous_curve_fit",
+            ("curve_fit_fallback", "curve_fit_rescue"),
         )
     with pytest.raises(ValueError, match="unknown assembly repair"):
         RepairProfile("bad", ("magic",))
