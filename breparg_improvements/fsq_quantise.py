@@ -90,6 +90,12 @@ class FSQ(nn.Module):
 
     def indices_to_codes(self, indices: torch.Tensor) -> torch.Tensor:
         """token id (...,) -> 归一化码值 (..., d),供 decoder 使用。"""
+        if indices.numel() and (int(indices.min()) < 0
+                                or int(indices.max()) >= self.codebook_size):
+            raise ValueError(
+                f"FSQ token id 越界:合法范围 [0, {self.codebook_size}),"
+                f" got min={int(indices.min())}, max={int(indices.max())}"
+                " — 越界 id 经模运算会静默混叠成错误码字,必须上游修正")
         indices = indices.unsqueeze(-1)
         levels = self._levels.to(indices.device)
         basis = self._basis.to(indices.device)
@@ -122,8 +128,8 @@ class FSQQuantiser(nn.Module):
         self.fsq = FSQ(list(fsq_levels))
         self.num_embed = self.fsq.codebook_size
         # 容许 num_embed 传入用于校验
-        if num_embed is not None:
-            assert num_embed == self.fsq.codebook_size, (
+        if num_embed is not None and int(num_embed) != self.fsq.codebook_size:
+            raise ValueError(
                 f"传入 num_embed={num_embed} 与 prod(fsq_levels)={self.fsq.codebook_size} 不一致;"
                 f"请把下游 se_codebook_size 设为 {self.fsq.codebook_size},或调整 fsq_levels。"
             )
@@ -137,17 +143,57 @@ class FSQQuantiser(nn.Module):
         self.proj_in = nn.Conv2d(in_dim, d, kernel_size=1)
         self.proj_out = nn.Conv2d(d, in_dim, kernel_size=1)
 
-        # 兼容字段:某些外部代码会读 self.embedding.num_embeddings / weight
-        # 提供一个只读占位 Embedding(不参与计算),避免 AttributeError
-        self.embedding = nn.Embedding(self.fsq.codebook_size, d)
+        # 兼容字段:外部解码唯一路径(BrepARG/utils.decode_tokens_to_ncs)直接查
+        # self.embedding.weight 后喂给 post_quant_conv(期望 in_dim 通道)。
+        # 因此占位表必须是 (K, in_dim),内容 = proj_out(indices_to_codes(k)),
+        # 并在 eval 切换/保存/加载后自动物化——绝不能停留在随机初始化。
+        self.embedding = nn.Embedding(self.fsq.codebook_size, self.in_dim)
         self.embedding.weight.requires_grad_(False)
+        self._update_placeholder_embedding()
+        self._register_load_state_dict_pre_hook(self._legacy_embedding_pre_hook)
+        self.register_load_state_dict_post_hook(self._embedding_post_load_hook)
 
     @torch.no_grad()
     def _update_placeholder_embedding(self):
-        """把 FSQ 的隐式码本物化进占位 embedding(仅供需要 .embedding.weight 的外部代码)。"""
-        ids = torch.arange(self.fsq.codebook_size, device=self.embedding.weight.device)
-        codes = self.fsq.indices_to_codes(ids)  # (K, d)
-        self.embedding.weight.data.copy_(codes)
+        """把 FSQ 隐式码本经 proj_out 物化为 (K, in_dim),供外部 embedding 查表解码。"""
+        weight = self.proj_out.weight
+        ids = torch.arange(self.fsq.codebook_size, device=weight.device)
+        codes = self.fsq.indices_to_codes(ids).to(weight.dtype)      # (K, d)
+        zq = self.proj_out(codes.view(-1, self.fsq.dim, 1, 1))       # (K, in_dim, 1, 1)
+        self.embedding.weight.data.copy_(
+            zq.view(self.fsq.codebook_size, self.in_dim)
+            .to(self.embedding.weight.device)
+        )
+
+    def _legacy_embedding_pre_hook(self, state_dict, prefix, local_metadata, strict,
+                                   missing_keys, unexpected_keys, error_msgs):
+        key = prefix + 'embedding.weight'
+        expected = (self.fsq.codebook_size, self.in_dim)
+        legacy = (self.fsq.codebook_size, self.fsq.dim)
+        value = state_dict.get(key)
+        if value is None or tuple(value.shape) == legacy:
+            # 仅迁移「缺失」或「旧版 (K, d) 占位表」两种合法形态:注入正确形状
+            # 占位以通过 strict 加载,真实内容由 post-load hook 从 proj_out 物化。
+            # 其他形状(如不同码本容量的 checkpoint)保持原样,让 strict 加载
+            # 如实报 size mismatch——embedding 是 state_dict 中唯一携带
+            # codebook_size 的张量,不能抹掉这道防线。
+            state_dict[key] = torch.zeros(expected, dtype=self.embedding.weight.dtype)
+
+    @staticmethod
+    def _embedding_post_load_hook(module, incompatible_keys):
+        # 无论加载来源如何,占位表一律从已加载的 proj_out 重新物化(单一事实来源)
+        module._update_placeholder_embedding()
+
+    def train(self, mode: bool = True):
+        was_training = self.training
+        super().train(mode)
+        if was_training and not mode:
+            self._update_placeholder_embedding()   # train -> eval 时刷新占位表
+        return self
+
+    def _save_to_state_dict(self, destination, prefix, keep_vars):
+        self._update_placeholder_embedding()       # 保存前兜底刷新
+        super()._save_to_state_dict(destination, prefix, keep_vars)
 
     def forward(self, z, temp=None, rescale_logits=False, return_logits=False):
         assert temp is None or temp == 1.0, "Only for interface compatible with Gumbel"
