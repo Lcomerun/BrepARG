@@ -23,6 +23,7 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [ ] Formal four-task training is running automatically from clean commit `aa66fef` under `D:\luolin\V13\local_runs\capacity_ab_60k_20260817`. At 12:13 +08:00 VQ-8192 seed 3 had reached epoch 11/99, GPU utilization was 98%, all finite counters were zero, validation perplexity was 1338.0, coverage 57.43%, and curved parent MSE 0.01705. Remaining: finish all four tasks and pass the formal validator.
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
+- [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
 - [ ] Re-run the frozen 100 original-control CADs after each repair, preserve all 84 original strict-valid CADs, reach at least 95 strict-valid CADs, and publish the repair-to-restored/regressed-case map.
 - [ ] Re-measure the selected capacity arm through the repaired chain and apply the final release gate.
 - [ ] Snapshot Git-safe evidence into `reports/capacity_ab_60k_20260817/` and `reports/assembly_repair_20260817/`, validate forbidden-file exclusions, commit, and push normally to `experiment/protocol-v5-scaling-ladder`.
@@ -75,6 +76,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Decision: Keep formal training immutable at commit `aa66fef` and add capacity-aware Git-safe archival support without touching that running worktree's signed training sources.
   Rationale: Editing the detached training worktree would invalidate its source hashes. The archival code is exercised independently and will only read the completed state after all four tasks validate.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Move all post-launch development into a second worktree and return the formal launch path to detached commit `aa66fef` before seed 4 starts.
+  Rationale: Even when signed training-file hashes are unchanged, a later task launched from a different Git HEAD would weaken the four-task provenance claim. The running seed-3 process has already imported its code; restoring the on-disk worktree after committing current work keeps all later launches on the original commit without interrupting seed 3.
   Date/Author: 2026-08-17 / Codex.
 
 ## Outcomes & Retrospective
@@ -160,3 +165,5 @@ Revision note 2026-08-17 11:09 +08:00: Recorded completion of the capacity imple
 Revision note 2026-08-17 11:36 +08:00: Recorded the bounded CUDA smoke result and the evidence-schema repair. The next step remains a clean-commit two-arm CUDA smoke in a new output root, followed only on success by formal training.
 
 Revision note 2026-08-17 12:16 +08:00: Recorded the successful D:-hosted two-arm smoke, E: filesystem diagnosis, formal launch and first healthy metrics. Added the immutable-source decision and clarified that formal training is now an automatic background task rather than an unstarted milestone.
+
+Revision note 2026-08-17 12:35 +08:00: Recorded the first independently switchable assembly-repair primitives and the provenance correction that separates the running formal worktree from subsequent development before the second formal task begins.

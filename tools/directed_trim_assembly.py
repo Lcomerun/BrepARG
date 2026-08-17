@@ -15,61 +15,22 @@ from typing import Any, Sequence
 
 import numpy as np
 
-
-def directed_face_loops(
-    face_edge_ids: Sequence[int], edge_vertex_adj: np.ndarray
-) -> list[list[tuple[int, bool]]]:
-    """Return closed loops as ``(global_edge_id, reversed)`` pairs.
-
-    ``reversed`` is true when the edge must be traversed from its second
-    recorded vertex to its first.  Malformed, branching, or open topology is
-    rejected instead of being silently assembled.
-    """
-    edge_vertex_adj = np.asarray(edge_vertex_adj, dtype=np.int64)
-    edge_ids = [int(value) for value in face_edge_ids]
-    if not edge_ids:
-        raise ValueError("face has no incident edge")
-    if len(set(edge_ids)) != len(edge_ids):
-        raise ValueError("face contains duplicate edge ids")
-    unused = set(edge_ids)
-    loops: list[list[tuple[int, bool]]] = []
-    while unused:
-        first = min(unused)
-        start_vertex, current_vertex = map(int, edge_vertex_adj[first])
-        loop = [(first, False)]
-        unused.remove(first)
-        while current_vertex != start_vertex:
-            candidates = [
-                edge_id
-                for edge_id in sorted(unused)
-                if current_vertex in edge_vertex_adj[edge_id]
-            ]
-            if len(candidates) != 1:
-                raise ValueError(
-                    f"trim loop is open or branching at vertex {current_vertex}: {candidates}"
-                )
-            edge_id = candidates[0]
-            vertex_a, vertex_b = map(int, edge_vertex_adj[edge_id])
-            if vertex_a == current_vertex:
-                reverse = False
-                current_vertex = vertex_b
-            elif vertex_b == current_vertex:
-                reverse = True
-                current_vertex = vertex_a
-            else:  # guarded by candidate selection
-                raise AssertionError("selected edge is not incident to current vertex")
-            loop.append((edge_id, reverse))
-            unused.remove(edge_id)
-            if len(loop) > len(edge_ids):
-                raise ValueError("trim loop traversal exceeded incident edge count")
-        loops.append(loop)
-    return loops
-
-
-def loop_bbox_diagonal(loop: Sequence[tuple[int, bool]], edge_wcs: np.ndarray) -> float:
-    """Measure one loop using its global edge ids, not face-local positions."""
-    points = np.concatenate([np.asarray(edge_wcs[edge_id]).reshape(-1, 3) for edge_id, _ in loop])
-    return float(np.linalg.norm(np.max(points, axis=0) - np.min(points, axis=0)))
+try:
+    from .assembly_repair import (
+        curve_fit_attempts,
+        directed_face_loops,
+        loop_bbox_diagonal,
+        sanitize_curve_points,
+        validate_directed_loop,
+    )
+except ImportError:  # direct script execution
+    from assembly_repair import (
+        curve_fit_attempts,
+        directed_face_loops,
+        loop_bbox_diagonal,
+        sanitize_curve_points,
+        validate_directed_loop,
+    )
 
 
 def construct_brep_directed(
@@ -96,7 +57,7 @@ def construct_brep_directed(
     from OCC.Core.GeomAbs import GeomAbs_C2
     from OCC.Core.gp import gp_Pnt
     from OCC.Core.TColgp import TColgp_Array1OfPnt, TColgp_Array2OfPnt
-    from OCC.Core.TopAbs import TopAbs_SHELL
+    from OCC.Core.TopAbs import TopAbs_SHELL, TopAbs_SOLID
     from OCC.Core.TopExp import TopExp_Explorer
     from OCC.Core.TopoDS import topods_Shell
 
@@ -106,6 +67,7 @@ def construct_brep_directed(
     diagnostics: dict[str, Any] = {
         "faces": len(surf_wcs), "edges": len(edge_wcs), "loop_count": 0,
         "reversed_edge_uses": 0, "multi_loop_faces": 0,
+        "curve_fit_attempts": [],
     }
 
     surfaces = []
@@ -123,18 +85,36 @@ def construct_brep_directed(
     edges = []
     curve_tolerances = []
     for edge_index, points in enumerate(edge_wcs):
-        values = TColgp_Array1OfPnt(1, 32)
-        for point_index in range(1, 33):
-            values.SetValue(point_index, gp_Pnt(*map(float, points[point_index - 1])))
+        cleaned, point_stats = sanitize_curve_points(points)
+        values = TColgp_Array1OfPnt(1, len(cleaned))
+        for point_index, point in enumerate(cleaned, 1):
+            values.SetValue(point_index, gp_Pnt(*map(float, point)))
         curve = None
-        for tolerance in (5e-3, 8e-3, 5e-2):
+        for min_degree, max_degree, tolerance in curve_fit_attempts():
+            attempt = {
+                "edge_index": edge_index, "min_degree": min_degree,
+                "max_degree": max_degree, "tolerance": tolerance,
+                **point_stats, "status": "pending",
+            }
             try:
-                fitter = GeomAPI_PointsToBSpline(values, 0, 8, GeomAbs_C2, tolerance)
+                fitter = GeomAPI_PointsToBSpline(
+                    values, min_degree, max_degree, GeomAbs_C2, tolerance
+                )
                 if fitter.IsDone():
                     curve = fitter.Curve()
                     curve_tolerances.append(tolerance)
+                    attempt["status"] = "succeeded"
+                    diagnostics["curve_fit_attempts"].append(attempt)
                     break
-            except Exception:
+                attempt["status"] = "not_done"
+            except Exception as exc:
+                attempt.update(
+                    status="failed", error_type=type(exc).__name__, error=str(exc)
+                )
+            diagnostics["curve_fit_attempts"].append(attempt)
+            if curve is not None:
+                break
+            else:
                 continue
         if curve is None:
             raise RuntimeError(f"curve_fit_not_done edge={edge_index}")
@@ -152,6 +132,7 @@ def construct_brep_directed(
         outer_index = int(np.argmax(np.asarray(spans)))
         wires = []
         for loop_index, loop in enumerate(loops):
+            validate_directed_loop(loop, edge_vertex_adj)
             wire_builder = BRepBuilderAPI_MakeWire()
             for edge_id, reverse in loop:
                 edge = edges[edge_id].Reversed() if reverse else edges[edge_id]
@@ -197,4 +178,13 @@ def construct_brep_directed(
     maker.Build()
     if not maker.IsDone():
         raise RuntimeError("solid_builder_not_done")
-    return maker.Solid(), diagnostics
+    solid = maker.Solid()
+    solid_explorer = TopExp_Explorer(solid, TopAbs_SOLID)
+    solid_count = 0
+    while solid_explorer.More():
+        solid_count += 1
+        solid_explorer.Next()
+    diagnostics["solid_count"] = solid_count
+    if solid_count != 1:
+        raise RuntimeError(f"solid_builder_produced_solid_count={solid_count}")
+    return solid, diagnostics
