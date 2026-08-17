@@ -22,7 +22,7 @@ The observable outcome is a local, path-aware diagnostic run for all three CADs 
 - [x] (2026-08-18 06:45 +08:00) Re-ran the final signed six-attempt matrix after making observation-only construction conditional on `stage_observer`. The run completed 6/6 rows with zero worker/protocol failures, zero both-valid candidates, and maximum oriented 3-D endpoint gap 0.0 on every bad raw face.
 - [x] (2026-08-18 07:00 +08:00) Added the Git-safe negative report, source/run hash bindings, crossing taxonomy, repair checklist, and ADR-0004. No STEP, pickle, NumPy, checkpoint, raw geometry, or machine-local path is archived.
 - [x] (2026-08-18 07:10 +08:00) Final verification passed: 80 focused tests, Python compilation, JSON/JSONL parsing, forbidden-extension/size/path scan, and scoped `git diff --check`. The report artifact manifest binds every archived evidence file.
-- [ ] Commit and push only the explicitly scoped files; leave unrelated log line-ending noise and the parallel closure-shell draft unstaged.
+- [x] (2026-08-18 07:15 +08:00) Selectively committed the diagnostic interface, probe, tests, ExecPlan, ADR, and Git-safe report as `99dbd7d`; pushed `protocol-v5-closure-shell-probe` to `origin`. Unrelated log line-ending noise and parallel probe drafts remain unstaged.
 
 ## Surprises & Discoveries
 
@@ -150,3 +150,5 @@ Revision note 2026-08-18 06:00 +08:00: Recorded the completed stage probe and th
 Revision note 2026-08-18 07:00 +08:00: Bound the conclusion to the final six-attempt signed run (`d560f963403dc9fc7f4b52449598858d6019b381a538892fd2bf7fa7f3e2fe02`), recorded the zero 3-D endpoint-gap measurement for every bad raw face, added ADR-0004 and the Git-safe report, and left only final tests plus push outstanding.
 
 Revision note 2026-08-18 07:10 +08:00: Recorded 80 passing focused tests and the completed archive safety validation. Only a selective commit and push remain.
+
+Revision note 2026-08-18 07:15 +08:00: Recorded successful publication of commit `99dbd7d` on `origin/protocol-v5-closure-shell-probe`. The plan is closed as a negative diagnosis: no candidate reached the one-CAD promotion gate, so broader matrices remain intentionally unrun.
