@@ -208,9 +208,97 @@ def repair_face_local_topology(face: Any) -> tuple[Any, dict[str, Any]]:
     return (candidate if accepted else face), diagnostics
 
 
+def repair_face_local_pcurve(face: Any) -> tuple[Any, dict[str, Any]]:
+    """Repair only pcurve continuity on a copied, diagnosed face wire.
+
+    This strategy leaves OCC topology unchanged and enables the 2D gap,
+    reversed-pcurve, and same-parameter fixes that the topology strategy
+    deliberately disables.  A candidate is accepted only when the diagnosed
+    self-intersection disappears, OCC accepts the face, and its 3D geometry
+    remains within the same conservative preservation gate.
+    """
+    from OCC.Core.BRepCheck import BRepCheck_Analyzer
+    from OCC.Core.BRepBuilderAPI import BRepBuilderAPI_Copy
+    from OCC.Core.ShapeFix import ShapeFix_Face
+    from OCC.Core.TopoDS import topods
+
+    before = wire_self_intersection_state(face)
+    if not before["bad_wire_indices"]:
+        return face, {
+            "attempted": False,
+            "accepted": False,
+            "reason": "no_diagnosed_self_intersection",
+            "before": before,
+        }
+    before_geometry = face_geometry_signature(face)
+
+    copied = BRepBuilderAPI_Copy(face, True, False)
+    copied_face = topods.Face(copied.Shape())
+    fixer = ShapeFix_Face(copied_face)
+    fixer.SetPrecision(0.01)
+    fixer.SetMinTolerance(1e-4)
+    fixer.SetMaxTolerance(0.1)
+    fixer.SetFixWireMode(True)
+    fixer.SetFixIntersectingWiresMode(False)
+    fixer.SetFixLoopWiresMode(False)
+    wire_tool = fixer.FixWireTool()
+    wire_tool.SetPrecision(0.01)
+    wire_tool.SetMinTolerance(1e-4)
+    wire_tool.SetMaxTolerance(0.1)
+    wire_tool.SetClosedWireMode(False)
+    wire_tool.SetFixGaps2dMode(True)
+    wire_tool.SetFixGapsByRangesMode(True)
+    wire_tool.SetFixReversed2dMode(True)
+    wire_tool.SetFixSameParameterMode(True)
+    wire_tool.SetFixSelfIntersectionMode(True)
+    wire_tool.SetFixSelfIntersectingEdgeMode(True)
+    wire_tool.SetFixIntersectingEdgesMode(True)
+    wire_tool.SetFixNonAdjacentIntersectingEdgesMode(True)
+    wire_tool.SetFixEdgeCurvesMode(True)
+    wire_tool.SetFixAddPCurveMode(True)
+    wire_tool.SetModifyGeometryMode(True)
+    wire_tool.SetModifyTopologyMode(False)
+    wire_tool.SetModifyRemoveLoopMode(False)
+    wire_tool.SetPreferencePCurveMode(True)
+
+    performed = bool(fixer.Perform())
+    candidate = fixer.Face()
+    after = wire_self_intersection_state(candidate)
+    native_valid = bool(BRepCheck_Analyzer(candidate, True).IsValid())
+    after_geometry = face_geometry_signature(candidate)
+    preservation = geometry_preservation_gate(before_geometry, after_geometry)
+    accepted = bool(
+        performed
+        and not after["bad_wire_indices"]
+        and native_valid
+        and preservation["accepted"]
+    )
+    if accepted:
+        reason = "accepted"
+    elif not preservation["accepted"]:
+        reason = "geometry_preservation_failed"
+    else:
+        reason = "candidate_rejected"
+    diagnostics = {
+        "attempted": True,
+        "accepted": accepted,
+        "performed": performed,
+        "before": before,
+        "after": after,
+        "before_geometry": before_geometry,
+        "after_geometry": after_geometry,
+        "geometry_preservation": preservation,
+        "candidate_native_brep_valid": native_valid,
+        "strategy": "pcurve_continuity",
+        "reason": reason,
+    }
+    return (candidate if accepted else face), diagnostics
+
+
 __all__ = [
     "face_geometry_signature",
     "geometry_preservation_gate",
     "repair_face_local_topology",
+    "repair_face_local_pcurve",
     "wire_self_intersection_state",
 ]

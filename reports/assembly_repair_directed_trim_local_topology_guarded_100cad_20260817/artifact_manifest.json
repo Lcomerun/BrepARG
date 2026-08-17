@@ -1,9 +1,9 @@
 {
   "artifacts": [
     {
-      "bytes": 357,
+      "bytes": 396,
       "path": "archive_validation.json",
-      "sha256": "88932b71f3c52917953eda4a0616385066dcada8f59efefc3067664e607b412f"
+      "sha256": "17ac22631db5553c6af10e8f87a8c622a3a3755f969809eeaff2b8810aa3d79f"
     },
     {
       "bytes": 80453,
@@ -16,15 +16,20 @@
       "sha256": "2fbfd063ed4031ec55a45051edfc7afa02c37c0342a3943fd3f67a5e034ec1b5"
     },
     {
-      "bytes": 7216,
+      "bytes": 7162,
       "path": "assembly_repair_summary.json",
-      "sha256": "faa1c84e33b5fed400ef4b6b6b96bdaafc4e3747a33b47dc51b415d03581a940"
+      "sha256": "1f734ac8bd919051335b51ffc01d5c6fd4cd02ed5cb129830f46daaec9d2a540"
     },
     {
-      "bytes": 672,
+      "bytes": 645,
       "path": "README.md",
-      "sha256": "2a59ee38357dda95a5d4d5e6ad19bc892150176596a02ac3bfd3cc99e84e0535"
+      "sha256": "1db5fd907a4f9db71bb23ec31848b3a5be95d9745ff8a5201933949977235ed6"
+    },
+    {
+      "bytes": 7018,
+      "path": "repair_diagnostics_summary.json",
+      "sha256": "d6caf8221ad1516dcad473f13ab5dc1de72a1acfe05051af55602e1cfc1e2c3f"
     }
   ],
-  "generated_at": "2026-08-17T16:56:30+08:00"
+  "generated_at": "2026-08-17T16:56:39+08:00"
 }

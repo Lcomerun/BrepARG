@@ -1,0 +1,12 @@
+{
+  "attempts": 100,
+  "forbidden_artifacts": [],
+  "profiles": {
+    "directed_trim_local_pcurve_continuity": 100
+  },
+  "repair_diagnostics_present": true,
+  "run_signature": "92f4ac403ae6429c3ce1b158429ee5a353eb47e6a2ea8f9297e367f8fc20fa13",
+  "run_status": "COMPLETED",
+  "summary_sha256": "3437792ca6af83c9feb367ae9e04398326e63d57bf7e7551a10a74ce3a060f54",
+  "valid": true
+}

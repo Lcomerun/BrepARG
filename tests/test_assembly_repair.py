@@ -25,10 +25,12 @@ def test_profiles_are_independent_and_combined():
         "single_solid",
         "pcurve_self_intersection",
         "local_intersection_topology",
+        "local_pcurve_continuity",
         "directed_trim_curve_fit",
         "directed_trim_pcurve",
         "directed_trim_local_intersection_topology",
         "directed_trim_curve_rescue_local_intersection_topology",
+        "directed_trim_local_pcurve_continuity",
         "combined",
     ]
     assert parse_profiles(["directed_trim"])[0].enabled("directed_trim")
@@ -38,13 +40,18 @@ def test_profiles_are_independent_and_combined():
     directed_local = parse_profiles(["directed_trim_local_intersection_topology"])[0]
     assert directed_local.enabled("directed_trim") is True
     assert directed_local.enabled("local_intersection_topology") is True
+    directed_pcurve = parse_profiles(
+        ["directed_trim_local_pcurve_continuity"]
+    )[0]
+    assert directed_pcurve.enabled("directed_trim") is True
+    assert directed_pcurve.enabled("local_pcurve_continuity") is True
     combined = parse_profiles(["combined"])[0]
     assert combined.enabled("local_intersection_topology") is False
     assert combined.enabled("pcurve_self_intersection") is False
     with pytest.raises(ValueError, match="alternative OCC repair strategies"):
         RepairProfile(
             "ambiguous",
-            ("pcurve_self_intersection", "local_intersection_topology"),
+            ("local_intersection_topology", "local_pcurve_continuity"),
         )
     with pytest.raises(ValueError, match="alternative curve repair strategies"):
         RepairProfile(

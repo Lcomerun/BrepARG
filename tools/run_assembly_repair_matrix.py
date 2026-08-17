@@ -50,6 +50,9 @@ RUN_MANIFEST_NAME = "assembly_repair_run.json"
 EXPECTED_CADS = 100
 EXPECTED_BASELINE_VALID = 84
 WORKER_MARKER = "__ASSEMBLY_REPAIR_WORKER_RESULT__="
+ISOLATED_WORKER_SWITCHES = frozenset(
+    {"local_intersection_topology", "local_pcurve_continuity"}
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -73,6 +76,11 @@ def append_jsonl(path: Path, row: Mapping[str, Any]) -> None:
     with path.open("a", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps(dict(row), sort_keys=True) + "\n")
         handle.flush()
+
+
+def requires_isolated_worker(profile: RepairProfile) -> bool:
+    """Return whether an OCC repair must be contained in a child process."""
+    return any(profile.enabled(name) for name in ISOLATED_WORKER_SWITCHES)
 
 
 def read_json_object(path: Path) -> dict[str, Any]:
@@ -252,11 +260,13 @@ def profile_kwargs(profile: RepairProfile) -> dict[str, bool]:
             "wire_continuity": False, "single_solid": False,
             "pcurve_self_intersection": False,
             "local_intersection_topology": False,
+            "local_pcurve_continuity": False,
         }
     return {name: profile.enabled(name) for name in (
         "directed_trim", "curve_fit_fallback", "curve_fit_rescue",
         "wire_continuity", "single_solid", "pcurve_self_intersection",
         "local_intersection_topology",
+        "local_pcurve_continuity",
     )}
 
 
@@ -622,10 +632,10 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     historical = historical_strict_map(full_source_rows)
     profiles = parse_profiles(args.profile)
-    if any(profile.enabled("local_intersection_topology") for profile in profiles):
+    if any(requires_isolated_worker(profile) for profile in profiles):
         if not args.isolate_cad_workers:
             parser.error(
-                "local_intersection_topology requires --isolate-cad-workers"
+                "local face repair profiles require --isolate-cad-workers"
             )
     source_rows = list(full_source_rows)
     if args.historical_invalid_only:
@@ -653,7 +663,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     key = (profile.name, str(source["cad_id"]))
                     if key in done:
                         continue
-                    if profile.enabled("local_intersection_topology"):
+                    if requires_isolated_worker(profile):
                         row = run_one_isolated(
                             source, profile,
                             calibration_manifest=args.calibration_manifest,

@@ -4,30 +4,29 @@
   "advance_to_sequence_or_ar": false,
   "cohort_size": 100,
   "gate_passed": false,
-  "generated_at": "2026-08-17T16:56:39+08:00",
+  "generated_at": "2026-08-17T17:54:39+08:00",
   "historical_strict_valid": 84,
-  "label": "guarded directed trim plus local topology full 100-CAD matrix",
+  "label": "Guarded directed trim plus local pcurve continuity, isolated workers, 100-CAD matrix",
   "profiles": [
     {
       "attempts": 100,
-      "both_valid": 84,
+      "both_valid": 83,
       "meets_95_gate": false,
       "native_valid": 88,
       "preserves_original_84": true,
-      "profile": "directed_trim_local_intersection_topology",
+      "profile": "directed_trim_local_pcurve_continuity",
       "regressed_cad_ids": [],
       "restored_cad_ids": [
         "00016845_33dbc9e6ea684970be61af74_step_000",
-        "00029780_a4788d5955c04fe1886666b7_step_000",
         "00032004_b91639b3cc4b41c7bf6a854d_step_000"
       ],
       "status_counts": {
         "assembly_error": 3,
-        "both_valid": 84,
-        "step_invalid": 13
+        "both_valid": 83,
+        "step_invalid": 14
       },
       "step_readable": 97,
-      "strict_valid": 87,
+      "strict_valid": 86,
       "unchanged_cad_ids": [
         "00000444_4ed4c78d6d754aac90876fc2_step_003",
         "00002441_179a8df075c94d0596b1f20d_step_010",
@@ -54,6 +53,7 @@
         "00028117_97daece11acf4d7aa4dce06e_step_000",
         "00028130_3be1e5c18e464a6b98b6d317_step_000",
         "00029576_9fda70814b4b49a7b7711b0a_step_000",
+        "00029780_a4788d5955c04fe1886666b7_step_000",
         "00030409_d4832457062d4a429daacc20_step_000",
         "00032101_674d8fea687f4d9bbca6599b_step_000",
         "00032137_9241ce05bc07477694e6c966_step_000",
@@ -131,16 +131,16 @@
   ],
   "schema": "assembly-repair-matrix-v1",
   "source_binding": {
-    "label": "guarded directed trim plus local topology full 100-CAD matrix",
-    "run_signature": "b5594bfc6475e646d98df43eb5cbaa412d86f502d4e1d5a39c81a379dbe7273e",
+    "label": "Guarded directed trim plus local pcurve continuity, isolated workers, 100-CAD matrix",
+    "run_signature": "92f4ac403ae6429c3ce1b158429ee5a353eb47e6a2ea8f9297e367f8fc20fa13",
     "run_status": "COMPLETED",
-    "source_manifest_bytes": 1619620,
-    "source_manifest_sha256": "89a21a2be3416ad6adaf695c85d30d01b15191b2ba2de3692b21b201ff903b31",
+    "source_manifest_bytes": 1621611,
+    "source_manifest_sha256": "932cb2a94dc3425c41851fbe1d9e8c4a5b52325e43858eb4351baefc7b2624ef",
     "source_pickles_archived": false,
-    "source_run_manifest_sha256": "a7e339507b03cd965944be46b0230917c53f08f62cccfedb7c027d0b6848c561",
-    "source_run_name": "assembly_repair_directed_trim_local_topology_guarded_100cad_signed_20260817",
+    "source_run_manifest_sha256": "522356b77c0b4b6d76a4ef84556523808b0434ba86883f0d27bfa92b746a0ebc",
+    "source_run_name": "assembly_repair_directed_trim_local_pcurve_continuity_100cad_isolated_v2_signed_20260817",
     "step_bytes_archived": false,
     "step_files_local": 97,
-    "summary_sha256": "bfde32bfa5622d71eaed0d071b016ac348390daa995d2e9b2da2f85a7bdeed77"
+    "summary_sha256": "3437792ca6af83c9feb367ae9e04398326e63d57bf7e7551a10a74ce3a060f54"
   }
 }
