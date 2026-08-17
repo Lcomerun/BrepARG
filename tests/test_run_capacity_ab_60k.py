@@ -20,7 +20,11 @@ def make_inputs(tmp_path, monkeypatch, *, smoke=False):
     breparg.mkdir()
     python = tmp_path / "python.exe"
     python.write_bytes(b"python")
-    for name in ("train.py", "training_stability.py", "vqvae_sampling.py", "vqvae_metrics.py"):
+    for name in (
+        "train.py", "training_stability.py", "vqvae_sampling.py",
+        "vqvae_metrics.py", "vqvae_sample_cache.py", "cad_protocol.py",
+        "sharded_data.py", "fsq_quantise.py",
+    ):
         (improvements / name).write_text(f"# {name}\n", encoding="utf-8")
     (breparg / "quantise.py").write_text("# quantise\n", encoding="utf-8")
     (breparg / "model.py").write_text("# model\n", encoding="utf-8")
@@ -34,6 +38,10 @@ def make_inputs(tmp_path, monkeypatch, *, smoke=False):
         "parent_overlap_counts": {"train__val": 0, "train__test": 0, "val__test": 0},
     }), encoding="utf-8")
     monkeypatch.setattr(launcher, "FORMAL_SPLIT_PICKLE_SHA256", split_hash)
+    monkeypatch.setattr(
+        launcher, "git_source_identity",
+        lambda _root: {"commit": "a" * 40, "dirty": False},
+    )
     return launcher.RunConfig(
         repo_root=repo,
         protocol_dir=protocol,
@@ -57,6 +65,37 @@ def test_signed_scheduler_contract_includes_selection_metric(tmp_path, monkeypat
         "threshold_mode": "abs",
         "min_lr": 1e-6,
     }
+    assert task["signature_payload"]["git"] == {
+        "commit": "a" * 40, "dirty": False
+    }
+
+
+def test_validator_rejects_declared_curved_scheduler_running_on_global_val(
+    tmp_path, monkeypatch
+):
+    config = make_inputs(tmp_path, monkeypatch)
+    task = launcher.build_task(config, "vq_8192_64d_random", 3)
+    materialize_success(task)
+    payload = json.loads(Path(task["history"]).read_text(encoding="utf-8"))
+    payload["history"][0]["plateau_metric"] = "global_val"
+    payload["history"][0]["scheduler_metric"] = 0.2
+    Path(task["history"]).write_text(json.dumps(payload), encoding="utf-8")
+
+    result = launcher.validate_task(task, formal=True)
+
+    assert result["valid"] is False
+    assert any("plateau_metric mismatch" in reason for reason in result["reasons"])
+    assert any("scheduler_metric is not curved" in reason for reason in result["reasons"])
+
+
+def test_existing_state_rejects_environment_drift(tmp_path, monkeypatch):
+    config = make_inputs(tmp_path, monkeypatch)
+    path, state = launcher.ensure_state(config)
+    state["tasks"][0]["environment"]["NS_VQ_PLATEAU_METRIC"] = "global_val"
+    launcher.atomic_json(path, state)
+
+    with pytest.raises(ValueError, match="environment mismatch"):
+        launcher.ensure_state(config)
 
 
 def inventory(task):
@@ -68,8 +107,8 @@ def inventory(task):
 
 def healthy_stage_usage():
     return {
-        "stage1": {"tokens": 16, "unique_bins": 4, "coverage": 4 / 4096, "entropy_perplexity": 3.5},
-        "stage2": {"tokens": 16, "unique_bins": 3, "coverage": 3 / 4096, "entropy_perplexity": 2.5},
+        "stage1": {"tokens": 16, "unique_bins": 4, "coverage": 4 / 4096, "entropy_perplexity": 3.5, "usage_fraction": 3.5 / 4096},
+        "stage2": {"tokens": 16, "unique_bins": 3, "coverage": 3 / 4096, "entropy_perplexity": 2.5, "usage_fraction": 2.5 / 4096},
     }
 
 
@@ -90,6 +129,15 @@ def healthy_epoch(task, epoch):
         "training_state_finite": True,
         "grad_clip_active": True,
         "experiment_signature": task["signature"],
+        "finite_state_audit": {"status": "finite"},
+        "full_state_audits": 1,
+        "per_batch_full_state_audits": 0,
+        "plateau_metric": "curved_parent_mse",
+        "plateau_value": 0.1,
+        "scheduler_metric": 0.1,
+        "val_parent_cluster_reconstruction_mse": {
+            "surface_curved_proxy": {"mse": 0.1}
+        },
     }
     if task["arm"] == "rvq_2x4096_64d_random":
         record.update(train_stage_code_usage=healthy_stage_usage(), val_stage_code_usage=healthy_stage_usage(), stage_usage_health={"healthy": True, "reasons": []})
@@ -112,6 +160,7 @@ def runtime():
 
 def run_manifest(task, inv):
     return {
+        "git": task["signature_payload"]["git"],
         "runtime_resume_compatibility": runtime(),
         "experiment": {
             "seed": task["seed"], "train_cap": task["signature_payload"]["train_cap"],
@@ -119,6 +168,10 @@ def run_manifest(task, inv):
             "batch_size": task["signature_payload"]["batch_size"],
             "protocol": {key: task["signature_payload"][key] for key in ("protocol_sha256", "split_pickle_sha256", "parent_overlap_counts")},
             "inventory": inv, **task["signature_payload"]["sampling"],
+            "curved_loss_weight": task["signature_payload"]["loss"]["curved_loss_weight"],
+            "complex_loss_weight": task["signature_payload"]["loss"]["complex_loss_weight"],
+            "curved_loss_threshold": task["signature_payload"]["loss"]["curved_loss_threshold"],
+            **task["signature_payload"]["stop"],
             "arms": [{"name": task["arm"], "codebook": launcher.arm_codebook_size(task["arm"]), "quantizer": launcher.arm_metadata(task["arm"])}],
         },
     }
@@ -126,6 +179,7 @@ def run_manifest(task, inv):
 
 def signature_configuration(task, inv):
     return {
+        "git": task["signature_payload"]["git"],
         "seed": task["seed"], "train_cap": task["signature_payload"]["train_cap"],
         "val_cap": task["signature_payload"]["val_cap"], "epochs": task["signature_payload"]["epochs"],
         "batch_size": task["signature_payload"]["batch_size"], "lr": 3e-4,
@@ -134,7 +188,9 @@ def signature_configuration(task, inv):
         "inventory": inv, "runtime_resume_compatibility": runtime(),
         "arm": {"name": task["arm"], "quantizer": launcher.arm_metadata(task["arm"])},
         "scheduler": task["signature_payload"]["scheduler"],
-        "sampling": {**task["signature_payload"]["sampling"], "curved_fraction": 0.0, "complex_fraction": 0.0},
+        "sampling": task["signature_payload"]["sampling"],
+        "loss": task["signature_payload"]["loss"],
+        "stop": task["signature_payload"]["stop"],
     }
 
 
@@ -152,7 +208,7 @@ def materialize_success(task):
     root.mkdir(parents=True, exist_ok=True)
     records = [healthy_epoch(task, epoch) for epoch in range(task["signature_payload"]["epochs"])]
     Path(task["history"]).write_text(json.dumps({
-        "config": {"experiment_signature": task["signature"], "precision": {"name": task["signature_payload"]["precision"]}, "strict_nonfinite": True, "grad_clip_norm": 1.0, "scheduler": task["signature_payload"]["scheduler"], "quantizer": launcher.arm_metadata(task["arm"])},
+        "config": {"experiment_signature": task["signature"], "precision": {"name": task["signature_payload"]["precision"]}, "strict_nonfinite": True, "grad_clip_norm": 1.0, "plateau_metric": "curved_parent_mse", "scheduler": task["signature_payload"]["scheduler"], "signature_configuration": signature_configuration(task, inventory(task)), "quantizer": launcher.arm_metadata(task["arm"])},
         "history": records,
     }), encoding="utf-8")
     inv = inventory(task)
@@ -215,6 +271,13 @@ def test_formal_capacity_matrix_is_frozen_bf16_and_has_four_signed_tasks(tmp_pat
         assert task["environment"]["NS_VQ_SWEEP_EPOCHS"] == "100"
         assert task["environment"]["NS_VQ_AUTO_RESUME"] == "1"
         assert task["environment"]["NS_VQ_STRICT_NONFINITE"] == "1"
+        assert task["environment"]["NS_VQ_PLATEAU_METRIC"] == "curved_parent_mse"
+        assert task["signature_payload"]["loss"] == {
+            "reconstruction": "weighted_mse",
+            "curved_loss_weight": 1.0,
+            "complex_loss_weight": 1.0,
+            "curved_loss_threshold": 0.02,
+        }
 
 
 def test_dry_run_is_non_mutating_and_protocol_bound(tmp_path, monkeypatch):

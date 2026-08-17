@@ -29,7 +29,7 @@ except ImportError:  # direct execution from tools/
     from run_p0b_stability_retest import output_root_writer_lock
 
 
-SCHEMA = "capacity-ab-60k-v1"
+SCHEMA = "capacity-ab-60k-v2"
 # Reuse the P0-B OS writer lock implementation and its lock-file convention.
 # Capacity runs must use a distinct output root, so this serializes writers
 # without making the existing lock appear as an unexpected output artifact.
@@ -44,6 +44,17 @@ FORMAL_LEARNING_RATE = "3e-4"
 FORMAL_PRECISION = "bf16"
 FORMAL_GRAD_CLIP = "1.0"
 FORMAL_MIN_PARENT_COVERAGE = 0.9
+FORMAL_PLATEAU_METRIC = "curved_parent_mse"
+FORMAL_CURVED_FRACTION = 0.0
+FORMAL_COMPLEX_FRACTION = 0.0
+FORMAL_CURVED_LOSS_WEIGHT = 1.0
+FORMAL_COMPLEX_LOSS_WEIGHT = 1.0
+FORMAL_CURVED_LOSS_THRESHOLD = 0.02
+FORMAL_MIN_DELTA = 1e-5
+FORMAL_SCHEDULER_FACTOR = 0.5
+FORMAL_SCHEDULER_PATIENCE = 8
+FORMAL_SCHEDULER_THRESHOLD = 1e-5
+FORMAL_SCHEDULER_MIN_LR = 1e-6
 FORMAL_PROTOCOL_SHA256 = (
     "6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3"
 )
@@ -74,6 +85,19 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def git_source_identity(repo_root: Path) -> dict[str, Any]:
+    """Return the exact clean commit that owns every formal task source."""
+    commit = subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], cwd=repo_root, text=True
+    ).strip()
+    dirty = bool(
+        subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=repo_root, text=True
+        ).strip()
+    )
+    return {"commit": commit, "dirty": dirty}
 
 
 def canonical_signature(payload: Mapping[str, Any]) -> str:
@@ -206,6 +230,10 @@ def required_inputs(config: RunConfig) -> tuple[Path, ...]:
         config.repo_root / "breparg_improvements" / "training_stability.py",
         config.repo_root / "breparg_improvements" / "vqvae_sampling.py",
         config.repo_root / "breparg_improvements" / "vqvae_metrics.py",
+        config.repo_root / "breparg_improvements" / "vqvae_sample_cache.py",
+        config.repo_root / "breparg_improvements" / "cad_protocol.py",
+        config.repo_root / "breparg_improvements" / "sharded_data.py",
+        config.repo_root / "breparg_improvements" / "fsq_quantise.py",
         config.protocol_dir / "protocol_summary.json",
         config.protocol_dir / "split.pkl",
         config.breparg_root / "quantise.py",
@@ -270,25 +298,43 @@ def task_root(config: RunConfig, arm: str, seed: int) -> Path:
 
 def task_signature_payload(config: RunConfig, arm: str, seed: int) -> dict[str, Any]:
     protocol = protocol_binding(config)
-    source_names = ("train.py", "training_stability.py", "vqvae_sampling.py", "vqvae_metrics.py")
+    source_names = (
+        "train.py", "training_stability.py", "vqvae_sampling.py",
+        "vqvae_metrics.py", "vqvae_sample_cache.py", "cad_protocol.py",
+        "sharded_data.py", "fsq_quantise.py",
+    )
     sources = {
         name: sha256_file(config.repo_root / "breparg_improvements" / name)
         for name in source_names
     }
     return {
         "schema": SCHEMA, "arm": arm, "seed": int(seed),
+        "git": git_source_identity(config.repo_root),
         "train_cap": int(config.train_cap), "val_cap": int(config.val_cap),
         "batch_size": int(config.batch_size), "epochs": int(config.epochs),
         "learning_rate": config.learning_rate, "precision": config.precision,
         "gradient_clip": FORMAL_GRAD_CLIP, "strict_nonfinite": True,
         "scheduler": {"kind": "ReduceLROnPlateau",
-                       "metric": "curved_parent_mse",
-                       "factor": 0.5, "patience": 8,
-                       "threshold": 1e-5, "threshold_mode": "abs", "min_lr": 1e-6},
+                       "metric": FORMAL_PLATEAU_METRIC,
+                       "factor": FORMAL_SCHEDULER_FACTOR,
+                       "patience": FORMAL_SCHEDULER_PATIENCE,
+                       "threshold": FORMAL_SCHEDULER_THRESHOLD,
+                       "threshold_mode": "abs",
+                       "min_lr": FORMAL_SCHEDULER_MIN_LR},
         "sampling": {"balance_by_parent": not config.smoke,
                      "deduplicate_before_cap": not config.smoke,
                      "require_exact_caps": not config.smoke,
-                     "min_parent_coverage": 0.0 if config.smoke else FORMAL_MIN_PARENT_COVERAGE},
+                     "min_parent_coverage": 0.0 if config.smoke else FORMAL_MIN_PARENT_COVERAGE,
+                     "curved_fraction": FORMAL_CURVED_FRACTION,
+                     "complex_fraction": FORMAL_COMPLEX_FRACTION},
+        "loss": {"reconstruction": "weighted_mse",
+                 "curved_loss_weight": FORMAL_CURVED_LOSS_WEIGHT,
+                 "complex_loss_weight": FORMAL_COMPLEX_LOSS_WEIGHT,
+                 "curved_loss_threshold": FORMAL_CURVED_LOSS_THRESHOLD},
+        "stop": {"min_epochs": int(config.epochs),
+                 "patience": int(config.epochs),
+                 "min_delta": FORMAL_MIN_DELTA,
+                 "max_nonfinite_val_epochs": 1},
         "quantizer": arm_metadata(arm),
         "protocol_status": protocol["status"],
         "protocol_sha256": protocol["protocol_sha256"],
@@ -322,12 +368,20 @@ def build_task(config: RunConfig, arm: str, seed: int) -> dict[str, Any]:
         "NS_VQ_SAVE_FINAL": "1", "NS_VQ_STRICT_NONFINITE": "1",
         "NS_VQ_MIN_EPOCHS": str(config.epochs), "NS_VQ_PATIENCE": str(config.epochs),
         "NS_VQ_MAX_NONFINITE_VAL_EPOCHS": "1", "NS_VQ_MIN_PARENT_COVERAGE": str(payload["sampling"]["min_parent_coverage"]),
+        "NS_VQ_MIN_DELTA": str(FORMAL_MIN_DELTA),
         "NS_VQ_REQUIRE_EXACT_CAPS": "1" if not config.smoke else "0",
         "NS_VQ_DEDUP_BEFORE_CAP": "1" if not config.smoke else "0",
-        "NS_VQ_SCHEDULER_FACTOR": "0.5", "NS_VQ_SCHEDULER_PATIENCE": "8",
-        "NS_VQ_SCHEDULER_THRESHOLD": "1e-5", "NS_VQ_SCHEDULER_MIN_LR": "1e-6",
+        "NS_VQ_PLATEAU_METRIC": FORMAL_PLATEAU_METRIC,
+        "NS_VQ_SCHEDULER_FACTOR": str(FORMAL_SCHEDULER_FACTOR),
+        "NS_VQ_SCHEDULER_PATIENCE": str(FORMAL_SCHEDULER_PATIENCE),
+        "NS_VQ_SCHEDULER_THRESHOLD": str(FORMAL_SCHEDULER_THRESHOLD),
+        "NS_VQ_SCHEDULER_MIN_LR": str(FORMAL_SCHEDULER_MIN_LR),
         "NS_VQ_TB_LOG_DIR": str(root / "tensorboard"),
-        "NS_VQ_COMPLEX_FRACTION": "0", "NS_VQ_CURVED_FRACTION": "0",
+        "NS_VQ_COMPLEX_FRACTION": str(FORMAL_COMPLEX_FRACTION),
+        "NS_VQ_CURVED_FRACTION": str(FORMAL_CURVED_FRACTION),
+        "NS_VQ_COMPLEX_LOSS_WEIGHT": str(FORMAL_COMPLEX_LOSS_WEIGHT),
+        "NS_VQ_CURVED_LOSS_WEIGHT": str(FORMAL_CURVED_LOSS_WEIGHT),
+        "NS_VQ_CURVED_LOSS_THRESHOLD": str(FORMAL_CURVED_LOSS_THRESHOLD),
     }
     return {
         "arm": arm, "seed": int(seed), "task_id": f"{arm}:seed{seed}",
@@ -419,6 +473,9 @@ def _validate_formal_task_contract(task: Mapping[str, Any], reasons: list[str]) 
             reasons.append(f"formal signature {field} mismatch")
     if task.get("arm") not in FORMAL_ARMS or payload.get("arm") != task.get("arm"):
         reasons.append("formal signature arm mismatch")
+    git_identity = payload.get("git")
+    if not isinstance(git_identity, Mapping) or git_identity.get("dirty") is not False:
+        reasons.append("formal signature Git worktree must be clean")
     if task.get("seed") not in FORMAL_SEEDS or payload.get("seed") != task.get("seed"):
         reasons.append("formal signature seed mismatch")
     if task.get("arm") in FORMAL_ARMS:
@@ -426,12 +483,12 @@ def _validate_formal_task_contract(task: Mapping[str, Any], reasons: list[str]) 
             reasons.append("formal signature quantizer mismatch")
     if payload.get("scheduler") != {
         "kind": "ReduceLROnPlateau",
-        "metric": "curved_parent_mse",
-        "factor": 0.5,
-        "patience": 8,
-        "threshold": 1e-5,
+        "metric": FORMAL_PLATEAU_METRIC,
+        "factor": FORMAL_SCHEDULER_FACTOR,
+        "patience": FORMAL_SCHEDULER_PATIENCE,
+        "threshold": FORMAL_SCHEDULER_THRESHOLD,
         "threshold_mode": "abs",
-        "min_lr": 1e-6,
+        "min_lr": FORMAL_SCHEDULER_MIN_LR,
     }:
         reasons.append("formal signature scheduler mismatch")
     if payload.get("sampling") != {
@@ -439,8 +496,24 @@ def _validate_formal_task_contract(task: Mapping[str, Any], reasons: list[str]) 
         "deduplicate_before_cap": True,
         "require_exact_caps": True,
         "min_parent_coverage": FORMAL_MIN_PARENT_COVERAGE,
+        "curved_fraction": FORMAL_CURVED_FRACTION,
+        "complex_fraction": FORMAL_COMPLEX_FRACTION,
     }:
         reasons.append("formal signature sampling mismatch")
+    if payload.get("loss") != {
+        "reconstruction": "weighted_mse",
+        "curved_loss_weight": FORMAL_CURVED_LOSS_WEIGHT,
+        "complex_loss_weight": FORMAL_COMPLEX_LOSS_WEIGHT,
+        "curved_loss_threshold": FORMAL_CURVED_LOSS_THRESHOLD,
+    }:
+        reasons.append("formal signature loss mismatch")
+    if payload.get("stop") != {
+        "min_epochs": FORMAL_EPOCHS,
+        "patience": FORMAL_EPOCHS,
+        "min_delta": FORMAL_MIN_DELTA,
+        "max_nonfinite_val_epochs": 1,
+    }:
+        reasons.append("formal signature stop policy mismatch")
 
 
 def _validate_signed_inputs(task: Mapping[str, Any], reasons: list[str]) -> None:
@@ -452,8 +525,15 @@ def _validate_signed_inputs(task: Mapping[str, Any], reasons: list[str]) -> None
         return
     train_path = Path(str(command[1])).resolve()
     improvements = train_path.parent
+    observed_git = git_source_identity(improvements.parent)
+    if observed_git != payload.get("git"):
+        reasons.append("signed Git source identity mismatch")
     observed_sources = {}
-    for name in ("train.py", "training_stability.py", "vqvae_sampling.py", "vqvae_metrics.py"):
+    for name in (
+        "train.py", "training_stability.py", "vqvae_sampling.py",
+        "vqvae_metrics.py", "vqvae_sample_cache.py", "cad_protocol.py",
+        "sharded_data.py", "fsq_quantise.py",
+    ):
         path = improvements / name
         if not path.is_file():
             reasons.append(f"signed source is missing: {name}")
@@ -515,16 +595,13 @@ def _validate_run_manifest(
         reasons.append(f"{prefix} run_manifest experiment missing")
         return None
     expected = task["signature_payload"]
+    if value.get("git") != expected.get("git"):
+        reasons.append(f"{prefix} run_manifest Git identity mismatch")
     for field in ("seed", "train_cap", "val_cap", "epochs", "batch_size"):
         if experiment.get(field) != expected[field]:
             reasons.append(f"{prefix} run_manifest {field} mismatch")
     expected_sampling = expected["sampling"]
-    for field in (
-        "min_parent_coverage",
-        "balance_by_parent",
-        "deduplicate_before_cap",
-        "require_exact_caps",
-    ):
+    for field in expected_sampling:
         if experiment.get(field) != expected_sampling[field]:
             reasons.append(f"{prefix} run_manifest sampling {field} mismatch")
     arms = experiment.get("arms")
@@ -541,6 +618,19 @@ def _validate_run_manifest(
     )
     if inventory is not None and experiment.get("inventory") != inventory:
         reasons.append(f"{prefix} run_manifest inventory mismatch")
+    observed_loss = {
+        "reconstruction": "weighted_mse",
+        "curved_loss_weight": experiment.get("curved_loss_weight"),
+        "complex_loss_weight": experiment.get("complex_loss_weight"),
+        "curved_loss_threshold": experiment.get("curved_loss_threshold"),
+    }
+    if observed_loss != expected["loss"]:
+        reasons.append(f"{prefix} run_manifest loss mismatch")
+    observed_stop = {
+        key: experiment.get(key) for key in expected["stop"]
+    }
+    if observed_stop != expected["stop"]:
+        reasons.append(f"{prefix} run_manifest stop policy mismatch")
     runtime = value.get("runtime_resume_compatibility")
     if not isinstance(runtime, Mapping) or not runtime:
         reasons.append(f"{prefix} runtime_resume_compatibility missing")
@@ -560,6 +650,8 @@ def _validate_signature_configuration(
         reasons.append(f"{prefix} signature_configuration missing")
         return
     expected = task["signature_payload"]
+    if value.get("git") != expected.get("git"):
+        reasons.append(f"{prefix} signature_configuration Git identity mismatch")
     for field in ("seed", "train_cap", "val_cap", "epochs", "batch_size", "precision"):
         if value.get(field) != expected[field]:
             reasons.append(f"{prefix} signature_configuration {field} mismatch")
@@ -582,6 +674,10 @@ def _validate_signature_configuration(
         reasons.append(f"{prefix} signature_configuration runtime mismatch")
     if value.get("scheduler") != expected["scheduler"]:
         reasons.append(f"{prefix} signature_configuration scheduler mismatch")
+    if value.get("loss") != expected["loss"]:
+        reasons.append(f"{prefix} signature_configuration loss mismatch")
+    if value.get("stop") != expected["stop"]:
+        reasons.append(f"{prefix} signature_configuration stop policy mismatch")
     observed_sampling = value.get("sampling") or {}
     for field, expected_value in expected["sampling"].items():
         if observed_sampling.get(field) != expected_value:
@@ -609,6 +705,14 @@ def _validate_stage_usage(usage: Any, task: Mapping[str, Any], reasons: list[str
             finite = False
         if not finite or float(item["entropy_perplexity"]) <= 1.0:
             reasons.append(f"{prefix} {stage} perplexity is collapsed or non-finite")
+        try:
+            usage_fraction = float(item.get("usage_fraction"))
+            finite_fraction = math.isfinite(usage_fraction)
+        except (TypeError, ValueError):
+            finite_fraction = False
+            usage_fraction = 0.0
+        if not finite_fraction or not 0.0 < usage_fraction <= 1.0:
+            reasons.append(f"{prefix} {stage} usage_fraction invalid")
 
 
 def _load_torch(path: Path, reasons: list[str], label: str) -> Mapping[str, Any] | None:
@@ -747,12 +851,50 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
             reasons.append("history row is not an object")
             continue
         epoch = row.get("epoch")
+        expected_train_batches = math.ceil(
+            int(task["signature_payload"]["train_cap"])
+            / int(task["signature_payload"]["batch_size"])
+        )
+        expected_val_batches = math.ceil(
+            int(task["signature_payload"]["val_cap"])
+            / int(task["signature_payload"]["batch_size"])
+        )
+        for field, expected_count in (
+            ("train_batches", expected_train_batches),
+            ("finite_train_batches", expected_train_batches),
+            ("val_batches", expected_val_batches),
+            ("finite_val_batches", expected_val_batches),
+        ):
+            if row.get(field) != expected_count:
+                reasons.append(
+                    f"epoch {epoch}: {field} must be {expected_count}"
+                )
         for field in ZERO_FIELDS:
             if row.get(field) != 0:
                 reasons.append(f"epoch {epoch}: {field} must be zero")
         for field in ("gradients_finite", "training_state_finite", "grad_clip_active"):
             if row.get(field) is not True:
                 reasons.append(f"epoch {epoch}: {field} must be true")
+        finite_audit = row.get("finite_state_audit")
+        if not isinstance(finite_audit, Mapping) or finite_audit.get("status") != "finite":
+            reasons.append(f"epoch {epoch}: finite_state_audit must be finite")
+        if row.get("full_state_audits") != 1:
+            reasons.append(f"epoch {epoch}: full_state_audits must be 1")
+        if row.get("per_batch_full_state_audits") != 0:
+            reasons.append(f"epoch {epoch}: per_batch_full_state_audits must be 0")
+        expected_metric = task["signature_payload"]["scheduler"]["metric"]
+        if row.get("plateau_metric") != expected_metric:
+            reasons.append(f"epoch {epoch}: plateau_metric mismatch")
+        curved = (
+            (row.get("val_parent_cluster_reconstruction_mse") or {})
+            .get("surface_curved_proxy", {})
+            .get("mse")
+        )
+        if expected_metric == "curved_parent_mse":
+            if row.get("scheduler_metric") != curved:
+                reasons.append(f"epoch {epoch}: scheduler_metric is not curved parent MSE")
+            if row.get("plateau_value") != curved:
+                reasons.append(f"epoch {epoch}: plateau_value is not curved parent MSE")
         if row.get("experiment_signature") != task["signature"]:
             reasons.append(f"epoch {epoch}: experiment signature mismatch")
         if task["arm"] == "rvq_2x4096_64d_random":
@@ -773,11 +915,16 @@ def validate_task(task: Mapping[str, Any], *, formal: bool) -> dict[str, Any]:
         reasons.append("history strict_nonfinite must be true")
     if config_record.get("grad_clip_norm") != 1.0:
         reasons.append("history grad_clip_norm mismatch")
+    if config_record.get("plateau_metric") != task["signature_payload"]["scheduler"]["metric"]:
+        reasons.append("history plateau_metric mismatch")
     expected_scheduler = task["signature_payload"]["scheduler"]
     observed_scheduler = config_record.get("scheduler") or {}
     for field, value in expected_scheduler.items():
         if observed_scheduler.get(field) != value:
             reasons.append(f"history scheduler {field} mismatch")
+    signature_configuration = config_record.get("signature_configuration") or {}
+    if signature_configuration.get("loss") != task["signature_payload"]["loss"]:
+        reasons.append("history signature_configuration loss mismatch")
     _validate_quantizer(config_record.get("quantizer"), task, reasons, "history")
 
     inventory = None
@@ -925,6 +1072,8 @@ def ensure_state(config: RunConfig) -> tuple[Path, dict[str, Any]]:
         for task_id, actual_task in actual_tasks.items():
             if actual_task.get("signature") != expected_tasks[task_id]["signature"]:
                 raise ValueError(f"existing capacity task signature mismatch: {task_id}")
+            if actual_task.get("environment") != expected_tasks[task_id]["environment"]:
+                raise ValueError(f"existing capacity task environment mismatch: {task_id}")
         return path, state
     if config.output_root.exists() and any(entry.name != WRITER_LOCK_NAME for entry in config.output_root.iterdir()):
         raise ValueError("new capacity output root is non-empty and has no matching state")

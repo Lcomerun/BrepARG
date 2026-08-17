@@ -859,11 +859,29 @@ def test_capacity_decision_accepts_vq_at_exact_five_pp_and_reports_cost():
     assert "+36%" in decision["rvq_sequence_cost"]["label"]
 
 
+def test_capacity_decision_allows_material_significant_rvq_to_override_vq_gate():
+    summaries = {
+        BYPASS_ARM: {"attempts": 100, "strict_brep_valid": 80},
+        CAPACITY_VQ_ARM: {"attempts": 100, "strict_brep_valid": 75},
+        CAPACITY_RVQ_ARM: {"attempts": 100, "strict_brep_valid": 82},
+    }
+    comparisons = {
+        "vq_vs_bypass": {"candidate_wins": 0, "comparator_wins": 5, "significant": False},
+        "rvq_vs_vq": {"candidate_wins": 9, "comparator_wins": 2, "significant": True},
+    }
+
+    decision = decide_capacity_ab(summaries, comparisons)
+
+    assert decision["decision"] == "RVQ_ACCEPTED_FOR_VALIDITY"
+    assert decision["selected_arm"] == CAPACITY_RVQ_ARM
+    assert decision["rvq_minus_vq8192_pp"] == pytest.approx(7.0)
+
+
 def test_capacity_decision_requires_significant_positive_rvq_improvement():
     summaries = {
         BYPASS_ARM: {"attempts": 100, "strict_brep_valid": 90},
         CAPACITY_VQ_ARM: {"attempts": 100, "strict_brep_valid": 70},
-        CAPACITY_RVQ_ARM: {"attempts": 100, "strict_brep_valid": 71},
+        CAPACITY_RVQ_ARM: {"attempts": 100, "strict_brep_valid": 76},
     }
     not_significant = decide_capacity_ab(
         summaries,

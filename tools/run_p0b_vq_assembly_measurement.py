@@ -1191,6 +1191,7 @@ def decide_capacity_ab(
     paired_comparisons: Mapping[str, Mapping[str, Any]],
     *,
     delta_q_threshold_pp: float = 5.0,
+    rvq_material_advantage_pp: float = 5.0,
 ) -> dict[str, Any]:
     """Apply the preregistered VQ-8192-first/RVQ-cost decision rule."""
     _require(CAPACITY_VQ_ARM in validity_by_arm, "VQ-8192 validity summary is missing")
@@ -1205,16 +1206,25 @@ def decide_capacity_ab(
     _require(attempts > 0, "capacity validity denominator must be positive")
     delta_q = (bypass - vq) * 100.0 / attempts
     rvq_vq = paired_comparisons["rvq_vs_vq"]
-    rvq_better = rvq > vq and bool(rvq_vq.get("significant")) and int(rvq_vq.get("candidate_wins", 0)) > int(rvq_vq.get("comparator_wins", 0))
+    rvq_advantage_pp = (rvq - vq) * 100.0 / attempts
+    rvq_better = (
+        rvq_advantage_pp >= float(rvq_material_advantage_pp)
+        and bool(rvq_vq.get("significant"))
+        and int(rvq_vq.get("candidate_wins", 0))
+        > int(rvq_vq.get("comparator_wins", 0))
+    )
     vq_direct = delta_q <= float(delta_q_threshold_pp)
-    if vq_direct:
+    if rvq_better:
+        decision = "RVQ_ACCEPTED_FOR_VALIDITY"
+        selected_arm = CAPACITY_RVQ_ARM
+        reason = (
+            "RVQ is at least 5 pp and pairwise significantly better than "
+            "VQ-8192, so it earns the preregistered sequence cost."
+        )
+    elif vq_direct:
         decision = "VQ_8192_DIRECT_WIN"
         selected_arm: str | None = CAPACITY_VQ_ARM
         reason = "VQ-8192 is within the preregistered 5 pp bypass gap; the extra RVQ sequence cost is unnecessary."
-    elif rvq_better:
-        decision = "RVQ_ACCEPTED_FOR_VALIDITY"
-        selected_arm = CAPACITY_RVQ_ARM
-        reason = "RVQ is pairwise significantly better than VQ-8192 and therefore earns its preregistered sequence cost."
     else:
         decision = "CAPACITY_UNRESOLVED"
         selected_arm = None
@@ -1227,6 +1237,8 @@ def decide_capacity_ab(
         "delta_q_threshold_pp": float(delta_q_threshold_pp),
         "vq8192_direct_win": vq_direct,
         "rvq_pairwise_better": rvq_better,
+        "rvq_minus_vq8192_pp": rvq_advantage_pp,
+        "rvq_material_advantage_threshold_pp": float(rvq_material_advantage_pp),
         "rvq_sequence_cost": {
             "estimated_multiplier": RVQ_SEQUENCE_MULTIPLIER,
             "estimated_relative_increase": RVQ_SEQUENCE_RELATIVE_INCREASE,

@@ -88,6 +88,10 @@ class QuantizerStageUsageTracker:
             "unique_bins": unique,
             "coverage": float(unique / size),
             "entropy_perplexity": perplexity,
+            # Entropy perplexity is the effective number of uniformly used
+            # codes.  Dividing by the stage size makes utilization comparable
+            # between VQ-8192 and each independent RVQ-4096 stage.
+            "usage_fraction": float(perplexity / size),
         }
 
     def summary(self) -> dict[str, dict[str, float | int]]:
@@ -125,6 +129,7 @@ def stage_usage_health(
         tokens = item.get("tokens")
         unique = item.get("unique_bins")
         perplexity = item.get("entropy_perplexity")
+        usage_fraction = item.get("usage_fraction")
         if type(tokens) is not int or tokens <= 0:
             reasons.append(f"{name} token count must be positive")
         if type(unique) is not int or unique < int(min_unique_bins):
@@ -137,6 +142,12 @@ def stage_usage_health(
             reasons.append(
                 f"{name} entropy_perplexity must be > {float(min_perplexity_exclusive)}"
             )
+        try:
+            finite_fraction = math.isfinite(float(usage_fraction))
+        except (TypeError, ValueError):
+            finite_fraction = False
+        if not finite_fraction or not 0.0 < float(usage_fraction) <= 1.0:
+            reasons.append(f"{name} usage_fraction must be finite and in (0, 1]")
     return {"healthy": not reasons, "reasons": reasons}
 
 

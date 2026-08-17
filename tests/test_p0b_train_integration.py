@@ -167,6 +167,8 @@ def test_strict_loop_records_finite_clip_scheduler_and_full_rolling_state(
             "surface_curved_proxy"
         ]["mse"]
         assert record["scheduler_metric"] == pytest.approx(curved_parent_mse)
+        assert record["plateau_metric"] == "curved_parent_mse"
+        assert record["plateau_value"] == pytest.approx(curved_parent_mse)
     assert history[-1]["lr_after_scheduler"] < history[0]["lr"]
     assert meta["precision"]["name"] == "fp32"
     assert meta["finite_state_audit_cadence"] == {

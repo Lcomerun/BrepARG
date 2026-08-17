@@ -98,6 +98,7 @@ def test_rvq_uses_detached_residual_two_independent_pools_and_one_st_path(
     assert len(info.stage_indices) == 2
     assert all(indices.shape == (8,) for indices in info.stage_indices)
     assert info[2].shape == (16,)
+    assert int(info[2][8:].min()) >= 4096
     assert torch.allclose(decoder_only, torch.ones_like(latent))
     assert torch.isfinite(loss)
     assert latent.grad is not None and torch.isfinite(latent.grad).all()
@@ -140,6 +141,9 @@ def test_stage_tracker_reports_exact_usage_and_collapse_fail_closed(train_module
     assert usage["stage1"]["tokens"] == 3
     assert usage["stage1"]["unique_bins"] == 2
     assert usage["stage1"]["coverage"] == 0.5
+    assert usage["stage1"]["usage_fraction"] == pytest.approx(
+        usage["stage1"]["entropy_perplexity"] / 4
+    )
     assert usage["stage2"]["tokens"] == 3
     assert usage["stage2"]["unique_bins"] == 1
     health = train_module.stage_usage_health(usage, require_stage2=True)
@@ -184,6 +188,37 @@ def test_checkpoint_selector_rejects_collapsed_stage2(train_module):
 
     assert decision["selected"] is False
     assert any("stage2 unique_bins" in reason for reason in decision["reasons"])
+
+
+def test_rvq_selector_uses_independent_stage_usage_not_legacy_marginal(train_module):
+    metrics = {
+        # Deliberately nonsensical legacy marginal values.  RVQ selection must
+        # be driven by its two independently named stage fractions.
+        "code_usage": {"entropy_perplexity": 1.0, "coverage": 0.0001},
+        "stage_code_usage": {
+            "stage1": {"usage_fraction": 0.25},
+            "stage2": {"usage_fraction": 0.20},
+        },
+        "parent_cluster_reconstruction_mse": {
+            "surface_curved_proxy": {"mse": 0.01}
+        },
+        "nonfinite_val_samples": 0,
+    }
+
+    decision = train_module.evaluate_vq_checkpoint_candidate(
+        metrics,
+        prior_perplexities=[2000.0],
+        prior_coverages=[0.8],
+        best_curved_parent_mse=0.02,
+        stage_usage_health_report={"healthy": True, "reasons": []},
+        prior_stage_usage_fractions={
+            "stage1": [0.26], "stage2": [0.21]
+        },
+    )
+
+    assert decision["selected"] is True
+    assert decision["observed"]["perplexity"] is None
+    assert decision["observed"]["coverage"] is None
 
 
 class TinyResidualQuantizer(nn.Module):

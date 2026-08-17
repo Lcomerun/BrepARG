@@ -312,7 +312,8 @@ def evaluate_vq_checkpoint_candidate(
         prior_coverages=(),
         best_curved_parent_mse=float('inf'),
         history_ratio=0.9,
-        stage_usage_health_report=None):
+        stage_usage_health_report=None,
+        prior_stage_usage_fractions=None):
     """Select a representation checkpoint from curved quality and stable usage."""
     code_usage = metrics.get('code_usage') or {}
     bucket_metrics = metrics.get('parent_cluster_reconstruction_mse') or {}
@@ -353,6 +354,38 @@ def evaluate_vq_checkpoint_candidate(
             f"quantizer stage usage: {reason}"
             for reason in (stage_usage_health_report.get('reasons') or ["unhealthy"])
         )
+    stage_usage = metrics.get('stage_code_usage') or {}
+    stage_fraction_means = {}
+    if isinstance(stage_usage, Mapping) and len(stage_usage) >= 2:
+        # RVQ has no single codebook utilization value: the two integer
+        # streams live in independent namespaces.  Do not let the legacy
+        # marginal histogram influence best-checkpoint selection.
+        perplexity = None
+        coverage = None
+        reasons = [
+            reason for reason in reasons
+            if not reason.startswith(('perplexity ', 'coverage '))
+        ]
+        prior_stage_usage_fractions = (
+            prior_stage_usage_fractions
+            if isinstance(prior_stage_usage_fractions, Mapping) else {}
+        )
+        for stage_name, usage in stage_usage.items():
+            if not isinstance(usage, Mapping):
+                reasons.append(f"{stage_name} usage is missing")
+                continue
+            fraction = safe_json_number(usage.get('usage_fraction'))
+            historical_mean = _finite_mean(
+                prior_stage_usage_fractions.get(stage_name, ())
+            )
+            stage_fraction_means[stage_name] = historical_mean
+            if fraction is None:
+                reasons.append(f"{stage_name} usage_fraction is nonfinite or missing")
+            elif historical_mean is not None and float(fraction) < history_ratio * historical_mean:
+                reasons.append(
+                    f"{stage_name} usage_fraction is below 90% of historical mean: "
+                    f"{fraction!r} < {history_ratio * historical_mean!r}"
+                )
     return {
         'selected': not reasons,
         'reasons': reasons,
@@ -364,6 +397,7 @@ def evaluate_vq_checkpoint_candidate(
         'historical_means': {
             'perplexity': perplexity_mean,
             'coverage': coverage_mean,
+            'stage_usage_fractions': stage_fraction_means,
         },
         'history_ratio': float(history_ratio),
     }
@@ -739,10 +773,20 @@ class ResidualLearnedVectorQuantiser(nn.Module):
             stage1_info[0],
             stage2_info[0],
         )
-        aggregate_indices = torch.cat(tuple(index.reshape(-1) for index in stage_indices))
+        # The legacy third tuple item remains a single index stream, but RVQ
+        # stages own independent namespaces.  Offset stage 2 before combining
+        # them so equal integer IDs in different codebooks are never treated
+        # as the same code.  This marginal is compatibility evidence only;
+        # checkpoint selection below uses the per-stage health histories.
+        aggregate_parts = []
+        offset = 0
+        for indices, size in zip(stage_indices, self.stage_codebook_sizes):
+            aggregate_parts.append(indices.reshape(-1) + offset)
+            offset += int(size)
+        aggregate_indices = torch.cat(tuple(aggregate_parts))
         aggregate_probs = torch.bincount(
             aggregate_indices,
-            minlength=max(self.stage_codebook_sizes),
+            minlength=sum(self.stage_codebook_sizes),
         ).to(dtype=torch.float32)
         aggregate_probs = aggregate_probs / aggregate_probs.sum().clamp_min(1.0)
         aggregate_perplexity = torch.exp(
@@ -1054,11 +1098,16 @@ def build_vq_run_manifest(
             'complex_fraction': VQ_COMPLEX_FRACTION,
             'curved_loss_weight': VQ_CURVED_LOSS_WEIGHT,
             'complex_loss_weight': VQ_COMPLEX_LOSS_WEIGHT,
+            'curved_loss_threshold': VQ_CURVED_LOSS_THRESHOLD,
             'min_parent_coverage': VQ_MIN_PARENT_COVERAGE,
             'balance_by_parent': bool(VQ_BALANCE_BY_PARENT),
             'deduplicate_before_cap': bool(VQ_DEDUP_BEFORE_CAP),
             'require_exact_caps': bool(VQ_REQUIRE_EXACT_CAPS),
             'plateau_metric': VQ_PLATEAU_METRIC,
+            'min_epochs': VQ_MIN_EPOCHS,
+            'patience': VQ_PATIENCE,
+            'min_delta': VQ_MIN_DELTA,
+            'max_nonfinite_val_epochs': VQ_MAX_NONFINITE_VAL_EPOCHS,
             'arms': [_vq_arm_manifest(config) for config in configs],
         },
     }
@@ -1098,7 +1147,7 @@ def vq_training_signature_configuration(run_manifest, config, *, precision=None)
         'grad_clip_norm': float(VQ_GRAD_CLIP),
         'scheduler': {
             'kind': 'ReduceLROnPlateau',
-            'metric': 'curved_parent_mse',
+            'metric': VQ_PLATEAU_METRIC,
             'factor': float(VQ_SCHEDULER_FACTOR),
             'patience': int(VQ_SCHEDULER_PATIENCE),
             'threshold': float(VQ_SCHEDULER_THRESHOLD),
@@ -1110,6 +1159,12 @@ def vq_training_signature_configuration(run_manifest, config, *, precision=None)
             'curved_loss_weight': float(VQ_CURVED_LOSS_WEIGHT),
             'complex_loss_weight': float(VQ_COMPLEX_LOSS_WEIGHT),
             'curved_loss_threshold': float(VQ_CURVED_LOSS_THRESHOLD),
+        },
+        'stop': {
+            'min_epochs': int(VQ_MIN_EPOCHS),
+            'patience': int(VQ_PATIENCE),
+            'min_delta': float(VQ_MIN_DELTA),
+            'max_nonfinite_val_epochs': int(VQ_MAX_NONFINITE_VAL_EPOCHS),
         },
         'sampling': {
             key: experiment.get(key) for key in (
@@ -1672,7 +1727,7 @@ def _train_vqvae(
         'grad_clip_norm': grad_clip_norm,
         'scheduler': {
             'kind': 'ReduceLROnPlateau',
-            'metric': 'curved_parent_mse',
+            'metric': VQ_PLATEAU_METRIC,
             'factor': float(scheduler_factor),
             'patience': int(scheduler_patience),
             'threshold': float(scheduler_threshold),
@@ -1699,6 +1754,9 @@ def _train_vqvae(
     best_curved_parent_mse = float('inf')
     prior_perplexities = []
     prior_coverages = []
+    prior_stage_usage_fractions = {
+        f'stage{index + 1}': [] for index in range(len(stage_codebook_sizes))
+    }
     meta = {
         'epochs_requested': epochs,
         'epochs_ran': 0,
@@ -1767,6 +1825,15 @@ def _train_vqvae(
         )
         prior_perplexities = list(selector_state.get('prior_perplexities') or [])
         prior_coverages = list(selector_state.get('prior_coverages') or [])
+        restored_stage_fractions = selector_state.get('prior_stage_usage_fractions') or {}
+        if stage_codebook_sizes:
+            expected_stage_names = set(prior_stage_usage_fractions)
+            if set(restored_stage_fractions) != expected_stage_names:
+                raise ValueError("training checkpoint stage usage history mismatch")
+            prior_stage_usage_fractions = {
+                name: list(restored_stage_fractions[name])
+                for name in sorted(expected_stage_names)
+            }
         restored_meta = resume_extra.get('meta') or {}
         for key in (
                 'best_val_metrics', 'checkpoint_epoch', 'checkpoint_val_recon',
@@ -1856,8 +1923,14 @@ def _train_vqvae(
             tot += loss.item(); nb += 1
         model.eval(); vtot = vcount = vnb = 0; val_batches = 0
         nonfinite_val_samples = nonfinite_val_batches = 0
+        validation_codebook_size = (
+            sum(stage_codebook_sizes) if len(stage_codebook_sizes) >= 2
+            else int(codebook_size or np.prod(fsq_levels))
+        )
         val_accumulator = (
-            VQValidationAccumulator(int(codebook_size), val_buckets, val_parent_groups)
+            VQValidationAccumulator(
+                validation_codebook_size, val_buckets, val_parent_groups
+            )
             if val_buckets else None
         )
         val_stage_tracker = (
@@ -1930,6 +2003,7 @@ def _train_vqvae(
                 prior_coverages=prior_coverages,
                 best_curved_parent_mse=best_curved_parent_mse,
                 stage_usage_health_report=stage_health,
+                prior_stage_usage_fractions=prior_stage_usage_fractions,
             )
         else:
             checkpoint_decision = {
@@ -2022,10 +2096,16 @@ def _train_vqvae(
                 torch.save(checkpoint_payload, save_path)
         if val_metrics is not None:
             code_usage = val_metrics.get('code_usage') or {}
-            if safe_json_number(code_usage.get('entropy_perplexity')) is not None:
+            if not val_stage_usage and safe_json_number(code_usage.get('entropy_perplexity')) is not None:
                 prior_perplexities.append(float(code_usage['entropy_perplexity']))
-            if safe_json_number(code_usage.get('coverage')) is not None:
+            if not val_stage_usage and safe_json_number(code_usage.get('coverage')) is not None:
                 prior_coverages.append(float(code_usage['coverage']))
+            for stage_name, usage in (val_stage_usage or {}).items():
+                fraction = safe_json_number(usage.get('usage_fraction'))
+                if fraction is not None:
+                    prior_stage_usage_fractions.setdefault(stage_name, []).append(
+                        float(fraction)
+                    )
         if save_final_path and state_audit_finite:
             torch.save(checkpoint_payload, save_final_path)
         record = {
@@ -2168,7 +2248,7 @@ def _train_vqvae(
                     'finite_state_audit_cadence': state_audit_cadence,
                     'scheduler': {
                         'kind': 'ReduceLROnPlateau',
-                        'metric': 'curved_parent_mse',
+                        'metric': VQ_PLATEAU_METRIC,
                         'factor': float(scheduler_factor),
                         'patience': int(scheduler_patience),
                         'threshold': float(scheduler_threshold),
@@ -2215,6 +2295,10 @@ def _train_vqvae(
                         'best_curved_parent_mse': best_curved_parent_mse,
                         'prior_perplexities': prior_perplexities,
                         'prior_coverages': prior_coverages,
+                        **(
+                            {'prior_stage_usage_fractions': prior_stage_usage_fractions}
+                            if stage_codebook_sizes else {}
+                        ),
                         **(
                             {'stage_usage_health': stage_health}
                             if stage_codebook_sizes else {}

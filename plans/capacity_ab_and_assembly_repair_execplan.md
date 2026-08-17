@@ -20,7 +20,10 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 11:09 +08:00) Passed 176 focused and compatibility tests covering the capacity quantizers, launcher, stability lifecycle, prior P0-B behavior, fixed-cohort measurement, and P0-A snapshot/diagnostic paths.
 - [x] (2026-08-17 11:36 +08:00) Ran a first CUDA smoke. VQ-8192 was numerically finite, but fail-closed evidence validation exposed two producer omissions before RVQ started: scheduler metric and checkpoint parent-overlap counts. Corrected both at the producer, added contract regressions, and passed the 157-test capacity/stability/assembly compatibility suite.
 - [x] (2026-08-17 11:51 +08:00) Completed a clean two-arm CUDA smoke on the healthy D: NTFS SSD. Both VQ-8192 and RVQ validators returned `valid=true`, with identical inventories, resume-compatible runtime evidence, and zero non-finite events.
-- [ ] Formal four-task training is running automatically from clean commit `aa66fef` under `D:\luolin\V13\local_runs\capacity_ab_60k_20260817`. At 12:13 +08:00 VQ-8192 seed 3 had reached epoch 11/99, GPU utilization was 98%, all finite counters were zero, validation perplexity was 1338.0, coverage 57.43%, and curved parent MSE 0.01705. Remaining: finish all four tasks and pass the formal validator.
+- [x] (2026-08-17 13:00 +08:00) Stopped the first formal root at VQ-8192 seed 3 epoch 52 and classified it as diagnostic-only. Its signed scheduler declared `curved_parent_mse`, but the launcher omitted `NS_VQ_PLATEAU_METRIC`, so the actual scheduler consumed global validation MSE. No later arm or seed was started.
+- [x] (2026-08-17 13:20 +08:00) Upgraded the capacity evidence contract to schema v2: the launcher explicitly injects every scheduler, sampling, loss, and stop control; history and validator bind the real plateau metric; source and clean-Git identity coverage is expanded; exact batch/lifecycle checks fail closed; and existing state rejects environment drift.
+- [x] (2026-08-17 13:20 +08:00) Repaired RVQ evidence semantics. Stage indices now use independent namespaces, every stage reports `usage_fraction = entropy_perplexity / codebook_size`, best-checkpoint selection uses stage-specific historical stability instead of a conflated marginal, and the RVQ-over-VQ material advantage is frozen at 5 percentage points plus exact paired significance.
+- [ ] Re-run the two-arm CUDA smoke and forced interruption/resume smoke from the clean schema-v2 commit, then start a new four-task formal root. The old `capacity_ab_60k_20260817` root must never be resumed or promoted.
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
 - [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
@@ -57,6 +60,12 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - Observation: OCC's generic pcurve/wire self-intersection fixer does not address the dominant ten-case failure family in this cohort.
   Evidence: Both a face-integrated wire tool configuration and a direct wire-fixer configuration produced the same outcome as directed trim alone: strict 2/16, with only the two wire-build cases recovered. All ten previously diagnosed self-intersection CADs remained strict-invalid or failed before STEP.
 
+- Observation: A clean task signature can still misdescribe runtime behavior when the launcher does not explicitly export the signed control.
+  Evidence: The diagnostic VQ-8192 seed-3 history reports `config.scheduler.metric=curved_parent_mse` while every epoch records `plateau_metric=global_val`; at epoch 52 the scheduler input was `0.00122266` while curved parent MSE was `0.0028803291`. Schema v2 validates all three values against each other.
+
+- Observation: Concatenating two RVQ integer streams without an offset merges unrelated code identities.
+  Evidence: Code 7 from stage 1 and code 7 from stage 2 occupied the same histogram bin in schema v1. Schema v2 offsets stage 2 by 4096 and treats the combined histogram as compatibility-only evidence; selection uses each stage's usage fraction independently.
+
 ## Decision Log
 
 - Decision: Compare one 8192-entry learned codebook with two sequential 4096-entry residual codebooks, both using 64-dimensional code vectors and `anchor='random'`.
@@ -89,6 +98,14 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Decision: Move all post-launch development into a second worktree and return the formal launch path to detached commit `aa66fef` before seed 4 starts.
   Rationale: Even when signed training-file hashes are unchanged, a later task launched from a different Git HEAD would weaken the four-task provenance claim. The running seed-3 process has already imported its code; restoring the on-disk worktree after committing current work keeps all later launches on the original commit without interrupting seed 3.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Reject the partially trained schema-v1 formal root rather than resume it.
+  Rationale: Scheduler state and checkpoint selection were already driven by a different metric than the registered protocol. Reusing that state would preserve the confound even after fixing the launcher.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Require RVQ to exceed VQ-8192 by at least 5 strict-validity points, have more paired wins than losses, and pass the exact paired significance gate even when VQ-8192 itself is within 5 points of bypass.
+  Rationale: This resolves the earlier documentation/code ambiguity before results are observed and prices RVQ's estimated 36 percent sequence-length increase explicitly.
   Date/Author: 2026-08-17 / Codex.
 
 ## Outcomes & Retrospective
@@ -180,3 +197,5 @@ Revision note 2026-08-17 12:35 +08:00: Recorded the first independently switchab
 Revision note 2026-08-17 13:00 +08:00: Recorded the real OCC runner smoke and the 16-case independent/combined pilot. The pilot recovered the two wire-build cases only under directed trim and established that global switch composition is unsafe; future work narrows trim/pcurve repair to diagnosed failing entities before the formal 100-CAD no-regression matrix.
 
 Revision note 2026-08-17 13:15 +08:00: Recorded two negative generic pcurve self-intersection repair pilots. They added no restoration beyond the two directed-trim wire-build cases, so the plan rejects broad OCC ShapeFix as a route to the 95/100 gate and leaves boundary loss and downstream training blocked.
+
+Revision note 2026-08-17 13:20 +08:00: Recorded the schema-v1 scheduler mismatch, stopped and quarantined the diagnostic-only run, froze schema-v2 runtime/evidence controls, repaired RVQ stage accounting and selection, and made a new CUDA smoke plus clean-root restart mandatory.
