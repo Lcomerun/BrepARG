@@ -128,6 +128,8 @@ def clip_gradients_strict(model, max_norm):
         # Only pay for per-tensor synchronization when a failure needs a name.
         for name, gradient in named_gradients:
             _assert_finite_tensor(gradient, f"gradient:{name}")
+        if 'non-finite' not in str(exc).lower():
+            raise  # 梯度逐张量复检有限:这是 CUDA assert/OOM 等真错误,不得吞成跳批
         raise NonFiniteTrainingError(f"gradient norm is non-finite: {exc}") from exc
     norm_value = float(norm.detach().cpu()) if torch.is_tensor(norm) else float(norm)
     if not math.isfinite(norm_value):
@@ -406,6 +408,7 @@ class VQVAEStopConfig:
     min_epochs: int = 12
     patience: int = 8
     max_nonfinite_val_epochs: int = 2
+    max_total_nonfinite_val_epochs: int = 6
     min_delta: float = 1e-5
 
 
@@ -415,6 +418,7 @@ class VQVAEStopState:
     best_epoch: int = -1
     epochs_without_improvement: int = 0
     consecutive_nonfinite_val_epochs: int = 0
+    total_nonfinite_val_epochs: int = 0
     stop_reason: str = ""
 
 
@@ -438,7 +442,7 @@ def safe_json_number(value):
         return None
     if not math.isfinite(number):
         return None
-    return value
+    return number
 
 
 def finite_average(total, count):
@@ -493,6 +497,7 @@ def update_vqvae_stop_state(epoch, val_loss, state, config):
             state.epochs_without_improvement += 1
     else:
         state.consecutive_nonfinite_val_epochs += 1
+        state.total_nonfinite_val_epochs += 1
         state.epochs_without_improvement += 1
 
     reached_min_epochs = epoch + 1 >= config.min_epochs
@@ -500,6 +505,12 @@ def update_vqvae_stop_state(epoch, val_loss, state, config):
         if state.consecutive_nonfinite_val_epochs >= config.max_nonfinite_val_epochs:
             state.stop_reason = f"nonfinite_val_epochs={state.consecutive_nonfinite_val_epochs}"
             should_stop = True
+    total_cap = int(getattr(config, 'max_total_nonfinite_val_epochs', 0) or 0)
+    if not should_stop and config.max_nonfinite_val_epochs > 0 and total_cap > 0 and \
+            state.total_nonfinite_val_epochs >= total_cap:
+        # 有限/非有限交替时 consecutive 会被清零,累计口径兜住间歇性发散
+        state.stop_reason = f"total_nonfinite_val_epochs={state.total_nonfinite_val_epochs}"
+        should_stop = True
 
     if not should_stop and reached_min_epochs and config.patience > 0:
         if state.epochs_without_improvement >= config.patience:
