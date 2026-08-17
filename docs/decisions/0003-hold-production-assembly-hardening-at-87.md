@@ -39,12 +39,30 @@ accepted pairs to their shared representative before production construction.
 The signed composition at commit `aeec941` wrote 100 of 100 STEP files,
 recovered the disjoint `00000444_4ed4c78d6d754aac90876fc2_step_003`, retained
 the three prior recoveries, preserved every original strict-valid control, and
-reached 88 strict-valid, 90 native-valid, and 86 both-valid CADs. The
-Git-safe report verifies that its CAD set and per-CAD parent/historical-strict
-map equal the prior production 100-CAD report despite a reconstructed sorted
-input order. This is the best production result so far, but remains seven
-below the promotion gate. The remaining twelve strict failures retain
-diagnosed wire self-intersections, free-edge, or native-solid defects.
+reached 88 strict-valid, 90 native-valid, and 86 both-valid CADs.
+
+A later failure-triggered selector kept the guarded directed/local-topology
+result whenever it was already strict-valid and evaluated every fallback in an
+isolated child worker. A fallback could replace the primary output only after
+STEP readability, native validity, project-strict validity, both-valid status,
+and the complete schema-v2 geometry/topology gate all passed. Adding
+high-precision surface fitting as the last fallback restored
+`00051587_446e8810d6884cae80689579_step_000` without changing its 24 faces,
+48 edges, 28 vertices, or incidence signatures. The clean 16-case pilot and
+fixed 100-CAD matrix at commit `283734d` both passed the selector protocol.
+The 100-CAD result is 97 STEP-readable, 90 native-valid, 90 strict-valid, and
+87 both-valid, with all original 84 strict-valid controls retained and zero
+worker or protocol failures. The same candidate path made `00032101...`
+strict-valid only by reducing 18 input vertices to 16 candidate vertices; the
+unchanged gate correctly rejected it. The Git-safe evidence is in
+`reports/assembly_selector_surface_precision_invalid16_20260818/` and
+`reports/assembly_selector_surface_precision_100cad_20260818/`.
+
+The selector is now the best formally measured no-regression chain, but it is
+still five CADs below the predeclared promotion gate. Ten CADs remain
+strict-invalid in the fixed cohort, including three construction errors and
+seven invalid STEP results. No later exploratory recovery is counted until it
+passes the same clean-commit pilot and full fixed-cohort protocol.
 
 ## Decision
 
@@ -61,13 +79,13 @@ implementation without mutating the training checkout.
 
 ## Alternatives Considered
 
-### Apply the patch because it has zero regressions
+### Apply the selector because it has zero regressions
 
 Rejected. Zero regression is necessary but not sufficient. The fixed release
-gate is at least 95 strict-valid CADs out of 100, and the best result reaches
-88.
+gate is at least 95 strict-valid CADs out of 100, and the best formal result
+reaches 90.
 
-### Lower the gate after observing 87 or 88 of 100
+### Lower the gate after observing 87, 88, or 90 of 100
 
 Rejected. The gate was set before these implementations and remains the
 control against accepting repairs that only move a small subset of the failure
@@ -83,6 +101,8 @@ changing geometry outside the diagnosed face.
 
 The next assembly increment must target a remaining diagnosed failure family
 and first show a new strict-valid recovery on the frozen invalid subset while
-retaining all four existing recoveries. A new candidate still needs a signed
-100-CAD matrix with at least 95 strict-valid CADs, all original 84 retained,
-and zero regressions before the shared production source can change.
+retaining all six currently restored CADs. A new candidate still needs a
+signed 100-CAD matrix with at least 95 strict-valid CADs, all original 84
+retained, and zero regressions before the shared production source can change.
+The selector's complete geometry/topology gate remains unchanged; a
+native-valid STEP that changes vertex or incidence topology is not a recovery.

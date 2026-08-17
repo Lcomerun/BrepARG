@@ -1,0 +1,15 @@
+{
+  "cad_id_set_sha256": "685d0bb4b3077a6ca249a68a8771dec2dd42083b6c0e03b102ba1b0a9acbbdd9",
+  "candidate_attempts": 100,
+  "candidate_cad_order_sha256": "0ad4a9bb5d3191bd5f171abe5b33975bc2460ab0d73d0dd49d1b52f57e8735f7",
+  "provided": true,
+  "reference_attempts": 100,
+  "reference_attempts_sha256": "1a311366e0fdd9a49ddc4cf00b541b78c6ef2984a25b8021bf1dd204691f44ce",
+  "reference_cad_order_sha256": "0ad4a9bb5d3191bd5f171abe5b33975bc2460ab0d73d0dd49d1b52f57e8735f7",
+  "reference_report_name": "assembly_repair_baseline_100cad_20260817",
+  "same_cad_order": true,
+  "same_cad_set": true,
+  "same_parent_and_historical_strict_map": true,
+  "schema": "assembly-cohort-equivalence-v1",
+  "valid": true
+}

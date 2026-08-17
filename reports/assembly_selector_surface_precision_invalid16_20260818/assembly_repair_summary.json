@@ -1,0 +1,145 @@
+{
+  "accepted_profiles": [],
+  "advance_to_boundary_consistency": false,
+  "advance_to_sequence_or_ar": false,
+  "assembly_release_gate_passed": false,
+  "cohort_size": 16,
+  "gate_passed": false,
+  "generated_at": "2026-08-18T00:45:01+08:00",
+  "historical_invalid_only": true,
+  "historical_strict_valid": 0,
+  "label": "surface_precision_selector_invalid16_20260818",
+  "profiles": [
+    {
+      "attempts": 16,
+      "both_valid": 6,
+      "meets_95_gate": false,
+      "native_valid": 9,
+      "preserves_original_84": true,
+      "profile": "failure_triggered_selector",
+      "regressed_cad_ids": [],
+      "restored_both_valid_cad_ids": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00016845_33dbc9e6ea684970be61af74_step_000",
+        "00029780_a4788d5955c04fe1886666b7_step_000",
+        "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+        "00051587_446e8810d6884cae80689579_step_000"
+      ],
+      "restored_cad_ids": [
+        "00000444_4ed4c78d6d754aac90876fc2_step_003",
+        "00002441_179a8df075c94d0596b1f20d_step_010",
+        "00016845_33dbc9e6ea684970be61af74_step_000",
+        "00029780_a4788d5955c04fe1886666b7_step_000",
+        "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+        "00051587_446e8810d6884cae80689579_step_000"
+      ],
+      "status_counts": {
+        "assembly_error": 3,
+        "both_valid": 6,
+        "step_invalid": 7
+      },
+      "step_readable": 13,
+      "strict_valid": 6,
+      "unchanged_cad_ids": [
+        "00008763_affd199038524a1c8e3b7ad4_step_001",
+        "00032101_674d8fea687f4d9bbca6599b_step_000",
+        "00047472_197769bbdd814278b715d88a_step_000",
+        "00051602_7f1947595ae247e0a4a32f43_step_000",
+        "00061931_dcdd8a95feac4121adfd341f_step_000",
+        "00063055_e309c689b9b44f0686f47966_step_000",
+        "00067160_2a27016aa44f42c69c1079f7_step_000",
+        "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+        "00087341_6a73c5e821934d3fe4d0d555_step_000",
+        "00095733_8b325d2fcb27ec9e79388602_step_000"
+      ]
+    }
+  ],
+  "schema": "assembly-repair-selector-v1",
+  "selector": {
+    "accepted_fallback_ids": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00002441_179a8df075c94d0596b1f20d_step_010",
+      "00051587_446e8810d6884cae80689579_step_000"
+    ],
+    "candidate_attempt_count": 52,
+    "expected_both_valid_restorations": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00002441_179a8df075c94d0596b1f20d_step_010",
+      "00016845_33dbc9e6ea684970be61af74_step_000",
+      "00029780_a4788d5955c04fe1886666b7_step_000",
+      "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+      "00051587_446e8810d6884cae80689579_step_000"
+    ],
+    "expected_fallback_accepted_ids": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00002441_179a8df075c94d0596b1f20d_step_010",
+      "00051587_446e8810d6884cae80689579_step_000"
+    ],
+    "expected_fallbacks_match": true,
+    "expected_restorations_match": true,
+    "fallback_order": [
+      "near_vertex_reconciliation",
+      "directed_trim_curve_interpolate_local_intersection_topology",
+      "directed_trim_surface_precision_local_intersection_topology"
+    ],
+    "observed_both_valid_restorations": [
+      "00000444_4ed4c78d6d754aac90876fc2_step_003",
+      "00002441_179a8df075c94d0596b1f20d_step_010",
+      "00016845_33dbc9e6ea684970be61af74_step_000",
+      "00029780_a4788d5955c04fe1886666b7_step_000",
+      "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+      "00051587_446e8810d6884cae80689579_step_000"
+    ],
+    "primary_fast_path_violations": 0,
+    "primary_profile": "directed_trim_local_intersection_topology",
+    "protocol_passed": true,
+    "selected_native_invalid_fallbacks": 0,
+    "selected_profile_counts": {
+      "directed_trim_curve_interpolate_local_intersection_topology": 1,
+      "directed_trim_local_intersection_topology": 13,
+      "directed_trim_surface_precision_local_intersection_topology": 1,
+      "near_vertex_reconciliation": 1
+    },
+    "worker_or_protocol_failure_count": 0
+  },
+  "selector_protocol_passed": true,
+  "source_binding": {
+    "cohort_equivalence": {
+      "cad_id_set_sha256": "2e0bef5e1ed1c8db16d95cb1e044cdfddcb88084eb0a85b128038bf736411f4e",
+      "candidate_attempts": 16,
+      "candidate_cad_order_sha256": "8aef7b7a9a49c5f876faa720409bda5242cf086533d7ef76168a8434bf7ba6c8",
+      "provided": true,
+      "reference_attempts": 16,
+      "reference_attempts_sha256": "861a72f06c7a0ac1c776dc44c6896ac412e71e128ee3b46d90c45cb11cabd62b",
+      "reference_cad_order_sha256": "8aef7b7a9a49c5f876faa720409bda5242cf086533d7ef76168a8434bf7ba6c8",
+      "reference_report_name": "assembly_selector_invalid16_v3_20260817",
+      "same_cad_order": true,
+      "same_cad_set": true,
+      "same_parent_and_historical_strict_map": true,
+      "schema": "assembly-cohort-equivalence-v1",
+      "valid": true
+    },
+    "label": "surface_precision_selector_invalid16_20260818",
+    "run_signature": "2680bbaf05c57d0603b85b7feaad4f060e41163c4d05cf7c2468a6fff5ae4a00",
+    "run_status": "COMPLETED_PARTIAL",
+    "selector_ledger_binding": {
+      "candidate_attempts": 52,
+      "candidate_final_binding_valid": true,
+      "candidate_ledger_sha256": "99499493b7215c477006056013922d4181954345482ce1ec8e05157a2a162b4e",
+      "final_matrix_sha256": "c949c38df278aa1cd6e8c90fd715be19aeb04ac6f62fac20a9d1a53dc9367746",
+      "selector_run": true
+    },
+    "solid_topology_diagnosis": {
+      "archived": false
+    },
+    "source_matrix_bytes": 84090,
+    "source_matrix_sha256": "c949c38df278aa1cd6e8c90fd715be19aeb04ac6f62fac20a9d1a53dc9367746",
+    "source_pickles_archived": false,
+    "source_run_manifest_sha256": "55f750fa22ea9c8e8fd0bd1cffd531d1fd12d8de94914200e08418b84a316339",
+    "source_run_name": "assembly_selector_surface_precision_invalid16_v1_20260818",
+    "step_bytes_archived": false,
+    "step_files_local": 13,
+    "summary_sha256": "1bc58d5b957e118cf07d7ea1c3f9b51714c1f78fee68099bf6764291a27d62ea"
+  }
+}
