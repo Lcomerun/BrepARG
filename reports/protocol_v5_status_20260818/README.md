@@ -45,6 +45,7 @@ same unchanged reconstruction/assembly/STEP/OCC audit chain for every arm. All
 100 attempts are in the denominator, including construction and STEP failures.
 
 - [`capacity_ab_assembly_measurement_20260817`](../capacity_ab_assembly_measurement_20260817/capacity_ab_assembly_measurement.md)
+- [`assembly_measurement_binding.json`](assembly_measurement_binding.json): one-file binding for both selected seed-3 checkpoint hashes, the frozen cohort, and the source-report hashes.
 
 The requested strict-valid comparison is:
 
@@ -57,8 +58,10 @@ The requested strict-valid comparison is:
 | learned VQ-8192@60k, seed 3 best | 69 |
 
 The report also separates STEP-readable, native OCC-valid, strict-valid, and
-both-valid counts. Its immutable checkpoint bindings identify the bypass and
-VQ seed-3 best artifacts by SHA-256, while keeping their bytes local.
+both-valid counts. The companion binding file puts the bypass and VQ seed-3
+best artifact hashes in one place while keeping their bytes local. The
+post-hardening VQ rerun is archived separately as stability evidence and was
+not silently substituted into this already completed fixed-CAD measurement.
 
 The registered gates are:
 

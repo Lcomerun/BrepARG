@@ -1,0 +1,53 @@
+{
+  "schema": "protocol-v5-assembly-measurement-binding-v1",
+  "measurement_report": {
+    "path": "reports/capacity_ab_assembly_measurement_20260817/capacity_ab_assembly_measurement.json",
+    "sha256": "7af73d3af7c375a931029f9228d157bd80fd9940dc8b28dfe5658a09087f7f35"
+  },
+  "cohort": {
+    "attempts_per_arm": 100,
+    "selection_seed": 20260809,
+    "identity_sha256": "646693dbfde083bf16ae63f917658cc0c3b3eb71cedaeddfeea55007bd741474",
+    "all_failures_in_denominator": true
+  },
+  "protocol": {
+    "protocol_sha256": "6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3",
+    "split_pickle_sha256": "6ff0a0c3ee6a04ee056fa1ab982eb436a9f59d3d21f21f17babf34e6dc701d29"
+  },
+  "selected_checkpoints": {
+    "continuous_bypass_64d": {
+      "task_id": "continuous_bypass_64d:seed3",
+      "seed": 3,
+      "role": "best",
+      "epoch": 98,
+      "sha256": "0be5396fe98f1e05b775b2a41485136470d6e6dadba6a3492fa6eed8cd8ff5df",
+      "source_report": "reports/p0b_paired_assembly_measurement_20260817/p0b_paired_assembly_measurement.json",
+      "source_report_sha256": "1477c8ecef7f6591bf3a6c924b7e50d94bb00ee6b75801704c9ffdfe1add2b36"
+    },
+    "vq_8192_64d_random": {
+      "task_id": "vq_8192_64d_random:seed3",
+      "seed": 3,
+      "role": "best",
+      "epoch": 90,
+      "sha256": "b81878117f84daa8776ce525e62faa9d5b985bc9b0bcaecfdbf457743e92d09e",
+      "source_report": "reports/capacity_ab_assembly_measurement_20260817/capacity_ab_assembly_measurement.json",
+      "source_report_sha256": "7af73d3af7c375a931029f9228d157bd80fd9940dc8b28dfe5658a09087f7f35"
+    }
+  },
+  "strict_counts": {
+    "gt_historical": 84,
+    "bypass_300k_historical": 70,
+    "fsq_300k_historical": 49,
+    "bypass_60k": 70,
+    "vq_8192_60k": 69
+  },
+  "gates_percentage_points": {
+    "delta_q_bypass60k_minus_vq8192": 1.0,
+    "delta_r_gt_minus_bypass60k": 14.0,
+    "capacity_trigger_delta_q_gt_5": false,
+    "boundary_loss_trigger_delta_r_gt_8": true,
+    "decision": "VQ_8192_DIRECT_WIN",
+    "execution_status": "HELD_PENDING_ASSEMBLY_CHAIN_GATE_AND_REVIEW"
+  },
+  "note": "The post-hardening VQ-8192 seed-3 checkpoint archived under capacity_ab_60k_posthardening_v2_20260818 is a later stability rerun and was not used for this fixed-CAD measurement. Its bytes remain local and its SHA-256 is recorded separately in that archive checkpoint_manifest.json."
+}
