@@ -1,0 +1,57 @@
+{
+  "schema": "closure-shell-run-manifest-v1",
+  "authoritative_run": {
+    "label": "closure_shell_stage_probe_20260818_v6_final",
+    "attempt_count": 6,
+    "cad_count": 3,
+    "worker_failure_count": 0,
+    "both_valid_count": 0,
+    "signature": "d560f963403dc9fc7f4b52449598858d6019b381a538892fd2bf7fa7f3e2fe02",
+    "source_manifest_sha256": "61730dd69a22f2fadc5a4cb007da6e7dc2fc03bba93f3cc64b37c09ade3de875",
+    "run_json": {
+      "bytes": 1468,
+      "sha256": "c8635c34b9629417d25a860ff4974b8375401cce1dac9599cd32b695a0320896"
+    },
+    "summary_json": {
+      "bytes": 2620,
+      "sha256": "dbb6e55e5347db5ecda59ba9c265fbafa20eafaddfa5fac012148c2f917a9ec7"
+    },
+    "attempts_jsonl": {
+      "bytes": 263139,
+      "sha256": "183e2e5d188feae137181cdea8ec967cdaf64b0535e45925db0464c6fcb3b664"
+    },
+    "probe_source_sha256": "63800fa028d9898a9c64f895bac0eac0145a755c60d41a2122e1fa2715439ab8",
+    "assembler_source_sha256": "03124516cea1dc860d4755480407a8e8f3264b25b8ed8e86e4addce31fd142d5"
+  },
+  "focused_test_command": "python -m pytest tests/test_probe_closure_shell_stages.py tests/test_local_wire_topology_repair.py tests/test_directed_trim_assembly.py -q",
+  "focused_test_result": "33 passed",
+  "older_run_hashes": {
+    "closure_shell_stage_probe_20260818_v2": {
+      "run_json_sha256": "1eafa5379e7c1edcccb441dfb9f2396e38e8fe286458b335e7b32a6d813ef60f",
+      "summary_json_sha256": "6e523ba01f163a4503b984dfa62db31731d1405d54d8d6579bad96ee45b0a25d",
+      "attempts_jsonl_sha256": "fff301e2a0485e03f71ee94964fb1036b2f0c581534afeffa3530d85a1bd6df4"
+    },
+    "closure_shell_crossing_probe_20260818_v1": {
+      "run_json_sha256": "b4286959fdc3c31619421fd7d3d30c12af404bcafe845fa678388a0ab4a02bc3",
+      "summary_json_sha256": "1703119f33b42f53e9809872b7804bcf08623bed2e047b7496b5927d93e276b4",
+      "attempts_jsonl_sha256": "96bc41207bdcf71f2fed8d57f05f4b513fdbd7df4d2043c7de1734af8a9e9d65"
+    },
+    "closure_shell_periodic_probe_20260818_v1": {
+      "run_json_sha256": "6b943a3bc3a4f403346bea35a28607288a9f9b4f72e7de935dbb91499b3e1ab7",
+      "summary_json_sha256": "d59f415f1e0b894a578db38a99a4fb5cbff3b11d7858eef607bc1dd879377f77",
+      "attempts_jsonl_sha256": "e817ba8847816c3ce533e7723f7f91704c0b894ce0d488e6c194470b73c8400a"
+    },
+    "closure_shell_local_pcurve_probe_20260818_v1": {
+      "run_json_sha256": "7d4718d4199a49c46d1ce65e4d696ff52eb97e82e9dd002ac14f1f76c44c5586",
+      "summary_json_sha256": "ed3e7cbd62928d3242fc7df93a3cfabe10b51f2fc4356a07b45d1e8892a83436",
+      "attempts_jsonl_sha256": "26a2724ce6058af890c25598585b2a4d2cb87b882615505857b0f9725cc91b13"
+    }
+  },
+  "artifact_policy": {
+    "step_archived": false,
+    "pickle_archived": false,
+    "numpy_archived": false,
+    "checkpoint_archived": false,
+    "machine_local_paths_archived": false
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "schema": "closure-shell-repair-candidate-negative-v1",
+  "all_candidates_promoted": false,
+  "candidates": [
+    {
+      "family": "periodic_pcurve_branch_translation",
+      "cad_id": "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "faces": [0, 26],
+      "attempted": false,
+      "accepted": false,
+      "reason": "surface_not_periodic"
+    },
+    {
+      "family": "local_pcurve_continuity",
+      "cad_id": "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "faces": [0, 26],
+      "attempted": true,
+      "accepted": false,
+      "reason": "face_0_edge_count_changed_20_to_19_and_self_intersection_remained; face_26_self_intersection_remained"
+    },
+    {
+      "family": "post_sewing_pcurve_reprojection",
+      "cad_id": "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "precisions": [0.01, 0.001, 0.0001, 0.00001, 0.000001],
+      "accepted": false,
+      "reason": "full_shell_diagnosis_incomplete; isolated_face_26_rejected_by_three_dimensional_curve_changed"
+    },
+    {
+      "family": "endpoint_constrained_curve_rescue",
+      "cad_id": "00051602_7f1947595ae247e0a4a32f43_step_000",
+      "rescued_edge": 4,
+      "endpoint_residuals": {"start": 0.0, "end": 0.0},
+      "step_saved": true,
+      "native_brep_valid": false,
+      "strict_brep_valid": false,
+      "both_valid": false,
+      "wire_self_intersections": 1,
+      "roundtrip_solid_count": 0,
+      "accepted": false,
+      "reason": "final_assembly_invalid"
+    },
+    {
+      "family": "graph_preserving_trim",
+      "cad_ids": [
+        "00032101_674d8fea687f4d9bbca6599b_step_000",
+        "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000"
+      ],
+      "accepted": false,
+      "reason": "OCC_valid_paths_changed_source_graph; no_topology_path_remained_strict_invalid",
+      "reference_branch": "protocol-v5-graph-trim",
+      "reference_commit": "602c5d12f806ed9cce90cbe88a4d591679505f5a"
+    }
+  ]
+}

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
 
@@ -76,7 +76,9 @@ def construct_brep_directed(
     curve_fit_rescue: bool = False,
     curve_interpolate: bool = False,
     local_pcurve_continuity: bool = False,
+    periodic_pcurve_branches: bool = False,
     surface_fit_precision: bool = False,
+    stage_observer: Callable[[str, Any | None, Mapping[str, Any]], None] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks.
 
@@ -129,6 +131,12 @@ def construct_brep_directed(
         "reversed_edge_uses": 0, "multi_loop_faces": 0,
         "curve_fit_attempts": [], "directed_trim_loop_policies": [],
     }
+
+    def observe(
+        stage: str, shape: Any | None = None, **metadata: Any
+    ) -> None:
+        if stage_observer is not None:
+            stage_observer(str(stage), shape, dict(metadata))
     topology_edge_vertex_adj = edge_vertex_adj
     shared_vertex_points: dict[int, np.ndarray] = {}
     if solid_topology_repair:
@@ -159,6 +167,11 @@ def construct_brep_directed(
         "precision_enabled": bool(surface_fit_precision),
         "tolerance": surface_fit_tolerance,
     }
+    observe(
+        "surfaces_constructed",
+        surface_count=len(surfaces),
+        surface_fit_tolerance=surface_fit_tolerance,
+    )
 
     shared_vertices: dict[int, Any] = {}
     if shared_vertex_points:
@@ -300,6 +313,15 @@ def construct_brep_directed(
                     }
                 )
         if curve is None:
+            observe(
+                "curve_fit_failure",
+                edge_index=edge_index,
+                curve_fit_attempts=[
+                    dict(attempt)
+                    for attempt in diagnostics["curve_fit_attempts"]
+                    if int(attempt.get("edge_index", -1)) == edge_index
+                ],
+            )
             raise RuntimeError(f"curve_fit_not_done edge={edge_index}")
         if shared_vertices:
             start_vertex, end_vertex = map(int, topology_edge_vertex_adj[edge_index])
@@ -316,6 +338,11 @@ def construct_brep_directed(
         if not builder.IsDone():
             raise RuntimeError(f"edge_builder_not_done edge={edge_index}")
         edges.append(builder.Edge())
+    observe(
+        "edges_constructed",
+        edge_count=len(edges),
+        curve_fit_attempt_count=len(diagnostics["curve_fit_attempts"]),
+    )
 
     faces = []
     for face_index, (surface, incident) in enumerate(zip(surfaces, face_edge_adj)):
@@ -330,6 +357,28 @@ def construct_brep_directed(
             loops = historical_face_loops(incident, topology_edge_vertex_adj)
         diagnostics["loop_count"] += len(loops)
         diagnostics["multi_loop_faces"] += int(len(loops) > 1)
+        loop_endpoint_max_gaps: list[float] = []
+        if stage_observer is not None:
+            for loop in loops:
+                endpoint_gaps: list[float] = []
+                for loop_position, (edge_id, reverse) in enumerate(loop):
+                    next_edge_id, next_reverse = loop[
+                        (loop_position + 1) % len(loop)
+                    ]
+                    edge_points = np.asarray(edge_wcs[edge_id], dtype=np.float64)
+                    next_edge_points = np.asarray(
+                        edge_wcs[next_edge_id], dtype=np.float64
+                    )
+                    edge_end = edge_points[0] if reverse else edge_points[-1]
+                    next_start = (
+                        next_edge_points[-1]
+                        if next_reverse
+                        else next_edge_points[0]
+                    )
+                    endpoint_gaps.append(
+                        float(np.linalg.norm(edge_end - next_start))
+                    )
+                loop_endpoint_max_gaps.append(max(endpoint_gaps, default=0.0))
         spans = [loop_bbox_diagonal(loop, edge_wcs) for loop in loops]
         outer_index = int(np.argmax(np.asarray(spans)))
         wires = []
@@ -354,6 +403,15 @@ def construct_brep_directed(
         if not face_builder.IsDone():
             raise RuntimeError(f"face_builder_not_done face={face_index}")
         face = face_builder.Shape()
+        observe(
+            "face_raw",
+            face,
+            face_index=face_index,
+            loop_count=len(loops),
+            outer_loop_index=outer_index,
+            loop_3d_endpoint_max_gaps=loop_endpoint_max_gaps,
+            face_3d_endpoint_max_gap=max(loop_endpoint_max_gaps, default=0.0),
+        )
         brep_utils.fix_wires(face)
         brep_utils.add_pcurves_to_edges(face)
         if local_pcurve_continuity:
@@ -364,6 +422,27 @@ def construct_brep_directed(
 
             repaired_face, repair_diagnostics = repair_face_local_pcurve(face)
             diagnostics.setdefault("local_pcurve_continuity", []).append(
+                {"face_index": face_index, **repair_diagnostics}
+            )
+            if repair_diagnostics["accepted"]:
+                face = repaired_face
+            else:
+                brep_utils.fix_wires(face)
+                face = brep_utils.fix_face(face)
+        elif periodic_pcurve_branches:
+            try:
+                from .local_wire_topology_repair import (
+                    repair_face_periodic_pcurve_branches,
+                )
+            except ImportError:  # direct script execution
+                from local_wire_topology_repair import (
+                    repair_face_periodic_pcurve_branches,
+                )
+
+            repaired_face, repair_diagnostics = (
+                repair_face_periodic_pcurve_branches(face)
+            )
+            diagnostics.setdefault("periodic_pcurve_branches", []).append(
                 {"face_index": face_index, **repair_diagnostics}
             )
             if repair_diagnostics["accepted"]:
@@ -422,7 +501,26 @@ def construct_brep_directed(
         else:
             brep_utils.fix_wires(face)
             face = brep_utils.fix_face(face)
+        observe(
+            "face_final",
+            face,
+            face_index=face_index,
+            loop_count=len(loops),
+            outer_loop_index=outer_index,
+            loop_3d_endpoint_max_gaps=loop_endpoint_max_gaps,
+            face_3d_endpoint_max_gap=max(loop_endpoint_max_gaps, default=0.0),
+        )
         faces.append(face)
+
+    if stage_observer is not None:
+        compound_builder = BRep_Builder()
+        from OCC.Core.TopoDS import TopoDS_Compound
+
+        faces_compound = TopoDS_Compound()
+        compound_builder.MakeCompound(faces_compound)
+        for face in faces:
+            compound_builder.Add(faces_compound, face)
+        observe("faces_compound", faces_compound, face_count=len(faces))
 
     sewing = BRepBuilderAPI_Sewing()
     sewing.SetTolerance(1e-3)
@@ -436,6 +534,7 @@ def construct_brep_directed(
         shells.append(topods_Shell(shell_explorer.Current()))
         shell_explorer.Next()
     diagnostics["shell_count"] = len(shells)
+    observe("sewn_shape", sewn, shell_count=len(shells))
     diagnostics["curve_tolerance_counts"] = {
         str(value): curve_tolerances.count(value) for value in sorted(set(curve_tolerances))
     }
@@ -455,6 +554,7 @@ def construct_brep_directed(
         solid_count += 1
         solid_explorer.Next()
     diagnostics["solid_count"] = solid_count
+    observe("solid", solid, shell_count=len(shells), solid_count=solid_count)
     if single_solid and solid_count != 1:
         raise RuntimeError(f"solid_builder_produced_solid_count={solid_count}")
     return solid, diagnostics

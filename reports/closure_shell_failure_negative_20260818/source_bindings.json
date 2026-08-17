@@ -1,0 +1,24 @@
+{
+  "schema": "closure-shell-source-binding-v1",
+  "sources": [
+    {
+      "cad_id": "00061931_dcdd8a95feac4121adfd341f_step_000",
+      "bytes": 702734,
+      "sha256": "53a42d399afba460d7df9ca9787c0e02ece001448eaa8f0b3e97d9c66bc82f1c",
+      "archived": false
+    },
+    {
+      "cad_id": "00087341_6a73c5e821934d3fe4d0d555_step_000",
+      "bytes": 855710,
+      "sha256": "84e00ee2876e1f684777ad0ebdd43ed90995e6970101e341987b55ad69065b72",
+      "archived": false
+    },
+    {
+      "cad_id": "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "bytes": 810954,
+      "sha256": "51f52484db1b03058104b44a6bc26923f98c8f79fe852970b1254dd8257df278",
+      "archived": false
+    }
+  ],
+  "policy": "Source pickle bytes remain local; only size and SHA-256 are recorded."
+}

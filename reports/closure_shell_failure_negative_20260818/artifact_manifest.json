@@ -1,0 +1,40 @@
+{
+  "artifacts": [
+    {
+      "path": "crossing_taxonomy.json",
+      "bytes": 1083,
+      "sha256": "b7f5d465f856bb09caff497d7e8ac2c52a68c1244bca1df9d5bab93eaca048b3"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4218,
+      "sha256": "1d8aa8150301ce4586c323a322371e9f03b857ccb9f774b6ea006ad82b2737c5"
+    },
+    {
+      "path": "repair_candidate_summary.json",
+      "bytes": 1898,
+      "sha256": "1b164aa8b2b132fc6ef138178ffc532fcecda07ce7fc5dfe142d5b2d8cf368c7"
+    },
+    {
+      "path": "repair_checklist.md",
+      "bytes": 972,
+      "sha256": "db0270d12bd1b404a60e5b4de5f92f8530c54162f8630345d5737569571238cb"
+    },
+    {
+      "path": "run_manifest.json",
+      "bytes": 2821,
+      "sha256": "4c95455e9e2906934ed8879fd9cc5847453181808067283cbfa8a762c7700c09"
+    },
+    {
+      "path": "source_bindings.json",
+      "bytes": 772,
+      "sha256": "1d330d1e42676bd2afa87ebd520fc1f71ea407b14fcbe3f7a69c9b4579d55c79"
+    },
+    {
+      "path": "stage_summary.jsonl",
+      "bytes": 3128,
+      "sha256": "bca18de89bc8365ae35d634f3f5c2a157d45976c4d5f87dff262b321775a2cff"
+    }
+  ],
+  "policy": "STEP, pickle, NumPy, checkpoint, reconstructed geometry, and machine-local path bytes remain local."
+}
