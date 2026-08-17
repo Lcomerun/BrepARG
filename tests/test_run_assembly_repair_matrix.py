@@ -1,4 +1,5 @@
 import json
+import pickle
 import subprocess
 from pathlib import Path
 from types import SimpleNamespace
@@ -6,19 +7,23 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+import tools.run_assembly_repair_matrix as repair_matrix
 from tools.assembly_repair import RepairProfile, parse_profiles
 from tools.run_assembly_repair_matrix import (
     RUN_SCHEMA,
     WORKER_MARKER,
     build_run_payload,
+    append_jsonl,
     bind_run_manifest,
     main,
     parse_worker_result,
     production_profile_topology_inputs,
     profile_kwargs,
+    read_jsonl,
     requires_isolated_worker,
     run_one_isolated,
     sha256_file,
+    source_pickle_binding,
     summarize_matrix,
     summarize_profile,
 )
@@ -38,7 +43,7 @@ def _rows(profile, values):
 def test_profile_kwargs_keep_switches_independent():
     assert profile_kwargs(RepairProfile("baseline")) == {
         "directed_trim": False, "curve_fit_fallback": False,
-        "curve_fit_rescue": False,
+        "curve_fit_rescue": False, "curve_interpolate": False,
         "wire_continuity": False, "single_solid": False,
         "solid_topology_repair": False,
         "pcurve_self_intersection": False,
@@ -56,6 +61,14 @@ def test_profile_kwargs_keep_switches_independent():
     assert profile_kwargs(
         RepairProfile("curve_fit_rescue", ("curve_fit_rescue",))
     )["curve_fit_rescue"] is True
+    assert profile_kwargs(
+        RepairProfile("curve_interpolate", ("curve_interpolate",))
+    )["curve_interpolate"] is True
+    near = profile_kwargs(
+        RepairProfile("near_vertex_reconciliation", ("near_vertex_reconciliation",))
+    )
+    assert near["single_solid"] is True
+    assert near["solid_topology_repair"] is True
     assert profile_kwargs(
         RepairProfile(
             "local_pcurve_continuity", ("local_pcurve_continuity",)
@@ -116,6 +129,10 @@ def test_production_topology_inputs_are_noop_without_single_solid():
     [
         ("baseline", False),
         ("directed_trim", False),
+        ("near_vertex_reconciliation", True),
+        ("curve_interpolate", False),
+        ("directed_trim_curve_interpolate", False),
+        ("directed_trim_curve_interpolate_local_intersection_topology", True),
         ("local_intersection_topology", True),
         ("local_pcurve_continuity", True),
         ("single_solid", True),
@@ -280,6 +297,149 @@ def test_isolated_worker_accepts_only_zero_exit_with_sentinel(tmp_path, monkeypa
     assert (tmp_path / "steps" / profile.name / "cad-ok.step").is_file()
 
 
+def test_run_one_binds_exact_pickle_bytes_before_geometry_work(tmp_path, monkeypatch):
+    source_path = tmp_path / "input.pkl"
+    source_path.write_bytes(
+        pickle.dumps(
+            {
+                "faceEdge_adj": [[0]],
+                "edgeCorner_adj": [[0, 1]],
+                "surf_ncs": [[[[]]]],
+                "edge_ncs": [[[[]]]],
+                "surf_bbox_wcs": [[0.0] * 6],
+                "corner_unique": [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+            }
+        )
+    )
+    expected_binding = source_pickle_binding(source_path)
+    source = {
+        "cad_id": "cad-direct-binding",
+        "parent_id": "parent",
+        "source_path": str(source_path),
+        "brep_valid": False,
+    }
+    profile = parse_profiles(["baseline"])[0]
+
+    def stop_before_occ(*args, **kwargs):
+        raise RuntimeError("stop before OCC")
+
+    monkeypatch.setattr(repair_matrix, "cpu_joint_optimize", stop_before_occ)
+    row = repair_matrix.run_one(
+        source,
+        profile,
+        output_dir=tmp_path,
+        breparg_root=tmp_path / "BrepARG",
+        joint_iterations=0,
+        expected_source_binding=expected_binding,
+    )
+
+    assert row["status"] == "assembly_error"
+    assert row["source_pickle_binding"] == expected_binding
+    assert row["source_pickle_binding_after"] == expected_binding
+
+
+def test_isolated_worker_rejects_mocked_source_pickle_hash_mismatch(tmp_path, monkeypatch):
+    source_path = tmp_path / "input.pkl"
+    source_path.write_bytes(b"signed pickle bytes")
+    source = {
+        "cad_id": "cad-binding",
+        "parent_id": "parent",
+        "source_path": str(source_path),
+        "brep_valid": False,
+    }
+    profile = parse_profiles(["local_intersection_topology"])[0]
+    expected_binding = source_pickle_binding(source_path)
+    mismatched_binding = dict(expected_binding)
+    mismatched_binding["sha256"] = "0" * 64
+    payload = {
+        "schema": "assembly-repair-matrix-v1",
+        "cad_id": source["cad_id"],
+        "parent_id": source["parent_id"],
+        "profile": profile.name,
+        "switches": list(profile.switches),
+        "historical_strict_valid": False,
+        "source_path": source["source_path"],
+        "status": "assembly_error",
+        "step_saved": False,
+        "native_brep_valid": False,
+        "strict_brep_valid": False,
+        "both_valid": False,
+        "source_pickle_binding": mismatched_binding,
+        "source_pickle_binding_after": mismatched_binding,
+    }
+
+    def worker(command, **kwargs):
+        binding_arg = command.index("--worker-source-binding-json") + 1
+        assert json.loads(command[binding_arg]) == expected_binding
+        assert str(source_path) not in command[binding_arg]
+        return SimpleNamespace(
+            returncode=0,
+            stdout=WORKER_MARKER + json.dumps(payload) + "\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr(subprocess, "run", worker)
+    row = run_one_isolated(
+        source,
+        profile,
+        calibration_manifest=tmp_path / "calibration.jsonl",
+        output_dir=tmp_path,
+        breparg_root=tmp_path / "BrepARG",
+        joint_iterations=200,
+        timeout_seconds=3,
+        expected_source_binding=expected_binding,
+    )
+
+    assert row["status"] == "worker_protocol_error"
+    assert row["strict_brep_valid"] is False
+    assert row["both_valid"] is False
+
+
+def test_isolated_worker_forwards_selector_geometry_flag(tmp_path, monkeypatch):
+    source = {
+        "cad_id": "cad-gate",
+        "parent_id": "parent",
+        "source_path": "input.pkl",
+        "brep_valid": False,
+    }
+    profile = parse_profiles(["near_vertex_reconciliation"])[0]
+    payload = {
+        "schema": "assembly-repair-matrix-v1",
+        "cad_id": source["cad_id"],
+        "parent_id": source["parent_id"],
+        "profile": profile.name,
+        "switches": list(profile.switches),
+        "historical_strict_valid": False,
+        "source_path": source["source_path"],
+        "status": "assembly_error",
+        "step_saved": False,
+        "native_brep_valid": False,
+        "strict_brep_valid": False,
+        "both_valid": False,
+    }
+
+    def worker(command, **kwargs):
+        assert "--selector-geometry-gate" in command
+        return SimpleNamespace(
+            returncode=0,
+            stdout=WORKER_MARKER + json.dumps(payload) + "\n",
+            stderr="",
+        )
+
+    monkeypatch.setattr(subprocess, "run", worker)
+    row = run_one_isolated(
+        source,
+        profile,
+        calibration_manifest=tmp_path / "calibration.jsonl",
+        output_dir=tmp_path,
+        breparg_root=tmp_path / "BrepARG",
+        joint_iterations=200,
+        timeout_seconds=3,
+        selector_geometry_gate=True,
+    )
+    assert row["status"] == "assembly_error"
+
+
 @pytest.mark.parametrize(
     "changed",
     [
@@ -380,6 +540,38 @@ def test_run_payload_records_selected_assembly_backend(tmp_path):
     assert payload["breparg_runtime"]["utils_sha256"] == sha256_file(
         breparg_root / "utils.py"
     )
+
+
+def test_run_manifest_resume_clears_failure_only_exception_text(tmp_path):
+    root = tmp_path / "run"
+    root.mkdir()
+    payload = {"schema": RUN_SCHEMA, "joint_iterations": 200, "profiles": ["x"]}
+    first = bind_run_manifest(root, payload)
+    first["status"] = "FAILED"
+    first["error_type"] = "FileNotFoundError"
+    first["error"] = r"D:\private\source.pkl"
+    (root / "assembly_repair_run.json").write_text(json.dumps(first))
+
+    resumed = bind_run_manifest(root, payload)
+
+    assert resumed["status"] == "RUNNING"
+    assert "error" not in resumed
+    assert "error_type" not in resumed
+
+
+def test_jsonl_resume_recovers_only_an_unterminated_final_torn_write(tmp_path):
+    path = tmp_path / "ledger.jsonl"
+    append_jsonl(path, {"cad": "first"})
+    path.write_bytes(path.read_bytes() + b'{"cad":"torn"')
+
+    rows = read_jsonl(path, recover_truncated_tail=True)
+
+    assert rows == [{"cad": "first"}]
+    assert path.read_text() == '{"cad": "first"}\n'
+
+    path.write_bytes(path.read_bytes() + b'{"cad":"corrupt"\n')
+    with pytest.raises(json.JSONDecodeError):
+        read_jsonl(path, recover_truncated_tail=True)
 
 
 def test_run_manifest_rejects_unsigned_existing_artifacts(tmp_path):

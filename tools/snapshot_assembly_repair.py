@@ -43,15 +43,133 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
 
 
+def _assert_path_free(value: Any, location: str = "selection") -> None:
+    if isinstance(value, Mapping):
+        for key, child in value.items():
+            normalized = str(key).lower()
+            if normalized == "path" or normalized.endswith("_path"):
+                raise RuntimeError(f"selector evidence contains path field at {location}.{key}")
+            _assert_path_free(child, f"{location}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _assert_path_free(child, f"{location}[{index}]")
+    elif isinstance(value, str) and ABSOLUTE_PATH_PATTERN.search(value):
+        raise RuntimeError(f"selector evidence contains absolute path text at {location}")
+
+
+def _compact_selector_gate(gate: Mapping[str, Any]) -> dict[str, Any]:
+    _assert_path_free(gate, "selection.geometry_topology_gate")
+    return {
+        key: gate.get(key)
+        for key in (
+            "schema",
+            "accepted",
+            "checks",
+            "rejection_reasons",
+            "bbox_relative_delta",
+            "edge_length_relative_delta",
+            "input_to_candidate_rms_normalized",
+            "input_to_candidate_max_normalized",
+            "input_to_candidate_sample_count",
+            "input_to_candidate_projected_sample_count",
+            "input_to_candidate_projection_failure_count",
+            "candidate_to_input_rms_normalized",
+            "candidate_to_input_max_normalized",
+            "candidate_to_input_sample_count",
+            "candidate_to_input_projected_sample_count",
+            "candidate_to_input_projection_failure_count",
+            "input_face_count",
+            "candidate_face_count",
+            "input_edge_count",
+            "candidate_edge_count",
+            "input_vertex_count",
+            "candidate_vertex_count",
+            "input_face_edge_occurrences",
+            "candidate_face_edge_occurrences",
+            "input_face_edge_incidence_counts",
+            "candidate_face_edge_incidence_counts",
+            "input_edge_face_incidence_counts",
+            "candidate_edge_face_incidence_counts",
+            "input_vertex_edge_incidence_counts",
+            "candidate_vertex_edge_incidence_counts",
+            "projectable_edge_count",
+            "unprojectable_edge_count",
+            "input_projection_sample_count",
+            "candidate_curve_requested_sample_count",
+            "candidate_curve_successful_sample_count",
+            "candidate_curve_sampling_failure_count",
+            "thresholds",
+        )
+    }
+
+
+def compact_selection(selection: Mapping[str, Any]) -> dict[str, Any]:
+    """Whitelist selector proof fields and reject all local execution paths."""
+    _assert_path_free(selection)
+    candidates: list[dict[str, Any]] = []
+    for candidate in selection.get("candidates") or ():
+        if not isinstance(candidate, Mapping):
+            raise RuntimeError("selector evidence candidate is not an object")
+        compact = {
+            key: candidate.get(key)
+            for key in (
+                "profile",
+                "switches",
+                "status",
+                "step_saved",
+                "native_brep_valid",
+                "strict_brep_valid",
+                "both_valid",
+                "step_bytes",
+                "step_sha256",
+                "candidate_result_sha256",
+                "error_type",
+                "elapsed_seconds",
+                "worker_returncode",
+                "rejection_reasons",
+            )
+        }
+        components = candidate.get("validity_components") or {}
+        compact["validity_components"] = {
+            key: components.get(key)
+            for key in (
+                "status",
+                "wire_count",
+                "wire_order_failures",
+                "wire_self_intersections",
+                "free_edges",
+                "shell_count",
+                "shells_with_bad_edges",
+                "solid_count",
+            )
+        }
+        gate = candidate.get("geometry_topology_gate")
+        if isinstance(gate, Mapping):
+            compact["geometry_topology_gate"] = _compact_selector_gate(gate)
+        candidates.append(compact)
+    return {
+        key: selection.get(key)
+        for key in (
+            "schema",
+            "primary_profile",
+            "fallback_order",
+            "attempted_profiles",
+            "selected_profile",
+            "selected_reason",
+            "fallback_accepted",
+        )
+    } | {"candidates": candidates}
+
+
 def compact_row(row: Mapping[str, Any]) -> dict[str, Any]:
     components = row.get("validity_components") or {}
-    return {
+    compact = {
         key: row.get(key)
         for key in (
             "schema", "cad_id", "parent_id", "profile", "switches",
             "historical_strict_valid", "status", "step_saved",
             "native_brep_valid", "strict_brep_valid", "both_valid",
-            "step_bytes", "step_sha256", "error_type", "error",
+            "step_bytes", "step_sha256", "error_type",
             "elapsed_seconds",
         )
     } | {
@@ -64,6 +182,84 @@ def compact_row(row: Mapping[str, Any]) -> dict[str, Any]:
         },
         "source_bytes_archived": False,
         "step_bytes_archived": False,
+    }
+    if isinstance(row.get("selection"), Mapping):
+        compact["selection"] = compact_selection(row["selection"])
+    return compact
+
+
+def compact_run_manifest(run_manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """Remove transient exception text before archiving a completed run contract."""
+    compact = dict(run_manifest)
+    compact.pop("error", None)
+    compact.pop("error_type", None)
+    _assert_path_free(compact, "run_manifest")
+    return compact
+
+
+def selector_snapshot_binding(
+    *,
+    run_root: Path,
+    matrix_path: Path,
+    rows: Sequence[Mapping[str, Any]],
+    run_manifest: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Revalidate selector ledger and matrix bindings without archiving the ledger."""
+    payload = run_manifest.get("payload")
+    if not isinstance(payload, Mapping) or payload.get("run_kind") != (
+        "assembly-repair-selector-v1"
+    ):
+        return {"selector_run": False}
+    expected_matrix_sha = run_manifest.get("final_matrix_sha256")
+    matrix_sha = sha256_file(matrix_path)
+    if not isinstance(expected_matrix_sha, str) or expected_matrix_sha != matrix_sha:
+        raise RuntimeError("selector final matrix hash does not match signed run manifest")
+    candidate_path = Path(run_root) / "assembly_selector_candidates.jsonl"
+    if not candidate_path.is_file():
+        raise RuntimeError("selector candidate ledger is missing")
+    expected_candidate_sha = run_manifest.get("candidate_manifest_sha256")
+    candidate_sha = sha256_file(candidate_path)
+    if (
+        not isinstance(expected_candidate_sha, str)
+        or expected_candidate_sha != candidate_sha
+    ):
+        raise RuntimeError(
+            "selector candidate ledger hash does not match signed run manifest"
+        )
+    try:
+        from .run_assembly_repair_matrix import read_jsonl
+        from .run_assembly_repair_selector import (
+            validate_candidate_ledger,
+            validate_final_candidate_bindings,
+        )
+    except ImportError:  # direct script execution
+        from run_assembly_repair_matrix import read_jsonl
+        from run_assembly_repair_selector import (
+            validate_candidate_ledger,
+            validate_final_candidate_bindings,
+        )
+    candidate_entries = read_jsonl(candidate_path)
+    if int(run_manifest.get("candidate_attempts", -1)) != len(candidate_entries):
+        raise RuntimeError(
+            "selector candidate ledger count does not match signed run manifest"
+        )
+    source_rows = [
+        {
+            "cad_id": row.get("cad_id"),
+            "parent_id": row.get("parent_id"),
+            "source_path": row.get("source_path"),
+            "brep_valid": row.get("historical_strict_valid"),
+        }
+        for row in rows
+    ]
+    validate_candidate_ledger(candidate_entries, source_rows)
+    validate_final_candidate_bindings(rows, candidate_entries)
+    return {
+        "selector_run": True,
+        "candidate_attempts": len(candidate_entries),
+        "candidate_ledger_sha256": candidate_sha,
+        "final_matrix_sha256": matrix_sha,
+        "candidate_final_binding_valid": True,
     }
 
 
@@ -268,6 +464,12 @@ def snapshot(
         raise RuntimeError(f"assembly repair run status is not complete: {run_status}")
     if int(run_manifest.get("attempts", -1)) != len(rows):
         raise RuntimeError("assembly repair run attempt count does not match matrix")
+    matrix_sha256 = sha256_file(source)
+    if (
+        run_manifest.get("final_matrix_sha256") is not None
+        and run_manifest.get("final_matrix_sha256") != matrix_sha256
+    ):
+        raise RuntimeError("assembly repair matrix hash does not match signed run manifest")
     summary_sha256 = sha256_file(summary_path)
     if run_manifest.get("summary_sha256") != summary_sha256:
         raise RuntimeError("assembly repair summary hash does not match signed run manifest")
@@ -283,6 +485,13 @@ def snapshot(
             "reference_report_name": Path(reference_report_dir).resolve().name,
             **cohort_equivalence(rows, reference_attempts),
         }
+    selector_binding = selector_snapshot_binding(
+        run_root=run_root,
+        matrix_path=source,
+        rows=rows,
+        run_manifest=run_manifest,
+    )
+    archived_run_manifest = compact_run_manifest(run_manifest)
     report_dir.mkdir(parents=True, exist_ok=True)
     if any(report_dir.iterdir()):
         raise RuntimeError(f"report directory must be empty: {report_dir}")
@@ -293,7 +502,7 @@ def snapshot(
     )
     write_text_lf(
         report_dir / RUN_MANIFEST_NAME,
-        json.dumps(run_manifest, indent=2, sort_keys=True) + "\n",
+        json.dumps(archived_run_manifest, indent=2, sort_keys=True) + "\n",
     )
     repair_summary = repair_diagnostics_summary(rows)
     write_text_lf(
@@ -312,12 +521,13 @@ def snapshot(
         )
     source_binding = {
         "label": label, "source_run_name": run_root.name,
-        "source_manifest_bytes": source.stat().st_size,
-        "source_manifest_sha256": sha256_file(source),
+        "source_matrix_bytes": source.stat().st_size,
+        "source_matrix_sha256": matrix_sha256,
         "source_run_manifest_sha256": sha256_file(run_manifest_path),
         "run_signature": run_manifest.get("signature"),
         "run_status": run_status,
         "summary_sha256": summary_sha256,
+        "selector_ledger_binding": selector_binding,
         "step_files_local": sum(bool(row.get("step_saved")) for row in rows),
         "step_bytes_archived": False, "source_pickles_archived": False,
         "solid_topology_diagnosis": topology_diagnosis_binding,
@@ -358,6 +568,8 @@ boundary consistency, sequence regeneration, or AR training.
         "run_signature": run_manifest.get("signature"),
         "run_status": run_status,
         "summary_sha256": summary_sha256,
+        "final_matrix_sha256": matrix_sha256,
+        "selector_ledger_binding": selector_binding,
         "repair_diagnostics_present": bool(repair_summary),
         "solid_topology_diagnosis_archived": bool(
             topology_diagnosis_binding["archived"]
