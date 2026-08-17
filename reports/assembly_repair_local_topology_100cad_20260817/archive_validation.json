@@ -1,0 +1,11 @@
+{
+  "attempts": 100,
+  "forbidden_artifacts": [],
+  "profiles": {
+    "local_intersection_topology": 100
+  },
+  "run_signature": "1ba9221ed3b5d9da928663b23787861d518faf5d107e6843b58e65b31c6bfa36",
+  "run_status": "COMPLETED",
+  "summary_sha256": "83955d11ccaea64ebdfd434628157dadf04f16cafccfa8f8ccc17d4f1adad14d",
+  "valid": true
+}

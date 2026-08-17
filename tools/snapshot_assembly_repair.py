@@ -12,6 +12,8 @@ from typing import Any, Mapping, Sequence
 
 
 FORBIDDEN_SUFFIXES = {".step", ".stp", ".pkl", ".pickle", ".pt", ".pth", ".ckpt", ".npy", ".npz"}
+RUN_MANIFEST_NAME = "assembly_repair_run.json"
+COMPLETED_RUN_STATUSES = {"COMPLETED", "COMPLETED_PARTIAL"}
 
 
 def now() -> str:
@@ -66,10 +68,22 @@ def snapshot(run_root: Path, report_dir: Path, *, label: str) -> dict[str, Any]:
     run_root, report_dir = Path(run_root).resolve(), Path(report_dir).resolve()
     source = run_root / "assembly_repair_matrix.jsonl"
     summary_path = run_root / "assembly_repair_summary.json"
+    run_manifest_path = run_root / RUN_MANIFEST_NAME
     rows = read_jsonl(source)
-    if not rows or not summary_path.is_file():
+    if not rows or not summary_path.is_file() or not run_manifest_path.is_file():
         raise RuntimeError("assembly repair run is incomplete")
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    run_manifest = json.loads(run_manifest_path.read_text(encoding="utf-8"))
+    run_status = str(run_manifest.get("status"))
+    if run_manifest.get("schema") != "assembly-repair-run-v2":
+        raise RuntimeError("assembly repair run manifest schema is not signed v2")
+    if run_status not in COMPLETED_RUN_STATUSES:
+        raise RuntimeError(f"assembly repair run status is not complete: {run_status}")
+    if int(run_manifest.get("attempts", -1)) != len(rows):
+        raise RuntimeError("assembly repair run attempt count does not match matrix")
+    summary_sha256 = sha256_file(summary_path)
+    if run_manifest.get("summary_sha256") != summary_sha256:
+        raise RuntimeError("assembly repair summary hash does not match signed run manifest")
     report_dir.mkdir(parents=True, exist_ok=True)
     if any(report_dir.iterdir()):
         raise RuntimeError(f"report directory must be empty: {report_dir}")
@@ -77,10 +91,17 @@ def snapshot(run_root: Path, report_dir: Path, *, label: str) -> dict[str, Any]:
     (report_dir / "assembly_repair_attempts.jsonl").write_text(
         "".join(json.dumps(row, sort_keys=True) + "\n" for row in compact), encoding="utf-8"
     )
+    (report_dir / RUN_MANIFEST_NAME).write_text(
+        json.dumps(run_manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     source_binding = {
         "label": label, "source_run_name": run_root.name,
         "source_manifest_bytes": source.stat().st_size,
         "source_manifest_sha256": sha256_file(source),
+        "source_run_manifest_sha256": sha256_file(run_manifest_path),
+        "run_signature": run_manifest.get("signature"),
+        "run_status": run_status,
+        "summary_sha256": summary_sha256,
         "step_files_local": sum(bool(row.get("step_saved")) for row in rows),
         "step_bytes_archived": False, "source_pickles_archived": False,
     }
@@ -115,6 +136,9 @@ boundary consistency, sequence regeneration, or AR training.
     validation = {
         "valid": True, "attempts": len(compact),
         "profiles": dict(Counter(str(row.get("profile")) for row in compact)),
+        "run_signature": run_manifest.get("signature"),
+        "run_status": run_status,
+        "summary_sha256": summary_sha256,
         "forbidden_artifacts": forbidden,
     }
     (report_dir / "archive_validation.json").write_text(

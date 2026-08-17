@@ -220,6 +220,44 @@ def orient_ordered_loop(
     raise ValueError("ordered wire edges cannot be oriented into a closed loop")
 
 
+def guarded_directed_face_loops(
+    face_edge_ids: Sequence[int], edge_vertex_adj: np.ndarray
+) -> tuple[list[list[tuple[int, bool]]], dict[str, str]]:
+    """Use directed trim only when endpoint topology proves a closed walk.
+
+    Some baseline-valid face groups have incomplete or non-manifold global
+    endpoint incidence. They cannot be safely reoriented, but rejecting them
+    would needlessly alter the baseline CAD. In that narrow case retain the
+    historical grouping and record why the directed transformation was not
+    applied. A historical grouping failure still raises because there is no
+    baseline-equivalent grouping to preserve.
+    """
+    historical = historical_face_loops(face_edge_ids, edge_vertex_adj)
+    try:
+        return (
+            [orient_ordered_loop(loop, edge_vertex_adj) for loop in historical],
+            {"mode": "historical_order_oriented"},
+        )
+    except ValueError as historical_error:
+        try:
+            return (
+                directed_face_loops(face_edge_ids, edge_vertex_adj),
+                {
+                    "mode": "regrouped_directed",
+                    "historical_orientation_error": str(historical_error),
+                },
+            )
+        except ValueError as regroup_error:
+            return (
+                historical,
+                {
+                    "mode": "historical_fallback_unproven_topology",
+                    "historical_orientation_error": str(historical_error),
+                    "regroup_error": str(regroup_error),
+                },
+            )
+
+
 def validate_directed_loop(
     loop: Sequence[tuple[int, bool]], edge_vertex_adj: np.ndarray
 ) -> None:

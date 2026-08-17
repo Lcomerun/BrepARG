@@ -19,9 +19,9 @@ try:
     from .assembly_repair import (
         curve_fit_attempts,
         directed_face_loops,
+        guarded_directed_face_loops,
         historical_face_loops,
         loop_bbox_diagonal,
-        orient_ordered_loop,
         sanitize_curve_points,
         validate_directed_loop,
     )
@@ -29,9 +29,9 @@ except ImportError:  # direct script execution
     from assembly_repair import (
         curve_fit_attempts,
         directed_face_loops,
+        guarded_directed_face_loops,
         historical_face_loops,
         loop_bbox_diagonal,
-        orient_ordered_loop,
         sanitize_curve_points,
         validate_directed_loop,
     )
@@ -79,7 +79,7 @@ def construct_brep_directed(
     diagnostics: dict[str, Any] = {
         "faces": len(surf_wcs), "edges": len(edge_wcs), "loop_count": 0,
         "reversed_edge_uses": 0, "multi_loop_faces": 0,
-        "curve_fit_attempts": [],
+        "curve_fit_attempts": [], "directed_trim_loop_policies": [],
     }
 
     surfaces = []
@@ -144,11 +144,12 @@ def construct_brep_directed(
     faces = []
     for face_index, (surface, incident) in enumerate(zip(surfaces, face_edge_adj)):
         if directed_trim:
-            historical = historical_face_loops(incident, edge_vertex_adj)
-            try:
-                loops = [orient_ordered_loop(loop, edge_vertex_adj) for loop in historical]
-            except ValueError:
-                loops = directed_face_loops(incident, edge_vertex_adj)
+            loops, loop_policy = guarded_directed_face_loops(
+                incident, edge_vertex_adj
+            )
+            diagnostics["directed_trim_loop_policies"].append(
+                {"face_index": face_index, **loop_policy}
+            )
         else:
             loops = historical_face_loops(incident, edge_vertex_adj)
         diagnostics["loop_count"] += len(loops)
