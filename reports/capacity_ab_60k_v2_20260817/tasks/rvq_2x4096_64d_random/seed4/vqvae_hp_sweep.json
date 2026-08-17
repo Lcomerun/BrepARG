@@ -7,14 +7,14 @@
     },
     "launch": {
       "argv": [
-        "D:\\luolin\\V13\\.worktrees\\capacity-ab-v2-20260817\\breparg_improvements\\train.py",
+        "<MACHINE_LOCAL_PATH>/train.py",
         "--stage",
         "vqsweep"
       ],
       "relevant_env": {
-        "NS_OUT": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4",
-        "NS_OUTBASE": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817",
-        "NS_PROTOCOL_DIR": "D:\\luolin\\V13\\local_runs\\protocol_v5_scaling_run_20260806\\protocol",
+        "NS_OUT": "<MACHINE_LOCAL_PATH>/seed4",
+        "NS_OUTBASE": "<MACHINE_LOCAL_PATH>/capacity_ab_60k_v2_20260817",
+        "NS_PROTOCOL_DIR": "<MACHINE_LOCAL_PATH>/protocol",
         "NS_PROTOCOL_V2": "1",
         "NS_VQ_AUTO_RESUME": "1",
         "NS_VQ_BALANCE_BY_PARENT": "1",
@@ -38,7 +38,7 @@
         "NS_VQ_PLATEAU_METRIC": "curved_parent_mse",
         "NS_VQ_PRECISION": "bf16",
         "NS_VQ_REQUIRE_EXACT_CAPS": "1",
-        "NS_VQ_ROLLING_CHECKPOINT": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_rolling.pt",
+        "NS_VQ_ROLLING_CHECKPOINT": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_rolling.pt",
         "NS_VQ_SAMPLES": "60000",
         "NS_VQ_SAVE_FINAL": "1",
         "NS_VQ_SCHEDULER_FACTOR": "0.5",
@@ -49,7 +49,7 @@
         "NS_VQ_SWEEP_ARMS": "rvq_2x4096_64d_random",
         "NS_VQ_SWEEP_EPOCHS": "100",
         "NS_VQ_SWEEP_TRAIN_CAP": "60000",
-        "NS_VQ_TB_LOG_DIR": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\tensorboard",
+        "NS_VQ_TB_LOG_DIR": "<MACHINE_LOCAL_PATH>/tensorboard",
         "NS_VQ_VAL_SAMPLES": "12000"
       }
     },
@@ -201,8 +201,8 @@
       "lr": 0.0003,
       "best_val_recon": 0.00089,
       "epochs_ran": 100,
-      "history_path": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_history.json",
-      "tensorboard_dir": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\tensorboard\\rvq_2x4096_64d_random",
+      "history_path": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_history.json",
+      "tensorboard_dir": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random",
       "final_val_metrics": {
         "code_usage": {
           "tokens": 96000,
@@ -373,9 +373,9 @@
       },
       "checkpoint_epoch": 72,
       "checkpoint_val_recon": 0.00089655,
-      "checkpoint_best": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_best.pt",
-      "checkpoint_final": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_final.pt",
-      "checkpoint_rolling": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_rolling.pt",
+      "checkpoint_best": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_best.pt",
+      "checkpoint_final": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_final.pt",
+      "checkpoint_rolling": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_rolling.pt",
       "experiment_signature": "d1f224e07f80225c79c4044d8627fc0f67b2fe58c8387d2b18cdfc52cbb832f2",
       "precision": {
         "name": "bf16",
@@ -5438,8 +5438,8 @@
       "lr": 0.0003,
       "best_val_recon": 0.00089,
       "epochs_ran": 100,
-      "history_path": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_history.json",
-      "tensorboard_dir": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\tensorboard\\rvq_2x4096_64d_random",
+      "history_path": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_history.json",
+      "tensorboard_dir": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random",
       "final_val_metrics": {
         "code_usage": {
           "tokens": 96000,
@@ -5610,9 +5610,9 @@
       },
       "checkpoint_epoch": 72,
       "checkpoint_val_recon": 0.00089655,
-      "checkpoint_best": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_best.pt",
-      "checkpoint_final": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_final.pt",
-      "checkpoint_rolling": "D:\\luolin\\V13\\local_runs\\capacity_ab_60k_v2_20260817\\tasks\\rvq_2x4096_64d_random\\seed4\\rvq_2x4096_64d_random_rolling.pt",
+      "checkpoint_best": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_best.pt",
+      "checkpoint_final": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_final.pt",
+      "checkpoint_rolling": "<MACHINE_LOCAL_PATH>/rvq_2x4096_64d_random_rolling.pt",
       "experiment_signature": "d1f224e07f80225c79c4044d8627fc0f67b2fe58c8387d2b18cdfc52cbb832f2",
       "precision": {
         "name": "bf16",

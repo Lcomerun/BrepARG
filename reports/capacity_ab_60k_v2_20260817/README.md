@@ -25,15 +25,17 @@ four tasks.
 - `training_summary.json` and `training_summary.csv`: four-task metrics,
   inventory binding, finite-state totals, and cross-seed aggregates.
 - `epoch_metrics.csv`: compact metrics for all 400 epochs.
-- `tasks/`: exact history, task manifest, train report, and sweep JSON files.
-- `logs/`: exact stdout/stderr plus `log_summary.json`.
+- `tasks/`: metric-complete history, task manifest, train report, and sweep
+  JSON files with machine-local absolute paths replaced by a stable marker.
+- `logs/`: complete stdout/stderr normalized to portable UTF-8/LF text plus
+  `log_summary.json`; original and archived hashes are both retained.
 - `tensorboard/`: all `5` small TensorBoard
   event files. A task may have more than one file after an automatic resume;
   every segment is preserved and hash-bound.
 - `checkpoint_manifest.json`: size and SHA-256 for all 12 local checkpoints.
   It does not contain checkpoint bytes.
-- `source_archive_manifest.json`: source-to-archive hash binding for copied
-  lightweight artifacts.
+- `source_archive_manifest.json`: separate source/archive size and SHA-256
+  bindings plus the named path-redaction or identity transformation.
 - `artifact_manifest.json`: size and SHA-256 for every archived file.
 
 No checkpoint, pickle, NumPy array, raw protocol data, CAD, or STEP file is

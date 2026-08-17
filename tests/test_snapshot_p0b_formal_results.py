@@ -16,6 +16,7 @@ from tools.snapshot_p0b_formal_results import (
     validate_report,
     write_csv,
     write_json,
+    write_text_lf,
 )
 
 
@@ -121,11 +122,13 @@ def test_validate_report_accepts_multiple_tensorboard_segments_after_resume(tmp_
     for index in range(4):
         task_dir = tmp_path / "tasks" / f"arm{index}" / "seed3"
         task_dir.mkdir(parents=True)
-        (task_dir / f"arm{index}_history.json").write_text("{}\n", encoding="utf-8")
+        write_json(task_dir / f"arm{index}_history.json", {})
 
         tensorboard_dir = tmp_path / "tensorboard" / f"arm{index}" / "seed3"
         tensorboard_dir.mkdir(parents=True)
-        (tensorboard_dir / f"events.out.tfevents.{index}.0").write_bytes(b"event")
+        (tensorboard_dir / f"events.out.tfevents.{index}.0").write_bytes(
+            b"\xff\x00event"
+        )
 
     resumed_dir = tmp_path / "tensorboard" / "arm3" / "seed3"
     (resumed_dir / "events.out.tfevents.3.1").write_bytes(b"resumed-event")
@@ -148,6 +151,7 @@ def test_redact_machine_local_paths_recurses_without_changing_relative_paths():
         "workspace": "/workspace/runs/report.json",
         "relative": "tasks/seed3/history.json",
         "nested": [r"C:/Users/YU/env/python.exe"],
+        "command": r"python D:\runs\seed3\train.py --epochs 100",
     }
 
     redacted = redact_machine_local_paths(payload)
@@ -157,6 +161,9 @@ def test_redact_machine_local_paths_recurses_without_changing_relative_paths():
     assert redacted["workspace"] == f"{MACHINE_LOCAL_PATH}/report.json"
     assert redacted["relative"] == "tasks/seed3/history.json"
     assert redacted["nested"] == [f"{MACHINE_LOCAL_PATH}/python.exe"]
+    assert redacted["command"] == (
+        f"python {MACHINE_LOCAL_PATH}/train.py --epochs 100"
+    )
 
 
 def test_copy_lightweight_redacts_json_and_binds_source_and_archive_hashes(tmp_path):
@@ -240,6 +247,22 @@ def test_generated_text_is_canonical_lf_and_manifest_matches_bytes(tmp_path):
         assert artifact["sha256"] == hashlib.sha256(data).hexdigest()
 
 
+def test_copy_lightweight_redacts_absolute_path_in_log(tmp_path):
+    run_root = tmp_path / "run"
+    source = run_root / "logs" / "stdout.log"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(b"checkpoint D:\\local\\best.pt\r\n")
+    target = tmp_path / "report" / "logs" / source.name
+    manifest = []
+
+    copy_lightweight(source, target, run_root, tmp_path / "report", manifest)
+
+    assert target.read_text(encoding="utf-8") == (
+        f"checkpoint {MACHINE_LOCAL_PATH}/best.pt\n"
+    )
+    assert manifest[0]["transformation"] == "text_utf8_lf_machine_paths_redacted"
+
+
 def test_validate_report_rejects_absolute_path_in_json(tmp_path):
     for index in range(4):
         task_dir = tmp_path / "tasks" / f"arm{index}" / "seed3"
@@ -270,3 +293,36 @@ def test_validate_report_rejects_absolute_path_embedded_in_string(tmp_path):
 
     with pytest.raises(RuntimeError, match="absolute path"):
         validate_report(tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("name", "content"),
+    [
+        ("leak.jsonl", '{"path": "/home/user/result.json"}\n'),
+        ("leak.csv", "path\nD:\\local\\result.csv\n"),
+        ("leak.md", "artifact: `/workspace/local/result.md`\n"),
+        ("leak.txt", "artifact=/tmp/local/result.txt\n"),
+        ("leak.log", "checkpoint C:\\local\\best.pt\n"),
+    ],
+)
+def test_validate_report_rejects_absolute_path_in_every_text_type(
+    tmp_path, name, content
+):
+    for index in range(4):
+        task_dir = tmp_path / "tasks" / f"arm{index}" / "seed3"
+        task_dir.mkdir(parents=True)
+        write_json(task_dir / f"arm{index}_history.json", {"path": "relative"})
+        tensorboard_dir = tmp_path / "tensorboard" / f"arm{index}" / "seed3"
+        tensorboard_dir.mkdir(parents=True)
+        (tensorboard_dir / f"events.out.tfevents.{index}.0").write_bytes(b"\xff\x00")
+    write_text_lf(tmp_path / name, content)
+
+    with pytest.raises(RuntimeError, match="absolute path"):
+        validate_report(tmp_path)
+
+
+def test_artifact_manifest_rejects_crlf_for_git_normalized_text(tmp_path):
+    (tmp_path / "summary.json").write_bytes(b'{"status": "ok"}\r\n')
+
+    with pytest.raises(RuntimeError, match="canonical LF"):
+        artifact_manifest(tmp_path)

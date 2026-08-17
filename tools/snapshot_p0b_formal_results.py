@@ -51,8 +51,23 @@ FORBIDDEN_SUFFIXES = {
 }
 MAX_LIGHTWEIGHT_FILE_BYTES = 8 * 1024 * 1024
 MACHINE_LOCAL_PATH = "<MACHINE_LOCAL_PATH>"
-WINDOWS_ABSOLUTE_PATH = re.compile(r"(?:^|\s|=)(?:[A-Za-z]:[\\/]|\\\\)")
-POSIX_ABSOLUTE_PATH = re.compile(r"(?:^|\s|=)/")
+WINDOWS_ABSOLUTE_PATH = re.compile(
+    r"(?:^|[\s\"'`=(:,;\[])(?:[A-Za-z]:[\\/]|\\\\)", re.MULTILINE
+)
+POSIX_ABSOLUTE_PATH = re.compile(
+    r"(?:^|[\s\"'`=(:,;\[])/(?!/)", re.MULTILINE
+)
+WINDOWS_PATH_TOKEN = re.compile(
+    r"(?P<prefix>^|[\s\"'`=(:,;\[])(?P<path>(?:[A-Za-z]:[\\/]|\\\\)"
+    r"[^\s\"'`<>|,;)\]]*)",
+    re.MULTILINE,
+)
+POSIX_PATH_TOKEN = re.compile(
+    r"(?P<prefix>^|[\s\"'`=(:,;\[])(?P<path>/(?!/)"
+    r"[^\s\"'`<>|,;)\]]*)",
+    re.MULTILINE,
+)
+REPORT_TEXT_SUFFIXES = frozenset({".csv", ".json", ".jsonl", ".log", ".md", ".txt"})
 TASK_SUMMARY_FIELDS = (
     "task_id",
     "arm",
@@ -168,6 +183,20 @@ def _is_machine_local_absolute_path(value: str) -> bool:
     )
 
 
+def _path_marker(value: str) -> str:
+    normalized = value.replace("\\", "/").rstrip("/")
+    basename = normalized.rsplit("/", 1)[-1]
+    return f"{MACHINE_LOCAL_PATH}/{basename}" if basename else MACHINE_LOCAL_PATH
+
+
+def redact_machine_local_text(value: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        return f"{match.group('prefix')}{_path_marker(match.group('path'))}"
+
+    value = WINDOWS_PATH_TOKEN.sub(replace, value)
+    return POSIX_PATH_TOKEN.sub(replace, value)
+
+
 def redact_machine_local_paths(value: Any) -> Any:
     """Remove absolute machine paths from a JSON-compatible value.
 
@@ -183,10 +212,7 @@ def redact_machine_local_paths(value: Any) -> Any:
         return [redact_machine_local_paths(child) for child in value]
     if not isinstance(value, str) or not _is_machine_local_absolute_path(value):
         return value
-
-    normalized = value.replace("\\", "/").rstrip("/")
-    basename = normalized.rsplit("/", 1)[-1]
-    return f"{MACHINE_LOCAL_PATH}/{basename}" if basename else MACHINE_LOCAL_PATH
+    return redact_machine_local_text(value)
 
 
 def assert_no_machine_local_paths(value: Any, location: str = "payload") -> None:
@@ -492,8 +518,15 @@ def copy_lightweight(
         write_json(target, payload, sort_keys=False)
         transformation = "json_machine_paths_redacted"
     elif source.suffix.lower() == ".log":
-        write_text_lf(target, read_log_text(source))
-        transformation = "text_utf8_lf"
+        source_text = read_log_text(source)
+        archived_text = redact_machine_local_text(source_text)
+        assert_no_machine_local_paths(archived_text, relative_source.as_posix())
+        write_text_lf(target, archived_text)
+        transformation = (
+            "text_utf8_lf_machine_paths_redacted"
+            if archived_text != source_text
+            else "text_utf8_lf"
+        )
     else:
         shutil.copy2(source, target)
     target_hash = sha256_file(target)
@@ -557,15 +590,21 @@ def log_summary(path: Path, task: Mapping[str, Any], attempt: int, stream: str) 
 
 
 def artifact_manifest(report_dir: Path) -> list[dict[str, Any]]:
-    return [
-        {
-            "path": path.relative_to(report_dir).as_posix(),
-            "bytes": path.stat().st_size,
-            "sha256": sha256_file(path),
-        }
-        for path in sorted(report_dir.rglob("*"))
-        if path.is_file() and path.name != "artifact_manifest.json"
-    ]
+    artifacts = []
+    for path in sorted(report_dir.rglob("*")):
+        if not path.is_file() or path.name == "artifact_manifest.json":
+            continue
+        data = path.read_bytes()
+        if path.suffix.lower() in REPORT_TEXT_SUFFIXES and b"\r" in data:
+            raise RuntimeError(f"report text artifact is not canonical LF: {path}")
+        artifacts.append(
+            {
+                "path": path.relative_to(report_dir).as_posix(),
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            }
+        )
+    return artifacts
 
 
 def render_readme(summary: Mapping[str, Any]) -> str:
@@ -684,10 +723,22 @@ def validate_report(
             f"expected {expected_events} TensorBoard events, found {len(events)}"
         )
     for path in files:
-        if path.suffix.lower() != ".json":
+        suffix = path.suffix.lower()
+        if suffix not in REPORT_TEXT_SUFFIXES:
             continue
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        assert_no_machine_local_paths(payload, path.relative_to(report_dir).as_posix())
+        relative = path.relative_to(report_dir).as_posix()
+        data = path.read_bytes()
+        if b"\r" in data:
+            raise RuntimeError(f"report text artifact is not canonical LF: {relative}")
+        try:
+            text = data.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise RuntimeError(f"report text artifact is not UTF-8: {relative}") from exc
+        if suffix == ".json":
+            payload = json.loads(text)
+            assert_no_machine_local_paths(payload, relative)
+        else:
+            assert_no_machine_local_paths(text, relative)
     return {
         "valid": True,
         "files": len(files),
