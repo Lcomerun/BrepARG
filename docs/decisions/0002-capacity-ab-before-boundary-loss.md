@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted for the next experiment. Boundary-consistency training and autoregressive work remain blocked.
+Accepted and executed. `vq_8192_64d_random` is the selected capacity arm.
+Boundary-consistency training and autoregressive work remain blocked until the
+independent assembly gate passes.
 
 ## Date
 
@@ -31,6 +33,30 @@ The first schema-v1 capacity launch is diagnostic-only and must not be resumed. 
 
 In parallel, repair the original assembly chain against original-control inputs with independent switches and a no-regression gate. Do not combine the repaired chain with the capacity comparison until each track has a valid unchanged-control result. After selecting capacity and accepting repairs, remeasure the winner through the repaired chain.
 
+## Outcome
+
+The schema-v2 formal matrix completed all four tasks at 100 epochs with
+`valid=true`, identical 60,000/12,000 train/validation inventories, and
+runtime-resume compatibility. RVQ seed 4 encountered one Windows
+`PermissionError` while atomically replacing its rolling checkpoint at epoch
+51; the same signed root resumed from epoch 50 without changing its
+configuration and completed successfully on attempt 2.
+
+The fixed ordered 100-CAD capacity measurement completed at measurement
+signature `2dff0044bcebcc00edb744955393f3b8bf8a952d95f7e9c5508f98df05a7b433`.
+The unchanged-chain strict results were:
+
+- continuous bypass: `70/100`
+- VQ-8192: `69/100`, a `1 pp` bypass gap
+- RVQ-2x4096: `65/100`, four points below VQ-8192
+
+The exact two-sided paired McNemar result for RVQ versus VQ-8192 was
+`p=0.4239501953125`, with 5 RVQ-only and 9 VQ-only strict successes. Since
+RVQ also carries the preregistered estimated `+36%` downstream sequence cost,
+the registered rule selects VQ-8192 directly. The Git-safe report is
+`reports/capacity_ab_assembly_measurement_20260817/`; its JSON SHA-256 is
+`b3c26d56fc90b9e0c8d09bbae49650232d16e2d3c52cdaa197f18733bff50c6d`.
+
 ## Alternatives Considered
 
 ### Start boundary-consistency loss immediately
@@ -51,6 +77,16 @@ Rejected. A second residual codebook can collapse and its doubled surface-code s
 
 ## Consequences
 
-The training pipeline gains a second learned-VQ cardinality and a residual quantizer with staged usage metrics. Four formal 100-epoch runs and two fixed-cohort assembly measurements are required before boundary loss can start. VQ-8192 is preferred when it crosses the five-point gate because it preserves one token per latent position. RVQ remains viable only when measured utility offsets its longer sequence.
+The training pipeline gains a second learned-VQ cardinality and a residual quantizer with staged usage metrics. The four formal runs and fixed-cohort measurement are complete. VQ-8192 is selected because it crosses the five-point capacity gate while preserving one token per latent position; RVQ is rejected because its strict validity is lower and its paired advantage is not significant.
 
-All new checkpoints and generated STEP files remain local. Git stores implementation, tests, complete lightweight histories, compact logs, TensorBoard events, per-CAD statistics, experiment manifests, and checkpoint hashes. If neither arm crosses the capacity gate, the representation layer is not released to full training, sequence regeneration, or autoregressive training.
+Capacity is therefore no longer the blocking decision. The independent production
+assembly result remains `88/100` strict-valid against the required `95/100`
+gate, so boundary loss, sequence regeneration, and autoregressive training stay
+blocked until the repaired-chain gate is met.
+
+All new checkpoints and generated STEP files remain local. Git stores
+implementation, tests, complete lightweight histories, compact logs,
+TensorBoard events, per-CAD statistics, experiment manifests, and checkpoint
+hashes. The selected VQ-8192 arm is not released to full training, sequence
+regeneration, or autoregressive training until the assembly gate is met and the
+selected arm is remeasured through the accepted repaired chain.
