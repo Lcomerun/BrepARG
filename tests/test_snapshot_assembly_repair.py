@@ -32,6 +32,18 @@ def test_snapshot_excludes_source_and_step_paths(tmp_path):
         "native_brep_valid": True, "strict_brep_valid": True, "both_valid": True,
         "source_path": "secret.pkl", "step_path": "cad.step",
         "step_bytes": 123, "step_sha256": "abc", "validity_components": {},
+        "assembly_diagnostics": {
+            "directed_trim_loop_policies": [
+                {"face_index": 0, "mode": "regrouped_directed"},
+                {
+                    "face_index": 1,
+                    "mode": "historical_fallback_unproven_topology",
+                },
+            ],
+            "local_intersection_topology": [
+                {"face_index": 0, "attempted": True, "accepted": True, "reason": "accepted"}
+            ],
+        },
     }
     (run / "assembly_repair_matrix.jsonl").write_text(json.dumps(row) + "\n")
     summary = {
@@ -56,6 +68,17 @@ def test_snapshot_excludes_source_and_step_paths(tmp_path):
     assert archived_run == manifest
     assert result["run_signature"] == "signed-run"
     assert result["summary_sha256"] == manifest["summary_sha256"]
+    diagnostics = json.loads(
+        (report / "repair_diagnostics_summary.json").read_text()
+    )
+    assert diagnostics["directed_trim_loop_policies"]["mode_counts"] == {
+        "historical_fallback_unproven_topology": 1,
+        "regrouped_directed": 1,
+    }
+    assert diagnostics["local_intersection_topology"]["accepted_cad_ids"] == [
+        "cad"
+    ]
+    assert result["repair_diagnostics_present"] is True
     assert not list(report.rglob("*.step"))
     assert not list(report.rglob("*.pkl"))
 

@@ -64,6 +64,55 @@ def artifact_manifest(report_dir: Path) -> list[dict[str, Any]]:
     ]
 
 
+def repair_diagnostics_summary(
+    rows: Sequence[Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Aggregate repair decisions without archiving OCC objects or source paths."""
+    directed_modes: Counter[str] = Counter()
+    directed_cads: dict[str, set[str]] = {}
+    local_reasons: Counter[str] = Counter()
+    local_attempted_cads: set[str] = set()
+    local_accepted_cads: set[str] = set()
+    local_attempts = 0
+    local_accepted = 0
+    for row in rows:
+        cad_id = str(row.get("cad_id"))
+        diagnostics = row.get("assembly_diagnostics") or {}
+        for item in diagnostics.get("directed_trim_loop_policies") or []:
+            mode = str(item.get("mode") or "missing")
+            directed_modes[mode] += 1
+            directed_cads.setdefault(mode, set()).add(cad_id)
+        for item in diagnostics.get("local_intersection_topology") or []:
+            if not item.get("attempted"):
+                continue
+            local_attempts += 1
+            local_attempted_cads.add(cad_id)
+            reason = str(item.get("reason") or "missing")
+            local_reasons[reason] += 1
+            if item.get("accepted"):
+                local_accepted += 1
+                local_accepted_cads.add(cad_id)
+    result: dict[str, Any] = {}
+    if directed_modes:
+        result["directed_trim_loop_policies"] = {
+            "face_decision_count": sum(directed_modes.values()),
+            "mode_counts": dict(sorted(directed_modes.items())),
+            "cad_ids_by_mode": {
+                mode: sorted(cad_ids)
+                for mode, cad_ids in sorted(directed_cads.items())
+            },
+        }
+    if local_attempts:
+        result["local_intersection_topology"] = {
+            "attempted_face_count": local_attempts,
+            "accepted_face_count": local_accepted,
+            "reason_counts": dict(sorted(local_reasons.items())),
+            "attempted_cad_ids": sorted(local_attempted_cads),
+            "accepted_cad_ids": sorted(local_accepted_cads),
+        }
+    return result
+
+
 def snapshot(run_root: Path, report_dir: Path, *, label: str) -> dict[str, Any]:
     run_root, report_dir = Path(run_root).resolve(), Path(report_dir).resolve()
     source = run_root / "assembly_repair_matrix.jsonl"
@@ -93,6 +142,11 @@ def snapshot(run_root: Path, report_dir: Path, *, label: str) -> dict[str, Any]:
     )
     (report_dir / RUN_MANIFEST_NAME).write_text(
         json.dumps(run_manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
+    repair_summary = repair_diagnostics_summary(rows)
+    (report_dir / "repair_diagnostics_summary.json").write_text(
+        json.dumps(repair_summary, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
     )
     source_binding = {
         "label": label, "source_run_name": run_root.name,
@@ -139,6 +193,7 @@ boundary consistency, sequence regeneration, or AR training.
         "run_signature": run_manifest.get("signature"),
         "run_status": run_status,
         "summary_sha256": summary_sha256,
+        "repair_diagnostics_present": bool(repair_summary),
         "forbidden_artifacts": forbidden,
     }
     (report_dir / "archive_validation.json").write_text(
