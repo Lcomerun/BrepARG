@@ -1,0 +1,137 @@
+# Resolve quantization capacity and repair the CAD assembly chain
+
+This ExecPlan is a living document. The sections `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective` must remain current while work proceeds. This document follows `PLANS.md` in the repository root. `AGENTS.md` refers to `.agent/PLANS.md`, but that file is absent, so the checked-in root `PLANS.md` is the available authority.
+
+## Purpose / Big Picture
+
+The same frozen 100 validation CADs currently assemble at 70 percent strict validity through the continuous-latent bypass but only 57 percent through learned VQ-4096. The paired gap is statistically credible: 15 CADs work only through bypass and 2 only through VQ (`McNemar p=0.0023`). This plan determines whether a larger single codebook or a two-stage residual codebook removes that quantization tax, while a parallel CPU-only track repairs the original assembly chain from 84 percent strict validity toward at least 95 percent without breaking any of the 84 original successes.
+
+At completion, the repository will contain code and Git-safe evidence for VQ-8192/64D and two-stage RVQ-4096/64D at seeds 3 and 4, each trained for exactly 100 epochs on the same frozen 60,000/12,000 patch inventories and stability recipe used by P0-B. Both candidates will be reconstructed and assembled on the same ordered 100-CAD cohort, with paired McNemar statistics and the sequence-length cost reported. The assembly repairs will be individually switchable and will map every repair to the exact CADs it restores or regresses. The winner will then be measured again through the repaired chain. Checkpoints, STEP files, raw arrays, pickles, source data, and upstream `BrepARG/` source remain local; histories, compact logs, TensorBoard events, statistics, hashes, manifests, tests, and documentation are committed.
+
+Sequence regeneration, autoregressive training, and the boundary-consistency loss remain blocked until the final capacity and repaired-chain gates pass.
+
+## Progress
+
+- [x] (2026-08-17 10:25 +08:00) Verified the starting branch and evidence. Local HEAD is `f31bd11`, remote `experiment/protocol-v5-scaling-ladder` is at `82a236a`, and the only unpushed commit is the prior paired-gate documentation closeout.
+- [x] (2026-08-17 10:25 +08:00) Verified the RTX 3060 is idle and no Python trainer is running. D: has about 43.7 GB free and E: about 3.6 TB, so new local training artifacts will use E: while the Git working tree remains on D:.
+- [x] (2026-08-17 10:25 +08:00) Reconfirmed the frozen Protocol V5 identities: protocol SHA-256 `6b588ee0a9dc337a683d9cc94cde7d79a80963720d22098d99e7f6eaa8101cf3`, split SHA-256 `6ff0a0c3ee6a04ee056fa1ab982eb436a9f59d3d21f21f17babf34e6dc701d29`, train count 60,000, validation count 12,000, and zero parent overlap.
+- [ ] Implement and test VQ-8192/64D and two-stage RVQ-4096/64D, including independent RVQ stage usage, perplexity, coverage, and collapse evidence.
+- [ ] Implement a fail-closed capacity launcher for seeds 3 and 4, 100 epochs, bf16, batch 128, LR `3e-4`, gradient clip 1.0, plateau decay, zero-nonfinite fuse, atomic resume, identical inventory digests, and output on E:.
+- [ ] Run bounded CUDA forward/backward and interruption/resume probes for both arms, then run all four formal 100-epoch tasks.
+- [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
+- [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
+- [ ] Re-run the frozen 100 original-control CADs after each repair, preserve all 84 original strict-valid CADs, reach at least 95 strict-valid CADs, and publish the repair-to-restored/regressed-case map.
+- [ ] Re-measure the selected capacity arm through the repaired chain and apply the final release gate.
+- [ ] Snapshot Git-safe evidence into `reports/capacity_ab_60k_20260817/` and `reports/assembly_repair_20260817/`, validate forbidden-file exclusions, commit, and push normally to `experiment/protocol-v5-scaling-ladder`.
+
+## Surprises & Discoveries
+
+- Observation: GitHub was unreachable during initial setup.
+  Evidence: `git push origin HEAD:experiment/protocol-v5-scaling-ladder` failed on 2026-08-17 with `Recv failure: Connection was reset`. Work continues locally, and ordinary push will be retried without force.
+
+- Observation: The capacity candidates have different downstream sequence costs even though both use 64-dimensional latent vectors.
+  Evidence: VQ-8192 still emits one token per latent position, while two-stage RVQ emits two code indices. The registered work order estimates approximately 36 percent total CAD-sequence growth after non-surface tokens are included, so RVQ must demonstrate a material validity advantage rather than a marginal MSE win.
+
+## Decision Log
+
+- Decision: Compare one 8192-entry learned codebook with two sequential 4096-entry residual codebooks, both using 64-dimensional code vectors and `anchor='random'`.
+  Rationale: VQ-8192 tests codebook cardinality without increasing downstream token count. RVQ tests whether a second residual stage recovers detail beyond a single nearest-neighbor assignment, at a known sequence-length cost.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Reuse the exact P0-B 60k/12k patch inventories and stability recipe, not merely the same source split or sample counts.
+  Rationale: Ordered and sorted exact-patch SHA-256 digests are required to isolate quantizer capacity from data selection, augmentation order, numerical precision, optimizer policy, and training duration.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Treat RVQ stage 2 as a separate measured codebook and fail the scientific interpretation if it collapses.
+  Rationale: Aggregate or tuple-code perplexity can hide an unused residual stage. Every epoch must report each stage's unique codes, entropy perplexity, coverage, and usage fraction; non-finite values or missing stage-2 metrics fail closed.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Select capacity using paired 100-CAD strict validity and McNemar evidence, with reconstruction MSE as explanatory evidence only.
+  Rationale: The objective is usable BRep assembly. Existing within-arm evidence shows strict-invalid VQ CADs have about 2.7 times the median curved MSE of strict-valid VQ CADs, but only the assembly outcome proves that lower error converts to utility.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Give VQ-8192 the default win if its repaired quantization gap is at most 5 percentage points. Choose RVQ only when it is materially and pairwise better enough to justify the estimated 36 percent sequence growth.
+  Rationale: VQ-8192 has no token-count penalty. RVQ's extra code must buy a clear validity improvement, not just a small mean-MSE reduction within n=100 sampling noise.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Keep assembly repair and representation capacity as parallel implementations but merge their effects only after each has an unchanged-chain control result.
+  Rationale: Changing quantization and assembly simultaneously would make recovered CADs impossible to attribute. The capacity A/B first uses the current chain; the repair track first uses original controls; only the final winner is measured through the repaired chain.
+  Date/Author: 2026-08-17 / Codex.
+
+## Outcomes & Retrospective
+
+Implementation and formal measurements are in progress. The plan is not complete until all four 100-epoch runs, both unchanged-chain capacity measurements, the no-regression GT repair audit, the repaired-chain winner measurement, Git-safe snapshots, and remote push are verified.
+
+## Context and Orientation
+
+`breparg_improvements/train.py` defines the VQ-VAE architecture, quantizer configurations, weighted training loop, stability fuses, validation buckets, code usage metrics, atomic checkpoints, and auto-resume. Its existing `vq_4096_64d_random` arm wraps the upstream `BrepARG/quantise.py::VectorQuantiser` so quantizer math remains float32 under mixed precision. The new quantizers belong in this local modified project, not in the ignored upstream `BrepARG/` tree.
+
+`tools/run_p0b_stability_retest.py` is the authoritative P0-B launcher and validator. It freezes the Protocol V5 hashes, exact patch counts, seeds, training recipe, finite-state lifecycle, writer lock, checkpoint deserialization, and cross-task inventory equality. The capacity launcher should reuse its validated helpers or mirror its checks without weakening them.
+
+`tools/run_p0b_vq_assembly_measurement.py` reconstructs a frozen 100-CAD cohort from selected checkpoints and audits STEP readability, OpenCascade native validity, project strict validity, and their intersection. The capacity coordinator must generalize this contract to VQ-8192 and RVQ while retaining all failures in the denominator and preserving the cohort identity SHA-256 `646693dbfde083bf16ae63f917658cc0c3b3eb71cedaeddfeea55007bd741474`.
+
+`tools/diagnose_assembly_chain.py` and `reports/p0a_assembly_chain_evidence_20260817/` provide the 16 original failures and their taxonomy: ten wire self-intersections, three curve-fit failures, two wire-build failures, and one non-unit or empty solid. `tools/directed_trim_assembly.py` contains an earlier topology-directed prototype but is not yet the accepted production chain. Repairs must remain outside upstream source and be individually selectable.
+
+A learned vector quantizer replaces each continuous latent vector with one nearest code vector. VQ-8192 raises the number of available vectors from 4096 to 8192. Residual vector quantization, abbreviated RVQ, first quantizes the latent, then quantizes the residual error with a second independent codebook; reconstruction uses the sum of both selected code vectors. Each stage therefore needs its own usage health report.
+
+## Plan of Work
+
+First add the two quantizer configurations and an AMP-safe two-stage residual module to `breparg_improvements/train.py`. Preserve the current model encoder, decoder, 64-dimensional bottleneck, optimizer, initialization seeding, and reconstruction loss. Return an information object that the training and validation aggregators can interpret without confusing two stage indices with one joint code. Add focused CPU and CUDA tests for shapes, gradients, state dictionaries, dtype behavior, exact residual composition, stage isolation, metadata, finite-state scanning, and metrics.
+
+Next add a capacity launcher and snapshot tool under `tools/`. It must freeze exactly two arms and seeds 3 and 4; validate the same Protocol V5 hash, split hash, ordered/sorted patch inventory hashes, precision and optimizer recipe; reject foreign or incomplete outputs; use per-task writer-safe output directories; support exact automatic resume; and produce compact status. Use E:/ for formal checkpoint storage. Run a small real-CUDA probe before formal work, including forced interruption followed by exact resume.
+
+Then generalize the assembly measurement path for the two capacity checkpoints. Select the best checkpoint by the same curved-parent reconstruction rule used by P0-B, bind its SHA-256 and epoch, reconstruct the frozen cohort in identical order, run the unchanged chain, and calculate exact paired discordances and two-sided McNemar p-values for strict and native outcomes. Preserve the VQ-4096 and bypass P0-B results as historical references, not newly mixed arms.
+
+In parallel, implement assembly repair switches in a local module. Start with trim-loop ordering, edge orientation, and self-intersection prevention; then bounded curve fitting and degenerate-edge handling; then endpoint continuity and topology validation before wire build; finally enforce exactly one closed shell and one solid after sewing. Each treatment runs alone against the original chain, records changed CAD identities and failure stages, and must not regress any of the 84 original strict-valid controls. Combine only switches that individually pass the no-regression rule.
+
+Finally run the chosen capacity checkpoint through the accepted repaired chain on the same cohort. Archive source changes, complete histories, compact logs, TensorBoard events, metrics, paired rows, manifests, and checkpoint hashes. Generate forbidden-artifact validation that rejects model/data/CAD bytes from both report directories. Update this plan and the ADR with actual outcomes and commit in logically reviewable units.
+
+## Concrete Steps
+
+Work from `D:\luolin\V13\v6git`. Use `C:\Users\YU\.conda\envs\brepgen_env\python.exe` for tests and training. The frozen protocol is `D:\luolin\V13\local_runs\protocol_v5_scaling_run_20260806\protocol`; the upstream runtime dependency is `D:\luolin\V13\BrepARG`; formal outputs go beneath `E:\V13_experiments\capacity_ab_60k_20260817` and `E:\V13_experiments\assembly_repair_20260817`.
+
+Run focused tests after each implementation increment:
+
+    C:\Users\YU\.conda\envs\brepgen_env\python.exe -m pytest -q tests\test_vqvae_protocol_training.py tests\test_training_stability.py tests\test_run_p0b_stability_retest.py
+    C:\Users\YU\.conda\envs\brepgen_env\python.exe -m pytest -q tests\test_run_p0b_vq_assembly_measurement.py tests\test_diagnose_assembly_chain.py tests\test_directed_trim_assembly.py
+
+The exact capacity launcher command will be recorded here after its CLI is implemented. It must expose `probe`, `run`, `status`, and `validate` operations and must never silently change the registered formal constants.
+
+## Validation and Acceptance
+
+Both quantizer arms must complete seeds 3 and 4 through epoch 99. Every history must report exactly 100 epochs, zero skipped batches, zero non-finite loss/gradient/state/validation events, effective gradient clipping, finite lifecycle audits, and successful best/final/rolling checkpoint deserialization. All four tasks must share exact train and validation inventory digests. RVQ must report valid per-stage usage for all epochs; stage 2 collapse is reported explicitly and cannot be hidden by stage 1 or combined indices.
+
+The unchanged-chain capacity report must contain exactly 100 attempts for each arm with identical ordered CAD IDs and cohort hash. It must separately report STEP-readable, native, strict, and both-valid counts; discordant pairs; exact McNemar p-values; curved reconstruction distributions; and estimated token cost. If VQ-8192 reduces the bypass-minus-candidate strict gap to at most 5 points, select it unless RVQ is materially pairwise better under the registered rule. If neither arm meets the gate, do not start boundary consistency or AR; record that capacity remains unresolved.
+
+The assembly repair report must cover all 100 original-control CADs. Acceptance is strict validity of at least 95/100, all 84 original strict-valid CADs still strict-valid, and a machine-readable map from each switch to restored, unchanged, and regressed CAD IDs. Broad tolerance changes or global joint-optimization changes are not accepted substitutes.
+
+The final repaired-chain report must use the selected capacity arm and same cohort. Representation may proceed to full-scale training only if the candidate's strict gap to the same-scale bypass is at most 5 points on the repaired chain and the assembly repair meets its GT gate. Otherwise this plan ends with a fail-closed representation review, not sequence or AR work.
+
+Git acceptance requires `git diff --check`, focused tests, report manifest revalidation, no tracked checkpoint/raw-data/STEP/pickle/array files, a clean worktree after commits, and a normal push to `origin/experiment/protocol-v5-scaling-ladder`.
+
+## Idempotence and Recovery
+
+All formal tasks use immutable signed manifests and task-specific output directories. Repeating an identical command resumes from the atomic rolling checkpoint. A changed arm, seed, protocol hash, inventory digest, precision, optimizer recipe, epoch target, or code revision must fail rather than overwrite evidence. Snapshot generation writes to a temporary file or directory and atomically replaces only a validated Git-safe target. Network push failure does not alter local commits and is retried without force.
+
+## Artifacts and Notes
+
+Starting paired evidence:
+
+    GT strict:              84/100
+    bypass@60k strict:      70/100
+    VQ-4096@60k strict:     57/100
+    bypass-only strict:     15
+    VQ-only strict:          2
+    strict McNemar p:        0.0023
+    Delta_q:                13 percentage points
+    Delta_r:                14 percentage points
+
+No new local checkpoint is copied into Git. For every checkpoint used in a conclusion, the report records its absolute local role, byte size, SHA-256, arm, seed, epoch, experiment signature, protocol identity, and exact inventory identity.
+
+## Interfaces and Dependencies
+
+`breparg_improvements/train.py::quantizer_comparison_configs` must expose `vq_8192_64d_random` and `rvq_2x4096_64d_random`. `build_quantized_vqvae` must construct both. The RVQ module must behave like the existing quantizer from the VQ-VAE's perspective by returning `(quantized, loss, info)`, but `info` must retain separate stage index tensors. Metrics code must consume those tensors through an explicit staged schema rather than guessing from tensor shape.
+
+The capacity launcher must be a standalone Python CLI in `tools/` and use the frozen constants above. The assembly repair module and coordinator must also live in this repository and accept explicit repair switches. No implementation may edit or track `D:\luolin\V13\BrepARG`.
+
+Revision note 2026-08-17 10:25 +08:00: Created this plan after the paired VQ/bypass gate selected capacity A/B. It freezes the capacity candidates, P0-B recipe, paired assembly decision, independent repair design, storage policy, final merge gate, and Git-safe evidence contract.
