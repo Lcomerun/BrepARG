@@ -78,6 +78,20 @@ FACE_LEN = len(FACE_BLOCK)   # 11
 EDGE_LEN = len(EDGE_BLOCK)   # 12
 
 
+_FULL_MASK_FALLBACKS = {'count': 0}
+
+
+def _warn_full_mask_fallback(st):
+    _FULL_MASK_FALLBACKS['count'] += 1
+    if _FULL_MASK_FALLBACKS['count'] <= 20:
+        import warnings
+        warnings.warn(
+            "[constrained_decoding] 全屏蔽兜底触发(强插 END):"
+            f"section={st.get('section')!r} slot={st.get('slot_in_block')!r} "
+            f"declared_faces={len(st.get('declared_faces') or [])} "
+            f"(累计第 {_FULL_MASK_FALLBACKS['count']} 次)")
+
+
 def parse_state(seq, V: BrepVocab, prompt_len=1):
     """
     走一遍前缀,返回当前"对下一个 token 的期望"与相关约束上下文。
@@ -218,16 +232,22 @@ class TopologyConstrainedLogitsProcessor(LogitsProcessor):
             # face 段的 face_idx 槽:允许所有 face_idx,可选排除已用(唯一性)
             self._add_face_idx(allowed, st, role='face_declare', device=device)
         elif expect == 'sep_or_face_bbox':
-            add(self.m_bbox)             # 开新 face 块
-            self._apply_bbox_monotonic(allowed, st)
+            exhausted = self.enforce_face_unique and \
+                len(st['used_faces_section']) >= V.face_index_size
+            if not exhausted:            # 面索引未用尽才允许开新 face 块
+                add(self.m_bbox)
+                self._apply_bbox_monotonic(allowed, st)
             # 是否允许 SEP:已声明面数 >= min_faces
             if len(st['declared_faces']) >= self.min_faces:
                 add(self.m_sep)
         elif expect == 'after_sep_idx':
             self._add_face_idx(allowed, st, role='edge_first', device=device)
         elif expect == 'edge_or_end_idx':
-            # 可开新 edge 块(第一个 idx,须为已声明面)或(块边界)END
-            self._add_face_idx(allowed, st, role='edge_first', device=device)
+            # 可开新 edge 块(第一个 idx,须为已声明面)或(块边界)END。
+            # 已声明面 < 2 时开 edge 块必然在第二槽因相异约束全屏蔽(死锁),
+            # 此时只放行 END,避免兜底在 edge 块中间强插 END 产出畸形序列。
+            if len(st['declared_faces']) >= 2:
+                self._add_face_idx(allowed, st, role='edge_first', device=device)
             add(self.m_end)
         elif expect == 'done':
             # 已 END,理论上不应再采样;允许 END/PAD 以防越界
@@ -245,8 +265,10 @@ class TopologyConstrainedLogitsProcessor(LogitsProcessor):
         allowed[V.START_TOKEN] = False
         allowed[V.PAD_TOKEN] = False
 
-        # 兜底:若全被屏蔽(理论上不该发生),放开 END 以免死锁
+        # 兜底:若全被屏蔽(理论上不该发生),放开 END 以免死锁——但必须告警,
+        # 否则状态机缺陷只表现为 Invalid 率上升且无法归因
         if not torch.any(allowed):
+            _warn_full_mask_fallback(st)
             allowed[V.END_TOKEN] = True
         return allowed
 
@@ -299,8 +321,11 @@ class TopologyConstrainedLogitsProcessor(LogitsProcessor):
     def __call__(self, input_ids, scores):
         device = scores.device
         batch = input_ids.shape[0]
+        pad = self.V.PAD_TOKEN
         for b in range(batch):
-            seq = input_ids[b].tolist()
+            # 剥离 left-padding 的 PAD,修正 prompt_len 切片错位。
+            # 注意:本处理器假设批内真实 prompt 等长(prompt_len 为全批共享定值)
+            seq = [t for t in input_ids[b].tolist() if t != pad]
             mask = self._allowed_mask(seq, device)
             scores[b] = scores[b].masked_fill(~mask, float('-inf'))
         return scores
@@ -313,7 +338,7 @@ class TopologyConstrainedLogitsProcessor(LogitsProcessor):
 # from transformers import LogitsProcessorList
 # from constrained_decoding import BrepVocab, TopologyConstrainedLogitsProcessor
 #
-# V = BrepVocab(face_index_size=50, se_codebook_size=4096, bbox_index_size=2048)
+# V = BrepVocab(face_index_size=50, se_codebook_size=8192, bbox_index_size=2048)  # 8192=8*8*8*16,须与 2sequence.py 的 se_codebook_size 一致
 # processor = TopologyConstrainedLogitsProcessor(
 #     V, prompt_len=prompt.shape[-1],     # 通常为 1(单 START 或单类别 token)
 #     use_bbox_monotonic=True,            # 仅在用方案① FSQ 时建议开启
