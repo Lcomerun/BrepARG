@@ -22,10 +22,13 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [x] (2026-08-17 11:51 +08:00) Completed a clean two-arm CUDA smoke on the healthy D: NTFS SSD. Both VQ-8192 and RVQ validators returned `valid=true`, with identical inventories, resume-compatible runtime evidence, and zero non-finite events.
 - [x] (2026-08-17 13:00 +08:00) Stopped the first formal root at VQ-8192 seed 3 epoch 52 and classified it as diagnostic-only. Its signed scheduler declared `curved_parent_mse`, but the launcher omitted `NS_VQ_PLATEAU_METRIC`, so the actual scheduler consumed global validation MSE. No later arm or seed was started.
 - [x] (2026-08-17 13:20 +08:00) Upgraded the capacity evidence contract to schema v2: the launcher explicitly injects every scheduler, sampling, loss, and stop control; history and validator bind the real plateau metric; source and clean-Git identity coverage is expanded; exact batch/lifecycle checks fail closed; and existing state rejects environment drift.
+- [x] (2026-08-17 13:45 +08:00) Added and executed a face/wire-local, Git-safe diagnosis of the frozen 16 P0-A invalid controls. The report distinguishes saved-STEP cases from failures before a STEP existed; unavailable pcurve evidence is never reported as a negative finding.
+- [x] (2026-08-17 13:50 +08:00) Bound the local diagnosis to the P0-A stage-aware baseline attempts rather than the earlier 100-CAD calibration manifest. The corrected rerun covers 11 saved STEP cases and 5 no-STEP cases; the stale 10/6 partial result is not used.
+- [x] (2026-08-17 13:55 +08:00) Snapshotted the completed 16-case face/wire diagnosis into `reports/p0a_face_wire_diagnosis_20260817/`. Archive validation found zero forbidden model/data/CAD artifacts.
 - [x] (2026-08-17 13:20 +08:00) Repaired RVQ evidence semantics. Stage indices now use independent namespaces, every stage reports `usage_fraction = entropy_perplexity / codebook_size`, best-checkpoint selection uses stage-specific historical stability instead of a conflated marginal, and the RVQ-over-VQ material advantage is frozen at 5 percentage points plus exact paired significance.
 - [x] (2026-08-17 13:18 +08:00) Re-ran the two-arm real-CUDA smoke from clean schema-v2 source. Both VQ-8192 and RVQ returned `valid=true`; RVQ's two stage usage reports and scheduler bindings passed.
 - [x] (2026-08-17 13:30 +08:00) Completed the forced interruption/resume behavior: epoch 0 was checkpointed, both processes were killed, and the replacement process restored full state and completed epoch 1 with `resumed=true` and `resume_from_epoch=0`. The smoke validator now distinguishes deduplicated smoke batch counts from formal exact-cap counts while still requiring all observed batches finite.
-- [ ] Start the new four-task formal root from the final clean schema-v2 commit. The old `capacity_ab_60k_20260817` root must never be resumed or promoted.
+- [x] (2026-08-17 13:29 +08:00) Started the new four-task formal root `D:\luolin\V13\local_runs\capacity_ab_60k_v2_20260817` from clean schema-v2 commit `76604edb4bc06f6be7f4740d44886b1099e95eaa`. The old `capacity_ab_60k_20260817` root remains quarantined and is not resumed or promoted.
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [ ] Implement the assembly repairs as independent switches in checklist order, with tests and one commit per logically independent repair.
 - [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
@@ -61,6 +64,12 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 - Observation: OCC's generic pcurve/wire self-intersection fixer does not address the dominant ten-case failure family in this cohort.
   Evidence: Both a face-integrated wire tool configuration and a direct wire-fixer configuration produced the same outcome as directed trim alone: strict 2/16, with only the two wire-build cases recovered. All ten previously diagnosed self-intersection CADs remained strict-invalid or failed before STEP.
+
+- Observation: The historical 100-CAD calibration manifest is not the complete P0-A baseline population.
+  Evidence: It contained 10 saved invalid STEP rows, while the stage-aware P0-A baseline rerun contained 11; `00095733_8b325d2fcb27ec9e79388602_step_000` was written only by the latter. The face/wire report is therefore bound to input SHA-256 `2a996faa68bc308fea6c7e5b9061f53a37970d74d2d64fb5994ba840bf74e490`.
+
+- Observation: The dominant post-STEP defect is localized enough for a bounded repair search.
+  Evidence: The corrected report identifies 10 CADs and 17 face occurrences with self-intersecting wires, while no saved case has a wire-order failure. Five cases fail before STEP and must be handled through source-topology/curve-fit diagnostics, not pcurve surgery.
 
 - Observation: A clean task signature can still misdescribe runtime behavior when the launcher does not explicitly export the signed control.
   Evidence: The diagnostic VQ-8192 seed-3 history reports `config.scheduler.metric=curved_parent_mse` while every epoch records `plateau_metric=global_val`; at epoch 52 the scheduler input was `0.00122266` while curved parent MSE was `0.0028803291`. Schema v2 validates all three values against each other.
@@ -115,7 +124,7 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 
 ## Outcomes & Retrospective
 
-Implementation and formal measurements are in progress. The plan is not complete until all four 100-epoch runs, both unchanged-chain capacity measurements, the no-regression GT repair audit, the repaired-chain winner measurement, Git-safe snapshots, and remote push are verified.
+The face/wire diagnosis milestone is complete and Git-safe, with 10/16 post-STEP cases localized to named faces and 5/16 explicitly marked pre-STEP. The schema-v2 capacity root is healthy at its early stage (epoch 15 of seed 3, 469/469 train and 94/94 validation batches finite, zero non-finite events, scheduler bound to curved-parent MSE), but the four 100-epoch runs and capacity measurements are not complete. Assembly repair has not yet passed the 95/100 gate; the next implementation must be local to the named faces or the five pre-STEP topology cases. The plan is not complete until all four runs, unchanged-chain capacity measurements, the no-regression repair audit, repaired-chain winner measurement, Git-safe snapshots, and remote push are verified.
 
 ## Context and Orientation
 
@@ -126,6 +135,8 @@ Implementation and formal measurements are in progress. The plan is not complete
 `tools/run_p0b_vq_assembly_measurement.py` reconstructs a frozen 100-CAD cohort from selected checkpoints and audits STEP readability, OpenCascade native validity, project strict validity, and their intersection. The capacity coordinator must generalize this contract to VQ-8192 and RVQ while retaining all failures in the denominator and preserving the cohort identity SHA-256 `646693dbfde083bf16ae63f917658cc0c3b3eb71cedaeddfeea55007bd741474`.
 
 `tools/diagnose_assembly_chain.py` and `reports/p0a_assembly_chain_evidence_20260817/` provide the 16 original failures and their taxonomy: ten wire self-intersections, three curve-fit failures, two wire-build failures, and one non-unit or empty solid. `tools/directed_trim_assembly.py` contains an earlier topology-directed prototype but is not yet the accepted production chain. Repairs must remain outside upstream source and be individually selectable.
+
+`tools/diagnose_assembly_face_wires.py` is the local P0-A narrowing tool. It records the precise face and wire index for every self-intersection or ordering failure that can be observed in a saved original STEP file. For the six original failures without a STEP, it records only source-topology clues; this prevents an absence of a pcurve from being mistaken for evidence that no pcurve repair is needed.
 
 A learned vector quantizer replaces each continuous latent vector with one nearest code vector. VQ-8192 raises the number of available vectors from 4096 to 8192. Residual vector quantization, abbreviated RVQ, first quantizes the latent, then quantizes the residual error with a second independent codebook; reconstruction uses the sum of both selected code vectors. Each stage therefore needs its own usage health report.
 
@@ -208,3 +219,7 @@ Revision note 2026-08-17 13:20 +08:00: Recorded the schema-v1 scheduler mismatch
 Revision note 2026-08-17 13:25 +08:00: Recorded the successful schema-v2 two-arm CUDA smoke and the FeaturePool tail-overflow found by the forced-resume smoke. The fix remains in the local adapter and must pass a second forced-resume smoke before formal launch.
 
 Revision note 2026-08-17 13:30 +08:00: Recorded successful forced full-state resume across epoch 0 to epoch 1 and corrected the validator so formal runs retain exact 469/94 batch gates while bounded smoke runs use their realized deduplicated counts.
+
+Revision note 2026-08-17 13:45 +08:00: Added a face/wire-local P0-A diagnostic milestone. Generic ShapeFix and global tolerance experiments were negative, so subsequent repair candidates must be tied to named failing faces or pre-STEP source-topology defects.
+
+Revision note 2026-08-17 13:50 +08:00: The first face/wire execution used the older calibration manifest and therefore omitted one saved P0-A baseline STEP. The tool now accepts and prefers the stage-aware P0-A baseline-attempt manifest, which fixes the evidence population before any repair decision is made.

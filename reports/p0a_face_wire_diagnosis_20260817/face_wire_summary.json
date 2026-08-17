@@ -1,0 +1,92 @@
+{
+  "cases": 16,
+  "generated_at": "2026-08-17T13:53:46+08:00",
+  "input_kind": "p0a_stage_aware_baseline_attempts",
+  "input_sha256": "2a996faa68bc308fea6c7e5b9061f53a37970d74d2d64fb5994ba840bf74e490",
+  "order_failure_cases": 0,
+  "order_failure_faces_by_cad": [],
+  "schema": "p0a-face-wire-diagnosis-v1",
+  "self_intersection_cases": 10,
+  "self_intersection_faces_by_cad": [
+    {
+      "cad_id": "00002441_179a8df075c94d0596b1f20d_step_010",
+      "face_indices": [
+        6,
+        8
+      ]
+    },
+    {
+      "cad_id": "00008763_affd199038524a1c8e3b7ad4_step_001",
+      "face_indices": [
+        17
+      ]
+    },
+    {
+      "cad_id": "00029780_a4788d5955c04fe1886666b7_step_000",
+      "face_indices": [
+        24
+      ]
+    },
+    {
+      "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "face_indices": [
+        3,
+        4
+      ]
+    },
+    {
+      "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+      "face_indices": [
+        3,
+        12,
+        43
+      ]
+    },
+    {
+      "cad_id": "00051587_446e8810d6884cae80689579_step_000",
+      "face_indices": [
+        15,
+        20
+      ]
+    },
+    {
+      "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+      "face_indices": [
+        3
+      ]
+    },
+    {
+      "cad_id": "00067160_2a27016aa44f42c69c1079f7_step_000",
+      "face_indices": [
+        17
+      ]
+    },
+    {
+      "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "face_indices": [
+        35,
+        36
+      ]
+    },
+    {
+      "cad_id": "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "face_indices": [
+        48
+      ]
+    }
+  ],
+  "source_bytes_archived": false,
+  "source_cases_sha256": "50b1c038eec66edc58148a9505247dd7deda4fd4befb9b3754369311e4074b51",
+  "source_run_name": "p0a_face_wire_diagnosis_20260817",
+  "source_topology_suspicious_cases": 10,
+  "step_bytes_archived": false,
+  "step_diagnosis_available": 11,
+  "step_diagnosis_unavailable": 5,
+  "unavailable_step_cad_ids": [
+    "00016845_33dbc9e6ea684970be61af74_step_000",
+    "00032004_b91639b3cc4b41c7bf6a854d_step_000",
+    "00051602_7f1947595ae247e0a4a32f43_step_000",
+    "00061931_dcdd8a95feac4121adfd341f_step_000",
+    "00087341_6a73c5e821934d3fe4d0d555_step_000"
+  ]
+}
