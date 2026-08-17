@@ -1,4 +1,5 @@
 import json
+import os
 import pickle
 import re
 from pathlib import Path
@@ -58,6 +59,10 @@ def _input_ids_of(group):
 def summarize_sequence_package(package):
     total = sum(len(package.get(split, [])) for split in ("train", "val", "test"))
     vocab_size = int(package.get("vocab_size", 0) or 0)
+    if vocab_size <= 0:
+        raise ValueError(
+            "sequence package is missing a positive vocab_size; "
+            "token range audit would be silently skipped")
     max_token = -1
     out_of_vocab = 0
     for split_name in ("train", "val", "test"):
@@ -89,14 +94,20 @@ def load_sequence_package(path):
 def write_sequence_package(path, package):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("wb") as f:
+    tmp = path.with_name(path.name + f".tmp{os.getpid()}")
+    with tmp.open("wb") as f:
         pickle.dump(package, f)
+    os.replace(tmp, path)
 
 
 def merge_sequence_shards(shard_paths, output_path, summary_path=None):
     shard_paths = [Path(path) for path in shard_paths]
     if not shard_paths:
         raise ValueError("no sequence shard paths were provided")
+    resolved = [path.resolve() for path in shard_paths]
+    duplicates = sorted({str(p) for p in resolved if resolved.count(p) > 1})
+    if duplicates:
+        raise ValueError(f"duplicate sequence shards would double-count samples: {duplicates}")
 
     merged = {"train": [], "val": [], "test": []}
     expected_meta = None

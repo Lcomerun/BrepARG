@@ -21,9 +21,16 @@ def _clamp_fraction(value):
     return min(1.0, max(0.0, number))
 
 
+CURVED_SCORE_MIN = 0.02  # 与 records_to_patch_weights / patch_bucket 的 curved 阈值同口径
+
+
 def _as_array(value, ndim):
     arr = np.asarray(value if value is not None else [], dtype=np.float32)
     if arr.ndim != ndim:
+        if arr.size:
+            raise ValueError(
+                f"geometry array ndim={arr.ndim} shape={arr.shape},expected ndim={ndim}"
+                " — 源文件几何格式异常,拒绝静默丢弃(会悄悄改变训练分布)")
         return np.zeros((0,) + ((32, 32, 3) if ndim == 4 else (32, 3)), dtype=np.float32)
     return arr
 
@@ -284,11 +291,20 @@ def deduplicate_patch_records(records):
     return deduplicated, summary
 
 
+def _record_exact_hash(record):
+    cached = record.get("exact_hash")
+    if isinstance(cached, str) and len(cached) == 64:
+        try:
+            bytes.fromhex(cached)
+        except ValueError:
+            pass
+        else:
+            return cached
+    return canonical_patch_hash(record.get("kind"), record.get("array"))
+
+
 def _inventory_exact_hashes(records):
-    return {
-        canonical_patch_hash(record.get("kind"), record.get("array"))
-        for record in records
-    }
+    return {_record_exact_hash(record) for record in records}
 
 
 def _inventory_sources(records, split_name):
@@ -358,21 +374,18 @@ def remove_train_exact_hash_overlap(train_records, val_records):
     """Keep validation fixed and remove exact-content overlaps from training."""
     train_records = list(train_records)
     val_hashes = _inventory_exact_hashes(val_records)
+    train_hashes = [_record_exact_hash(record) for record in train_records]
     kept = [
         record
-        for record in train_records
-        if canonical_patch_hash(record.get("kind"), record.get("array")) not in val_hashes
+        for record, digest in zip(train_records, train_hashes)
+        if digest not in val_hashes
     ]
-    removed_hashes = {
-        canonical_patch_hash(record.get("kind"), record.get("array"))
-        for record in train_records
-        if canonical_patch_hash(record.get("kind"), record.get("array")) in val_hashes
-    }
+    removed_hashes = {digest for digest in train_hashes if digest in val_hashes}
     removed = len(train_records) - len(kept)
     removed_by_kind = {}
     removed_parents = set()
-    for record in train_records:
-        if canonical_patch_hash(record.get("kind"), record.get("array")) in val_hashes:
+    for record, digest in zip(train_records, train_hashes):
+        if digest in val_hashes:
             kind = str(record.get("kind", "unknown"))
             removed_by_kind[kind] = removed_by_kind.get(kind, 0) + 1
             removed_parents.update(_record_parent_ids(record))
@@ -639,14 +652,14 @@ def balanced_round_robin_records(
         selected_ids.add(record.get("record_id"))
 
     curved_selected = sum(
-        float(record.get("curvature_score", 0.0)) > 0.0 for record in selected
+        float(record.get("curvature_score", 0.0)) >= CURVED_SCORE_MIN for record in selected
     )
     curved_order = sorted(
         (
             record
             for record in candidates
             if record.get("record_id") not in selected_ids
-            and float(record.get("curvature_score", 0.0)) > 0.0
+            and float(record.get("curvature_score", 0.0)) >= CURVED_SCORE_MIN
         ),
         key=lambda record: (
             -float(record.get("curvature_score", 0.0)),
@@ -656,14 +669,14 @@ def balanced_round_robin_records(
     for index, record in enumerate(list(selected)):
         if curved_selected >= curved_target:
             break
-        if float(record.get("curvature_score", 0.0)) > 0.0:
+        if float(record.get("curvature_score", 0.0)) >= CURVED_SCORE_MIN:
             continue
         parent = _canonical_parent_identity(record.get("parent_id"))
         replacements = [
             candidate
             for candidate in by_parent[parent]
             if candidate.get("record_id") not in selected_ids
-            and float(candidate.get("curvature_score", 0.0)) > 0.0
+            and float(candidate.get("curvature_score", 0.0)) >= CURVED_SCORE_MIN
         ]
         if not replacements:
             continue
@@ -756,6 +769,8 @@ def collect_vqvae_sample_records(
             failed_paths += 1
             if require_all_paths:
                 raise RuntimeError(f"failed to load required VQ source {path}: {exc}") from exc
+            if failed_paths <= 10:
+                print(f"[vqvae_sampling] skip {path}: {type(exc).__name__}: {exc}", flush=True)
             continue
         loaded_paths += 1
         if require_all_paths and not records:
@@ -887,12 +902,18 @@ def collect_vqvae_patch_shard_records(
     source_paths = set()
 
     for path in paths:
+        _mark_all = len(all_records)
+        _mark_complex = len(complex_records)
+        _mark_sources = frozenset(source_paths)
+        _mark_dropped = dropped_records_source_cap
+        _counted = False
         try:
             iterator = iter_shard_records(path)
             header = next(iterator)
             if header.get("format") != PATCH_SHARD_FORMAT:
                 raise ValueError(f"not a VQ patch shard: {path}")
             loaded_shards += 1
+            _counted = True
             for record in iterator:
                 if record.get("record_type") != "vq_patch":
                     continue
@@ -911,8 +932,17 @@ def collect_vqvae_patch_shard_records(
                 enough_complex = complex_target == 0 or len(complex_records) >= complex_scan_target
                 if enough_all and enough_complex:
                     break
-        except Exception:
+        except Exception as exc:
+            # 半加载回滚:失败 shard 的部分记录不得混入训练池,也不得双重计数
+            del all_records[_mark_all:]
+            del complex_records[_mark_complex:]
+            source_paths.clear(); source_paths.update(_mark_sources)
+            dropped_records_source_cap = _mark_dropped
+            if _counted:
+                loaded_shards -= 1
             failed_shards += 1
+            if failed_shards <= 10:
+                print(f"[vqvae_sampling] skip shard {path}: {type(exc).__name__}: {exc}", flush=True)
             continue
         enough_all = len(all_records) >= scan_target
         enough_complex = complex_target == 0 or len(complex_records) >= complex_scan_target
