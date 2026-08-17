@@ -33,7 +33,9 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - [ ] Let the immutable launcher finish all four formal tasks serially (completed: VQ-8192 seed 3 through epoch 30; remaining: epochs 31-99 and the other three 100-epoch tasks).
 - [ ] Measure seed-3 best checkpoints on the frozen ordered 100-CAD cohort through the unchanged assembly chain, report STEP-readable/native/strict/both-valid and paired McNemar statistics, and apply the registered capacity decision.
 - [x] (2026-08-17 14:25 +08:00) Added the independent schema-v2 crossing diagnosis and Git-safe `reports/p0a_face_wire_diagnosis_v2_20260817/` snapshot without changing the v1 report. All 16 aggregate self-intersecting wires received 1-based edge-position evidence: 11 adjacent, 5 closure, 4 non-adjacent, and 7 pcurve-gap occurrences; self-only, seam, and disconnected counts are zero, while the five pre-STEP cases remain explicitly unavailable.
-- [ ] Implement the assembly repairs as independent, diagnosed-entity-local switches, with tests and one commit per logically independent repair.
+- [x] (2026-08-17 15:24 +08:00) Added copied-face `local_intersection_topology` repair, one-CAD worker isolation, explicit worker sentinel/timeout handling, and fail-closed protocol tests. The first clean single-run pilot recovered two cases before geometry preservation was tightened.
+- [x] (2026-08-17 15:39 +08:00) Added an exclusive signed output-root contract (`assembly-repair-run-v2`), source/cohort/runtime hashes, worker identity validation, short private worker paths, explicit mutually-exclusive OCC profiles, and copied-face geometry/topology preservation gates. The signed pilot completed 16/16 attempts without process loss and recovered one case under the conservative 0.5% geometry gate.
+- [ ] Implement the remaining assembly repairs as independent, diagnosed-entity-local switches, with tests and one commit per logically independent repair.
 - [x] (2026-08-17 12:35 +08:00) Added the first CPU-only repair primitives and tests: immutable named profiles, deterministic directed loop extraction with degenerate closed-edge handling, explicit endpoint-continuity validation, bounded duplicate-point cleanup and lower-degree curve fitting fallbacks, plus explicit single-shell/single-solid checks in the combined directed assembler. The next milestone is the fixed-cohort profile runner and 100-CAD no-regression matrix.
 - [x] (2026-08-17 12:51 +08:00) Added an idempotent local `run_assembly_repair_matrix.py` coordinator with independent and combined profiles, fixed 100-CAD identity checks, attempts-based strict/native/both-valid counts, and restored/unchanged/regressed CAD maps. A one-CAD real OCC smoke completed as both-valid.
 - [x] (2026-08-17 13:00 +08:00) Ran development pilots on all 16 historical failures. The all-switch profile restored 0/16 and failed early on 7; independent directed trim restored exactly the two historical wire-build failures, while curve fallback, continuity-only, and single-solid restored none. This is negative pilot evidence, not the formal 100-CAD result; the next repair must target self-intersecting pcurves/wires locally rather than globally reordering every face.
@@ -89,6 +91,15 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
 - Observation: The upstream history-feature pool cannot append across its final free rows after checkpoint restore.
   Evidence: Restoring VQ-8192 with 7,748 of 8,192 rows filled and processing a 512-token batch attempted to assign 512 rows into a 444-row slice. The local learned-VQ adapter now fills the tail and randomly replaces rows with the remainder without modifying `BrepARG/`.
 
+- Observation: Running two assembly coordinators against one output root is unsafe without an OS-level writer lock.
+  Evidence: The first local topology pilot produced 32 JSONL rows for 16 profile/CAD pairs because both parents read an empty `done` set before appending. The contaminated root is diagnostic-only; the runner now binds a signed run manifest under the existing cross-process lock.
+
+- Observation: A worker output path can fail independently of OCC geometry when the profile and long CAD identity are repeated in nested Windows paths.
+  Evidence: The first signed pilot returned 16 STEP-write failures with no geometry change after a private temporary path exceeded practical `MAX_PATH`; shortening the private worker directory restored 11 STEP writes in the next signed pilot.
+
+- Observation: Native-valid topology repair is not sufficient evidence that a copied face preserved the CAD boundary.
+  Evidence: The two previously recovered faces changed perimeter by 0.24% and 5.23%, respectively; the conservative 0.5% area/perimeter and 0.1% bounding-box gate retains only the lower-change recovery and rejects the larger geometric drift.
+
 ## Decision Log
 
 - Decision: Compare one 8192-entry learned codebook with two sequential 4096-entry residual codebooks, both using 64-dimensional code vectors and `anchor='random'`.
@@ -139,9 +150,21 @@ Sequence regeneration, autoregressive training, and the boundary-consistency los
   Rationale: This resolves the earlier documentation/code ambiguity before results are observed and prices RVQ's estimated 36 percent sequence-length increase explicitly.
   Date/Author: 2026-08-17 / Codex.
 
+- Decision: Treat `pcurve_self_intersection` and `local_intersection_topology` as mutually exclusive OCC strategies, and keep them out of the generic `combined` profile until an individual no-regression gate passes.
+  Rationale: The assembler dispatches these strategies through an `if/elif`; claiming that both are enabled would silently ignore one. Explicit profiles preserve the mapping between a reported switch and the code path that actually ran.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Require every assembly output root to carry a SHA-256 run signature covering the calibration manifest, ordered cohort, profiles, iteration count, worker policy, repair source files, Git status, and BrepARG utility hash.
+  Rationale: A new directory alone prevents the last accident but does not make resume or parameter drift auditable. The signed manifest fails closed when an existing root belongs to another run or contains unsigned artifacts.
+  Date/Author: 2026-08-17 / Codex.
+
+- Decision: Accept a copied-face topology candidate only when wire count, edge count, positive area, perimeter, and bounding-box invariants pass in addition to OCC native validity and removal of the diagnosed self-intersection.
+  Rationale: ShapeFix can create a native-valid but semantically altered face. The fixed tolerances (0.5% area/perimeter, 0.1% coordinate scale) keep this local repair conservative and make rejected candidates explicit rather than hiding geometry drift in the final strict-valid count.
+  Date/Author: 2026-08-17 / Codex.
+
 ## Outcomes & Retrospective
 
-The face/wire diagnosis milestone is complete and Git-safe. Schema v1 localizes 10 saved-STEP failure CADs to named faces, while schema v2 classifies every one of the 16 self-intersecting wires by exact OCC edge positions and preserves five pre-STEP cases as unavailable. The schema-v2 capacity root is healthy at its early stage, but the four 100-epoch runs and capacity measurements are not complete. Assembly repair has not yet passed the 95/100 gate; the next implementation must be local to the named crossing positions or the five pre-STEP topology cases. The plan is not complete until all four runs, unchanged-chain capacity measurements, the no-regression repair audit, repaired-chain winner measurement, Git-safe snapshots, and remote push are verified.
+The face/wire diagnosis milestone is complete and Git-safe. Schema v1 localizes 10 saved-STEP failure CADs to named faces, while schema v2 classifies every one of the 16 self-intersecting wires by exact OCC edge positions and preserves five pre-STEP cases as unavailable. The schema-v2 capacity root remains healthy and is running the four-task matrix. Assembly repair infrastructure now has signed, locked, fail-closed pilots, but the conservative local topology switch has recovered only 1/16 historical invalid controls and has not approached the 95/100 gate. The plan is not complete until all four runs, unchanged-chain capacity measurements, the no-regression repair audit, repaired-chain winner measurement, Git-safe snapshots, and remote push are verified.
 
 ## Context and Orientation
 
@@ -161,7 +184,7 @@ A learned vector quantizer replaces each continuous latent vector with one neare
 
 First add the two quantizer configurations and an AMP-safe two-stage residual module to `breparg_improvements/train.py`. Preserve the current model encoder, decoder, 64-dimensional bottleneck, optimizer, initialization seeding, and reconstruction loss. Return an information object that the training and validation aggregators can interpret without confusing two stage indices with one joint code. Add focused CPU and CUDA tests for shapes, gradients, state dictionaries, dtype behavior, exact residual composition, stage isolation, metadata, finite-state scanning, and metrics.
 
-Next add a capacity launcher and snapshot tool under `tools/`. It must freeze exactly two arms and seeds 3 and 4; validate the same Protocol V5 hash, split hash, ordered/sorted patch inventory hashes, precision and optimizer recipe; reject foreign or incomplete outputs; use per-task writer-safe output directories; support exact automatic resume; and produce compact status. Use E:/ for formal checkpoint storage. Run a small real-CUDA probe before formal work, including forced interruption followed by exact resume.
+Next add a capacity launcher and snapshot tool under `tools/`. It must freeze exactly two arms and seeds 3 and 4; validate the same Protocol V5 hash, split hash, ordered/sorted patch inventory hashes, precision and optimizer recipe; reject foreign or incomplete outputs; use per-task writer-safe output directories; support exact automatic resume; and produce compact status. Use the D: output root because the E: filesystem requires repair. Run a small real-CUDA probe before formal work, including forced interruption followed by exact resume.
 
 Then generalize the assembly measurement path for the two capacity checkpoints. Select the best checkpoint by the same curved-parent reconstruction rule used by P0-B, bind its SHA-256 and epoch, reconstruct the frozen cohort in identical order, run the unchanged chain, and calculate exact paired discordances and two-sided McNemar p-values for strict and native outcomes. Preserve the VQ-4096 and bypass P0-B results as historical references, not newly mixed arms.
 
@@ -244,3 +267,5 @@ Revision note 2026-08-17 13:45 +08:00: Added a face/wire-local P0-A diagnostic m
 Revision note 2026-08-17 13:50 +08:00: The first face/wire execution used the older calibration manifest and therefore omitted one saved P0-A baseline STEP. The tool now accepts and prefers the stage-aware P0-A baseline-attempt manifest, which fixes the evidence population before any repair decision is made.
 
 Revision note 2026-08-17 14:25 +08:00: Added and validated the separate face/wire crossing schema v2. It freezes the 16/16 stage-aware population, 11 STEP / 5 pre-STEP split, one-based edge-position semantics, independent occurrence taxonomy, and Git-safe snapshot before any new geometry mutation.
+
+Revision note 2026-08-17 15:39 +08:00: Recorded the contaminated duplicate pilot, the signed assembly-run contract and worker protocol hardening, the Windows private-path correction, explicit OCC strategy exclusivity, and the conservative copied-face geometry-preservation gate. The signed topology pilot is diagnostic-only at 1/16 recovery; baseline parity and the remaining failure-mode repairs are still required.

@@ -19,6 +19,7 @@ REPAIR_SWITCHES = (
     "wire_continuity",
     "single_solid",
     "pcurve_self_intersection",
+    "local_intersection_topology",
 )
 
 
@@ -33,6 +34,12 @@ class RepairProfile:
             raise ValueError(f"unknown assembly repair switches: {unknown}")
         if len(set(self.switches)) != len(self.switches):
             raise ValueError("assembly repair switches must be unique")
+        incompatible = {"pcurve_self_intersection", "local_intersection_topology"}
+        if incompatible <= set(self.switches):
+            raise ValueError(
+                "pcurve_self_intersection and local_intersection_topology are "
+                "alternative OCC repair strategies and cannot be combined"
+            )
 
     def enabled(self, name: str) -> bool:
         return name in self.switches
@@ -40,16 +47,25 @@ class RepairProfile:
 
 BASELINE_PROFILE = RepairProfile("baseline")
 INDIVIDUAL_PROFILES = tuple(RepairProfile(name, (name,)) for name in REPAIR_SWITCHES)
-COMBINED_PROFILE = RepairProfile("combined", REPAIR_SWITCHES)
+# "combined" intentionally excludes the two mutually-exclusive OCC ShapeFix
+# strategies.  It represents only the legacy repair composition evaluated in
+# earlier pilots; newly accepted repairs get explicit combination profiles.
+COMBINED_PROFILE = RepairProfile(
+    "combined", ("directed_trim", "curve_fit_fallback", "wire_continuity", "single_solid")
+)
 DIRECTED_CURVE_PROFILE = RepairProfile(
     "directed_trim_curve_fit", ("directed_trim", "curve_fit_fallback")
 )
 PCURVE_PROFILE = RepairProfile(
     "directed_trim_pcurve", ("directed_trim", "pcurve_self_intersection")
 )
+DIRECTED_LOCAL_TOPOLOGY_PROFILE = RepairProfile(
+    "directed_trim_local_intersection_topology",
+    ("directed_trim", "local_intersection_topology"),
+)
 DEFAULT_PROFILES = (
     BASELINE_PROFILE, *INDIVIDUAL_PROFILES, DIRECTED_CURVE_PROFILE, PCURVE_PROFILE,
-    COMBINED_PROFILE
+    DIRECTED_LOCAL_TOPOLOGY_PROFILE, COMBINED_PROFILE
 )
 
 

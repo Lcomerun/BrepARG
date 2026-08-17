@@ -22,11 +22,27 @@ def test_profiles_are_independent_and_combined():
         "wire_continuity",
         "single_solid",
         "pcurve_self_intersection",
+        "local_intersection_topology",
         "directed_trim_curve_fit",
         "directed_trim_pcurve",
+        "directed_trim_local_intersection_topology",
         "combined",
     ]
     assert parse_profiles(["directed_trim"])[0].enabled("directed_trim")
+    assert parse_profiles(["local_intersection_topology"])[0].enabled(
+        "local_intersection_topology"
+    )
+    directed_local = parse_profiles(["directed_trim_local_intersection_topology"])[0]
+    assert directed_local.enabled("directed_trim") is True
+    assert directed_local.enabled("local_intersection_topology") is True
+    combined = parse_profiles(["combined"])[0]
+    assert combined.enabled("local_intersection_topology") is False
+    assert combined.enabled("pcurve_self_intersection") is False
+    with pytest.raises(ValueError, match="alternative OCC repair strategies"):
+        RepairProfile(
+            "ambiguous",
+            ("pcurve_self_intersection", "local_intersection_topology"),
+        )
     with pytest.raises(ValueError, match="unknown assembly repair"):
         RepairProfile("bad", ("magic",))
 
