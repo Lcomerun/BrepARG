@@ -28,8 +28,9 @@ unchanged topology and zero regressions.
   topology-preserving restoration.
 - [x] (2026-08-18 08:26 +08:00) Produce the path-free v5 report with compact
   per-CAD gate evidence and rejection taxonomy.
-- [ ] Commit and push the runner plumbing, snapshot fix, tests, plan, and
-  authoritative report without touching `BrepARG/`.
+- [x] (2026-08-18 08:32 +08:00) Commit and push the runner plumbing, snapshot
+  fix, tests, plan, and authoritative reports as `c30967b` on
+  `experiment/protocol-v5-scaling-ladder`, without touching `BrepARG/`.
 
 ## Surprises & Discoveries
 
