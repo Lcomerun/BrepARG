@@ -185,6 +185,13 @@ def compact_row(row: Mapping[str, Any]) -> dict[str, Any]:
     }
     if isinstance(row.get("selection"), Mapping):
         compact["selection"] = compact_selection(row["selection"])
+    gate = row.get("selector_geometry_topology_gate")
+    if isinstance(gate, Mapping):
+        # Matrix runs record the gate directly on each attempt (selector runs
+        # nest the equivalent evidence under ``selection``).  Preserve the
+        # same path-free whitelist in both report shapes so a negative repair
+        # cannot lose the topology reason that blocked promotion.
+        compact["selector_geometry_topology_gate"] = _compact_selector_gate(gate)
     return compact
 
 
@@ -286,6 +293,10 @@ def repair_diagnostics_summary(
     solid_mutual_pairs = 0
     solid_merged_vertices = 0
     solid_applied_cads: set[str] = set()
+    geometry_gate_attempts = 0
+    geometry_gate_accepted: set[str] = set()
+    geometry_gate_rejected: set[str] = set()
+    geometry_gate_reasons: Counter[str] = Counter()
     for row in rows:
         cad_id = str(row.get("cad_id"))
         diagnostics = row.get("assembly_diagnostics") or {}
@@ -310,6 +321,15 @@ def repair_diagnostics_summary(
             solid_merged_vertices += int(solid.get("merged_vertex_count") or 0)
             if solid.get("applied"):
                 solid_applied_cads.add(cad_id)
+        gate = row.get("selector_geometry_topology_gate")
+        if isinstance(gate, Mapping):
+            geometry_gate_attempts += 1
+            if gate.get("accepted"):
+                geometry_gate_accepted.add(cad_id)
+            else:
+                geometry_gate_rejected.add(cad_id)
+                for reason in gate.get("rejection_reasons") or ():
+                    geometry_gate_reasons[str(reason)] += 1
     result: dict[str, Any] = {}
     if directed_modes:
         result["directed_trim_loop_policies"] = {
@@ -334,6 +354,15 @@ def repair_diagnostics_summary(
             "mutual_pair_count": solid_mutual_pairs,
             "merged_vertex_count": solid_merged_vertices,
             "applied_cad_ids": sorted(solid_applied_cads),
+        }
+    if geometry_gate_attempts:
+        result["selector_geometry_topology_gate"] = {
+            "attempted_count": geometry_gate_attempts,
+            "accepted_count": len(geometry_gate_accepted),
+            "rejected_count": len(geometry_gate_rejected),
+            "accepted_cad_ids": sorted(geometry_gate_accepted),
+            "rejected_cad_ids": sorted(geometry_gate_rejected),
+            "rejection_reason_counts": dict(sorted(geometry_gate_reasons.items())),
         }
     return result
 

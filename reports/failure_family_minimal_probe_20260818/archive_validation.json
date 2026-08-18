@@ -1,0 +1,18 @@
+{
+  "attempts": 16,
+  "cohort_equivalence_valid": null,
+  "final_matrix_sha256": "0f30974ed244be060696b09e77067b4554199718bded576618474c2b339e44db",
+  "forbidden_artifacts": [],
+  "profiles": {
+    "directed_trim_surface_precision_curve_interpolate": 16
+  },
+  "repair_diagnostics_present": true,
+  "run_signature": "ffbfc8516bc3f0d05c5a92b46b8bb64ef98e42af93799f635bdb3c6de240f10f",
+  "run_status": "COMPLETED_PARTIAL",
+  "selector_ledger_binding": {
+    "selector_run": false
+  },
+  "solid_topology_diagnosis_archived": false,
+  "summary_sha256": "eb4fefed56b43ea5aa816e2cd8bc382cfd626050717855f52af1572f79ecb4cc",
+  "valid": true
+}

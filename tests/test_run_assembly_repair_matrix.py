@@ -554,6 +554,7 @@ def test_run_payload_records_selected_assembly_backend(tmp_path):
         historical_invalid_only=True,
         max_cads=None,
         isolate_cad_workers=True,
+        selector_geometry_gate=True,
         worker_timeout_seconds=3.0,
     )
 
@@ -565,6 +566,7 @@ def test_run_payload_records_selected_assembly_backend(tmp_path):
     )
 
     assert payload["assembly_backend"] == "production"
+    assert payload["selector_geometry_gate"] is True
     assert payload["breparg_runtime"]["utils_sha256"] == sha256_file(
         breparg_root / "utils.py"
     )

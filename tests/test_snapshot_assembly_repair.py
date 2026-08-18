@@ -32,6 +32,14 @@ def test_snapshot_excludes_source_and_step_paths(tmp_path):
         "native_brep_valid": True, "strict_brep_valid": True, "both_valid": True,
         "source_path": "secret.pkl", "step_path": "cad.step",
         "step_bytes": 123, "step_sha256": "abc", "validity_components": {},
+        "selector_geometry_topology_gate": {
+            "schema": "assembly-selector-geometry-gate-v2",
+            "accepted": False,
+            "checks": {"vertex_count_equal": False},
+            "rejection_reasons": ["geometry_gate:vertex_count_equal"],
+            "input_vertex_count": 3,
+            "candidate_vertex_count": 2,
+        },
         "assembly_diagnostics": {
             "directed_trim_loop_policies": [
                 {"face_index": 0, "mode": "regrouped_directed"},
@@ -70,6 +78,10 @@ def test_snapshot_excludes_source_and_step_paths(tmp_path):
     assert "source_path" not in archived
     assert "step_path" not in archived
     assert archived["step_sha256"] == "abc"
+    assert archived["selector_geometry_topology_gate"]["accepted"] is False
+    assert archived["selector_geometry_topology_gate"]["rejection_reasons"] == [
+        "geometry_gate:vertex_count_equal"
+    ]
     archived_run = json.loads((report / "assembly_repair_run.json").read_text())
     assert archived_run == manifest
     assert result["run_signature"] == "signed-run"
@@ -89,6 +101,14 @@ def test_snapshot_excludes_source_and_step_paths(tmp_path):
         "mutual_pair_count": 8,
         "merged_vertex_count": 8,
         "applied_cad_ids": ["cad"],
+    }
+    assert diagnostics["selector_geometry_topology_gate"] == {
+        "attempted_count": 1,
+        "accepted_count": 0,
+        "rejected_count": 1,
+        "accepted_cad_ids": [],
+        "rejected_cad_ids": ["cad"],
+        "rejection_reason_counts": {"geometry_gate:vertex_count_equal": 1},
     }
     assert result["repair_diagnostics_present"] is True
     assert not list(report.rglob("*.step"))

@@ -274,6 +274,7 @@ def build_run_payload(
         "historical_invalid_only": bool(args.historical_invalid_only),
         "max_cads": args.max_cads,
         "isolate_cad_workers": bool(args.isolate_cad_workers),
+        "selector_geometry_gate": bool(args.selector_geometry_gate),
         "worker_timeout_seconds": float(args.worker_timeout_seconds),
         "repository": {
             **git_identity(repo_root),
@@ -1025,7 +1026,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     if key in done:
                         continue
                     if (
-                        args.assembly_backend == "production"
+                        args.isolate_cad_workers
+                        or args.assembly_backend == "production"
                         or requires_isolated_worker(profile)
                     ):
                         row = run_one_isolated(
@@ -1036,6 +1038,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                             joint_iterations=args.joint_iterations,
                             timeout_seconds=args.worker_timeout_seconds,
                             assembly_backend=args.assembly_backend,
+                            selector_geometry_gate=bool(args.selector_geometry_gate),
                         )
                     else:
                         row = run_one(
@@ -1043,6 +1046,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                             breparg_root=args.breparg_root,
                             joint_iterations=args.joint_iterations,
                             assembly_backend=args.assembly_backend,
+                            selector_geometry_gate=bool(args.selector_geometry_gate),
                         )
                     validate_attempt_row(row, source, profile)
                     append_jsonl(manifest_path, row)

@@ -1,0 +1,49 @@
+{
+  "artifacts": [
+    {
+      "bytes": 635,
+      "path": "archive_validation.json",
+      "sha256": "fa47e080aa058e4b3689194122effa510ebb479a4245dc3a8b668f25a5d46162"
+    },
+    {
+      "bytes": 12973,
+      "path": "assembly_repair_attempts.jsonl",
+      "sha256": "18c78dc71df16962885a9bb747b7ec7999e7366d4f598f37d837852bef1635cf"
+    },
+    {
+      "bytes": 2227,
+      "path": "assembly_repair_run.json",
+      "sha256": "a5a5f41e15cbbbf70d3bdb9fcc1f1da98472c224d215a27fd3169eba7f8b1929"
+    },
+    {
+      "bytes": 2613,
+      "path": "assembly_repair_summary.json",
+      "sha256": "5e837df5418d8243ef17b93c22dd5289462360469f811d785d0b0e39619f817e"
+    },
+    {
+      "bytes": 333,
+      "path": "geometry_gate_archive_validation.json",
+      "sha256": "b08d45e5f9230d8fb7410ee4b351213e9fc41fbcb0e06607bd19f30ed55866c1"
+    },
+    {
+      "bytes": 31162,
+      "path": "geometry_gate_attempts.jsonl",
+      "sha256": "290a10a3cdc2b1f10baf7bdc59351280f0c4253718ce1683d2cb819fba847617"
+    },
+    {
+      "bytes": 1677,
+      "path": "geometry_gate_summary.json",
+      "sha256": "b769f1c2efe00e49e25c6fb92ecfa93acb1d258a7b240f0c85f4ee336efbdd5b"
+    },
+    {
+      "bytes": 1535,
+      "path": "README.md",
+      "sha256": "d4a81393a60d574663c59ae4f5e032f007c68455942d9b43f1399c7d2246c329"
+    },
+    {
+      "bytes": 1351,
+      "path": "repair_diagnostics_summary.json",
+      "sha256": "a34e3fa10dc689ab97915008ad5a5fdf2e9fd8fa7c313a011878ea9bf4f43ae2"
+    }
+  ]
+}

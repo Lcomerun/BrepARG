@@ -1,0 +1,48 @@
+{
+  "attempts": 16,
+  "payload": {
+    "assembly_backend": "directed",
+    "breparg_runtime": {
+      "utils_sha256": "e2509a844db0a9e0f8eaf670fffb9d4ad9e240af755155d25891d37b4468d521"
+    },
+    "calibration_manifest_sha256": "426809e39cf2f4ee13c2e86b542c76a5d1c80ce6abfa4ac4a2e84135f580f4ef",
+    "full_cohort_count": 100,
+    "full_cohort_signature": "e3003eb09d8822bfb6cb0d1a97e017a57823a24e74256daf44d7daf7afee1904",
+    "historical_invalid_only": true,
+    "isolate_cad_workers": true,
+    "joint_iterations": 200,
+    "matrix_schema": "assembly-repair-matrix-v1",
+    "max_cads": null,
+    "profiles": [
+      {
+        "name": "directed_trim_surface_precision_curve_interpolate",
+        "switches": [
+          "directed_trim",
+          "surface_fit_precision",
+          "curve_interpolate"
+        ]
+      }
+    ],
+    "repository": {
+      "commit": "20c1345b3bcce592ef3fb7c8f6e4f962531307cd",
+      "dirty": true,
+      "source_sha256": {
+        "tools/assembly_repair.py": "8dc878ed4b095b55f8041daf35edae07ad6a068e03d126f98395d8b19e060cb5",
+        "tools/directed_trim_assembly.py": "cc2b1090063100d0fa37997945571d6fa93348368958682b0d490607affab84a",
+        "tools/local_wire_topology_repair.py": "c741e4d4a07b0d2cea67bd972fab8f5eb0e46f60c99c865e3c72420b19d7d619",
+        "tools/run_assembly_calibration_oracle.py": "ae589503963f45e2cc5d195da4b2ebc1d865c57bc7e5b3efb53f77faecf9d21f",
+        "tools/run_assembly_repair_matrix.py": "5df484ae7626deb2438b129df3fc2ff34a1e7fa769d597dee478c200f8482e8b",
+        "tools/solid_topology_repair.py": "c70dafdf1aa5e4fe7df58eb4732a12736fea79757d1847fd0d0164ffa6272778"
+      },
+      "status_sha256": "ebfb54ae23d2252d04ecb3a8f9faed2845326668b7dcdb36690a16c61adfc48a"
+    },
+    "schema": "assembly-repair-run-v2",
+    "selected_cohort_count": 16,
+    "selected_cohort_signature": "892eb91d361eb07dbd6e13aba4f8142356f99a9079138fc91cc49569f4166e74",
+    "worker_timeout_seconds": 600.0
+  },
+  "schema": "assembly-repair-run-v2",
+  "signature": "ffbfc8516bc3f0d05c5a92b46b8bb64ef98e42af93799f635bdb3c6de240f10f",
+  "status": "COMPLETED_PARTIAL",
+  "summary_sha256": "eb4fefed56b43ea5aa816e2cd8bc382cfd626050717855f52af1572f79ecb4cc"
+}
