@@ -31,6 +31,9 @@ unchanged topology and zero regressions.
 - [x] (2026-08-18 08:32 +08:00) Commit and push the runner plumbing, snapshot
   fix, tests, plan, and authoritative reports as `c30967b` on
   `experiment/protocol-v5-scaling-ladder`, without touching `BrepARG/`.
+- [x] (2026-08-18 08:41 +08:00) Probe the next two failure families on the
+  same invalid16 cohort: curve-fit fallback and local pcurve continuity. Both
+  produced zero gate-accepted candidates.
 
 ## Surprises & Discoveries
 
@@ -49,6 +52,12 @@ unchanged topology and zero regressions.
   them.
   Evidence: v4 raw rows had five gate objects while the first snapshot had
   zero; v5 now archives all five and summarizes three accepted/two rejected.
+- Observation: The follow-up local-pcurve profile produced two OCC
+  strict-valid candidates, but neither passed the geometry gate; the curve-fit
+  profile produced none.
+  Evidence: `reports/failure_family_followup_v1_20260818/geometry_gate_summary.json`
+  records `gate_accepted=0`, `gate_rejected=2`, and
+  `worker_or_protocol_failures=0`.
 
 ## Decision Log
 
@@ -96,6 +105,14 @@ archive validation is `valid=true`. The generic companion snapshot is
 matrix SHA-256 and retain all five gate objects. The next experiment must
 target a different failure family while keeping topology and geometry gates
 enabled.
+
+The next-family follow-up did not change that conclusion. Across 32 attempts,
+`directed_trim_curve_fit` had zero strict-valid candidates. The local-pcurve
+profile had two strict-valid candidates (`00016845...` and `00032004...`), but
+the gate accepted neither: one changed topology and the other could not be
+measured by the gate. The combined report is
+`reports/failure_family_followup_v1_20260818/`, with a compact local-pcurve
+companion at `reports/failure_family_local_pcurve_gate_20260818/`.
 
 ## Context and Orientation
 

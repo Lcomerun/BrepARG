@@ -1,0 +1,8 @@
+{
+  "attempts": 32,
+  "forbidden_artifacts": [],
+  "label": "curve_fit_and_local_pcurve_continuity_invalid16",
+  "matrix_sha256": "be627a45751e75887adb3930c8ab0ca470d2bde0eca28d3b5071205d53716c98",
+  "run_signature": "5b03ba051e284eef03c2fa7cb2470e616c499aa4e1d40082e009cf42164515fc",
+  "schema": "assembly-geometry-gate-archive-v1"
+}
