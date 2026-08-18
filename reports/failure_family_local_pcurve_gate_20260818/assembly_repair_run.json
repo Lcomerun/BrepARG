@@ -1,0 +1,48 @@
+{
+  "attempts": 16,
+  "payload": {
+    "assembly_backend": "directed",
+    "breparg_runtime": {
+      "utils_sha256": "e2509a844db0a9e0f8eaf670fffb9d4ad9e240af755155d25891d37b4468d521"
+    },
+    "calibration_manifest_sha256": "426809e39cf2f4ee13c2e86b542c76a5d1c80ce6abfa4ac4a2e84135f580f4ef",
+    "full_cohort_count": 100,
+    "full_cohort_signature": "e3003eb09d8822bfb6cb0d1a97e017a57823a24e74256daf44d7daf7afee1904",
+    "historical_invalid_only": true,
+    "isolate_cad_workers": true,
+    "joint_iterations": 200,
+    "matrix_schema": "assembly-repair-matrix-v1",
+    "max_cads": null,
+    "profiles": [
+      {
+        "name": "directed_trim_local_pcurve_continuity",
+        "switches": [
+          "directed_trim",
+          "local_pcurve_continuity"
+        ]
+      }
+    ],
+    "repository": {
+      "commit": "e322d41e4f29932bbd738716f4e6139cbe0b1e05",
+      "dirty": false,
+      "source_sha256": {
+        "tools/assembly_repair.py": "8dc878ed4b095b55f8041daf35edae07ad6a068e03d126f98395d8b19e060cb5",
+        "tools/directed_trim_assembly.py": "cc2b1090063100d0fa37997945571d6fa93348368958682b0d490607affab84a",
+        "tools/local_wire_topology_repair.py": "c741e4d4a07b0d2cea67bd972fab8f5eb0e46f60c99c865e3c72420b19d7d619",
+        "tools/run_assembly_calibration_oracle.py": "ae589503963f45e2cc5d195da4b2ebc1d865c57bc7e5b3efb53f77faecf9d21f",
+        "tools/run_assembly_repair_matrix.py": "d346cadc80db5f9733121fa83c381ae4d704e4980cd3ced7c12db27bdde38d87",
+        "tools/solid_topology_repair.py": "c70dafdf1aa5e4fe7df58eb4732a12736fea79757d1847fd0d0164ffa6272778"
+      },
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "schema": "assembly-repair-run-v2",
+    "selected_cohort_count": 16,
+    "selected_cohort_signature": "892eb91d361eb07dbd6e13aba4f8142356f99a9079138fc91cc49569f4166e74",
+    "selector_geometry_gate": true,
+    "worker_timeout_seconds": 600.0
+  },
+  "schema": "assembly-repair-run-v2",
+  "signature": "773e3b8fc83dbb232eeeb7c490e9d586ecf4e88afd5ef78daabdb5361d27ec2e",
+  "status": "COMPLETED_PARTIAL",
+  "summary_sha256": "f1a448dd8a534d65794b09bf2fb4a320be1bbf2b615cd95e8a6339e6bb89d0ff"
+}
