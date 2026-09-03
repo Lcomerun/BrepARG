@@ -395,6 +395,141 @@ def collect_wire_occurrences(
     return occurrences
 
 
+def enrich_wire_occurrences_with_source_edges(
+    occurrences: Sequence[Mapping[str, Any]],
+    *,
+    observed_wire: Any,
+    occurrence_edges: Mapping[int, Any],
+    source_mapping: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Bind fixed-wire occurrences to source edges using identity proof only.
+
+    ``edge_positions`` use OCC's one-based wire positions, while
+    ``occurrence_edges`` contains the corresponding edges from the exact
+    post-ShapeFix ``ShapeAnalysis_Wire.WireData`` used by the diagnosis.  The
+    observed pre-ShapeFix wire must be ``IsSame`` to exactly one proof row, and
+    every fixed occurrence edge must be ``IsSame`` to candidates carrying
+    exactly one source edge id.  Explorer ordinals are never correspondence.
+    """
+
+    enriched = [dict(occurrence) for occurrence in occurrences]
+    for occurrence in enriched:
+        occurrence.pop("source_edge_ids", None)
+        occurrence.pop("source_mapping_status", None)
+        occurrence.pop("source_mapping_reason", None)
+
+    def mark_all(status: str, reason: str) -> list[dict[str, Any]]:
+        for occurrence in enriched:
+            occurrence["source_mapping_status"] = status
+            occurrence["source_mapping_reason"] = reason
+        return enriched
+
+    if not isinstance(source_mapping, Mapping):
+        return mark_all("unavailable", "source_mapping_not_mapping")
+
+    mapping_status = source_mapping.get("status")
+    if mapping_status not in {
+        "exact_identity",
+        "exact_face_local_geometry",
+        "exact_sewing_history",
+        "exact_sewing_face_local_geometry",
+    }:
+        status = "ambiguous" if mapping_status == "ambiguous" else "unavailable"
+        return mark_all(status, "source_mapping_status_not_exact")
+
+    wire_rows = source_mapping.get("wire_rows")
+    if not isinstance(wire_rows, Sequence) or isinstance(wire_rows, (str, bytes)):
+        return mark_all("unavailable", "source_mapping_wire_rows_missing")
+
+    matching_rows: list[Mapping[str, Any]] = []
+    for row in wire_rows:
+        if not isinstance(row, Mapping):
+            continue
+        candidate_wire = row.get("observed_wire")
+        if candidate_wire is None:
+            continue
+        try:
+            same_wire = bool(observed_wire.IsSame(candidate_wire))
+        except Exception:
+            return mark_all("unavailable", "source_wire_identity_measurement_failed")
+        if not same_wire:
+            continue
+        matching_rows.append(row)
+
+    if not matching_rows:
+        return mark_all("unavailable", "source_wire_mapping_not_found")
+    if len(matching_rows) != 1:
+        return mark_all("ambiguous", "source_wire_mapping_not_unique")
+
+    candidates = matching_rows[0].get("source_edge_candidates")
+    if not isinstance(candidates, Sequence) or isinstance(candidates, (str, bytes)):
+        return mark_all("unavailable", "source_edge_candidates_missing")
+
+    for occurrence in enriched:
+        positions = occurrence.get("edge_positions")
+        if (
+            not isinstance(positions, Sequence)
+            or isinstance(positions, (str, bytes))
+            or not positions
+        ):
+            occurrence["source_mapping_status"] = "unavailable"
+            occurrence["source_mapping_reason"] = "occurrence_edge_positions_missing"
+            continue
+
+        source_edge_ids: list[int] = []
+        failure_reason: str | None = None
+        for position in positions:
+            if isinstance(position, bool) or not isinstance(position, int) or position < 1:
+                failure_reason = "occurrence_edge_position_invalid"
+                break
+            if position not in occurrence_edges:
+                failure_reason = "occurrence_edge_position_out_of_range"
+                break
+            occurrence_edge = occurrence_edges[position]
+            matching_source_ids: set[int] = set()
+            identity_failed = False
+            for candidate in candidates:
+                if not isinstance(candidate, Mapping):
+                    identity_failed = True
+                    break
+                source_edge_id = candidate.get("source_edge_id")
+                candidate_edge = candidate.get("observed_edge")
+                if (
+                    isinstance(source_edge_id, bool)
+                    or not isinstance(source_edge_id, int)
+                    or source_edge_id < 0
+                    or candidate_edge is None
+                ):
+                    identity_failed = True
+                    break
+                try:
+                    same_edge = bool(occurrence_edge.IsSame(candidate_edge))
+                except Exception:
+                    identity_failed = True
+                    break
+                if same_edge:
+                    matching_source_ids.add(int(source_edge_id))
+            if identity_failed:
+                failure_reason = "source_edge_identity_measurement_failed"
+                break
+            if len(matching_source_ids) != 1:
+                failure_reason = (
+                    "source_edge_identity_not_found"
+                    if not matching_source_ids
+                    else "source_edge_identity_ambiguous"
+                )
+                break
+            source_edge_ids.append(next(iter(matching_source_ids)))
+
+        if failure_reason is not None:
+            occurrence["source_mapping_status"] = "unavailable"
+            occurrence["source_mapping_reason"] = failure_reason
+            continue
+        occurrence["source_edge_ids"] = source_edge_ids
+        occurrence["source_mapping_status"] = "mapped"
+    return enriched
+
+
 def _wire_row_v2(*, face_index: int, wire_index: int, wire: Any, face: Any) -> dict[str, Any]:
     """Locate the exact 1-based OCC edge positions behind every wire defect."""
     from OCC.Core.BRep import BRep_Tool
@@ -415,6 +550,10 @@ def _wire_row_v2(*, face_index: int, wire_index: int, wire: Any, face: Any) -> d
     analysis.SetSurface(BRep_Tool.Surface(face))
     wire_data = analysis.WireData()
     edge_count = int(analysis.NbEdges())
+    occurrence_edges = {
+        int(position): wire_data.Edge(position)
+        for position in range(1, edge_count + 1)
+    }
     aggregate_occurrences: list[dict[str, Any]] = []
     try:
         aggregate_self_intersection = bool(analysis.CheckSelfIntersection())
@@ -438,7 +577,7 @@ def _wire_row_v2(*, face_index: int, wire_index: int, wire: Any, face: Any) -> d
     seam_positions: set[int] = set()
     pcurve_probe_failures: list[dict[str, Any]] = []
     for position in range(1, edge_count + 1):
-        edge = wire_data.Edge(position)
+        edge = occurrence_edges[position]
         try:
             pcurve, _first, _last = BRep_Tool.CurveOnSurface(edge, face)
             if pcurve is not None:
@@ -486,6 +625,117 @@ def _wire_row_v2(*, face_index: int, wire_index: int, wire: Any, face: Any) -> d
         "crossing_detail_status": crossing_detail_status,
         "pcurve_edge_positions": sorted(pcurve_positions),
         "seam_edge_positions": sorted(seam_positions),
+        "occurrences": occurrences,
+        "occurrence_kinds": sorted({row["kind"] for row in occurrences}),
+        # Private in-memory evidence consumed by ``diagnose_face_wires_v2``.
+        # It is removed before a public/JSON-safe diagnosis is returned.
+        "_observed_wire": wire,
+        "_occurrence_edges": occurrence_edges,
+    }
+
+
+def diagnose_face_wires_v2(
+    face: Any,
+    *,
+    face_index: int | None = None,
+    source_face_index: int | None = None,
+    source_mapping: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Diagnose one OCC face and optionally bind defects to source edges.
+
+    The returned schema is the one-face form of
+    :func:`diagnose_step_face_wires_v2`. Omitting ``source_mapping`` keeps the
+    established STEP diagnostic rows compatible. Supplying a mapping
+    annotates each occurrence with either exact source edge ids or an explicit
+    unavailable/ambiguous reason.
+    """
+    from OCC.Core.TopAbs import TopAbs_WIRE
+    from OCC.Core.TopExp import TopExp_Explorer
+    from OCC.Core.TopoDS import topods_Wire
+
+    if face_index is None and source_face_index is None:
+        raise ValueError("face_index or source_face_index is required")
+    local_face_index = (
+        int(source_face_index) if face_index is None else int(face_index)
+    )
+
+    face_wires: list[dict[str, Any]] = []
+    wire_explorer = TopExp_Explorer(face, TopAbs_WIRE)
+    wire_index = 0
+    while wire_explorer.More():
+        try:
+            row = _wire_row_v2(
+                face_index=local_face_index,
+                wire_index=wire_index,
+                wire=topods_Wire(wire_explorer.Current()),
+                face=face,
+            )
+        except Exception as exc:
+            row = {
+                "face_index": local_face_index,
+                "wire_index": int(wire_index),
+                "edge_count": 0,
+                "edge_position_basis": "occ_1_based",
+                "pcurve_edge_positions": [],
+                "seam_edge_positions": [],
+                "occurrences": [
+                    _occurrence(
+                        "unavailable",
+                        [],
+                        "occ_fail",
+                        occ_method="wire_diagnosis",
+                        occ_error_type=type(exc).__name__,
+                    )
+                ],
+                "occurrence_kinds": ["unavailable"],
+            }
+        if source_mapping is not None:
+            row["occurrences"] = enrich_wire_occurrences_with_source_edges(
+                row["occurrences"],
+                observed_wire=row.get("_observed_wire", wire_explorer.Current()),
+                occurrence_edges=row.get("_occurrence_edges", {}),
+                source_mapping=source_mapping,
+            )
+        row.pop("_observed_wire", None)
+        row.pop("_occurrence_edges", None)
+        if source_face_index is not None:
+            row["source_face_index"] = int(source_face_index)
+        face_wires.append(row)
+        wire_explorer.Next()
+        wire_index += 1
+
+    face_occurrences = [
+        occurrence
+        for wire_row in face_wires
+        for occurrence in wire_row["occurrences"]
+    ]
+    face_row: dict[str, Any] = {
+        "face_index": local_face_index,
+        "wire_count": len(face_wires),
+        "wires_with_occurrences": [
+            row["wire_index"] for row in face_wires if row["occurrences"]
+        ],
+        "occurrence_kinds": sorted({row["kind"] for row in face_occurrences}),
+    }
+    if source_face_index is not None:
+        face_row["source_face_index"] = int(source_face_index)
+
+    occurrences: list[dict[str, Any]] = []
+    for row in face_wires:
+        location = {
+            "face_index": row["face_index"],
+            "wire_index": row["wire_index"],
+        }
+        if source_face_index is not None:
+            location["source_face_index"] = int(source_face_index)
+        occurrences.extend(
+            {**location, **occurrence} for occurrence in row["occurrences"]
+        )
+    return {
+        "status": "diagnosed",
+        "edge_position_basis": "occ_1_based",
+        "faces": [face_row],
+        "wires": face_wires,
         "occurrences": occurrences,
         "occurrence_kinds": sorted({row["kind"] for row in occurrences}),
     }
@@ -561,9 +811,9 @@ def diagnose_step_face_wires_v2(step_path: Path, *, breparg_root: Path) -> dict[
         sys.path.insert(0, str(root))
     from OCC.Core.IFSelect import IFSelect_RetDone
     from OCC.Core.STEPControl import STEPControl_Reader
-    from OCC.Core.TopAbs import TopAbs_FACE, TopAbs_WIRE
+    from OCC.Core.TopAbs import TopAbs_FACE
     from OCC.Core.TopExp import TopExp_Explorer
-    from OCC.Core.TopoDS import topods_Face, topods_Wire
+    from OCC.Core.TopoDS import topods_Face
 
     reader = STEPControl_Reader()
     try:
@@ -601,57 +851,9 @@ def diagnose_step_face_wires_v2(step_path: Path, *, breparg_root: Path) -> dict[
     face_index = 0
     while face_explorer.More():
         face = topods_Face(face_explorer.Current())
-        wire_explorer = TopExp_Explorer(face, TopAbs_WIRE)
-        face_wires: list[dict[str, Any]] = []
-        wire_index = 0
-        while wire_explorer.More():
-            try:
-                row = _wire_row_v2(
-                    face_index=face_index,
-                    wire_index=wire_index,
-                    wire=topods_Wire(wire_explorer.Current()),
-                    face=face,
-                )
-            except Exception as exc:
-                row = {
-                    "face_index": int(face_index),
-                    "wire_index": int(wire_index),
-                    "edge_count": 0,
-                    "edge_position_basis": "occ_1_based",
-                    "pcurve_edge_positions": [],
-                    "seam_edge_positions": [],
-                    "occurrences": [
-                        _occurrence(
-                            "unavailable",
-                            [],
-                            "occ_fail",
-                            occ_method="wire_diagnosis",
-                            occ_error_type=type(exc).__name__,
-                        )
-                    ],
-                    "occurrence_kinds": ["unavailable"],
-                }
-            face_wires.append(row)
-            wires.append(row)
-            wire_explorer.Next()
-            wire_index += 1
-        face_occurrences = [
-            occurrence
-            for wire_row in face_wires
-            for occurrence in wire_row["occurrences"]
-        ]
-        faces.append(
-            {
-                "face_index": int(face_index),
-                "wire_count": len(face_wires),
-                "wires_with_occurrences": [
-                    row["wire_index"] for row in face_wires if row["occurrences"]
-                ],
-                "occurrence_kinds": sorted(
-                    {row["kind"] for row in face_occurrences}
-                ),
-            }
-        )
+        face_diagnosis = diagnose_face_wires_v2(face, face_index=face_index)
+        faces.extend(face_diagnosis["faces"])
+        wires.extend(face_diagnosis["wires"])
         face_explorer.Next()
         face_index += 1
     occurrences = [

@@ -51,10 +51,15 @@ selector.
   `BRepBuilderAPI_Sewing.ModifiedSubShape` can retain sewing provenance; STEP
   reimport deliberately destroys object identity and therefore requires a
   unique geometry-plus-incidence assignment.
-- [ ] Add and test a default-off multi-stage observer to
-  `tools/directed_trim_assembly.py` without changing any current repair route.
-- [ ] Implement a signed, isolated two-CAD lineage runner with complete-stage,
-  source-byte, source-revision, and unambiguous-mapping gates.
+- [x] (2026-09-03 20:47 +08:00) Added and tested a default-off multi-stage
+  observer to `tools/directed_trim_assembly.py` without changing any current
+  repair route. Face and edge lineage is accepted only through identity,
+  mutually agreeing sewing history, or a unique geometry assignment.
+- [x] (2026-09-03 20:47 +08:00) Implemented a signed, isolated two-CAD
+  lineage runner with complete-stage, source-byte, source-revision, finite,
+  unique geometry-plus-incidence, split/merge, and JSON-safety gates. The full
+  focused suite passes 205 tests; the two `pythonocc` warnings are deprecation
+  notices only.
 - [ ] Run the exact two-CAD pilot in a new immutable local output directory and
   decide whether a local non-periodic trim repair has an evidenced insertion
   point.
@@ -91,6 +96,38 @@ selector.
   `68343d8203dc640d75cd3f4b2a7fea119e637b4f23f3c3ca26fc5c739196eab1`
   and
   `39f56ba42e0f25044d2ef9e3b2f6d14e5d092cf0be887bb221b68103f037cf96`.
+
+- Observation: ShapeFix may reorder a wire even when all source occurrences
+  remain geometrically identifiable.
+  Evidence: the real OCC regression changed the four edge occurrences from
+  source order to `[3, 0, 1, 2]`. Mapping diagnostic `edge_positions` back by
+  list position would therefore be wrong; the implementation reads the actual
+  post-ShapeFix `WireData` edges and requires a unique proof.
+
+- Observation: sewing history is useful evidence but is not complete enough
+  to be the only proof on the two real targets.
+  Evidence: `ModifiedSubShape` and `Modified` do not both return a unique,
+  agreeing edge result for every occurrence. A unique full-boundary face
+  assignment followed by a unique face-local edge assignment maps all 18
+  faces of `00063055...` without allowing a history failure to masquerade as
+  either success or a fatal failure.
+
+- Observation: a boundary-only STEP assignment can recover exact source
+  lineage even when bad pcurves change trimmed area and centroid.
+  Evidence: at normalized curve tolerance `1e-4`, all 44 faces of
+  `00047472...` and all 18 faces of `00063055...` have a globally unique
+  geometry-plus-incidence assignment. In `00063055...`, STEP face ordinal 3
+  maps to source face 5, directly disproving ordinal identity. Ambiguity first
+  appears near `3.122968e-4`, leaving approximately 3.12 times margin at the
+  signed tolerance.
+
+- Observation: development smoke at the registered 200 joint iterations has
+  localized the two defects without a mapping, coverage, or observation
+  failure; this is not yet the formal immutable run.
+  Evidence: `00047472...` is first bad immediately after pcurve construction,
+  at source face/edge pairs `1:[10,12]`, `10:[20,13]`, and `43:[16,24]`.
+  `00063055...` is clean through optional face repair and first bad after
+  sewing, at source face 5 with closure `[9,23]` and adjacent `[23,9]`.
 
 ## Decision Log
 
@@ -133,14 +170,33 @@ selector.
   would be neither attributable nor safe.
   Date/Author: 2026-09-03 / Codex.
 
+- Decision: Use normalized curve tolerance `1e-4` and boundary/topology-only
+  face compatibility for STEP roundtrip correspondence.
+  Rationale: this setting gives unique assignments for every face and edge in
+  both targets with measured margin to the first ambiguity. Trimmed area and
+  centroid are intentionally excluded as hard gates because the pcurve defect
+  under diagnosis can change both without changing the source 3D boundary.
+  Date/Author: 2026-09-03 / Codex.
+
+- Decision: Treat incomplete sewing history as an annotated failed proof
+  attempt, while permitting an independently unique geometry proof.
+  Rationale: declaring incomplete history exact is unsafe, but declaring it
+  fatal after a separate unique perfect assignment would discard valid
+  evidence. `exact_sewing_history` requires both OCC history APIs to agree;
+  `exact_sewing_face_local_geometry` names the independent proof explicitly.
+  Date/Author: 2026-09-03 / Codex.
+
 ## Outcomes & Retrospective
 
-The evidence audit is complete, but the stage-lineage experiment has not yet
-run. The authoritative selector remains 91/100 strict-valid with 84/84
+The evidence audit and implementation are complete, but the formal immutable
+stage-lineage experiment has not yet run from its clean committed revision.
+The development smoke is conclusive enough to validate the instrumentation:
+`00047472...` is first bad after pcurve construction, while `00063055...` is
+first bad after sewing, and both retain exact source occurrence lineage through
+STEP. The authoritative selector remains 91/100 strict-valid with 84/84
 historical controls, zero regressions, and zero worker/protocol failures. This
-section will be updated with the exact stage at which each bad wire appears,
-the source face/edge mapping result, and the promote-or-close decision after
-the signed two-CAD run.
+section will be updated with the signed artifacts and final promote-or-close
+decision after the clean-commit run.
 
 ## Context and Orientation
 

@@ -51,6 +51,27 @@ Every bad wire occurrence must map to a source face and source edge by proof:
   curve fingerprints and accept only a unique perfect assignment. Explorer
   order is never evidence of identity.
 
+The implementation fixes the STEP curve comparison at normalized tolerance
+`1e-4`. It samples open curves in both directions and closed curves in both
+directions across cyclic phase shifts. Face compatibility uses the incident
+3D boundary multiset, surface type and periodicity, and wire pattern; trimmed
+area and centroid are not hard correspondence gates because the defective
+pcurves themselves can change those derived quantities. The matcher requires
+a unique global face assignment, a unique edge-occurrence assignment within
+every face, and consistent shared-edge incidence across faces. Zero matches,
+multiple matches, split source edges, merged distinct source edges, or any
+non-finite measurement remain inconclusive.
+
+During construction, ShapeFix may copy and reorder topology, so identity is a
+preferred proof rather than an assumed invariant. The observer can instead
+record `exact_face_local_geometry` after a unique face-local assignment. At
+sewing, `exact_sewing_history` is reserved for the case where
+`ModifiedSubShape` and `Modified` both return one agreeing result. If those
+history APIs are incomplete but an independent unique boundary and face-local
+edge assignment succeeds, the distinct status
+`exact_sewing_face_local_geometry` is used and failed history attempts are
+retained only as diagnostic notes.
+
 The first cohort is exactly `00047472...` and `00063055...`, reconstructed with
 200 joint-optimization iterations and the selector's current primary profile,
 `directed_trim_local_intersection_topology`. All native work remains in

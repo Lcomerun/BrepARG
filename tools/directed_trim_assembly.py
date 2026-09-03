@@ -59,6 +59,345 @@ def effective_topology_summary(edge_vertex_adj: Any) -> dict[str, Any]:
     }
 
 
+def _unique_sewing_history_target(
+    sewing: Any,
+    source_shape: Any,
+    output_shapes: Sequence[Any],
+) -> tuple[Any | None, dict[str, Any]]:
+    """Return one history-proven output shape, or an explicit failure.
+
+    Output sequence positions are used only to group identity matches inside
+    this call.  They are never treated as source/output correspondence.
+    """
+    attempts = []
+    proven_indices: dict[str, int] = {}
+    for method_name in ("ModifiedSubShape", "Modified"):
+        method = getattr(sewing, method_name, None)
+        if method is None:
+            attempts.append(
+                {"method": method_name, "status": "method_unavailable"}
+            )
+            continue
+        try:
+            candidate = method(source_shape)
+            if bool(candidate.IsNull()):
+                attempts.append(
+                    {"method": method_name, "status": "null_candidate"}
+                )
+                continue
+            matches = [
+                index
+                for index, output_shape in enumerate(output_shapes)
+                if bool(candidate.IsSame(output_shape))
+            ]
+        except Exception as exc:
+            attempts.append(
+                {
+                    "method": method_name,
+                    "status": "history_measurement_failed",
+                    "error_type": type(exc).__name__,
+                }
+            )
+            continue
+        attempts.append(
+            {
+                "method": method_name,
+                "status": (
+                    "unique_output_identity"
+                    if len(matches) == 1
+                    else "output_identity_not_unique"
+                ),
+                "identity_match_count": len(matches),
+            }
+        )
+        if len(matches) == 1:
+            proven_indices[method_name] = matches[0]
+
+    required_methods = {"ModifiedSubShape", "Modified"}
+    if set(proven_indices) != required_methods:
+        return None, {
+            "status": "mapping_failed",
+            "failure_codes": ["sewing_history_methods_not_both_unique"],
+            "attempts": attempts,
+        }
+    target_indices = set(proven_indices.values())
+    if len(target_indices) != 1:
+        return None, {
+            "status": "mapping_failed",
+            "failure_codes": ["sewing_history_methods_disagree"],
+            "attempts": attempts,
+        }
+    target_index = next(iter(target_indices))
+    return output_shapes[target_index], {
+        "status": "mapped",
+        "failure_codes": [],
+        "mapping_methods": sorted(required_methods),
+        "attempts": attempts,
+    }
+
+
+def _invalidate_colliding_sewing_targets(
+    lineage_rows: list[dict[str, Any]],
+) -> None:
+    """Fail closed on merged/unmeasurable targets without cascading failure."""
+    collided_indices: set[int] = set()
+    collision_failure_codes: dict[int, set[str]] = {
+        index: set() for index in range(len(lineage_rows))
+    }
+    for row_index, row in enumerate(lineage_rows):
+        if row["status"] != "mapped":
+            continue
+        for other_index, other_row in enumerate(
+            lineage_rows[row_index + 1 :], row_index + 1
+        ):
+            if other_row["status"] != "mapped":
+                continue
+            try:
+                same_target = bool(row["shape"].IsSame(other_row["shape"]))
+            except Exception:
+                failure_code = "cross_source_identity_measurement_failed"
+                collided_indices.update((row_index, other_index))
+                collision_failure_codes[row_index].add(failure_code)
+                collision_failure_codes[other_index].add(failure_code)
+                continue
+            if same_target:
+                failure_code = "distinct_source_faces_merged"
+                collided_indices.update((row_index, other_index))
+                collision_failure_codes[row_index].add(failure_code)
+                collision_failure_codes[other_index].add(failure_code)
+
+    # Mutate only after every comparison. Otherwise replacing one collided
+    # shape with None could poison later, unrelated identity comparisons.
+    for row_index in sorted(collided_indices):
+        collided_row = lineage_rows[row_index]
+        collided_row["status"] = "mapping_failed"
+        collided_row["shape"] = None
+        collided_row["failure_codes"].extend(
+            sorted(collision_failure_codes[row_index])
+        )
+
+
+def _edge_curve_fingerprint(edge: Any, *, sample_count: int = 11) -> dict[str, Any]:
+    """Sample an orientation-invariant 3D fingerprint for one OCC edge."""
+    from OCC.Core.BRep import BRep_Tool
+
+    try:
+        curve, first, last = BRep_Tool.Curve(edge)
+        if curve is None:
+            return {"available": False, "reason": "curve_unavailable"}
+        parameters = np.linspace(
+            float(first), float(last), int(sample_count), dtype=np.float64
+        )
+        samples = np.asarray(
+            [
+                (
+                    float(curve.Value(float(parameter)).X()),
+                    float(curve.Value(float(parameter)).Y()),
+                    float(curve.Value(float(parameter)).Z()),
+                )
+                for parameter in parameters
+            ],
+            dtype=np.float64,
+        )
+    except Exception as exc:
+        return {
+            "available": False,
+            "reason": f"curve_sampling_failed:{type(exc).__name__}",
+        }
+    if samples.shape != (sample_count, 3) or not np.isfinite(samples).all():
+        return {"available": False, "reason": "curve_samples_nonfinite"}
+    segment_lengths = np.linalg.norm(np.diff(samples, axis=0), axis=1)
+    return {
+        "available": True,
+        "curve_type": str(curve.DynamicType().Name()),
+        "samples": samples,
+        "bbox_min": np.min(samples, axis=0),
+        "bbox_max": np.max(samples, axis=0),
+        "sampled_length": float(np.sum(segment_lengths)),
+    }
+
+
+def _curve_fingerprints_match(
+    first: Mapping[str, Any], second: Mapping[str, Any]
+) -> bool:
+    """Return true only for a tight forward/reverse 3D curve match."""
+    if not first.get("available") or not second.get("available"):
+        return False
+    if first.get("curve_type") != second.get("curve_type"):
+        return False
+    first_samples = np.asarray(first["samples"], dtype=np.float64)
+    second_samples = np.asarray(second["samples"], dtype=np.float64)
+    if first_samples.shape != second_samples.shape:
+        return False
+    scale = max(
+        float(first.get("sampled_length", 0.0)),
+        float(second.get("sampled_length", 0.0)),
+        float(np.linalg.norm(np.ptp(first_samples, axis=0))),
+        float(np.linalg.norm(np.ptp(second_samples, axis=0))),
+        1.0,
+    )
+    tolerance = 1e-7 * scale + 1e-10
+    if abs(
+        float(first.get("sampled_length", 0.0))
+        - float(second.get("sampled_length", 0.0))
+    ) > tolerance:
+        return False
+    for key in ("bbox_min", "bbox_max"):
+        if float(
+            np.max(
+                np.abs(
+                    np.asarray(first[key], dtype=np.float64)
+                    - np.asarray(second[key], dtype=np.float64)
+                )
+            )
+        ) > tolerance:
+            return False
+    forward = float(np.max(np.linalg.norm(first_samples - second_samples, axis=1)))
+    reverse = float(
+        np.max(np.linalg.norm(first_samples - second_samples[::-1], axis=1))
+    )
+    return min(forward, reverse) <= tolerance
+
+
+def _unique_perfect_assignment(
+    compatibility: Sequence[Sequence[int]], candidate_count: int
+) -> list[int] | None:
+    """Return the sole perfect assignment, or None for zero/multiple solutions."""
+    if len(compatibility) != int(candidate_count):
+        return None
+    normalized = [sorted(set(int(value) for value in row)) for row in compatibility]
+    if any(not row for row in normalized):
+        return None
+    if any(value < 0 or value >= candidate_count for row in normalized for value in row):
+        return None
+    order = sorted(range(len(normalized)), key=lambda index: len(normalized[index]))
+    solutions: list[list[int]] = []
+    assignment = [-1] * len(normalized)
+
+    def search(depth: int, used: set[int]) -> None:
+        if len(solutions) >= 2:
+            return
+        if depth == len(order):
+            solutions.append(list(assignment))
+            return
+        observed_index = order[depth]
+        for candidate_index in normalized[observed_index]:
+            if candidate_index in used:
+                continue
+            assignment[observed_index] = candidate_index
+            search(depth + 1, {*used, candidate_index})
+            assignment[observed_index] = -1
+
+    search(0, set())
+    return solutions[0] if len(solutions) == 1 else None
+
+
+def _identity_or_geometry_edge_assignment(
+    observed_edges: Sequence[Any], source_candidates: Sequence[Mapping[str, Any]]
+) -> tuple[list[int] | None, list[str], list[str]]:
+    """Uniquely assign observed edges to source occurrences without ordinals."""
+    failures: list[str] = []
+    source_fingerprints = []
+    for candidate in source_candidates:
+        candidate_edge = candidate.get("observed_edge")
+        if candidate_edge is None:
+            failures.append("source_candidate_edge_missing")
+            source_fingerprints.append({"available": False})
+        else:
+            source_fingerprints.append(_edge_curve_fingerprint(candidate_edge))
+    observed_fingerprints = [_edge_curve_fingerprint(edge) for edge in observed_edges]
+    compatibility: list[list[int]] = []
+    proof_methods: dict[tuple[int, int], str] = {}
+    for observed_index, (observed_edge, observed_fingerprint) in enumerate(
+        zip(observed_edges, observed_fingerprints)
+    ):
+        candidates = []
+        for source_index, (candidate, source_fingerprint) in enumerate(
+            zip(source_candidates, source_fingerprints)
+        ):
+            candidate_edge = candidate.get("observed_edge")
+            try:
+                identity = bool(
+                    candidate_edge is not None
+                    and observed_edge.IsSame(candidate_edge)
+                )
+            except Exception:
+                identity = False
+            geometry = _curve_fingerprints_match(
+                observed_fingerprint, source_fingerprint
+            )
+            if identity or geometry:
+                candidates.append(source_index)
+                proof_methods[(observed_index, source_index)] = (
+                    "identity" if identity else "geometry_fingerprint"
+                )
+        compatibility.append(candidates)
+    assignment = _unique_perfect_assignment(
+        compatibility, len(source_candidates)
+    )
+    if assignment is None:
+        failures.append("edge_unique_perfect_assignment_failed")
+        return None, [], failures
+    methods = [
+        proof_methods[(observed_index, source_index)]
+        for observed_index, source_index in enumerate(assignment)
+    ]
+    return assignment, methods, failures
+
+
+def _unique_face_local_geometry_target(
+    source_edge_occurrences: Sequence[tuple[int, Any]],
+    output_faces: Sequence[Any],
+) -> tuple[Any | None, dict[str, Any]]:
+    """Prove one output face from its complete edge multiset, without ordinals."""
+    source_candidates = [
+        {"source_edge_id": int(source_edge_id), "observed_edge": edge}
+        for source_edge_id, edge in source_edge_occurrences
+    ]
+    matches: list[tuple[Any, list[str]]] = []
+    attempts: list[dict[str, Any]] = []
+    for output_face in output_faces:
+        try:
+            output_edges = list(
+                TopologyExplorer(output_face, ignore_orientation=False).edges()
+            )
+        except Exception as exc:
+            attempts.append({
+                "status": "edge_exploration_failed",
+                "error_type": type(exc).__name__,
+            })
+            continue
+        assignment, methods, failures = _identity_or_geometry_edge_assignment(
+            output_edges, source_candidates
+        )
+        succeeded = assignment is not None and not failures
+        attempts.append({
+            "status": "unique_edge_multiset" if succeeded else "not_a_unique_edge_multiset",
+            "edge_count": len(output_edges),
+            "failure_codes": list(failures),
+        })
+        if succeeded:
+            matches.append((output_face, methods))
+    if len(matches) != 1:
+        return None, {
+            "status": "mapping_failed",
+            "failure_codes": [
+                "sewn_face_geometry_match_not_unique"
+                if len(matches) > 1
+                else "sewn_face_geometry_match_not_found"
+            ],
+            "attempts": attempts,
+        }
+    target, methods = matches[0]
+    return target, {
+        "status": "mapped",
+        "failure_codes": [],
+        "mapping_methods": ["face_local_edge_multiset_geometry"],
+        "edge_proof_methods": methods,
+        "attempts": attempts,
+    }
+
+
 def construct_brep_directed(
     surf_wcs: np.ndarray,
     edge_wcs: np.ndarray,
@@ -78,6 +417,9 @@ def construct_brep_directed(
     local_pcurve_continuity: bool = False,
     surface_fit_precision: bool = False,
     post_pcurve_face_observer: (
+        Callable[[int, Any, Mapping[str, Any]], None] | None
+    ) = None,
+    assembly_stage_face_observer: (
         Callable[[int, Any, Mapping[str, Any]], None] | None
     ) = None,
 ) -> tuple[Any, dict[str, Any]]:
@@ -320,7 +662,181 @@ def construct_brep_directed(
             raise RuntimeError(f"edge_builder_not_done edge={edge_index}")
         edges.append(builder.Edge())
 
+    def exact_source_edge_mapping(
+        observed_face: Any,
+        *,
+        source_edge_occurrences: Sequence[tuple[int, Any]],
+        sewing: Any | None = None,
+    ) -> dict[str, Any]:
+        """Build proof-bearing wire and edge identity candidates.
+
+        Explorer positions are never exported as correspondence.  A consumer
+        must first identify its actual wire by ``IsSame`` and then re-prove
+        each edge occurrence against the handles retained in that wire row.
+        """
+        if observed_face is None:
+            return {
+                "status": "unmapped",
+                "wire_rows": [],
+                "failures": ["observation_target_unavailable"],
+            }
+        wire_rows = []
+        failures = []
+        try:
+            observed_wires = list(
+                TopologyExplorer(observed_face, ignore_orientation=False).wires()
+            )
+        except Exception as exc:
+            return {
+                "status": "unmapped",
+                "wire_rows": [],
+                "failures": [f"wire_exploration_failed:{type(exc).__name__}"],
+            }
+        source_candidates: list[dict[str, Any]] = [
+            {
+                "source_edge_id": int(source_edge_id),
+                "observed_edge": source_edge,
+            }
+            for source_edge_id, source_edge in source_edge_occurrences
+        ]
+        sewing_failures = []
+        if sewing is not None:
+            observed_edges = list(
+                TopologyExplorer(
+                    observed_face, ignore_orientation=False
+                ).edges()
+            )
+            sewing_projected_candidates: list[dict[str, Any]] = []
+            for occurrence_index, (
+                source_edge_id,
+                pre_sewing_edge,
+            ) in enumerate(source_edge_occurrences):
+                sewn_edge, sewn_lineage = _unique_sewing_history_target(
+                    sewing, pre_sewing_edge, observed_edges
+                )
+                if sewn_edge is None:
+                    sewing_failures.extend(
+                        f"source_occurrence_{occurrence_index}_{code}"
+                        for code in sewn_lineage["failure_codes"]
+                    )
+                    continue
+                sewing_projected_candidates.append(
+                    {
+                        "source_edge_id": int(source_edge_id),
+                        "observed_edge": sewn_edge,
+                    }
+                )
+            # Both history APIs are a preferred proof only when they jointly
+            # cover every occurrence.  Otherwise keep the pre-sewing handles
+            # and require the independent face-local geometry assignment.
+            if len(sewing_projected_candidates) == len(source_candidates):
+                source_candidates = sewing_projected_candidates
+                sewing_failures = []
+
+        observed_edges_by_wire: list[list[Any]] = []
+        for observed_wire in observed_wires:
+            try:
+                observed_edges = list(
+                    TopologyExplorer(
+                        observed_wire, ignore_orientation=False
+                    ).edges()
+                )
+            except Exception as exc:
+                failures.append(
+                    "wire_edge_exploration_failed:"
+                    f"{type(exc).__name__}"
+                )
+                observed_edges = []
+            observed_edges_by_wire.append(observed_edges)
+
+        flattened_observed_edges = [
+            edge for wire_edges in observed_edges_by_wire for edge in wire_edges
+        ]
+        assignment, proof_methods, assignment_failures = (
+            _identity_or_geometry_edge_assignment(
+                flattened_observed_edges, source_candidates
+            )
+        )
+        failures.extend(assignment_failures)
+        assigned_offset = 0
+        for observed_wire, observed_edges in zip(
+            observed_wires, observed_edges_by_wire
+        ):
+            edge_candidates = []
+            if assignment is not None:
+                for local_index, observed_edge in enumerate(observed_edges):
+                    observed_index = assigned_offset + local_index
+                    source_candidate = source_candidates[
+                        assignment[observed_index]
+                    ]
+                    edge_candidates.append(
+                        {
+                            "source_edge_id": int(
+                                source_candidate["source_edge_id"]
+                            ),
+                            "observed_edge": observed_edge,
+                            "proof_method": proof_methods[observed_index],
+                        }
+                    )
+            wire_rows.append(
+                {
+                    "observed_wire": observed_wire,
+                    "source_edge_candidates": edge_candidates,
+                }
+            )
+            assigned_offset += len(observed_edges)
+
+        expected_source_ids = sorted(
+            int(source_edge_id)
+            for source_edge_id, _source_edge in source_edge_occurrences
+        )
+        observed_source_ids = sorted(
+            int(candidate["source_edge_id"])
+            for row in wire_rows
+            for candidate in row["source_edge_candidates"]
+        )
+        if observed_source_ids != expected_source_ids:
+            failures.append("source_edge_occurrence_multiset_mismatch")
+
+        for row_index, row in enumerate(wire_rows):
+            for other_row in wire_rows[row_index + 1 :]:
+                try:
+                    same_wire = bool(
+                        row["observed_wire"].IsSame(other_row["observed_wire"])
+                    )
+                except Exception as exc:
+                    failures.append(
+                        "wire_identity_failed:" f"{type(exc).__name__}"
+                    )
+                    continue
+                if same_wire:
+                    failures.append("observed_wire_identity_not_unique")
+        if failures:
+            status = "unmapped"
+        elif sewing is not None:
+            status = (
+                "exact_sewing_history"
+                if not sewing_failures
+                and all(method == "identity" for method in proof_methods)
+                else "exact_sewing_face_local_geometry"
+            )
+        elif all(method == "identity" for method in proof_methods):
+            status = "exact_identity"
+        else:
+            status = "exact_face_local_geometry"
+        result = {
+            "status": status,
+            "wire_rows": wire_rows,
+            "failures": failures,
+            "edge_proof_methods": proof_methods,
+        }
+        if sewing_failures:
+            result["sewing_history_attempt_notes"] = sewing_failures
+        return result
+
     faces = []
+    face_observation_metadata: list[dict[str, Any]] = []
+    face_source_edge_occurrences: list[list[tuple[int, Any]]] = []
     for face_index, (surface, incident) in enumerate(zip(surfaces, face_edge_adj)):
         if directed_trim:
             loops, loop_policy = guarded_directed_face_loops(
@@ -333,8 +849,12 @@ def construct_brep_directed(
             loops = historical_face_loops(incident, topology_edge_vertex_adj)
         diagnostics["loop_count"] += len(loops)
         diagnostics["multi_loop_faces"] += int(len(loops) > 1)
+        loop_endpoint_gaps: list[list[float]] = []
         loop_endpoint_max_gaps: list[float] = []
-        if post_pcurve_face_observer is not None:
+        if (
+            post_pcurve_face_observer is not None
+            or assembly_stage_face_observer is not None
+        ):
             for loop in loops:
                 endpoint_gaps = []
                 for loop_position, (edge_id, reverse) in enumerate(loop):
@@ -352,16 +872,19 @@ def construct_brep_directed(
                     endpoint_gaps.append(
                         float(np.linalg.norm(edge_end - next_start))
                     )
+                loop_endpoint_gaps.append(endpoint_gaps)
                 loop_endpoint_max_gaps.append(max(endpoint_gaps, default=0.0))
         spans = [loop_bbox_diagonal(loop, edge_wcs) for loop in loops]
         outer_index = int(np.argmax(np.asarray(spans)))
         wires = []
+        source_edge_occurrences: list[tuple[int, Any]] = []
         for loop_index, loop in enumerate(loops):
             if wire_continuity:
                 validate_directed_loop(loop, topology_edge_vertex_adj)
             wire_builder = BRepBuilderAPI_MakeWire()
             for edge_id, reverse in loop:
                 edge = edges[edge_id].Reversed() if reverse else edges[edge_id]
+                source_edge_occurrences.append((int(edge_id), edge))
                 diagnostics["reversed_edge_uses"] += int(reverse)
                 wire_builder.Add(edge)
             if not wire_builder.IsDone():
@@ -393,6 +916,46 @@ def construct_brep_directed(
                     "loop_3d_endpoint_max_gaps": loop_endpoint_max_gaps,
                     "face_3d_endpoint_max_gap": max(
                         loop_endpoint_max_gaps, default=0.0
+                    ),
+                },
+            )
+        if assembly_stage_face_observer is not None:
+            source_loop_edge_uses = [
+                [
+                    {
+                        "loop_index": int(loop_index),
+                        "loop_position": int(loop_position),
+                        "source_edge_id": int(edge_id),
+                        "reversed": bool(reverse),
+                        "endpoint_gap_to_next_3d": float(
+                            loop_endpoint_gaps[loop_index][loop_position]
+                        ),
+                    }
+                    for loop_position, (edge_id, reverse) in enumerate(loop)
+                ]
+                for loop_index, loop in enumerate(loops)
+            ]
+            source_face_observation = {
+                "entity_kind": "face",
+                "source_face_index": int(face_index),
+                "source_loop_edge_uses": source_loop_edge_uses,
+                "outer_loop_index": int(outer_index),
+                "loop_3d_endpoint_gaps": loop_endpoint_gaps,
+                "loop_3d_endpoint_max_gaps": loop_endpoint_max_gaps,
+                "face_3d_endpoint_max_gap": max(
+                    loop_endpoint_max_gaps, default=0.0
+                ),
+            }
+            face_observation_metadata.append(source_face_observation)
+            assembly_stage_face_observer(
+                int(face_index),
+                face,
+                {
+                    "phase": "post_add_pcurves_pre_repair",
+                    **source_face_observation,
+                    "source_mapping": exact_source_edge_mapping(
+                        face,
+                        source_edge_occurrences=source_edge_occurrences,
                     ),
                 },
             )
@@ -462,6 +1025,30 @@ def construct_brep_directed(
         else:
             brep_utils.fix_wires(face)
             face = brep_utils.fix_face(face)
+        if assembly_stage_face_observer is not None:
+            pre_sewing_mapping = exact_source_edge_mapping(
+                face,
+                source_edge_occurrences=source_edge_occurrences,
+            )
+            face_source_edge_occurrences.append(
+                [
+                    (
+                        int(candidate["source_edge_id"]),
+                        candidate["observed_edge"],
+                    )
+                    for wire_row in pre_sewing_mapping.get("wire_rows", [])
+                    for candidate in wire_row.get("source_edge_candidates", [])
+                ]
+            )
+            assembly_stage_face_observer(
+                int(face_index),
+                face,
+                {
+                    "phase": "post_optional_face_repair_pre_sewing",
+                    **source_face_observation,
+                    "source_mapping": pre_sewing_mapping,
+                },
+            )
         faces.append(face)
 
     sewing = BRepBuilderAPI_Sewing()
@@ -470,6 +1057,68 @@ def construct_brep_directed(
         sewing.Add(face)
     sewing.Perform()
     sewn = sewing.SewedShape()
+    if assembly_stage_face_observer is not None:
+        sewn_faces = list(
+            TopologyExplorer(sewn, ignore_orientation=False).faces()
+        )
+        lineage_rows: list[dict[str, Any]] = []
+        for source_face_index, source_face in enumerate(faces):
+            target, lineage = _unique_sewing_history_target(
+                sewing, source_face, sewn_faces
+            )
+            if target is None:
+                history_lineage = lineage
+                target, lineage = _unique_face_local_geometry_target(
+                    face_source_edge_occurrences[source_face_index], sewn_faces
+                )
+                lineage["sewing_history_attempt"] = history_lineage
+            lineage_rows.append(
+                {
+                    "source_face_index": int(source_face_index),
+                    "shape": target,
+                    **lineage,
+                }
+            )
+
+        # Sewing may map two distinct input faces onto the same output face.
+        # Such a merge is not a proven one-to-one lineage and must not be
+        # resolved by comparing explorer ordinals.
+        _invalidate_colliding_sewing_targets(lineage_rows)
+
+        for lineage_row in lineage_rows:
+            source_face_index = int(lineage_row["source_face_index"])
+            observation_target = lineage_row.pop("shape")
+            source_mapping = exact_source_edge_mapping(
+                observation_target,
+                source_edge_occurrences=face_source_edge_occurrences[
+                    source_face_index
+                ],
+                sewing=sewing,
+            )
+            if (
+                lineage_row["status"] == "mapped"
+                and source_mapping["status"] not in {
+                    "exact_sewing_history",
+                    "exact_sewing_face_local_geometry",
+                }
+            ):
+                lineage_row["status"] = "mapping_failed"
+                lineage_row["failure_codes"].append(
+                    "sewn_edge_occurrences_not_exact_source_identity"
+                )
+            assembly_stage_face_observer(
+                source_face_index,
+                observation_target,
+                {
+                    "phase": "post_sewing_pre_step",
+                    **face_observation_metadata[source_face_index],
+                    "expected_source_face_count": len(faces),
+                    "expected_source_edge_count": len(edges),
+                    "sewn_face_count": len(sewn_faces),
+                    "sewing_lineage": lineage_row,
+                    "source_mapping": source_mapping,
+                },
+            )
     shell_explorer = TopExp_Explorer(sewn, TopAbs_SHELL)
     shells = []
     while shell_explorer.More():
