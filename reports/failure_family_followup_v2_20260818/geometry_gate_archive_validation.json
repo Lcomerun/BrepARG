@@ -1,0 +1,8 @@
+{
+  "attempts": 32,
+  "forbidden_artifacts": [],
+  "label": "local_intersection_and_single_solid_invalid16",
+  "matrix_sha256": "d9ce78aaca1db08d576d20d710f62a26e648fe2bee7bd53f7f683fb21698969f",
+  "run_signature": "58d4545ddda8140626614202e068b17cfb3bd3273615864a4a8a006fcc95b4f3",
+  "schema": "assembly-geometry-gate-archive-v1"
+}

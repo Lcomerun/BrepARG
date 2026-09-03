@@ -1,0 +1,47 @@
+{
+  "attempts": 32,
+  "eligibility_reason": "gate probe is historical-invalid-only and accepted IDs must still be checked against the full selector cohort",
+  "failure_family_counts": {
+    "closure_or_self_intersection": 17,
+    "curve_fit": 6,
+    "other": 2,
+    "shell_or_connectivity": 3,
+    "valid": 4
+  },
+  "gate_accepted": 1,
+  "gate_accepted_cad_ids": [
+    "00000444_4ed4c78d6d754aac90876fc2_step_003"
+  ],
+  "gate_missing": 28,
+  "gate_present": 4,
+  "gate_rejected": 3,
+  "gate_rejection_reason_counts": {
+    "geometry_gate:edge_count_equal": 2,
+    "geometry_gate:edge_face_incidence_equal": 2,
+    "geometry_gate:face_edge_incidence_equal": 2,
+    "geometry_gate:face_edge_occurrences_equal": 2,
+    "geometry_gate:vertex_count_equal": 1,
+    "geometry_gate:vertex_edge_incidence_equal": 2,
+    "geometry_measurement_error:ValueError": 1
+  },
+  "generated_at": "2026-09-03T15:00:24+08:00",
+  "label": "local_intersection_and_single_solid_invalid16",
+  "production_eligible": false,
+  "profiles": {
+    "directed_trim_local_intersection_topology": 16,
+    "single_solid": 16
+  },
+  "schema": "assembly-geometry-gate-probe-v1",
+  "source_binding": {
+    "matrix_sha256": "d9ce78aaca1db08d576d20d710f62a26e648fe2bee7bd53f7f683fb21698969f",
+    "run_manifest_sha256": "962ba854c7323a2d9531592a5a1b818cc0c4225e1d156ef865071d1759851b30",
+    "run_signature": "58d4545ddda8140626614202e068b17cfb3bd3273615864a4a8a006fcc95b4f3",
+    "run_status": "COMPLETED_PARTIAL"
+  },
+  "status_counts": {
+    "assembly_error": 8,
+    "both_valid": 4,
+    "step_invalid": 20
+  },
+  "worker_or_protocol_failures": 0
+}

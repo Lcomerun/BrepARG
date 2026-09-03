@@ -1,0 +1,8 @@
+{
+  "attempts": 16,
+  "forbidden_artifacts": [],
+  "label": "pcurve_self_intersection_invalid16",
+  "matrix_sha256": "389a7973872e94e860995329975254a6997ef09ee875cf17f9376768ef7f2a9e",
+  "run_signature": "0f4143ecaecff193ea3b5b90ff32e8ba1b7e98b4f5af46834e1a9962dcbcd3f5",
+  "schema": "assembly-geometry-gate-archive-v1"
+}

@@ -1,0 +1,24 @@
+{
+  "artifacts": [
+    {
+      "bytes": 322,
+      "path": "geometry_gate_archive_validation.json",
+      "sha256": "6569eeb2d5eb66c30a85605325b284f9651cce787a6f405dd1514a45c8d0840d"
+    },
+    {
+      "bytes": 17440,
+      "path": "geometry_gate_attempts.jsonl",
+      "sha256": "d7504e359a774eb8cb6c0816ed200cab213eedd48213f430aee6cc5d482b301a"
+    },
+    {
+      "bytes": 1446,
+      "path": "geometry_gate_summary.json",
+      "sha256": "9b70055de69337974274483f038d220ef1176cab5875e025ed155b8d143ee448"
+    },
+    {
+      "bytes": 1119,
+      "path": "README.md",
+      "sha256": "53f697e843f4d13904d78a9d69263bf0ea983678ca4c4af3d04970c4e57e0c8c"
+    }
+  ]
+}

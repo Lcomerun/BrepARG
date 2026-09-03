@@ -34,6 +34,14 @@ unchanged topology and zero regressions.
 - [x] (2026-08-18 08:41 +08:00) Probe the next two failure families on the
   same invalid16 cohort: curve-fit fallback and local pcurve continuity. Both
   produced zero gate-accepted candidates.
+- [x] (2026-08-20 18:36 +08:00) Probe the pcurve self-intersection profile on
+  the same invalid16 cohort: 2 strict-valid candidates, 0 gate-accepted, and
+  0 worker/protocol failures.
+- [x] (2026-09-03 15:00 +08:00) Archive the completed local-intersection and
+  single-solid probe: 4 strict-valid candidates, 1 gate accepted, but that CAD
+  was already recovered by the production selector, so net new recovery is 0.
+- [x] (2026-09-03 15:20 +08:00) Reconcile both late probe archives with the
+  living plan and verify that neither result authorizes a full-cohort rerun.
 
 ## Surprises & Discoveries
 
@@ -58,6 +66,12 @@ unchanged topology and zero regressions.
   Evidence: `reports/failure_family_followup_v1_20260818/geometry_gate_summary.json`
   records `gate_accepted=0`, `gate_rejected=2`, and
   `worker_or_protocol_failures=0`.
+- Observation: Local-intersection topology changes can improve OCC validity
+  while violating the source topology contract, and single-solid construction
+  recovered only a CAD that the production selector already recovers.
+  Evidence: `reports/failure_family_followup_v2_20260818/geometry_gate_summary.json`
+  records four strict-valid candidates, one gate acceptance (`00000444...`),
+  three gate rejections, and zero net-new selector restorations.
 
 ## Decision Log
 
@@ -84,6 +98,12 @@ unchanged topology and zero regressions.
   restoration; the rejection reason is required to order the next failure
   family experiment.
   Date/Author: 2026-08-18 / Codex.
+- Decision: Do not promote pcurve, local-intersection, or single-solid profiles
+  to a full 100-CAD run from these probes.
+  Rationale: none produced a new gate-accepted restoration beyond the seven
+  CADs already recovered by the production selector; a full run cannot close
+  the 95/100 gate on this evidence.
+  Date/Author: 2026-09-03 / Codex.
 
 ## Outcomes & Retrospective
 
@@ -113,6 +133,24 @@ the gate accepted neither: one changed topology and the other could not be
 measured by the gate. The combined report is
 `reports/failure_family_followup_v1_20260818/`, with a compact local-pcurve
 companion at `reports/failure_family_local_pcurve_gate_20260818/`.
+
+The pcurve self-intersection probe also produced no promotion candidate. It
+had 2 strict-valid outputs, but one changed topology and the other failed gate
+measurement; `reports/failure_family_pcurve_self_intersection_20260818/`
+contains the path-free evidence. The remaining repair profiles should not be
+promoted based on OCC strict validity alone; any future candidate must pass the
+same geometry/topology gate and the full 100-CAD no-regression selector.
+
+The final late follow-up tested local-intersection topology and single-solid
+construction over 32 attempts. The former produced three strict-valid outputs
+and no gate acceptance. The latter produced one gate-accepted output,
+`00000444...`, which is already in the production selector's recovery set.
+`reports/failure_family_followup_v2_20260818/` therefore closes these two
+profiles as negative for net-new recovery. The production result remains
+91/100 strict-valid with all 84 historical controls preserved, four short of
+the release gate. The next useful pilot must target an untested,
+topology-preserving family and produce a genuinely new gate-accepted CAD before
+any full-cohort promotion.
 
 ## Context and Orientation
 
@@ -180,3 +218,9 @@ checkpoints.
 The probe depends on Python, NumPy, pythonocc-core as imported by the existing
 runner, and the repository modules under `tools/`. It adds no runtime API and
 does not import or modify code below `BrepARG/`.
+
+Revision note (2026-09-03): Updated the living plan after recovering two
+completed local runs that had not yet been archived. The revision records the
+pcurve self-intersection and local-intersection/single-solid results, explains
+why their strict-valid candidates do not qualify for promotion, and preserves
+the next-step gate of requiring a net-new topology-preserving restoration.
