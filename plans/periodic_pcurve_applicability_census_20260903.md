@@ -40,16 +40,22 @@ census never writes a STEP candidate and cannot by itself authorize a full
   all-face coverage, any-versus-all applicability, exact loaded-byte bindings,
   strict sentinel parsing, and fail-closed contracts. Commit `ad6f385` passed
   90 focused tests before the first formal attempt.
-- [ ] Commit the atomic-manifest compatibility fix so the rerun binds a clean
-  source revision. Completed: replace the unsupported
+- [x] (2026-09-03 17:12 +08:00) Commit the atomic-manifest compatibility fix so
+  the rerun binds a clean source revision. Replaced the unsupported
   `Path.write_text(newline=...)` call with an explicitly opened, flushed, and
   fsynced file, add success, non-finite-value, and failed-replace regressions,
-  and commit the correction as `04b0e76`; 93 focused tests pass. Remaining:
-  confirm a clean worktree before the formal rerun.
-- [ ] Run the five-CAD census, archive only Git-safe evidence, and apply the
-  preregistered close-or-promote decision. The first formal attempt failed
-  before any worker started and is not scientific evidence; the corrected run
-  must use the new `_v2` output root.
+  and committed the correction as `0c1ce51`; 93 focused tests passed and the
+  formal rerun started from a clean worktree.
+- [x] (2026-09-03 17:15 +08:00) Run the five-CAD census from commit `0c1ce51`
+  in the immutable `_v2` root. All five workers completed, all 134 source faces
+  were observed, six strict-style bad faces were measured, and there were zero
+  worker, protocol, binding, or measurement failures. Every bad face was a
+  non-periodic `Geom_BSplineSurface`, so the preregistered decision is
+  `CLOSE_PERIODIC_PCURVE_ROUTE`.
+- [x] (2026-09-03 17:30 +08:00) Add a fail-closed Git-safe snapshot tool and
+  five archive contract tests; archive the byte-identical cases, summary, and
+  completed run manifest plus README, validation, and hashes. The combined
+  focused suite passes 98 tests.
 - [ ] Push the code, living plan, decision record, and report to
   `experiment/protocol-v5-scaling-ladder`.
 
@@ -100,6 +106,13 @@ census never writes a STEP candidate and cannot by itself authorize a full
   launched. The original output root contains only its one-byte writer lock;
   there are no case rows and therefore no scientific result.
 
+- Observation: Construction-stage evidence agrees with the earlier indirect
+  STEP observations but is now authoritative for the registered cohort.
+  Evidence: the corrected run observed 134/134 faces across all five CADs. It
+  found six bad faces in three CADs; all six were `Geom_BSplineSurface` with
+  both OCC U-periodic and V-periodic flags false. The other two CADs had no
+  strict-style bad face at the observation phase.
+
 ## Decision Log
 
 - Decision: Use the same bounded sanitized fallback profile,
@@ -144,18 +157,33 @@ census never writes a STEP candidate and cannot by itself authorize a full
   route or alter the 91/100 selector result.
   Date/Author: 2026-09-03 / Codex.
 
+- Decision: Close periodic pcurve branch translation for the frozen five-CAD
+  cohort and do not implement a mutation pilot.
+  Rationale: all five isolated workers completed with full face coverage and
+  zero evidence-integrity failures, yet none of the six diagnosed bad faces is
+  periodic in either parameter direction. Inventing a period would violate the
+  geometry-preservation contract, and the preregistered conclusive-negative
+  rule therefore applies.
+  Date/Author: 2026-09-03 / Codex.
+
 ## Outcomes & Retrospective
 
-The census is not yet complete. The starting evidence strongly predicts a
-negative result, but existing STEP observations are indirect. The first formal
-attempt failed in manifest serialization before any worker was started; it
-produced only a writer lock and is classified as an infrastructure failure,
-not a periodic-route result. Completion of this plan requires
-construction-stage evidence for all five targets from the corrected `_v2` run
-with zero worker/protocol failures, followed by an explicit close-or-promote
-decision. The overall assembly release gate remains 91/100 until a later
-candidate passes native, strict, both-valid, and schema-v2 topology/geometry
-checks.
+The census completed conclusively from clean commit `0c1ce51`. All five CADs
+completed, all 134 source faces were observed, and the run had zero worker,
+protocol, source-binding, or measurement failures. Six bad faces were localized
+across three CADs, but every one was a non-periodic fitted B-spline in both U
+and V. There were zero periodic bad faces and zero repairable faces, so the
+registered outcome is `CLOSE_PERIODIC_PCURVE_ROUTE` for this five-CAD cohort.
+
+The first attempt remains preserved as a pre-worker infrastructure failure and
+does not enter the scientific result. The signed `_v2` run and path-free report
+bind the cases, summary, code revision, upstream runtime hash, and source pickle
+hashes without archiving source bytes. The result prevents an unsupported
+periodic mutation and redirects assembly work toward the measured planar trim
+intersection and shell/connectivity families. It does not improve or release
+the current selector: the assembly gate remains 91/100 strict-valid versus the
+required 95/100, and downstream boundary, full-training, sequence, and AR work
+remain blocked.
 
 ## Context and Orientation
 
@@ -406,3 +434,9 @@ Revision note (2026-09-03 17:10 +08:00): Recorded the first formal attempt's
 pre-worker `Path.write_text(newline=...)` compatibility failure, the absence of
 case evidence, the atomic-write regression fix, and the mandatory `_v2` rerun
 root so infrastructure failure cannot be misreported as a scientific negative.
+
+Revision note (2026-09-03 17:30 +08:00): Completed the signed `_v2` census and
+recorded its conclusive negative result: 5/5 CADs, 134/134 faces, six bad faces,
+zero periodic or repairable bad faces, and zero worker/protocol failures. Added
+the Git-safe snapshot outcome and closed only the registered periodic-pcurve
+route while retaining the overall 91/100 assembly gate.

@@ -1,0 +1,30 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1160,
+      "path": "archive_validation.json",
+      "sha256": "380beef35077dc877050095d95664e63a59ca802d08d1cad419bcab3b6976528"
+    },
+    {
+      "bytes": 184897,
+      "path": "periodic_pcurve_cases.jsonl",
+      "sha256": "efc0bce0900dadd1ae3b88c11e202b0e509dde0b9c53fb047ebbc57f25c6078a"
+    },
+    {
+      "bytes": 4216,
+      "path": "periodic_pcurve_run.json",
+      "sha256": "28edafc097c9bf27c81f64641914171d68fec18d109a6059db80892f7697cd12"
+    },
+    {
+      "bytes": 566,
+      "path": "periodic_pcurve_summary.json",
+      "sha256": "a505e396ff84bc6f876e2cef01689be6711da2ac88cea6c0fcc7c11ea6993cbf"
+    },
+    {
+      "bytes": 2729,
+      "path": "README.md",
+      "sha256": "562248bfe04b544630a33f4c1b76277aa62cbbb6229e1a15f064222e63ba8e3d"
+    }
+  ],
+  "schema": "periodic-pcurve-applicability-archive-v1"
+}

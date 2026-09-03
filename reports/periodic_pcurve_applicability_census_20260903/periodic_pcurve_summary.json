@@ -1,0 +1,23 @@
+{
+  "assembly_release_gate_before": {
+    "required": 95,
+    "strict_valid": 91
+  },
+  "authorizes_boundary_or_ar": false,
+  "authorizes_full_100cad": false,
+  "bad_face_count": 6,
+  "cases": 5,
+  "completed_cases": 5,
+  "conclusive": true,
+  "decision": "CLOSE_PERIODIC_PCURVE_ROUTE",
+  "explicit_failures": 0,
+  "periodic_bad_face_count": 0,
+  "probe_failures": 0,
+  "repairable_bad_face_count": 0,
+  "repairable_cases": [],
+  "schema": "periodic-pcurve-applicability-summary-v1",
+  "status_counts": {
+    "completed": 5
+  },
+  "worker_or_protocol_failures": 0
+}

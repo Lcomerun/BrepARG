@@ -1,0 +1,33 @@
+{
+  "absolute_path_matches": 0,
+  "all_faces_observed_cases": 5,
+  "bad_faces": 6,
+  "cases": 5,
+  "completed_cases": 5,
+  "decision": "CLOSE_PERIODIC_PCURVE_ROUTE",
+  "explicit_failures": 0,
+  "forbidden_artifacts": [],
+  "observed_faces": 134,
+  "path_free": true,
+  "path_key_matches": 0,
+  "periodic_bad_faces": 0,
+  "probe_failures": 0,
+  "repairable_bad_faces": 0,
+  "rows_binding_valid": true,
+  "run_signature": "eb3520b167ea912c8f7d7d291a99072940b132764eb61d72eeba0e2719b4226b",
+  "schema": "periodic-pcurve-applicability-archive-v1",
+  "signature_valid": true,
+  "source_bindings": {
+    "periodic_pcurve_cases.jsonl": "efc0bce0900dadd1ae3b88c11e202b0e509dde0b9c53fb047ebbc57f25c6078a",
+    "periodic_pcurve_run.json": "28edafc097c9bf27c81f64641914171d68fec18d109a6059db80892f7697cd12",
+    "periodic_pcurve_summary.json": "a505e396ff84bc6f876e2cef01689be6711da2ac88cea6c0fcc7c11ea6993cbf"
+  },
+  "source_bindings_valid": true,
+  "source_bytes_archived": false,
+  "step_bytes_archived": false,
+  "summary_binding_valid": true,
+  "summary_recomputed_equal": true,
+  "valid": true,
+  "worker_logs_archived": false,
+  "worker_or_protocol_failures": 0
+}

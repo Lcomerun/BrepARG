@@ -1,0 +1,88 @@
+{
+  "attempts": 5,
+  "payload": {
+    "breparg_runtime": {
+      "utils_sha256": "e2509a844db0a9e0f8eaf670fffb9d4ad9e240af755155d25891d37b4468d521"
+    },
+    "calibration_manifest_sha256": "426809e39cf2f4ee13c2e86b542c76a5d1c80ce6abfa4ac4a2e84135f580f4ef",
+    "joint_iterations": 200,
+    "ordered_cad_ids": [
+      "00047472_197769bbdd814278b715d88a_step_000",
+      "00063055_e309c689b9b44f0686f47966_step_000",
+      "00032101_674d8fea687f4d9bbca6599b_step_000",
+      "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "00051602_7f1947595ae247e0a4a32f43_step_000"
+    ],
+    "profile": "directed_trim_curve_fit",
+    "repository": {
+      "commit": "0c1ce51291798192e0a234888998f8d346583f5c",
+      "dirty": false,
+      "source_sha256": {
+        "tools/assembly_repair.py": "8dc878ed4b095b55f8041daf35edae07ad6a068e03d126f98395d8b19e060cb5",
+        "tools/diagnose_assembly_face_wires.py": "9c6bcb00747a3b03023336824d7b6e84d307d2df0317eac96c54ab6b754b7015",
+        "tools/directed_trim_assembly.py": "6fe5437de3180997fac27620d6df723b52f076138b263affbcd05374ab1afc30",
+        "tools/local_wire_topology_repair.py": "c741e4d4a07b0d2cea67bd972fab8f5eb0e46f60c99c865e3c72420b19d7d619",
+        "tools/probe_periodic_pcurve_applicability.py": "941ea301f65ea349facd475016d6c342543f1a6bf9573fdbfc01e70dedf4c9af",
+        "tools/run_assembly_calibration_oracle.py": "ae589503963f45e2cc5d195da4b2ebc1d865c57bc7e5b3efb53f77faecf9d21f",
+        "tools/run_assembly_repair_matrix.py": "d346cadc80db5f9733121fa83c381ae4d704e4980cd3ced7c12db27bdde38d87",
+        "tools/solid_topology_repair.py": "c70dafdf1aa5e4fe7df58eb4732a12736fea79757d1847fd0d0164ffa6272778"
+      },
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "schema": "periodic-pcurve-applicability-run-v1",
+    "selector_cohort_signature": "2dc92908d6f473b7103d9d3a0c0bbf4faae574201221a60a52f9c9bace7cdc8e",
+    "selector_historical_strict_valid": 84,
+    "selector_matrix_sha256": "d3cb1ba56fbc67cdb4db3828cc1ba3036e800ccd32b20b47071144c081b65fe8",
+    "selector_residual_ids": [
+      "00051602_7f1947595ae247e0a4a32f43_step_000",
+      "00061931_dcdd8a95feac4121adfd341f_step_000",
+      "00067160_2a27016aa44f42c69c1079f7_step_000",
+      "00063055_e309c689b9b44f0686f47966_step_000",
+      "00047472_197769bbdd814278b715d88a_step_000",
+      "00087341_6a73c5e821934d3fe4d0d555_step_000",
+      "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "00032101_674d8fea687f4d9bbca6599b_step_000"
+    ],
+    "selector_run": {
+      "bytes": 24869,
+      "sha256": "9e77ba4271f284effc61e2e33f7deaeffc273faafeb82b1d0f5df78b1ac52da5",
+      "signature": "a4f1208d4a74026be313a6dfff6b6a1dc92ce0c79c154f5ea9dc9bf113b55cf1",
+      "status": "COMPLETED"
+    },
+    "selector_strict_valid": 91,
+    "source_bindings": [
+      {
+        "bytes": 1191390,
+        "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+        "sha256": "68343d8203dc640d75cd3f4b2a7fea119e637b4f23f3c3ca26fc5c739196eab1"
+      },
+      {
+        "bytes": 486822,
+        "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+        "sha256": "39f56ba42e0f25044d2ef9e3b2f6d14e5d092cf0be887bb221b68103f037cf96"
+      },
+      {
+        "bytes": 369466,
+        "cad_id": "00032101_674d8fea687f4d9bbca6599b_step_000",
+        "sha256": "d256156b02d6e758db80fd29beeb3d7d80d435d303f2a7de7dce4a7c04028a43"
+      },
+      {
+        "bytes": 1150480,
+        "cad_id": "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+        "sha256": "eb15e16897c84a3511b0fe3456d150517953ba49304a323cb96de9319459fa84"
+      },
+      {
+        "bytes": 403520,
+        "cad_id": "00051602_7f1947595ae247e0a4a32f43_step_000",
+        "sha256": "2883f35753fe2c69fde4c77e264ac57ac8729214a2f3264f2d13b6e18c224e9e"
+      }
+    ],
+    "worker_timeout_seconds": 600.0
+  },
+  "rows_sha256": "efc0bce0900dadd1ae3b88c11e202b0e509dde0b9c53fb047ebbc57f25c6078a",
+  "schema": "periodic-pcurve-applicability-run-v1",
+  "signature": "eb3520b167ea912c8f7d7d291a99072940b132764eb61d72eeba0e2719b4226b",
+  "status": "COMPLETED",
+  "summary_sha256": "a505e396ff84bc6f876e2cef01689be6711da2ac88cea6c0fcc7c11ea6993cbf"
+}

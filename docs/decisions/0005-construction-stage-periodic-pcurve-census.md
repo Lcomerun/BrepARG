@@ -2,8 +2,8 @@
 
 ## Status
 
-Accepted for the periodic-pcurve diagnostic. Mutation remains conditional on a
-conclusive positive census.
+Accepted and completed. The signed census was conclusively negative, so
+periodic-pcurve mutation is closed for the frozen five-CAD cohort.
 
 ## Date
 
@@ -106,6 +106,21 @@ Rejected. That would convert missing evidence into a false negative and could
 close a viable repair route. Such failures produce
 `INCONCLUSIVE_REQUIRES_RERUN` and retain their attempts in the signed record.
 
+## Measured Outcome
+
+The corrected formal run used clean commit `0c1ce51`, the common
+`directed_trim_curve_fit` profile, 200 joint-optimization iterations, and one
+isolated OCC worker per CAD. All five workers completed, all 134 source faces
+were observed, and there were zero worker, protocol, source-binding, or
+measurement failures.
+
+The construction hook diagnosed six bad faces across three CADs. Every bad
+face was a fitted `Geom_BSplineSurface` for which OCC reported both
+`IsUPeriodic=False` and `IsVPeriodic=False`. Consequently there were zero
+periodic bad faces and zero repairable periodic faces. Under the rule frozen in
+this ADR, the terminal decision is `CLOSE_PERIODIC_PCURVE_ROUTE`. No mutation
+pilot or full-cohort rerun is authorized by this result.
+
 ## Consequences
 
 The directed-trim construction API gains an optional observation boundary, but
@@ -121,8 +136,9 @@ invalid-subset test and then a complete 100-CAD selector rerun. Final promotion
 still requires at least 95/100 strict-valid, preservation of all historical
 84/84 controls, zero regressions, and zero worker or protocol failures.
 
-A conclusive negative result closes the periodic-pcurve family for the frozen
-targets and redirects work to another diagnosed assembly failure mechanism. An
+A conclusive negative result has now closed the periodic-pcurve family for the
+frozen targets and redirects work to the observed two-dimensional trim/wire
+intersection and shell/connectivity failure mechanisms. An
 inconclusive result requires a new signed rerun after the evidence or runtime
 failure is corrected. Boundary-consistency training, full-scale representation
 training, sequence regeneration, and autoregressive work remain blocked by the
