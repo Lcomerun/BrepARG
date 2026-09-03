@@ -107,7 +107,7 @@ def atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     temporary = target.with_name(target.name + f".{os.getpid()}.tmp")
-    temporary.write_text(
+    serialized = (
         json.dumps(
             dict(payload),
             indent=2,
@@ -115,11 +115,16 @@ def atomic_json(path: Path, payload: Mapping[str, Any]) -> None:
             ensure_ascii=True,
             allow_nan=False,
         )
-        + "\n",
-        encoding="utf-8",
-        newline="\n",
+        + "\n"
     )
-    temporary.replace(target)
+    try:
+        with temporary.open("w", encoding="utf-8", newline="\n") as handle:
+            handle.write(serialized)
+            handle.flush()
+            os.fsync(handle.fileno())
+        temporary.replace(target)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def append_jsonl(path: Path, payload: Mapping[str, Any]) -> None:

@@ -35,16 +35,21 @@ census never writes a STEP candidate and cannot by itself authorize a full
 - [x] (2026-09-03 16:45 +08:00) Add a default-off observation hook after the
   baseline wire fix and pcurve attachment, but before any optional repair
   strategy is applied to each constructed face.
-- [ ] Implement and test an isolated five-CAD applicability census with signed
-  input, source, runtime, and code bindings.
-  Completed: strict 100-to-9-to-5 cohort selection, all-face coverage,
-  any-versus-all applicability, exact loaded-byte bindings, strict sentinel
-  parsing, and focused pure-Python contracts. Remaining: full regression tests
-  and the real OCC integration run.
-- [ ] Commit the tested implementation so the formal run binds a clean source
-  revision.
+- [x] (2026-09-03 16:59 +08:00) Implement, test, and commit an isolated
+  five-CAD applicability census with strict 100-to-9-to-5 cohort selection,
+  all-face coverage, any-versus-all applicability, exact loaded-byte bindings,
+  strict sentinel parsing, and fail-closed contracts. Commit `ad6f385` passed
+  90 focused tests before the first formal attempt.
+- [ ] Commit the atomic-manifest compatibility fix so the rerun binds a clean
+  source revision. Completed: replace the unsupported
+  `Path.write_text(newline=...)` call with an explicitly opened, flushed, and
+  fsynced file, add success, non-finite-value, and failed-replace regressions,
+  and commit the correction as `04b0e76`; 93 focused tests pass. Remaining:
+  confirm a clean worktree before the formal rerun.
 - [ ] Run the five-CAD census, archive only Git-safe evidence, and apply the
-  preregistered close-or-promote decision.
+  preregistered close-or-promote decision. The first formal attempt failed
+  before any worker started and is not scientific evidence; the corrected run
+  must use the new `_v2` output root.
 - [ ] Push the code, living plan, decision record, and report to
   `experiment/protocol-v5-scaling-ladder`.
 
@@ -87,6 +92,14 @@ census never writes a STEP candidate and cannot by itself authorize a full
   CADs with zero historical regressions, exactly nine residuals, and the
   ordered five targets as a subset of those residuals.
 
+- Observation: The first formal attempt could not create its run manifest on
+  the installed Python version because `Path.write_text()` does not accept the
+  `newline` keyword there.
+  Evidence: commit `ad6f385` raised `TypeError: write_text() got an unexpected
+  keyword argument 'newline'` inside `atomic_json` before any CAD worker was
+  launched. The original output root contains only its one-byte writer lock;
+  there are no case rows and therefore no scientific result.
+
 ## Decision Log
 
 - Decision: Use the same bounded sanitized fallback profile,
@@ -123,14 +136,26 @@ census never writes a STEP candidate and cannot by itself authorize a full
   but only all-target closure may authorize a mutation pilot.
   Date/Author: 2026-09-03 / Codex.
 
+- Decision: Preserve the failed first output root and run the corrected code in
+  `periodic_pcurve_applicability_census_20260903_v2`.
+  Rationale: the run-root immutability rule prevents an infrastructure failure
+  from being overwritten or confused with the later scientific result. The
+  original attempt never entered a worker, so it cannot close the periodic
+  route or alter the 91/100 selector result.
+  Date/Author: 2026-09-03 / Codex.
+
 ## Outcomes & Retrospective
 
 The census is not yet complete. The starting evidence strongly predicts a
-negative result, but existing STEP observations are indirect. Completion of
-this plan requires construction-stage evidence for all five targets with zero
-worker/protocol failures, followed by an explicit close-or-promote decision.
-The overall assembly release gate remains 91/100 until a later candidate passes
-native, strict, both-valid, and schema-v2 topology/geometry checks.
+negative result, but existing STEP observations are indirect. The first formal
+attempt failed in manifest serialization before any worker was started; it
+produced only a writer lock and is classified as an infrastructure failure,
+not a periodic-route result. Completion of this plan requires
+construction-stage evidence for all five targets from the corrected `_v2` run
+with zero worker/protocol failures, followed by an explicit close-or-promote
+decision. The overall assembly release gate remains 91/100 until a later
+candidate passes native, strict, both-valid, and schema-v2 topology/geometry
+checks.
 
 ## Context and Orientation
 
@@ -257,7 +282,7 @@ Run focused tests while developing:
 
 After committing the implementation, run the signed census:
 
-    C:/Users/YU/.conda/envs/brepgen_env/python.exe tools/probe_periodic_pcurve_applicability.py --calibration-manifest D:/luolin/V13/local_runs/assembly_calibration_100cad_v1_20260809/calibration_manifest.jsonl --selector-matrix D:/luolin/V13/local_runs/assembly_selector_main_100cad_20260818/assembly_repair_matrix.jsonl --selector-run D:/luolin/V13/local_runs/assembly_selector_main_100cad_20260818/assembly_repair_run.json --breparg-root D:/luolin/V13/BrepARG --output-dir D:/luolin/V13/local_runs/periodic_pcurve_applicability_census_20260903 --joint-iterations 200 --worker-timeout-seconds 600
+    C:/Users/YU/.conda/envs/brepgen_env/python.exe tools/probe_periodic_pcurve_applicability.py --calibration-manifest D:/luolin/V13/local_runs/assembly_calibration_100cad_v1_20260809/calibration_manifest.jsonl --selector-matrix D:/luolin/V13/local_runs/assembly_selector_main_100cad_20260818/assembly_repair_matrix.jsonl --selector-run D:/luolin/V13/local_runs/assembly_selector_main_100cad_20260818/assembly_repair_run.json --breparg-root D:/luolin/V13/BrepARG --output-dir D:/luolin/V13/local_runs/periodic_pcurve_applicability_census_20260903_v2 --joint-iterations 200 --worker-timeout-seconds 600
 
 Expect exactly five result rows. A negative, conclusive summary must report
 zero worker/protocol failures, zero repairable bad faces, and decision
@@ -376,3 +401,8 @@ Revision note (2026-09-03 16:50 +08:00): Reconciled promotion with the
 all-bad-wires implementation, documented baseline `fix_wires` semantics, added
 independently verifiable milestones and five-of-nine scope, and defined
 immutable recovery directories.
+
+Revision note (2026-09-03 17:10 +08:00): Recorded the first formal attempt's
+pre-worker `Path.write_text(newline=...)` compatibility failure, the absence of
+case evidence, the atomic-write regression fix, and the mandatory `_v2` rerun
+root so infrastructure failure cannot be misreported as a scientific negative.

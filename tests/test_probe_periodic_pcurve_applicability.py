@@ -9,6 +9,7 @@ from tools.probe_periodic_pcurve_applicability import (
     SCHEMA,
     TARGET_CAD_IDS,
     WORKER_MARKER,
+    atomic_json,
     build_run_payload,
     classify_wire_applicability,
     parse_worker_result,
@@ -21,6 +22,44 @@ from tools.probe_periodic_pcurve_applicability import (
 RUN_SIGNATURE = "a" * 64
 SOURCE_BINDING = {"bytes": 123, "sha256": "b" * 64}
 PHASE = "post_add_pcurves_pre_repair"
+
+
+def test_atomic_json_writes_lf_terminated_json_and_replaces_existing_file(tmp_path):
+    target = tmp_path / "run.json"
+    target.write_text("stale\r\n", encoding="utf-8")
+
+    atomic_json(target, {"z": 2, "a": "value"})
+
+    assert target.read_bytes() == b'{\n  "a": "value",\n  "z": 2\n}\n'
+    assert json.loads(target.read_text(encoding="utf-8")) == {"a": "value", "z": 2}
+    assert list(tmp_path.glob("run.json.*.tmp")) == []
+
+
+def test_atomic_json_rejects_nonfinite_values_without_replacing_target(tmp_path):
+    target = tmp_path / "run.json"
+    target.write_bytes(b'{"status":"preserved"}\n')
+
+    with pytest.raises(ValueError, match="JSON compliant"):
+        atomic_json(target, {"metric": math.nan})
+
+    assert target.read_bytes() == b'{"status":"preserved"}\n'
+    assert list(tmp_path.glob("run.json.*.tmp")) == []
+
+
+def test_atomic_json_cleans_temporary_file_when_replace_fails(monkeypatch, tmp_path):
+    target = tmp_path / "run.json"
+    target.write_bytes(b'{"status":"preserved"}\n')
+
+    def fail_replace(_source, _target):
+        raise OSError("simulated replace failure")
+
+    monkeypatch.setattr(type(target), "replace", fail_replace)
+
+    with pytest.raises(OSError, match="simulated replace failure"):
+        atomic_json(target, {"status": "new"})
+
+    assert target.read_bytes() == b'{"status":"preserved"}\n'
+    assert list(tmp_path.glob("run.json.*.tmp")) == []
 
 
 def _frozen_cohort():
