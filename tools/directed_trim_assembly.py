@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 import numpy as np
 
@@ -77,6 +77,9 @@ def construct_brep_directed(
     curve_interpolate: bool = False,
     local_pcurve_continuity: bool = False,
     surface_fit_precision: bool = False,
+    post_pcurve_face_observer: (
+        Callable[[int, Any, Mapping[str, Any]], None] | None
+    ) = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks.
 
@@ -330,6 +333,26 @@ def construct_brep_directed(
             loops = historical_face_loops(incident, topology_edge_vertex_adj)
         diagnostics["loop_count"] += len(loops)
         diagnostics["multi_loop_faces"] += int(len(loops) > 1)
+        loop_endpoint_max_gaps: list[float] = []
+        if post_pcurve_face_observer is not None:
+            for loop in loops:
+                endpoint_gaps = []
+                for loop_position, (edge_id, reverse) in enumerate(loop):
+                    next_edge_id, next_reverse = loop[
+                        (loop_position + 1) % len(loop)
+                    ]
+                    points = np.asarray(edge_wcs[edge_id], dtype=np.float64)
+                    next_points = np.asarray(
+                        edge_wcs[next_edge_id], dtype=np.float64
+                    )
+                    edge_end = points[0] if reverse else points[-1]
+                    next_start = (
+                        next_points[-1] if next_reverse else next_points[0]
+                    )
+                    endpoint_gaps.append(
+                        float(np.linalg.norm(edge_end - next_start))
+                    )
+                loop_endpoint_max_gaps.append(max(endpoint_gaps, default=0.0))
         spans = [loop_bbox_diagonal(loop, edge_wcs) for loop in loops]
         outer_index = int(np.argmax(np.asarray(spans)))
         wires = []
@@ -356,6 +379,23 @@ def construct_brep_directed(
         face = face_builder.Shape()
         brep_utils.fix_wires(face)
         brep_utils.add_pcurves_to_edges(face)
+        if post_pcurve_face_observer is not None:
+            # This hook intentionally sits after pcurve construction and before
+            # every local/global face repair. It is observation-only; callers
+            # isolate native failures in one-CAD worker processes.
+            post_pcurve_face_observer(
+                int(face_index),
+                face,
+                {
+                    "phase": "post_add_pcurves_pre_repair",
+                    "loop_count": len(loops),
+                    "outer_loop_index": outer_index,
+                    "loop_3d_endpoint_max_gaps": loop_endpoint_max_gaps,
+                    "face_3d_endpoint_max_gap": max(
+                        loop_endpoint_max_gaps, default=0.0
+                    ),
+                },
+            )
         if local_pcurve_continuity:
             try:
                 from .local_wire_topology_repair import repair_face_local_pcurve
