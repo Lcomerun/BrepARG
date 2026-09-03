@@ -56,8 +56,10 @@ census never writes a STEP candidate and cannot by itself authorize a full
   five archive contract tests; archive the byte-identical cases, summary, and
   completed run manifest plus README, validation, and hashes. The combined
   focused suite passes 98 tests.
-- [ ] Push the code, living plan, decision record, and report to
-  `experiment/protocol-v5-scaling-ladder`.
+- [x] (2026-09-03 17:36 +08:00) Push the implementation, compatibility fix,
+  living plan, ADR, Git-safe result, and cross-device Chinese status page to
+  `experiment/protocol-v5-scaling-ladder`. Result commit `7aadcb3` and its two
+  prerequisite commits were accepted by GitHub.
 
 ## Surprises & Discoveries
 
@@ -440,3 +442,8 @@ recorded its conclusive negative result: 5/5 CADs, 134/134 faces, six bad faces,
 zero periodic or repairable bad faces, and zero worker/protocol failures. Added
 the Git-safe snapshot outcome and closed only the registered periodic-pcurve
 route while retaining the overall 91/100 assembly gate.
+
+Revision note (2026-09-03 17:36 +08:00): Recorded successful publication of
+commits `ad6f385`, `0c1ce51`, and result commit `7aadcb3` to the shared
+experiment branch. This closes the census ExecPlan; the separate assembly
+release objective remains open at 91/100 strict-valid.
