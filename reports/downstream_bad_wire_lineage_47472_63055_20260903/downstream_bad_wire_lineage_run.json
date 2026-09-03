@@ -1,0 +1,84 @@
+{
+  "attempts": 2,
+  "native_handles_archived": false,
+  "payload": {
+    "breparg_runtime": {
+      "utils_sha256": "e2509a844db0a9e0f8eaf670fffb9d4ad9e240af755155d25891d37b4468d521"
+    },
+    "calibration_manifest_sha256": "426809e39cf2f4ee13c2e86b542c76a5d1c80ce6abfa4ac4a2e84135f580f4ef",
+    "joint_iterations": 200,
+    "memory_phases": [
+      "post_add_pcurves_pre_repair",
+      "post_optional_face_repair_pre_sewing",
+      "post_sewing_pre_step"
+    ],
+    "ordered_cad_ids": [
+      "00047472_197769bbdd814278b715d88a_step_000",
+      "00063055_e309c689b9b44f0686f47966_step_000"
+    ],
+    "profile": "directed_trim_local_intersection_topology",
+    "repository": {
+      "commit": "9bfda7b2634e4477cac540a2167f26fc0de63fdd",
+      "dirty": false,
+      "source_sha256": {
+        "tools/assembly_repair.py": "8dc878ed4b095b55f8041daf35edae07ad6a068e03d126f98395d8b19e060cb5",
+        "tools/diagnose_assembly_face_wires.py": "15351aa825aa8692a94b3b6d8fd8ca9fc4d7686607ff26268fd9fa8958b51981",
+        "tools/directed_trim_assembly.py": "98d98ecb753d3bcd995f363537278fa63fe518d7caac574e85415d84c1250ca6",
+        "tools/local_wire_topology_repair.py": "c741e4d4a07b0d2cea67bd972fab8f5eb0e46f60c99c865e3c72420b19d7d619",
+        "tools/probe_downstream_bad_wire_lineage.py": "e5549705fd88b09425b2e5ab811ed632604b7d4f2660e80c0006090f8cc8d9a0",
+        "tools/probe_periodic_pcurve_applicability.py": "941ea301f65ea349facd475016d6c342543f1a6bf9573fdbfc01e70dedf4c9af",
+        "tools/run_assembly_calibration_oracle.py": "ae589503963f45e2cc5d195da4b2ebc1d865c57bc7e5b3efb53f77faecf9d21f",
+        "tools/run_assembly_repair_matrix.py": "d346cadc80db5f9733121fa83c381ae4d704e4980cd3ced7c12db27bdde38d87"
+      },
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "schema": "downstream-bad-wire-lineage-run-v1",
+    "selector_cohort_signature": "2dc92908d6f473b7103d9d3a0c0bbf4faae574201221a60a52f9c9bace7cdc8e",
+    "selector_historical_strict_valid": 84,
+    "selector_matrix_sha256": "d3cb1ba56fbc67cdb4db3828cc1ba3036e800ccd32b20b47071144c081b65fe8",
+    "selector_residual_ids": [
+      "00051602_7f1947595ae247e0a4a32f43_step_000",
+      "00061931_dcdd8a95feac4121adfd341f_step_000",
+      "00067160_2a27016aa44f42c69c1079f7_step_000",
+      "00063055_e309c689b9b44f0686f47966_step_000",
+      "00047472_197769bbdd814278b715d88a_step_000",
+      "00087341_6a73c5e821934d3fe4d0d555_step_000",
+      "00076198_7fde7438ca5d3ccb8a1dd1f4_step_000",
+      "00095733_8b325d2fcb27ec9e79388602_step_000",
+      "00032101_674d8fea687f4d9bbca6599b_step_000"
+    ],
+    "selector_run": {
+      "bytes": 24869,
+      "sha256": "9e77ba4271f284effc61e2e33f7deaeffc273faafeb82b1d0f5df78b1ac52da5",
+      "signature": "a4f1208d4a74026be313a6dfff6b6a1dc92ce0c79c154f5ea9dc9bf113b55cf1",
+      "status": "COMPLETED"
+    },
+    "selector_strict_valid": 91,
+    "source_bindings": [
+      {
+        "bytes": 1191390,
+        "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+        "sha256": "68343d8203dc640d75cd3f4b2a7fea119e637b4f23f3c3ca26fc5c739196eab1"
+      },
+      {
+        "bytes": 486822,
+        "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+        "sha256": "39f56ba42e0f25044d2ef9e3b2f6d14e5d092cf0be887bb221b68103f037cf96"
+      }
+    ],
+    "step_phase": "post_step_roundtrip",
+    "worker_timeout_seconds": 600.0
+  },
+  "schema": "downstream-bad-wire-lineage-archive-run-v1",
+  "signature": "38ac843ee80611615351db47f38540f7ff27a19dc1f7f1f28883e2c915069271",
+  "source_artifact_bindings": {
+    "downstream_bad_wire_lineage_cases.jsonl": "f7a7da3969097f6afc2419c9c4407b4f8c07e1f53a1ddda8d3da451472ca1847",
+    "downstream_bad_wire_lineage_run.json": "ad9d887960192738d5f3b6a4026c5d23befa875bf27228328ed6e49d7e830e4b",
+    "downstream_bad_wire_lineage_summary.json": "4e6d5daec0f096b9a3e4dc6ce12449be76353f17d2c180c56f0878bc3c57d0df"
+  },
+  "source_pickle_bytes_archived": false,
+  "source_schema": "downstream-bad-wire-lineage-run-v1",
+  "source_status": "COMPLETED",
+  "step_bytes_archived": false,
+  "worker_logs_archived": false
+}

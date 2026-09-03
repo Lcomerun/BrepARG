@@ -1,0 +1,72 @@
+{
+  "assembly_release_gate_before": {
+    "required": 95,
+    "strict_valid": 91
+  },
+  "authorizes_boundary_or_ar": false,
+  "authorizes_full_100cad": false,
+  "cases": 2,
+  "completed_cases": 2,
+  "conclusive": true,
+  "coverage_failures": 0,
+  "decision": "PROMOTE_TARGETED_NONPERIODIC_REPAIR_PROBE",
+  "explicit_failures": 0,
+  "mapping_failures": 0,
+  "observation_failures": 0,
+  "schema": "downstream-bad-wire-lineage-summary-v1",
+  "source_binding_failures": 0,
+  "status_counts": {
+    "completed": 2
+  },
+  "targets": [
+    {
+      "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+      "first_bad_occurrences": [
+        {
+          "kind": "adjacent",
+          "source_edge_ids": [
+            20,
+            13
+          ],
+          "source_face_index": 10,
+          "wire_index": 0
+        },
+        {
+          "kind": "adjacent",
+          "source_edge_ids": [
+            16,
+            24
+          ],
+          "source_face_index": 43,
+          "wire_index": 0
+        }
+      ],
+      "first_bad_phase": "post_add_pcurves_pre_repair"
+    },
+    {
+      "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+      "first_bad_occurrences": [
+        {
+          "kind": "closure",
+          "source_edge_ids": [
+            9,
+            23
+          ],
+          "source_face_index": 5,
+          "wire_index": 0
+        },
+        {
+          "kind": "adjacent",
+          "source_edge_ids": [
+            23,
+            9
+          ],
+          "source_face_index": 5,
+          "wire_index": 0
+        }
+      ],
+      "first_bad_phase": "post_sewing_pre_step"
+    }
+  ],
+  "worker_or_protocol_failures": 0
+}

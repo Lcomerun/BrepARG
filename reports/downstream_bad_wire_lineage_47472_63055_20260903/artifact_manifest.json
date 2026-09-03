@@ -1,0 +1,30 @@
+{
+  "artifacts": [
+    {
+      "bytes": 1490,
+      "path": "README.md",
+      "sha256": "ebb1d3421b4a6ff103d4f9706c5905725d91cfc308c13996bf04a38ddaefe386"
+    },
+    {
+      "bytes": 1333,
+      "path": "archive_validation.json",
+      "sha256": "c7b1e38b2a7b4022e1acff1e9eeebfe7d6b99dcb92290604e368314eb5175f50"
+    },
+    {
+      "bytes": 7459,
+      "path": "downstream_bad_wire_lineage_cases.jsonl",
+      "sha256": "dda9bc4c1056784549b2c4436a645e50d9a27737d5188499d1f20196745dbb74"
+    },
+    {
+      "bytes": 4115,
+      "path": "downstream_bad_wire_lineage_run.json",
+      "sha256": "fc93ca7186f601d8d668004649946513fb85d0f6e70c8c5248ccf2c0b537a956"
+    },
+    {
+      "bytes": 1649,
+      "path": "downstream_bad_wire_lineage_summary.json",
+      "sha256": "4e6d5daec0f096b9a3e4dc6ce12449be76353f17d2c180c56f0878bc3c57d0df"
+    }
+  ],
+  "schema": "downstream-bad-wire-lineage-archive-v1"
+}

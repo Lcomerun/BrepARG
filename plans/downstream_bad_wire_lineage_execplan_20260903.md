@@ -60,14 +60,21 @@ selector.
   unique geometry-plus-incidence, split/merge, and JSON-safety gates. The full
   focused suite passes 205 tests; the two `pythonocc` warnings are deprecation
   notices only.
-- [ ] Run the exact two-CAD pilot in a new immutable local output directory and
-  decide whether a local non-periodic trim repair has an evidenced insertion
-  point.
+- [x] (2026-09-03 21:03 +08:00) Ran the exact two-CAD pilot from clean commit
+  `9bfda7b2634e4477cac540a2167f26fc0de63fdd` in the immutable local output
+  directory `downstream_bad_wire_lineage_47472_63055_20260903_v2`. Both cases
+  completed conclusively and every coverage, observation, mapping,
+  source-binding, worker, and protocol failure count is zero.
+- [x] (2026-09-03 21:17 +08:00) Generated and independently validated the
+  six-file Git-safe snapshot under
+  `reports/downstream_bad_wire_lineage_47472_63055_20260903/`. The archive is
+  path-free and contains no STEP, pickle, checkpoint, native handle, worker
+  log, or upstream-source payload.
 - [ ] If and only if the lineage is conclusive, implement the smallest
   copy-only repair candidate and test it on exact CAD/face/wire targets before
   expanding to the nine residuals.
-- [ ] Archive only path-free JSON/JSONL, documentation, tests, hashes, and a
-  compact log summary; push each completed stage to the current GitHub branch.
+- [ ] Commit and push the validated snapshot, snapshot tool, tests, and updated
+  living documentation to the current GitHub branch.
 
 ## Surprises & Discoveries
 
@@ -121,13 +128,20 @@ selector.
   appears near `3.122968e-4`, leaving approximately 3.12 times margin at the
   signed tolerance.
 
-- Observation: development smoke at the registered 200 joint iterations has
-  localized the two defects without a mapping, coverage, or observation
-  failure; this is not yet the formal immutable run.
-  Evidence: `00047472...` is first bad immediately after pcurve construction,
-  at source face/edge pairs `1:[10,12]`, `10:[20,13]`, and `43:[16,24]`.
+- Observation: the clean-commit formal run localizes the two defects without a
+  mapping, coverage, observation, source-binding, worker, or protocol failure.
+  Evidence: `00047472...` is first bad immediately after pcurve construction
+  at source face/edge pairs `10:[20,13]` and `43:[16,24]`; source face 1 pair
+  `[10,12]` is clean in memory and appears only after STEP roundtrip.
   `00063055...` is clean through optional face repair and first bad after
   sewing, at source face 5 with closure `[9,23]` and adjacent `[23,9]`.
+
+- Observation: the signed STEP correspondence has measurable ambiguity
+  margin rather than merely returning one assignment.
+  Evidence: every face and edge maps uniquely at normalized curve tolerance
+  `1e-4`; the first observed ambiguity is approximately `3.122968e-4`, a 3.12
+  times margin. The archive recomputes the summary and validates the signed
+  rows and run hashes before accepting the result.
 
 ## Decision Log
 
@@ -186,17 +200,32 @@ selector.
   `exact_sewing_face_local_geometry` names the independent proof explicitly.
   Date/Author: 2026-09-03 / Codex.
 
+- Decision: Promote two separate, stage-local feasibility routes rather than
+  one shared wire repair.
+  Rationale: `00047472...` is already defective before optional repair and
+  needs an exact-pair non-periodic pcurve reconstruction, whereas
+  `00063055...` is clean until sewing and needs a graph-preserving post-sewing
+  feasibility spike. Combining them would destroy causal attribution. Source
+  face 1 in `00047472...` remains an explicit STEP-roundtrip regression gate.
+  Date/Author: 2026-09-03 / Codex.
+
 ## Outcomes & Retrospective
 
-The evidence audit and implementation are complete, but the formal immutable
-stage-lineage experiment has not yet run from its clean committed revision.
-The development smoke is conclusive enough to validate the instrumentation:
-`00047472...` is first bad after pcurve construction, while `00063055...` is
-first bad after sewing, and both retain exact source occurrence lineage through
-STEP. The authoritative selector remains 91/100 strict-valid with 84/84
-historical controls, zero regressions, and zero worker/protocol failures. This
-section will be updated with the signed artifacts and final promote-or-close
-decision after the clean-commit run.
+The evidence audit, implementation, clean-commit formal experiment, and
+Git-safe snapshot are complete. The run signature is
+`38ac843ee80611615351db47f38540f7ff27a19dc1f7f1f28883e2c915069271`.
+Its two case rows, summary, and run payload are bound by SHA-256 values
+`f7a7da3969097f6afc2419c9c4407b4f8c07e1f53a1ddda8d3da451472ca1847`,
+`4e6d5daec0f096b9a3e4dc6ce12449be76353f17d2c180c56f0878bc3c57d0df`,
+and `ad9d887960192738d5f3b6a4026c5d23befa875bf27228328ed6e49d7e830e4b`.
+
+The result is conclusive: `00047472...` is first bad after pcurve construction
+on source faces 10 and 43, while `00063055...` is first bad after sewing on
+source face 5. Exact source occurrence lineage survives every observed phase
+and STEP roundtrip. This closes the diagnostic milestone and promotes two
+separate feasibility probes; it does not itself improve the selector. The
+authoritative selector remains 91/100 strict-valid with 84/84 historical
+controls, zero regressions, and zero worker/protocol failures.
 
 ## Context and Orientation
 
@@ -444,3 +473,8 @@ Revision note 2026-09-03 18:25 +08:00: Created the plan after the complete
 nine-residual/five-profile audit. It freezes the two-CAD cohort, separates the
 new multi-stage observer from the signed periodic hook, and makes unique source
 entity correspondence a prerequisite for any non-periodic repair.
+
+Revision note 2026-09-03 22:05 +08:00: Recorded the completed immutable run,
+its cryptographic bindings and Git-safe archive, corrected source face 1 of
+`00047472...` to a STEP-only regression, and split the promoted work into an
+exact-pair pcurve route and a post-sewing graph-preserving feasibility route.

@@ -1,0 +1,35 @@
+{
+  "cases": 2,
+  "completed_cases": 2,
+  "conclusive": true,
+  "decision": "PROMOTE_TARGETED_NONPERIODIC_REPAIR_PROBE",
+  "failure_counts": {
+    "coverage_failures": 0,
+    "explicit_failures": 0,
+    "mapping_failures": 0,
+    "observation_failures": 0,
+    "source_binding_failures": 0,
+    "worker_or_protocol_failures": 0
+  },
+  "native_handles_archived": false,
+  "path_free": true,
+  "repository_binding_valid": true,
+  "repository_commit": "9bfda7b2634e4477cac540a2167f26fc0de63fdd",
+  "repository_source_hash_count": 8,
+  "rows_binding_valid": true,
+  "run_signature": "38ac843ee80611615351db47f38540f7ff27a19dc1f7f1f28883e2c915069271",
+  "schema": "downstream-bad-wire-lineage-archive-v1",
+  "signature_valid": true,
+  "source_artifact_bindings": {
+    "downstream_bad_wire_lineage_cases.jsonl": "f7a7da3969097f6afc2419c9c4407b4f8c07e1f53a1ddda8d3da451472ca1847",
+    "downstream_bad_wire_lineage_run.json": "ad9d887960192738d5f3b6a4026c5d23befa875bf27228328ed6e49d7e830e4b",
+    "downstream_bad_wire_lineage_summary.json": "4e6d5daec0f096b9a3e4dc6ce12449be76353f17d2c180c56f0878bc3c57d0df"
+  },
+  "source_bindings_valid": true,
+  "source_pickle_bytes_archived": false,
+  "step_bytes_archived": false,
+  "summary_binding_valid": true,
+  "summary_recomputed_equal": true,
+  "valid": true,
+  "worker_logs_archived": false
+}
