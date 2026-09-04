@@ -416,11 +416,19 @@ def construct_brep_directed(
     curve_interpolate: bool = False,
     local_pcurve_continuity: bool = False,
     surface_fit_precision: bool = False,
+    sewing_tolerance: float = 1e-3,
     post_pcurve_face_observer: (
         Callable[[int, Any, Mapping[str, Any]], None] | None
     ) = None,
     assembly_stage_face_observer: (
         Callable[[int, Any, Mapping[str, Any]], None] | None
+    ) = None,
+    post_pcurve_face_mutator: (
+        Callable[[int, Any, Mapping[str, Any]], tuple[Any, Mapping[str, Any]]] | None
+    ) = None,
+    post_sewing_shape_mutator: (
+        Callable[[Any, Sequence[Mapping[str, Any]], Mapping[str, Any]],
+                 tuple[Any, Mapping[str, Any]]] | None
     ) = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Construct one solid using directed trim loops and fail-closed OCC checks.
@@ -429,6 +437,11 @@ def construct_brep_directed(
     The latter is a validation guard retained for historical profile parity;
     the former enables the narrowly scoped near-vertex reconciliation needed
     by the P0-A non-unit-solid case.
+
+    The two mutators are experimental, default-off stage boundaries.  They may
+    return a replacement only with ``diagnostics["accepted"] is True``.  A
+    rejected result leaves the current face or sewn shape unchanged.  Native
+    OCC work behind either hook must still run in a one-CAD child process.
     """
     root = Path(breparg_root).resolve()
     if str(root) not in sys.path:
@@ -854,6 +867,8 @@ def construct_brep_directed(
         if (
             post_pcurve_face_observer is not None
             or assembly_stage_face_observer is not None
+            or post_pcurve_face_mutator is not None
+            or post_sewing_shape_mutator is not None
         ):
             for loop in loops:
                 endpoint_gaps = []
@@ -902,6 +917,46 @@ def construct_brep_directed(
         face = face_builder.Shape()
         brep_utils.fix_wires(face)
         brep_utils.add_pcurves_to_edges(face)
+        post_pcurve_mapping = None
+        if assembly_stage_face_observer is not None or post_pcurve_face_mutator is not None:
+            post_pcurve_mapping = exact_source_edge_mapping(
+                face,
+                source_edge_occurrences=source_edge_occurrences,
+            )
+        if post_pcurve_face_mutator is not None:
+            mutated_face, mutation_diagnostics = post_pcurve_face_mutator(
+                int(face_index),
+                face,
+                {
+                    "phase": "post_add_pcurves_pre_repair",
+                    "source_face_index": int(face_index),
+                    "source_mapping": post_pcurve_mapping,
+                    "source_edge_occurrences": tuple(source_edge_occurrences),
+                },
+            )
+            if not isinstance(mutation_diagnostics, Mapping):
+                raise RuntimeError("post-pcurve face mutator diagnostics are not a mapping")
+            diagnostics.setdefault("post_pcurve_face_mutations", []).append(
+                {
+                    "source_face_index": int(face_index),
+                    **dict(mutation_diagnostics),
+                }
+            )
+            if mutation_diagnostics.get("accepted") is True:
+                if mutated_face is None or mutated_face.IsNull():
+                    raise RuntimeError("accepted post-pcurve face mutator returned null face")
+                face = mutated_face
+                post_pcurve_mapping = exact_source_edge_mapping(
+                    face,
+                    source_edge_occurrences=source_edge_occurrences,
+                )
+                if post_pcurve_mapping.get("status") not in {
+                    "exact_identity",
+                    "exact_face_local_geometry",
+                }:
+                    raise RuntimeError(
+                        "accepted post-pcurve face mutator lost exact source mapping"
+                    )
         if post_pcurve_face_observer is not None:
             # This hook intentionally sits after pcurve construction and before
             # every local/global face repair. It is observation-only; callers
@@ -919,7 +974,7 @@ def construct_brep_directed(
                     ),
                 },
             )
-        if assembly_stage_face_observer is not None:
+        if assembly_stage_face_observer is not None or post_sewing_shape_mutator is not None:
             source_loop_edge_uses = [
                 [
                     {
@@ -947,18 +1002,16 @@ def construct_brep_directed(
                 ),
             }
             face_observation_metadata.append(source_face_observation)
-            assembly_stage_face_observer(
-                int(face_index),
-                face,
-                {
-                    "phase": "post_add_pcurves_pre_repair",
-                    **source_face_observation,
-                    "source_mapping": exact_source_edge_mapping(
-                        face,
-                        source_edge_occurrences=source_edge_occurrences,
-                    ),
-                },
-            )
+            if assembly_stage_face_observer is not None:
+                assembly_stage_face_observer(
+                    int(face_index),
+                    face,
+                    {
+                        "phase": "post_add_pcurves_pre_repair",
+                        **source_face_observation,
+                        "source_mapping": post_pcurve_mapping,
+                    },
+                )
         if local_pcurve_continuity:
             try:
                 from .local_wire_topology_repair import repair_face_local_pcurve
@@ -1025,7 +1078,7 @@ def construct_brep_directed(
         else:
             brep_utils.fix_wires(face)
             face = brep_utils.fix_face(face)
-        if assembly_stage_face_observer is not None:
+        if assembly_stage_face_observer is not None or post_sewing_shape_mutator is not None:
             pre_sewing_mapping = exact_source_edge_mapping(
                 face,
                 source_edge_occurrences=source_edge_occurrences,
@@ -1040,24 +1093,30 @@ def construct_brep_directed(
                     for candidate in wire_row.get("source_edge_candidates", [])
                 ]
             )
-            assembly_stage_face_observer(
-                int(face_index),
-                face,
-                {
-                    "phase": "post_optional_face_repair_pre_sewing",
-                    **source_face_observation,
-                    "source_mapping": pre_sewing_mapping,
-                },
-            )
+            if assembly_stage_face_observer is not None:
+                assembly_stage_face_observer(
+                    int(face_index),
+                    face,
+                    {
+                        "phase": "post_optional_face_repair_pre_sewing",
+                        **source_face_observation,
+                        "source_mapping": pre_sewing_mapping,
+                    },
+                )
         faces.append(face)
 
+    sewing_tolerance_value = float(sewing_tolerance)
+    if not np.isfinite(sewing_tolerance_value) or sewing_tolerance_value <= 0.0:
+        raise ValueError("sewing_tolerance must be finite and positive")
     sewing = BRepBuilderAPI_Sewing()
-    sewing.SetTolerance(1e-3)
+    sewing.SetTolerance(sewing_tolerance_value)
+    diagnostics["sewing_tolerance"] = sewing_tolerance_value
     for face in faces:
         sewing.Add(face)
     sewing.Perform()
     sewn = sewing.SewedShape()
-    if assembly_stage_face_observer is not None:
+    post_sewing_bindings: list[dict[str, Any]] = []
+    if assembly_stage_face_observer is not None or post_sewing_shape_mutator is not None:
         sewn_faces = list(
             TopologyExplorer(sewn, ignore_orientation=False).faces()
         )
@@ -1106,19 +1165,46 @@ def construct_brep_directed(
                 lineage_row["failure_codes"].append(
                     "sewn_edge_occurrences_not_exact_source_identity"
                 )
-            assembly_stage_face_observer(
-                source_face_index,
-                observation_target,
+            post_sewing_bindings.append(
                 {
-                    "phase": "post_sewing_pre_step",
-                    **face_observation_metadata[source_face_index],
-                    "expected_source_face_count": len(faces),
-                    "expected_source_edge_count": len(edges),
-                    "sewn_face_count": len(sewn_faces),
-                    "sewing_lineage": lineage_row,
+                    "source_face_index": source_face_index,
+                    "face": observation_target,
                     "source_mapping": source_mapping,
-                },
+                    "sewing_lineage": dict(lineage_row),
+                }
             )
+            if assembly_stage_face_observer is not None:
+                assembly_stage_face_observer(
+                    source_face_index,
+                    observation_target,
+                    {
+                        "phase": "post_sewing_pre_step",
+                        **face_observation_metadata[source_face_index],
+                        "expected_source_face_count": len(faces),
+                        "expected_source_edge_count": len(edges),
+                        "sewn_face_count": len(sewn_faces),
+                        "sewing_lineage": lineage_row,
+                        "source_mapping": source_mapping,
+                    },
+                )
+    if post_sewing_shape_mutator is not None:
+        mutated_sewn, mutation_diagnostics = post_sewing_shape_mutator(
+            sewn,
+            tuple(post_sewing_bindings),
+            {
+                "phase": "post_sewing_pre_step",
+                "expected_source_face_count": len(faces),
+                "expected_source_edge_count": len(edges),
+                "sewn_face_count": len(sewn_faces),
+            },
+        )
+        if not isinstance(mutation_diagnostics, Mapping):
+            raise RuntimeError("post-sewing shape mutator diagnostics are not a mapping")
+        diagnostics["post_sewing_shape_mutation"] = dict(mutation_diagnostics)
+        if mutation_diagnostics.get("accepted") is True:
+            if mutated_sewn is None or mutated_sewn.IsNull():
+                raise RuntimeError("accepted post-sewing shape mutator returned null shape")
+            sewn = mutated_sewn
     shell_explorer = TopExp_Explorer(sewn, TopAbs_SHELL)
     shells = []
     while shell_explorer.More():

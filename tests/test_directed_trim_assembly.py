@@ -262,6 +262,37 @@ def test_assembly_stage_observer_is_optional_keyword_only_and_none_is_bindable()
     assert bound.arguments.get("assembly_stage_face_observer") is None
 
 
+@pytest.mark.parametrize(
+    "name",
+    ("post_pcurve_face_mutator", "post_sewing_shape_mutator"),
+)
+def test_experimental_mutation_hooks_are_keyword_only_and_default_off(name):
+    signature = inspect.signature(construct_brep_directed)
+    parameter = signature.parameters[name]
+
+    assert parameter.kind is inspect.Parameter.KEYWORD_ONLY
+    assert parameter.default is None
+    positional = (
+        np.empty((0, 32, 32, 3), dtype=np.float64),
+        np.empty((0, 32, 3), dtype=np.float64),
+        [],
+        np.empty((0, 2), dtype=np.int64),
+    )
+    bound = signature.bind(
+        *positional, breparg_root=Path("unused-for-signature-check")
+    )
+    assert bound.arguments.get(name) is None
+
+
+def test_sewing_tolerance_is_keyword_only_and_preserves_historical_default():
+    parameter = inspect.signature(construct_brep_directed).parameters[
+        "sewing_tolerance"
+    ]
+
+    assert parameter.kind is inspect.Parameter.KEYWORD_ONLY
+    assert parameter.default == pytest.approx(1e-3)
+
+
 def test_assembly_stage_observer_emits_exact_three_phase_contract():
     calls = _assembly_stage_observer_calls()
 
