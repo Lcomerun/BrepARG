@@ -1,0 +1,30 @@
+{
+  "artifacts": [
+    {
+      "bytes": 2338,
+      "path": "README.md",
+      "sha256": "94d64e4bc7bf1bcadddb976c6ca99c57ffab328f7ac3aba9e1052dcbdd734489"
+    },
+    {
+      "bytes": 1679,
+      "path": "archive_validation.json",
+      "sha256": "b0b1abd0c30ff6c3d27657e33e543c9e705ac3e8bc4c3681e791a2216e5a4e24"
+    },
+    {
+      "bytes": 23173,
+      "path": "exact_cad_repair_feasibility_attempts.jsonl",
+      "sha256": "9a811a2837131b0d060db17bc6276ac3594ef6a607e02340835c8af5b3d597ec"
+    },
+    {
+      "bytes": 7507,
+      "path": "exact_cad_repair_feasibility_run.json",
+      "sha256": "cbafd61d183b57c2e2118bac49ef779bd56ebf6c917ce2388a96aaefe53bb1a3"
+    },
+    {
+      "bytes": 814,
+      "path": "exact_cad_repair_feasibility_summary.json",
+      "sha256": "545802b4e783a3f3f76039d70e983fba1ab5eb29af0748e5db032e731c925f60"
+    }
+  ],
+  "schema": "exact-cad-repair-feasibility-archive-v1"
+}

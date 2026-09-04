@@ -1,0 +1,29 @@
+{
+  "assembly_release_gate_before": {
+    "required": 95,
+    "strict_valid": 91
+  },
+  "attempts": 4,
+  "authorizes_full_100cad": false,
+  "authorizes_relevant_residual_expansion": false,
+  "authorizes_training_or_ar": false,
+  "candidate_accepted_cad_ids": [],
+  "candidate_callbacks_complete": 2,
+  "candidate_hooks_unavailable": 0,
+  "candidate_rejected_cad_ids": [
+    "00047472_197769bbdd814278b715d88a_step_000",
+    "00063055_e309c689b9b44f0686f47966_step_000"
+  ],
+  "conclusive": true,
+  "control_drift": 0,
+  "controls_reproduced": 2,
+  "decision": "CLOSE_EXACT_CAD_CANDIDATES",
+  "denominator_rows": 4,
+  "nonfinite_count": 0,
+  "schema": "exact-cad-repair-feasibility-summary-v1",
+  "status_counts": {
+    "candidate_rejected": 2,
+    "control_reproduced": 2
+  },
+  "worker_or_protocol_failures": 0
+}

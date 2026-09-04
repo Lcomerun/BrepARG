@@ -1,0 +1,191 @@
+{
+  "attempts": 4,
+  "native_handles_archived": false,
+  "payload": {
+    "breparg_runtime": {
+      "utils_sha256": "e2509a844db0a9e0f8eaf670fffb9d4ad9e240af755155d25891d37b4468d521"
+    },
+    "calibration_manifest_sha256": "426809e39cf2f4ee13c2e86b542c76a5d1c80ce6abfa4ac4a2e84135f580f4ef",
+    "joint_iterations": 200,
+    "lineage": {
+      "cases_sha256": "f7a7da3969097f6afc2419c9c4407b4f8c07e1f53a1ddda8d3da451472ca1847",
+      "run_sha256": "ad9d887960192738d5f3b6a4026c5d23befa875bf27228328ed6e49d7e830e4b",
+      "run_signature": "38ac843ee80611615351db47f38540f7ff27a19dc1f7f1f28883e2c915069271",
+      "source_bindings": [
+        {
+          "bytes": 1191390,
+          "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+          "sha256": "68343d8203dc640d75cd3f4b2a7fea119e637b4f23f3c3ca26fc5c739196eab1"
+        },
+        {
+          "bytes": 486822,
+          "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+          "sha256": "39f56ba42e0f25044d2ef9e3b2f6d14e5d092cf0be887bb221b68103f037cf96"
+        }
+      ]
+    },
+    "ordered_cad_ids": [
+      "00047472_197769bbdd814278b715d88a_step_000",
+      "00063055_e309c689b9b44f0686f47966_step_000"
+    ],
+    "ordered_task_ids": [
+      "00047472_197769bbdd814278b715d88a_step_000::control",
+      "00047472_197769bbdd814278b715d88a_step_000::candidate",
+      "00063055_e309c689b9b44f0686f47966_step_000::control",
+      "00063055_e309c689b9b44f0686f47966_step_000::candidate"
+    ],
+    "repository": {
+      "commit": "e870bb25bc92f30c484ccf7fee8d5d77ef0b3fd2",
+      "dirty": false,
+      "source_sha256": {
+        "tools/assembly_selector_geometry.py": "b21c4b1246c1b298d34984cdec4bbb4ee5d2736ffc5881f8e066426dd82605d3",
+        "tools/directed_trim_assembly.py": "6bb3540f62e00f1852295ff068da8f7125745fcf4535a66727ceeff3beda13f1",
+        "tools/post_sewing_graph_repair.py": "dfd8b9682176fcd0f476d7e59e07caff0b8deb307a28d82b0f1e0aa242f1046e",
+        "tools/probe_downstream_bad_wire_lineage.py": "e5549705fd88b09425b2e5ab811ed632604b7d4f2660e80c0006090f8cc8d9a0",
+        "tools/run_assembly_repair_matrix.py": "d346cadc80db5f9733121fa83c381ae4d704e4980cd3ced7c12db27bdde38d87",
+        "tools/run_exact_cad_repair_feasibility.py": "7873bc1c1ef41893c52fca460d3b968b181309a38ffd854c649748ead32c22c7",
+        "tools/targeted_nonperiodic_pcurve_repair.py": "487ed736c78a3504fa37b2114fdb14e1b7b0a9c5e7aadd6c1ee19c6e94615204"
+      },
+      "status_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "schema": "exact-cad-repair-feasibility-run-v1",
+    "selector_matrix_sha256": "d3cb1ba56fbc67cdb4db3828cc1ba3036e800ccd32b20b47071144c081b65fe8",
+    "selector_run": {
+      "bytes": 24869,
+      "sha256": "9e77ba4271f284effc61e2e33f7deaeffc273faafeb82b1d0f5df78b1ac52da5",
+      "signature": "a4f1208d4a74026be313a6dfff6b6a1dc92ce0c79c154f5ea9dc9bf113b55cf1",
+      "status": "COMPLETED"
+    },
+    "sources": [
+      {
+        "binding": {
+          "bytes": 1191390,
+          "sha256": "68343d8203dc640d75cd3f4b2a7fea119e637b4f23f3c3ca26fc5c739196eab1"
+        },
+        "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+        "historical_strict_valid": false,
+        "parent_id": "197769bbdd814278b715d88a",
+        "selector_strict_valid": false
+      },
+      {
+        "binding": {
+          "bytes": 486822,
+          "sha256": "39f56ba42e0f25044d2ef9e3b2f6d14e5d092cf0be887bb221b68103f037cf96"
+        },
+        "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+        "historical_strict_valid": false,
+        "parent_id": "e309c689b9b44f0686f47966",
+        "selector_strict_valid": false
+      }
+    ],
+    "variants": [
+      {
+        "arm": "control",
+        "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+        "callback_ref": "tools.run_exact_cad_repair_feasibility:run_control_variant",
+        "candidate_sewing_tolerance": null,
+        "control_sewing_tolerance": 0.001,
+        "expected_control_native_valid": true,
+        "expected_control_strict_valid": false,
+        "expected_control_wire_self_intersections": 3,
+        "target_source_edge_pairs": [
+          [
+            13,
+            20
+          ],
+          [
+            16,
+            24
+          ]
+        ],
+        "target_source_face_indices": [
+          10,
+          43
+        ],
+        "task_id": "00047472_197769bbdd814278b715d88a_step_000::control"
+      },
+      {
+        "arm": "candidate",
+        "cad_id": "00047472_197769bbdd814278b715d88a_step_000",
+        "callback_ref": "tools.run_exact_cad_repair_feasibility:run_47472_candidate_variant",
+        "candidate_sewing_tolerance": 0.001,
+        "control_sewing_tolerance": 0.001,
+        "expected_control_native_valid": true,
+        "expected_control_strict_valid": false,
+        "expected_control_wire_self_intersections": 3,
+        "target_source_edge_pairs": [
+          [
+            13,
+            20
+          ],
+          [
+            16,
+            24
+          ]
+        ],
+        "target_source_face_indices": [
+          10,
+          43
+        ],
+        "task_id": "00047472_197769bbdd814278b715d88a_step_000::candidate"
+      },
+      {
+        "arm": "control",
+        "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+        "callback_ref": "tools.run_exact_cad_repair_feasibility:run_control_variant",
+        "candidate_sewing_tolerance": null,
+        "control_sewing_tolerance": 0.001,
+        "expected_control_native_valid": false,
+        "expected_control_strict_valid": false,
+        "expected_control_wire_self_intersections": 1,
+        "target_source_edge_pairs": [
+          [
+            9,
+            23
+          ]
+        ],
+        "target_source_face_indices": [
+          5
+        ],
+        "task_id": "00063055_e309c689b9b44f0686f47966_step_000::control"
+      },
+      {
+        "arm": "candidate",
+        "cad_id": "00063055_e309c689b9b44f0686f47966_step_000",
+        "callback_ref": "tools.run_exact_cad_repair_feasibility:run_63055_candidate_variant",
+        "candidate_sewing_tolerance": 0.0001,
+        "control_sewing_tolerance": 0.001,
+        "expected_control_native_valid": false,
+        "expected_control_strict_valid": false,
+        "expected_control_wire_self_intersections": 1,
+        "target_source_edge_pairs": [
+          [
+            9,
+            23
+          ]
+        ],
+        "target_source_face_indices": [
+          5
+        ],
+        "task_id": "00063055_e309c689b9b44f0686f47966_step_000::candidate"
+      }
+    ],
+    "worker_timeout_seconds": 600.0
+  },
+  "raw_worker_logs_archived": false,
+  "schema": "exact-cad-repair-feasibility-archive-run-v1",
+  "signature": "1d4f68839aadc8b3f8fb38eea642a1f7ea4f6d8d51b61152f943c725832ffcad",
+  "source_artifact_bindings": {
+    "exact_cad_repair_feasibility_attempts.jsonl": "f158f2ca7f9bf2adceb7a56434ca4925bed99e34d5791e8867ca476f32d70a34",
+    "exact_cad_repair_feasibility_run.json": "cc1bec2534e5135abcbf10f0d79b0f48305aced725af4724e424edd6910d21f0",
+    "exact_cad_repair_feasibility_summary.json": "545802b4e783a3f3f76039d70e983fba1ab5eb29af0748e5db032e731c925f60"
+  },
+  "source_pickle_bytes_archived": false,
+  "source_schema": "exact-cad-repair-feasibility-run-v1",
+  "source_status": "COMPLETED",
+  "step_bytes_archived": false,
+  "terminal_bindings": {
+    "rows_sha256": "f158f2ca7f9bf2adceb7a56434ca4925bed99e34d5791e8867ca476f32d70a34",
+    "summary_sha256": "545802b4e783a3f3f76039d70e983fba1ab5eb29af0748e5db032e731c925f60"
+  }
+}
