@@ -263,13 +263,26 @@ def _unique_perfect_assignment(
     compatibility: Sequence[Sequence[int]], candidate_count: int
 ) -> list[int] | None:
     """Return the sole perfect assignment, or None for zero/multiple solutions."""
+    solutions = _perfect_assignments_up_to_two(compatibility, candidate_count)
+    return solutions[0] if len(solutions) == 1 else None
+
+
+def _perfect_assignments_up_to_two(
+    compatibility: Sequence[Sequence[int]], candidate_count: int
+) -> list[list[int]]:
+    """Return at most two perfect assignments for fail-closed uniqueness tests.
+
+    Two solutions are enough to reject an identity claim.  Capping the search
+    avoids enumerating every automorphism of a symmetric topology while still
+    distinguishing no solution, one unique solution, and more than one.
+    """
     if len(compatibility) != int(candidate_count):
-        return None
+        return []
     normalized = [sorted(set(int(value) for value in row)) for row in compatibility]
     if any(not row for row in normalized):
-        return None
+        return []
     if any(value < 0 or value >= candidate_count for row in normalized for value in row):
-        return None
+        return []
     order = sorted(range(len(normalized)), key=lambda index: len(normalized[index]))
     solutions: list[list[int]] = []
     assignment = [-1] * len(normalized)
@@ -289,7 +302,504 @@ def _unique_perfect_assignment(
             assignment[observed_index] = -1
 
     search(0, set())
-    return solutions[0] if len(solutions) == 1 else None
+    return solutions
+
+
+def _edge_endpoint_handles(edge: Any) -> tuple[Any, Any]:
+    """Return two borrowed OCC endpoint occurrences without serializing them."""
+
+    from OCC.Extend.TopologyUtils import TopologyExplorer
+
+    endpoints = list(
+        TopologyExplorer(edge, ignore_orientation=False).vertices()
+    )
+    if len(endpoints) != 2:
+        raise ValueError("edge_endpoint_occurrence_count_not_two")
+    return endpoints[0], endpoints[1]
+
+
+def _shape_vertex_handles(shape: Any) -> list[Any]:
+    """Return borrowed target vertices; identity reduction happens separately."""
+
+    from OCC.Extend.TopologyUtils import TopologyExplorer
+
+    return list(TopologyExplorer(shape, ignore_orientation=True).vertices())
+
+
+def _same_occ_identity(first: Any, second: Any) -> bool:
+    """Measure OCC topological identity and label native failures uniformly."""
+
+    try:
+        return bool(first.IsSame(second))
+    except Exception as exc:
+        raise RuntimeError("occ_vertex_identity_measurement_failed") from exc
+
+
+def _unique_identity_representatives(values: Sequence[Any]) -> list[Any]:
+    """Collapse native handles into direction-independent ``IsSame`` classes."""
+
+    representatives: list[Any] = []
+    for value in values:
+        matches = [
+            index
+            for index, representative in enumerate(representatives)
+            if _same_occ_identity(value, representative)
+        ]
+        if len(matches) > 1:
+            # Representatives are already pairwise distinct, so reaching two
+            # of them means IsSame itself is not behaving as an equivalence
+            # relation for this measurement.  Do not pick an explorer index.
+            raise RuntimeError("occ_vertex_identity_class_not_unique")
+        if not matches:
+            representatives.append(value)
+    return representatives
+
+
+def _identity_class_index(value: Any, representatives: Sequence[Any]) -> int:
+    """Return the sole target identity class for one borrowed vertex handle."""
+
+    matches = [
+        index
+        for index, representative in enumerate(representatives)
+        if _same_occ_identity(value, representative)
+    ]
+    if len(matches) != 1:
+        raise RuntimeError("endpoint_target_vertex_identity_not_unique")
+    return int(matches[0])
+
+
+def _source_vertex_lineage_failure(
+    *,
+    proof_method: str,
+    source_vertex_count: int,
+    observed_vertex_count: int,
+    constraint_occurrence_count: int,
+    failure_codes: Sequence[str],
+    solution_count: int | None = None,
+) -> dict[str, Any]:
+    """Create one path-free scalar failure result for an OCC child process."""
+
+    return {
+        "status": "ambiguous",
+        "proof_method": str(proof_method),
+        "solution_count": solution_count,
+        "solution_count_capped_at_two": True,
+        "source_vertex_count": int(source_vertex_count),
+        "observed_vertex_count": int(observed_vertex_count),
+        "mapped_source_vertex_count": 0,
+        "mapped_observed_vertex_count": 0,
+        "max_observed_per_source": 0,
+        "max_source_per_observed": 0,
+        "constraint_occurrence_count": int(constraint_occurrence_count),
+        "failure_codes": list(dict.fromkeys(map(str, failure_codes))),
+    }
+
+
+def _prove_stage_local_occ_topology(
+    scopes: Sequence[Sequence[tuple[int, Sequence[int], Any]]],
+    *,
+    scope_kind: str,
+) -> dict[str, Any]:
+    """Prove endpoint-label consistency only within each owning OCC scope.
+
+    A scope is one independently built edge at S2 or one face at S3/S4.  OCC
+    may legally copy vertex handles between such scopes, so this function does
+    not compare identities across scopes or against an earlier stage.  Inside
+    a scope, however, equal source labels must resolve to one OCC identity and
+    distinct labels must not merge.  This detects a real local split or merge
+    without inventing a CAD-global source-vertex bijection.
+    """
+
+    proof_method = "source_edge_endpoint_labels_to_stage_local_occ_identity_classes_v1"
+    failures: list[str] = []
+    source_edge_ids: set[int] = set()
+    constraint_count = 0
+    for scope_index, occurrences in enumerate(scopes):
+        representatives: list[Any] = []
+        label_to_classes: dict[int, set[int]] = {}
+        class_to_labels: dict[int, set[int]] = {}
+        for occurrence_index, occurrence in enumerate(occurrences):
+            try:
+                edge_id, labels, edge = occurrence
+                edge_id = int(edge_id)
+                labels = tuple(map(int, labels))
+                if len(labels) != 2:
+                    raise ValueError
+                endpoints = _edge_endpoint_handles(edge)
+            except Exception as exc:
+                failures.append(
+                    f"scope_{scope_index}_occurrence_{occurrence_index}_malformed:"
+                    f"{type(exc).__name__}"
+                )
+                continue
+            source_edge_ids.add(edge_id)
+            constraint_count += 1
+            for label, endpoint in zip(labels, endpoints):
+                matches = [
+                    index for index, representative in enumerate(representatives)
+                    if _same_occ_identity(endpoint, representative)
+                ]
+                if len(matches) > 1:
+                    failures.append(f"scope_{scope_index}_identity_class_nonunique")
+                    continue
+                if matches:
+                    class_id = matches[0]
+                else:
+                    class_id = len(representatives)
+                    representatives.append(endpoint)
+                label_to_classes.setdefault(label, set()).add(class_id)
+                class_to_labels.setdefault(class_id, set()).add(label)
+        if any(len(values) > 1 for values in label_to_classes.values()):
+            failures.append(f"scope_{scope_index}_source_vertex_split")
+        if any(len(values) > 1 for values in class_to_labels.values()):
+            failures.append(f"scope_{scope_index}_source_vertices_merged")
+    return {
+        "status": (
+            "exact_stage_local_topology" if not failures else "ambiguous"
+        ),
+        "proof_method": proof_method,
+        "scope_kind": str(scope_kind),
+        "scope_count": int(len(scopes)),
+        "source_edge_count": int(len(source_edge_ids)),
+        "constraint_occurrence_count": int(constraint_count),
+        "max_observed_per_source_within_scope": 1 if not failures else 0,
+        "max_source_per_observed_within_scope": 1 if not failures else 0,
+        "failure_codes": list(dict.fromkeys(failures)),
+    }
+
+
+def _prove_global_source_vertex_lineage(
+    observed_shape: Any,
+    source_face_bindings: Sequence[Mapping[str, Any]],
+    source_face_edge_ids: Sequence[Sequence[int]],
+    source_edge_vertex_ids: Sequence[Sequence[int]],
+) -> dict[str, Any]:
+    """Prove a unique source-vertex bijection after sewing or solid creation.
+
+    Each source edge is already identity-bound by the face lineage.  Its two
+    source endpoint labels and its two observed OCC endpoint handles are both
+    treated as unordered pairs, so reversing an edge cannot change the proof.
+    Intersections across every incidence produce a bipartite compatibility
+    graph from source vertices to vertices actually present in
+    ``observed_shape``.  Only one perfect assignment, followed by a replay of
+    every endpoint-pair constraint, establishes that no source vertex split,
+    merged, disappeared, or reconnected.
+
+    Native handles remain local variables and never appear in the returned
+    mapping.  The result contains only JSON-safe counts, a stable proof name,
+    and bounded failure codes.
+    """
+
+    proof_method = (
+        "source_edge_endpoint_constraints_plus_target_vertex_IsSame_"
+        "unique_perfect_assignment"
+    )
+    try:
+        edge_rows = [tuple(map(int, row)) for row in source_edge_vertex_ids]
+    except Exception:
+        edge_rows = []
+        input_edge_relation_malformed = True
+    else:
+        input_edge_relation_malformed = False
+    try:
+        face_rows = [list(map(int, row)) for row in source_face_edge_ids]
+    except Exception:
+        face_rows = []
+        input_face_relation_malformed = True
+    else:
+        input_face_relation_malformed = False
+    source_vertex_ids = sorted({value for row in edge_rows for value in row})
+    source_vertex_count = len(source_vertex_ids)
+    source_index = {value: index for index, value in enumerate(source_vertex_ids)}
+    failures: list[str] = []
+    constraints: list[tuple[int, int, int, int]] = []
+
+    if input_edge_relation_malformed or not edge_rows or any(
+        len(row) != 2 for row in edge_rows
+    ):
+        failures.append("source_edge_vertex_relation_malformed")
+    if input_face_relation_malformed or not face_rows:
+        failures.append("source_face_edge_relation_malformed")
+    if sorted(source_index) != list(range(source_vertex_count)):
+        failures.append("source_vertex_ids_not_contiguous")
+
+    try:
+        target_vertices = _unique_identity_representatives(
+            _shape_vertex_handles(observed_shape)
+        )
+    except Exception as exc:
+        failures.append(
+            "target_vertex_identity_census_failed:" + type(exc).__name__
+        )
+        target_vertices = []
+    observed_vertex_count = len(target_vertices)
+
+    bindings_by_face: dict[int, Mapping[str, Any]] = {}
+    for binding in source_face_bindings:
+        if not isinstance(binding, Mapping):
+            failures.append("source_face_binding_not_mapping")
+            continue
+        face_id = binding.get("source_face_index")
+        if type(face_id) is not int or not 0 <= face_id < len(face_rows):
+            failures.append("source_face_binding_id_invalid")
+            continue
+        if face_id in bindings_by_face:
+            failures.append(f"source_face_{face_id}_binding_duplicate")
+            continue
+        bindings_by_face[int(face_id)] = binding
+    if sorted(bindings_by_face) != list(range(len(face_rows))):
+        failures.append("source_face_binding_coverage_incomplete")
+
+    for face_id, expected_edge_ids in enumerate(face_rows):
+        binding = bindings_by_face.get(face_id)
+        if binding is None:
+            continue
+        sewing_lineage = binding.get("sewing_lineage")
+        source_mapping = binding.get("source_mapping")
+        if not isinstance(sewing_lineage, Mapping):
+            failures.append(f"source_face_{face_id}_sewing_lineage_missing")
+        elif sewing_lineage.get("status") != "mapped":
+            failures.append(f"source_face_{face_id}_sewing_lineage_not_mapped")
+        if not isinstance(source_mapping, Mapping):
+            failures.append(f"source_face_{face_id}_edge_mapping_missing")
+            continue
+        if source_mapping.get("status") not in {
+            "exact_sewing_history",
+            "exact_sewing_face_local_geometry",
+        }:
+            failures.append(f"source_face_{face_id}_edge_mapping_not_exact")
+
+        candidates: list[Mapping[str, Any]] = []
+        wire_rows = source_mapping.get("wire_rows")
+        if not isinstance(wire_rows, Sequence) or isinstance(
+            wire_rows, (str, bytes, bytearray)
+        ):
+            failures.append(f"source_face_{face_id}_wire_rows_malformed")
+            continue
+        for wire_row in wire_rows:
+            if not isinstance(wire_row, Mapping):
+                failures.append(f"source_face_{face_id}_wire_row_malformed")
+                continue
+            values = wire_row.get("source_edge_candidates")
+            if not isinstance(values, Sequence) or isinstance(
+                values, (str, bytes, bytearray)
+            ):
+                failures.append(
+                    f"source_face_{face_id}_edge_candidates_malformed"
+                )
+                continue
+            candidates.extend(
+                candidate for candidate in values if isinstance(candidate, Mapping)
+            )
+            if any(not isinstance(candidate, Mapping) for candidate in values):
+                failures.append(
+                    f"source_face_{face_id}_edge_candidate_not_mapping"
+                )
+
+        candidate_ids = [candidate.get("source_edge_id") for candidate in candidates]
+        if any(type(edge_id) is not int for edge_id in candidate_ids):
+            failures.append(f"source_face_{face_id}_edge_candidate_id_invalid")
+            continue
+        if sorted(map(int, candidate_ids)) != sorted(expected_edge_ids):
+            failures.append(
+                f"source_face_{face_id}_edge_occurrence_relation_mismatch"
+            )
+
+        for candidate in candidates:
+            if type(candidate.get("source_edge_id")) is not int:
+                continue
+            edge_id = int(candidate["source_edge_id"])
+            if not 0 <= edge_id < len(edge_rows):
+                failures.append(f"source_face_{face_id}_source_edge_id_out_of_range")
+                continue
+            observed_edge = candidate.get("observed_edge")
+            if observed_edge is None:
+                failures.append(
+                    f"source_face_{face_id}_source_edge_{edge_id}_handle_missing"
+                )
+                continue
+            if len(edge_rows[edge_id]) != 2:
+                failures.append(
+                    f"source_edge_{edge_id}_source_endpoints_malformed"
+                )
+                continue
+            try:
+                first, second = _edge_endpoint_handles(observed_edge)
+                observed_first = _identity_class_index(first, target_vertices)
+                observed_second = _identity_class_index(second, target_vertices)
+            except Exception as exc:
+                failures.append(
+                    f"source_face_{face_id}_source_edge_{edge_id}_"
+                    f"endpoint_identity_failed:{type(exc).__name__}"
+                )
+                continue
+            source_first, source_second = edge_rows[edge_id]
+            if source_first == source_second and observed_first != observed_second:
+                failures.append(
+                    f"source_edge_{edge_id}_self_loop_split_after_sewing"
+                )
+            if source_first != source_second and observed_first == observed_second:
+                failures.append(
+                    f"source_edge_{edge_id}_distinct_endpoints_merged_after_sewing"
+                )
+            constraints.append(
+                (
+                    source_index[source_first],
+                    source_index[source_second],
+                    observed_first,
+                    observed_second,
+                )
+            )
+
+    expected_occurrence_count = sum(map(len, face_rows))
+    if len(constraints) != expected_occurrence_count:
+        failures.append("source_vertex_constraint_occurrence_coverage_incomplete")
+    if observed_vertex_count > source_vertex_count:
+        failures.append("source_vertex_split_or_extra_observed_vertex")
+    elif observed_vertex_count < source_vertex_count:
+        failures.append("source_vertex_merge_or_missing_observed_vertex")
+    if failures:
+        return _source_vertex_lineage_failure(
+            proof_method=proof_method,
+            source_vertex_count=source_vertex_count,
+            observed_vertex_count=observed_vertex_count,
+            constraint_occurrence_count=len(constraints),
+            failure_codes=failures,
+        )
+
+    # An undirected edge permits exactly two pairings, not the Cartesian
+    # product produced by intersecting endpoint sets independently.  Search
+    # source vertices in constrained order, and require every completed map
+    # to replay every unordered endpoint pair exactly.  Two valid solutions
+    # are enough to prove non-uniqueness.
+    constraints_by_source: list[list[tuple[int, int, int]]] = [
+        [] for _ in source_vertex_ids
+    ]
+    for source_first, source_second, observed_first, observed_second in constraints:
+        constraints_by_source[source_first].append(
+            (source_second, observed_first, observed_second)
+        )
+        if source_second != source_first:
+            constraints_by_source[source_second].append(
+                (source_first, observed_first, observed_second)
+            )
+    compatibility = [
+        sorted(
+            set(range(observed_vertex_count)).intersection(
+                *(
+                    {observed_first, observed_second}
+                    for _other, observed_first, observed_second in vertex_constraints
+                )
+            )
+        )
+        if vertex_constraints
+        else list(range(observed_vertex_count))
+        for vertex_constraints in constraints_by_source
+    ]
+    order = sorted(range(source_vertex_count), key=lambda value: len(compatibility[value]))
+    solutions: list[list[int]] = []
+    assignment = [-1] * source_vertex_count
+
+    def search_vertex_assignment(depth: int, used: set[int]) -> None:
+        if len(solutions) >= 2:
+            return
+        if depth == len(order):
+            if all(
+                sorted((assignment[source_first], assignment[source_second]))
+                == sorted((observed_first, observed_second))
+                for source_first, source_second, observed_first, observed_second in constraints
+            ):
+                solutions.append(list(assignment))
+            return
+        source_id = order[depth]
+        for observed_id in compatibility[source_id]:
+            if observed_id in used:
+                continue
+            consistent = True
+            for other_source, observed_first, observed_second in constraints_by_source[source_id]:
+                other_observed = assignment[other_source]
+                if other_observed >= 0 and sorted((observed_id, other_observed)) != sorted(
+                    (observed_first, observed_second)
+                ):
+                    consistent = False
+                    break
+            if not consistent:
+                continue
+            assignment[source_id] = observed_id
+            search_vertex_assignment(depth + 1, {*used, observed_id})
+            assignment[source_id] = -1
+
+    search_vertex_assignment(0, set())
+    if len(solutions) != 1:
+        return _source_vertex_lineage_failure(
+            proof_method=proof_method,
+            source_vertex_count=source_vertex_count,
+            observed_vertex_count=observed_vertex_count,
+            constraint_occurrence_count=len(constraints),
+            solution_count=len(solutions),
+            failure_codes=[
+                "source_vertex_assignment_missing"
+                if not solutions
+                else "source_vertex_assignment_nonunique"
+            ],
+        )
+
+    assignment = solutions[0]
+    if any(
+        sorted((assignment[source_first], assignment[source_second]))
+        != sorted((observed_first, observed_second))
+        for source_first, source_second, observed_first, observed_second in constraints
+    ):
+        return _source_vertex_lineage_failure(
+            proof_method=proof_method,
+            source_vertex_count=source_vertex_count,
+            observed_vertex_count=observed_vertex_count,
+            constraint_occurrence_count=len(constraints),
+            solution_count=1,
+            failure_codes=["source_vertex_assignment_constraint_replay_failed"],
+        )
+    return {
+        "status": "exact_identity",
+        "proof_method": proof_method,
+        "solution_count": 1,
+        "solution_count_capped_at_two": True,
+        "source_vertex_count": int(source_vertex_count),
+        "observed_vertex_count": int(observed_vertex_count),
+        "mapped_source_vertex_count": int(source_vertex_count),
+        "mapped_observed_vertex_count": int(observed_vertex_count),
+        "max_observed_per_source": 1,
+        "max_source_per_observed": 1,
+        "constraint_occurrence_count": int(len(constraints)),
+        "failure_codes": [],
+    }
+
+
+def _bindings_with_vertex_lineage_gate(
+    source_face_bindings: Sequence[Mapping[str, Any]],
+    vertex_lineage: Mapping[str, Any],
+) -> tuple[dict[str, Any], ...]:
+    """Clone borrowed bindings and fail every clone closed on a global defect."""
+
+    exact = (
+        vertex_lineage.get("status") == "exact_identity"
+        and vertex_lineage.get("solution_count") == 1
+        and not vertex_lineage.get("failure_codes")
+    )
+    result: list[dict[str, Any]] = []
+    for binding in source_face_bindings:
+        cloned = dict(binding)
+        sewing = dict(cloned.get("sewing_lineage") or {})
+        if not exact:
+            sewing["status"] = "mapping_failed"
+            failures = list(sewing.get("failure_codes") or [])
+            failures.append("global_source_vertex_lineage_not_exact")
+            failures.extend(
+                str(value) for value in vertex_lineage.get("failure_codes") or []
+            )
+            sewing["failure_codes"] = list(dict.fromkeys(failures))
+        cloned["sewing_lineage"] = sewing
+        result.append(cloned)
+    return tuple(result)
 
 
 def _identity_or_geometry_edge_assignment(
@@ -398,6 +908,77 @@ def _unique_face_local_geometry_target(
     }
 
 
+ASSEMBLY_STAGE_PHASES: tuple[tuple[str, str], ...] = (
+    ("S1", "post_surface_curve_fit_pre_edge_build"),
+    ("S2", "post_edge_build_pre_face_build"),
+    ("S3", "post_add_pcurves_pre_optional_face_repair"),
+    ("S4", "post_optional_face_repair_pre_sewing"),
+    ("S5", "post_sewing_pre_solid"),
+    ("S6", "post_solid_pre_step"),
+)
+
+
+def _emit_assembly_stage_failure(
+    observer: Callable[[Any, Mapping[str, Any]], None] | None,
+    *,
+    stage: str,
+    phase: str,
+    failure_code: str,
+    failure: BaseException,
+    metadata: Mapping[str, Any],
+) -> None:
+    """Emit a path-free terminal boundary event without masking the cause."""
+    if observer is None:
+        return
+    _emit_assembly_stage_observation(
+        observer,
+        None,
+        stage=stage,
+        phase=phase,
+        metadata={
+            **dict(metadata),
+            "boundary_event": "terminal_failure",
+            "failure_code": str(failure_code),
+            "failure_type": type(failure).__name__,
+        },
+    )
+
+
+def _emit_assembly_stage_observation(
+    observer: Callable[[Any, Mapping[str, Any]], None] | None,
+    target: Any,
+    *,
+    stage: str,
+    phase: str,
+    metadata: Mapping[str, Any],
+) -> None:
+    """Invoke the borrowed-target observer without accepting a replacement.
+
+    The constructor deliberately ignores the callback return value.  The
+    native target and any handles in ``metadata`` are borrowed for immediate
+    measurement only; an observer has no mutation or replacement contract.
+    Callback failures stop construction and retain both the exact stage and
+    the original exception text for the isolated worker's failure record.
+    """
+    if observer is None:
+        return
+    expected_phases = dict(ASSEMBLY_STAGE_PHASES)
+    if expected_phases.get(stage) != phase:
+        raise RuntimeError(
+            "invalid assembly observation boundary "
+            f"stage={stage} phase={phase}"
+        )
+    payload = {**dict(metadata), "stage": stage, "phase": phase}
+    try:
+        observer(target, payload)
+    except Exception as exc:
+        raise RuntimeError(
+            "assembly_stage_observer_failed "
+            f"stage={stage} phase={phase} "
+            f"error_type={type(exc).__name__}: {exc}"
+        ) from exc
+
+
 def construct_brep_directed(
     surf_wcs: np.ndarray,
     edge_wcs: np.ndarray,
@@ -423,6 +1004,9 @@ def construct_brep_directed(
     assembly_stage_face_observer: (
         Callable[[int, Any, Mapping[str, Any]], None] | None
     ) = None,
+    assembly_stage_observer: (
+        Callable[[Any, Mapping[str, Any]], None] | None
+    ) = None,
     post_pcurve_face_mutator: (
         Callable[[int, Any, Mapping[str, Any]], tuple[Any, Mapping[str, Any]]] | None
     ) = None,
@@ -437,6 +1021,10 @@ def construct_brep_directed(
     The latter is a validation guard retained for historical profile parity;
     the former enables the narrowly scoped near-vertex reconciliation needed
     by the P0-A non-unit-solid case.
+
+    ``assembly_stage_observer`` is a default-off, observation-only six-stage
+    construction hook.  Its target is borrowed for immediate measurement, its
+    return value is ignored, and STEP roundtrip stage S7 belongs to the runner.
 
     The two mutators are experimental, default-off stage boundaries.  They may
     return a replacement only with ``diagnostics["accepted"] is True``.  A
@@ -517,7 +1105,6 @@ def construct_brep_directed(
         "precision_enabled": bool(surface_fit_precision),
         "tolerance": surface_fit_tolerance,
     }
-
     shared_vertices: dict[int, Any] = {}
     if shared_vertex_points:
         vertex_builder = BRep_Builder()
@@ -532,6 +1119,7 @@ def construct_brep_directed(
     edges = []
     curve_tolerances = []
     historical_fit_attempts = ((0, 8, 5e-3), (0, 8, 8e-3), (0, 8, 5e-2))
+
     for edge_index, points in enumerate(edge_wcs):
         raw_points = np.asarray(points, dtype=np.float64)
         fit_passes = []
@@ -658,22 +1246,130 @@ def construct_brep_directed(
                     }
                 )
         if curve is None:
-            raise RuntimeError(f"curve_fit_not_done edge={edge_index}")
-        if shared_vertices:
-            start_vertex, end_vertex = map(int, topology_edge_vertex_adj[edge_index])
-            if start_vertex != end_vertex:
-                builder = BRepBuilderAPI_MakeEdge(
-                    curve, shared_vertices[start_vertex], shared_vertices[end_vertex]
+            failure = RuntimeError(f"curve_fit_not_done edge={edge_index}")
+            _emit_assembly_stage_failure(
+                assembly_stage_observer,
+                stage="S1",
+                phase="post_surface_curve_fit_pre_edge_build",
+                failure_code="curve_fit_not_done",
+                failure=failure,
+                metadata={
+                    "entity_kind": "curve",
+                    "observation_scope": "distributed_source_edge_event",
+                    "source_edge_id": int(edge_index),
+                    "event_sequence_position": int(2 * edge_index),
+                    "expected_source_face_count": len(surfaces),
+                    "expected_source_edge_count": len(edge_wcs),
+                    "fitted_curve_prefix_count": int(edge_index),
+                    "built_edge_prefix_count": len(edges),
+                },
+            )
+            raise failure
+        # S1 and S2 are distributed, source-edge-bound observations.  Keeping
+        # both callbacks inside this historical fit -> MakeEdge loop is
+        # essential: enabling the census must not fit a later curve after an
+        # earlier edge builder would have stopped the unchanged constructor.
+        if assembly_stage_observer is not None:
+            _emit_assembly_stage_observation(
+                assembly_stage_observer,
+                curve,
+                stage="S1",
+                phase="post_surface_curve_fit_pre_edge_build",
+                metadata={
+                    "entity_kind": "curve",
+                    "boundary_event": "completed",
+                    "observation_scope": "distributed_source_edge_event",
+                    "source_edge_id": int(edge_index),
+                    "event_sequence_position": int(2 * edge_index),
+                    "expected_source_face_count": len(surfaces),
+                    "expected_source_edge_count": len(edge_wcs),
+                    "fitted_surface_count": len(surfaces),
+                    "fitted_curve_prefix_count": int(edge_index + 1),
+                    "built_edge_prefix_count": len(edges),
+                    "surface_fit_tolerance": float(surface_fit_tolerance),
+                    "source_vertex_ids": tuple(
+                        int(value) for value in edge_vertex_adj[edge_index]
+                    ),
+                    "effective_vertex_ids": tuple(
+                        int(value) for value in topology_edge_vertex_adj[edge_index]
+                    ),
+                    "source_surface_bindings": tuple(
+                        {
+                            "source_face_index": int(source_face_index),
+                            "surface": surface,
+                        }
+                        for source_face_index, surface in enumerate(surfaces)
+                    ),
+                },
+            )
+        try:
+            if shared_vertices:
+                start_vertex, end_vertex = map(
+                    int, topology_edge_vertex_adj[edge_index]
                 )
+                if start_vertex != end_vertex:
+                    builder = BRepBuilderAPI_MakeEdge(
+                        curve, shared_vertices[start_vertex], shared_vertices[end_vertex]
+                    )
+                else:
+                    # A closed edge cannot use one explicit vertex twice through
+                    # this OCC overload.  Preserve the original curve-only path.
+                    builder = BRepBuilderAPI_MakeEdge(curve)
             else:
-                # A closed edge cannot use one explicit vertex twice through
-                # this OCC overload.  Preserve the original curve-only path.
                 builder = BRepBuilderAPI_MakeEdge(curve)
-        else:
-            builder = BRepBuilderAPI_MakeEdge(curve)
-        if not builder.IsDone():
-            raise RuntimeError(f"edge_builder_not_done edge={edge_index}")
-        edges.append(builder.Edge())
+            if not builder.IsDone():
+                raise RuntimeError(f"edge_builder_not_done edge={edge_index}")
+            edge = builder.Edge()
+        except Exception as failure:
+            _emit_assembly_stage_failure(
+                assembly_stage_observer,
+                stage="S2",
+                phase="post_edge_build_pre_face_build",
+                failure_code="edge_builder_not_done",
+                failure=failure,
+                metadata={
+                    "entity_kind": "edge",
+                    "observation_scope": "distributed_source_edge_event",
+                    "source_edge_id": int(edge_index),
+                    "event_sequence_position": int(2 * edge_index + 1),
+                    "expected_source_face_count": len(surfaces),
+                    "expected_source_edge_count": len(edge_wcs),
+                    "fitted_curve_prefix_count": int(edge_index + 1),
+                    "built_edge_prefix_count": len(edges),
+                    "source_vertex_ids": tuple(
+                        int(value) for value in edge_vertex_adj[edge_index]
+                    ),
+                    "effective_vertex_ids": tuple(
+                        int(value) for value in topology_edge_vertex_adj[edge_index]
+                    ),
+                },
+            )
+            raise
+        edges.append(edge)
+        if assembly_stage_observer is not None:
+            _emit_assembly_stage_observation(
+                assembly_stage_observer,
+                edge,
+                stage="S2",
+                phase="post_edge_build_pre_face_build",
+                metadata={
+                    "entity_kind": "edge",
+                    "boundary_event": "completed",
+                    "observation_scope": "distributed_source_edge_event",
+                    "source_edge_id": int(edge_index),
+                    "event_sequence_position": int(2 * edge_index + 1),
+                    "expected_source_face_count": len(surfaces),
+                    "expected_source_edge_count": len(edge_wcs),
+                    "fitted_curve_prefix_count": int(edge_index + 1),
+                    "built_edge_prefix_count": len(edges),
+                    "source_vertex_ids": tuple(
+                        int(value) for value in edge_vertex_adj[edge_index]
+                    ),
+                    "effective_vertex_ids": tuple(
+                        int(value) for value in topology_edge_vertex_adj[edge_index]
+                    ),
+                },
+            )
 
     def exact_source_edge_mapping(
         observed_face: Any,
@@ -867,6 +1563,7 @@ def construct_brep_directed(
         if (
             post_pcurve_face_observer is not None
             or assembly_stage_face_observer is not None
+            or assembly_stage_observer is not None
             or post_pcurve_face_mutator is not None
             or post_sewing_shape_mutator is not None
         ):
@@ -918,11 +1615,65 @@ def construct_brep_directed(
         brep_utils.fix_wires(face)
         brep_utils.add_pcurves_to_edges(face)
         post_pcurve_mapping = None
-        if assembly_stage_face_observer is not None or post_pcurve_face_mutator is not None:
+        if (
+            assembly_stage_face_observer is not None
+            or assembly_stage_observer is not None
+            or post_pcurve_face_mutator is not None
+        ):
             post_pcurve_mapping = exact_source_edge_mapping(
                 face,
                 source_edge_occurrences=source_edge_occurrences,
             )
+        if (
+            assembly_stage_face_observer is not None
+            or assembly_stage_observer is not None
+            or post_sewing_shape_mutator is not None
+        ):
+            source_loop_edge_uses = [
+                [
+                    {
+                        "loop_index": int(loop_index),
+                        "loop_position": int(loop_position),
+                        "source_edge_id": int(edge_id),
+                        "reversed": bool(reverse),
+                        "endpoint_gap_to_next_3d": float(
+                            loop_endpoint_gaps[loop_index][loop_position]
+                        ),
+                    }
+                    for loop_position, (edge_id, reverse) in enumerate(loop)
+                ]
+                for loop_index, loop in enumerate(loops)
+            ]
+            source_face_observation = {
+                "entity_kind": "face",
+                "source_face_index": int(face_index),
+                "source_loop_edge_uses": source_loop_edge_uses,
+                "outer_loop_index": int(outer_index),
+                "loop_3d_endpoint_gaps": loop_endpoint_gaps,
+                "loop_3d_endpoint_max_gaps": loop_endpoint_max_gaps,
+                "face_3d_endpoint_max_gap": max(
+                    loop_endpoint_max_gaps, default=0.0
+                ),
+            }
+            face_observation_metadata.append(source_face_observation)
+            if assembly_stage_observer is not None:
+                _emit_assembly_stage_observation(
+                    assembly_stage_observer,
+                    face,
+                    stage="S3",
+                    phase="post_add_pcurves_pre_optional_face_repair",
+                    metadata={
+                        **source_face_observation,
+                        "boundary_event": "completed",
+                        "observation_scope": "distributed_source_face_event",
+                        "event_sequence_position": int(2 * face_index),
+                        "constructed_face_prefix_count": int(face_index + 1),
+                        "post_repair_face_prefix_count": int(face_index),
+                        "expected_source_face_count": len(surfaces),
+                        "expected_source_edge_count": len(edges),
+                        "source_mapping": post_pcurve_mapping,
+                    },
+                )
         if post_pcurve_face_mutator is not None:
             mutated_face, mutation_diagnostics = post_pcurve_face_mutator(
                 int(face_index),
@@ -974,44 +1725,16 @@ def construct_brep_directed(
                     ),
                 },
             )
-        if assembly_stage_face_observer is not None or post_sewing_shape_mutator is not None:
-            source_loop_edge_uses = [
-                [
-                    {
-                        "loop_index": int(loop_index),
-                        "loop_position": int(loop_position),
-                        "source_edge_id": int(edge_id),
-                        "reversed": bool(reverse),
-                        "endpoint_gap_to_next_3d": float(
-                            loop_endpoint_gaps[loop_index][loop_position]
-                        ),
-                    }
-                    for loop_position, (edge_id, reverse) in enumerate(loop)
-                ]
-                for loop_index, loop in enumerate(loops)
-            ]
-            source_face_observation = {
-                "entity_kind": "face",
-                "source_face_index": int(face_index),
-                "source_loop_edge_uses": source_loop_edge_uses,
-                "outer_loop_index": int(outer_index),
-                "loop_3d_endpoint_gaps": loop_endpoint_gaps,
-                "loop_3d_endpoint_max_gaps": loop_endpoint_max_gaps,
-                "face_3d_endpoint_max_gap": max(
-                    loop_endpoint_max_gaps, default=0.0
-                ),
-            }
-            face_observation_metadata.append(source_face_observation)
-            if assembly_stage_face_observer is not None:
-                assembly_stage_face_observer(
-                    int(face_index),
-                    face,
-                    {
-                        "phase": "post_add_pcurves_pre_repair",
-                        **source_face_observation,
-                        "source_mapping": post_pcurve_mapping,
-                    },
-                )
+        if assembly_stage_face_observer is not None:
+            assembly_stage_face_observer(
+                int(face_index),
+                face,
+                {
+                    "phase": "post_add_pcurves_pre_repair",
+                    **source_face_observation,
+                    "source_mapping": post_pcurve_mapping,
+                },
+            )
         if local_pcurve_continuity:
             try:
                 from .local_wire_topology_repair import repair_face_local_pcurve
@@ -1078,7 +1801,11 @@ def construct_brep_directed(
         else:
             brep_utils.fix_wires(face)
             face = brep_utils.fix_face(face)
-        if assembly_stage_face_observer is not None or post_sewing_shape_mutator is not None:
+        if (
+            assembly_stage_face_observer is not None
+            or assembly_stage_observer is not None
+            or post_sewing_shape_mutator is not None
+        ):
             pre_sewing_mapping = exact_source_edge_mapping(
                 face,
                 source_edge_occurrences=source_edge_occurrences,
@@ -1103,6 +1830,24 @@ def construct_brep_directed(
                         "source_mapping": pre_sewing_mapping,
                     },
                 )
+            if assembly_stage_observer is not None:
+                _emit_assembly_stage_observation(
+                    assembly_stage_observer,
+                    face,
+                    stage="S4",
+                    phase="post_optional_face_repair_pre_sewing",
+                    metadata={
+                        **source_face_observation,
+                        "boundary_event": "completed",
+                        "observation_scope": "distributed_source_face_event",
+                        "event_sequence_position": int(2 * face_index + 1),
+                        "constructed_face_prefix_count": int(face_index + 1),
+                        "post_repair_face_prefix_count": int(face_index + 1),
+                        "expected_source_face_count": len(surfaces),
+                        "expected_source_edge_count": len(edges),
+                        "source_mapping": pre_sewing_mapping,
+                    },
+                )
         faces.append(face)
 
     sewing_tolerance_value = float(sewing_tolerance)
@@ -1116,7 +1861,11 @@ def construct_brep_directed(
     sewing.Perform()
     sewn = sewing.SewedShape()
     post_sewing_bindings: list[dict[str, Any]] = []
-    if assembly_stage_face_observer is not None or post_sewing_shape_mutator is not None:
+    if (
+        assembly_stage_face_observer is not None
+        or assembly_stage_observer is not None
+        or post_sewing_shape_mutator is not None
+    ):
         sewn_faces = list(
             TopologyExplorer(sewn, ignore_orientation=False).faces()
         )
@@ -1187,6 +1936,31 @@ def construct_brep_directed(
                         "source_mapping": source_mapping,
                     },
                 )
+    if assembly_stage_observer is not None:
+        s5_vertex_lineage = _prove_global_source_vertex_lineage(
+            sewn,
+            post_sewing_bindings,
+            face_edge_adj,
+            topology_edge_vertex_adj,
+        )
+        s5_source_face_bindings = _bindings_with_vertex_lineage_gate(
+            post_sewing_bindings, s5_vertex_lineage
+        )
+        _emit_assembly_stage_observation(
+            assembly_stage_observer,
+            sewn,
+            stage="S5",
+            phase="post_sewing_pre_solid",
+            metadata={
+                "entity_kind": "shape",
+                "expected_source_face_count": len(faces),
+                "expected_source_edge_count": len(edges),
+                "sewn_face_count": len(sewn_faces),
+                "sewing_tolerance": sewing_tolerance_value,
+                "source_face_bindings": s5_source_face_bindings,
+                "source_vertex_lineage": s5_vertex_lineage,
+            },
+        )
     if post_sewing_shape_mutator is not None:
         mutated_sewn, mutation_diagnostics = post_sewing_shape_mutator(
             sewn,
@@ -1230,6 +2004,38 @@ def construct_brep_directed(
         solid_count += 1
         solid_explorer.Next()
     diagnostics["solid_count"] = solid_count
+    if assembly_stage_observer is not None:
+        s6_vertex_lineage = _prove_global_source_vertex_lineage(
+            solid,
+            post_sewing_bindings,
+            face_edge_adj,
+            topology_edge_vertex_adj,
+        )
+        s6_source_face_bindings = _bindings_with_vertex_lineage_gate(
+            post_sewing_bindings, s6_vertex_lineage
+        )
+        _emit_assembly_stage_observation(
+            assembly_stage_observer,
+            solid,
+            stage="S6",
+            phase="post_solid_pre_step",
+            metadata={
+                "entity_kind": "shape",
+                "expected_source_face_count": len(faces),
+                "expected_source_edge_count": len(edges),
+                "shell_count": len(shells),
+                "solid_count": solid_count,
+                "sewing_tolerance": sewing_tolerance_value,
+                "post_sewing_mutation_enabled": (
+                    post_sewing_shape_mutator is not None
+                ),
+                "effective_input_topology": dict(
+                    diagnostics["effective_input_topology"]
+                ),
+                "source_face_bindings": s6_source_face_bindings,
+                "source_vertex_lineage": s6_vertex_lineage,
+            },
+        )
     if single_solid and solid_count != 1:
         raise RuntimeError(f"solid_builder_produced_solid_count={solid_count}")
     return solid, diagnostics

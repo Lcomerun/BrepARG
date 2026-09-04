@@ -76,6 +76,17 @@ EXACT_LINEAGE_STATUSES = {
 }
 STEP_EDGE_TOLERANCE_NORMALIZED = 1e-4
 STEP_CURVE_SAMPLE_COUNT = 17
+
+
+class StepGeometryIncidenceMatchingError(RuntimeError):
+    """Signal an internal S7 measurement failure to a strict formal caller.
+
+    Ordinary zero-match or non-unique geometry assignments are scientific
+    observations returned by ``_match_step_geometry_incidence``.  This
+    exception is reserved for an unexpected failure while constructing that
+    proof, so a formal census can retain the cell as ``worker_error`` instead
+    of misreporting a program/runtime fault as geometric evidence.
+    """
 FAILURE_STATUSES = {
     "worker_timeout",
     "worker_process_exit",
@@ -1093,6 +1104,51 @@ def _occ_edge_fingerprint(
     return fingerprint
 
 
+def _occ_edge_endpoint_vertices(edge: Any) -> list[dict[str, Any]]:
+    """Return the two private endpoint occurrences and their finite 3-D points.
+
+    Endpoint order is retained only as an occurrence order.  It is never used
+    as source correspondence: the global STEP proof below compares endpoint
+    identity pairs direction-free and preserves a self-loop as two occurrences
+    of the same vertex.
+    """
+    from OCC.Core.BRep import BRep_Tool
+    from OCC.Extend.TopologyUtils import TopologyExplorer
+
+    vertices = list(TopologyExplorer(edge, ignore_orientation=False).vertices())
+    if len(vertices) != 2:
+        raise RuntimeError("step_edge_endpoint_occurrence_count_not_two")
+    result = []
+    for vertex in vertices:
+        point = BRep_Tool.Pnt(vertex)
+        coordinates = np.asarray(
+            (float(point.X()), float(point.Y()), float(point.Z())),
+            dtype=np.float64,
+        )
+        if coordinates.shape != (3,) or not np.isfinite(coordinates).all():
+            raise RuntimeError("step_vertex_point_nonfinite_or_malformed")
+        result.append({"observed_vertex": vertex, "point": coordinates})
+    return result
+
+
+def _occ_step_vertex_signatures(shape: Any) -> list[dict[str, Any]]:
+    """Enumerate STEP vertices with native identity and finite WCS points."""
+    from OCC.Core.BRep import BRep_Tool
+    from OCC.Extend.TopologyUtils import TopologyExplorer
+
+    result = []
+    for vertex in TopologyExplorer(shape, ignore_orientation=True).vertices():
+        point = BRep_Tool.Pnt(vertex)
+        coordinates = np.asarray(
+            (float(point.X()), float(point.Y()), float(point.Z())),
+            dtype=np.float64,
+        )
+        if coordinates.shape != (3,) or not np.isfinite(coordinates).all():
+            raise RuntimeError("step_vertex_point_nonfinite_or_malformed")
+        result.append({"observed_vertex": vertex, "point": coordinates})
+    return result
+
+
 def _occ_topology_list(shape: Any, kind: Any) -> list[Any]:
     from OCC.Core.TopExp import TopExp_Explorer
 
@@ -1126,7 +1182,9 @@ def _fixed_diagnosis_edges(wire: Any, face: Any) -> list[Any]:
     return [data.Edge(position) for position in range(1, int(analysis.NbEdges()) + 1)]
 
 
-def _occ_step_face_signature(face: Any) -> dict[str, Any]:
+def _occ_step_face_signature(
+    face: Any, *, include_vertex_proof: bool = False
+) -> dict[str, Any]:
     from OCC.Core.BRepAdaptor import BRepAdaptor_Surface
     from OCC.Core.BRepTools import breptools
     from OCC.Core.TopAbs import TopAbs_WIRE
@@ -1143,7 +1201,18 @@ def _occ_step_face_signature(face: Any) -> dict[str, Any]:
                 "observed_wire": wire,
                 "outer": bool(not outer.IsNull() and wire.IsSame(outer)),
                 "edges": [
-                    {"observed_edge": edge, "fingerprint": _occ_edge_fingerprint(edge, face=face)}
+                    {
+                        "observed_edge": edge,
+                        "fingerprint": _occ_edge_fingerprint(edge, face=face),
+                        **(
+                            {
+                                "step_vertex_endpoints":
+                                    _occ_edge_endpoint_vertices(edge)
+                            }
+                            if include_vertex_proof
+                            else {}
+                        ),
+                    }
                     for edge in edges
                 ],
             }
@@ -1164,6 +1233,7 @@ def _source_face_signature_from_observer(
     source_mapping: Mapping[str, Any],
     *,
     expected_edge_ids: Sequence[int],
+    edge_vertex_adj: Sequence[Sequence[int]] | None = None,
 ) -> dict[str, Any]:
     """Turn private post-sewing proof handles into a source face signature."""
     from OCC.Core.BRepAdaptor import BRepAdaptor_Surface
@@ -1199,13 +1269,43 @@ def _source_face_signature_from_observer(
             if type(source_edge_id) is not int or observed_edge is None:
                 raise RuntimeError(f"source_face_{source_face_index}_edge_candidate_invalid")
             observed_ids.append(source_edge_id)
-            edges.append(
-                {
-                    "source_edge_id": source_edge_id,
-                    "observed_edge": observed_edge,
-                    "fingerprint": _occ_edge_fingerprint(observed_edge, face=face),
-                }
-            )
+            edge_row = {
+                "source_edge_id": source_edge_id,
+                "observed_edge": observed_edge,
+                "fingerprint": _occ_edge_fingerprint(observed_edge, face=face),
+            }
+            if edge_vertex_adj is not None:
+                if not 0 <= source_edge_id < len(edge_vertex_adj):
+                    raise RuntimeError(
+                        f"source_edge_{source_edge_id}_endpoint_labels_missing"
+                    )
+                endpoint_labels = edge_vertex_adj[source_edge_id]
+                if (
+                    not isinstance(endpoint_labels, Sequence)
+                    and not isinstance(endpoint_labels, np.ndarray)
+                ) or isinstance(endpoint_labels, (str, bytes)):
+                    raise RuntimeError(
+                        f"source_edge_{source_edge_id}_endpoint_labels_malformed"
+                    )
+                labels = list(endpoint_labels)
+                if len(labels) != 2 or any(type(value) is not int for value in labels):
+                    # NumPy integer scalars are normalized explicitly without
+                    # accepting floats or booleans as identity labels.
+                    if len(labels) != 2 or any(
+                        isinstance(value, (bool, np.bool_))
+                        or not isinstance(value, (int, np.integer))
+                        for value in labels
+                    ):
+                        raise RuntimeError(
+                            f"source_edge_{source_edge_id}_endpoint_labels_malformed"
+                        )
+                normalized_labels = tuple(int(value) for value in labels)
+                if any(value < 0 for value in normalized_labels):
+                    raise RuntimeError(
+                        f"source_edge_{source_edge_id}_endpoint_labels_malformed"
+                    )
+                edge_row["source_vertex_ids"] = normalized_labels
+            edges.append(edge_row)
         wires.append(
             {
                 "observed_wire": wire,
@@ -1318,19 +1418,592 @@ def _validate_global_edge_incidence(
     return failures
 
 
+STEP_VERTEX_PROOF_METHOD = (
+    "unique_global_incident_mapped_edge_multiset_and_3d_point_v1"
+)
+
+
+def _finite_point3(value: Any) -> np.ndarray | None:
+    """Normalize one private point without ever placing it in public proof."""
+    try:
+        point = np.asarray(value, dtype=np.float64)
+    except (TypeError, ValueError):
+        return None
+    if point.shape != (3,) or not np.isfinite(point).all():
+        return None
+    return point
+
+
+def _normalize_source_vertex_points(
+    source_vertex_points: Mapping[int, Any] | Sequence[Any] | np.ndarray | None,
+    source_vertex_ids: Sequence[int],
+) -> dict[int, np.ndarray] | None:
+    """Bind every derived source vertex identity to exactly one finite point."""
+    expected = sorted(set(int(value) for value in source_vertex_ids))
+    if source_vertex_points is None:
+        return None
+    rows: dict[int, Any] = {}
+    if isinstance(source_vertex_points, Mapping):
+        for raw_key, point in source_vertex_points.items():
+            if (
+                isinstance(raw_key, (bool, np.bool_))
+                or not isinstance(raw_key, (int, np.integer))
+                or int(raw_key) < 0
+                or int(raw_key) in rows
+            ):
+                return None
+            rows[int(raw_key)] = point
+    else:
+        try:
+            values = np.asarray(source_vertex_points, dtype=np.float64)
+        except (TypeError, ValueError):
+            return None
+        if values.ndim != 2 or values.shape[1:] != (3,):
+            return None
+        rows = {index: values[index] for index in range(len(values))}
+    if sorted(rows) != expected:
+        return None
+    normalized = {vertex_id: _finite_point3(rows[vertex_id]) for vertex_id in expected}
+    if any(point is None for point in normalized.values()):
+        return None
+    return {vertex_id: point for vertex_id, point in normalized.items() if point is not None}
+
+
+def _source_vertex_points_from_edge_endpoints(
+    edge_wcs: Sequence[Any] | np.ndarray,
+    edge_vertex_adj: Sequence[Sequence[int]] | np.ndarray,
+    *,
+    scale: float,
+    tolerance: float = STEP_EDGE_TOLERANCE_NORMALIZED,
+) -> dict[int, list[float]]:
+    """Derive direction-bound source vertex points before OCC face traversal.
+
+    ``cpu_joint_optimize`` orients every optimized curve so its first and last
+    samples correspond to the first and second labels in ``edge_vertex_adj``.
+    This helper consumes that pre-construction contract directly; it never
+    infers direction from a face, wire, STEP explorer, or OCC edge orientation.
+    Every occurrence of one label must agree geometrically within the same
+    frozen normalized STEP tolerance.  Returned points are finite JSON-native
+    lists so callers cannot accidentally serialize NumPy objects or handles.
+    """
+    shape_scale = float(scale)
+    normalized_tolerance = float(tolerance)
+    if not math.isfinite(shape_scale) or shape_scale <= 0:
+        raise ValueError("source vertex scale must be finite and positive")
+    if not math.isfinite(normalized_tolerance) or normalized_tolerance < 0:
+        raise ValueError(
+            "source vertex tolerance must be finite and nonnegative"
+        )
+    absolute_tolerance = normalized_tolerance * shape_scale
+    if not math.isfinite(absolute_tolerance):
+        raise ValueError("source vertex absolute tolerance is non-finite")
+    if isinstance(edge_wcs, (str, bytes)) or isinstance(edge_vertex_adj, (str, bytes)):
+        raise ValueError("source edge endpoint inputs are malformed")
+    try:
+        curves = list(edge_wcs)
+        adjacency_rows = list(edge_vertex_adj)
+    except TypeError as exc:
+        raise ValueError("source edge endpoint inputs are malformed") from exc
+    if not curves or len(curves) != len(adjacency_rows):
+        raise ValueError("source edge and endpoint-label counts differ or are empty")
+
+    occurrences: dict[int, list[np.ndarray]] = defaultdict(list)
+    for edge_id, (curve_value, adjacency_value) in enumerate(
+        zip(curves, adjacency_rows)
+    ):
+        curve = np.asarray(curve_value, dtype=np.float64)
+        if (
+            curve.ndim != 2
+            or curve.shape[1:] != (3,)
+            or len(curve) < 2
+            or not np.isfinite(curve).all()
+        ):
+            raise ValueError(f"source edge {edge_id} curve is non-finite or malformed")
+        if isinstance(adjacency_value, (str, bytes)):
+            raise ValueError(f"source edge {edge_id} endpoint labels are malformed")
+        try:
+            labels = list(adjacency_value)
+        except TypeError as exc:
+            raise ValueError(
+                f"source edge {edge_id} endpoint labels are malformed"
+            ) from exc
+        if len(labels) != 2 or any(
+            isinstance(value, (bool, np.bool_))
+            or not isinstance(value, (int, np.integer))
+            or int(value) < 0
+            for value in labels
+        ):
+            raise ValueError(f"source edge {edge_id} endpoint labels are malformed")
+        occurrences[int(labels[0])].append(curve[0].copy())
+        occurrences[int(labels[1])].append(curve[-1].copy())
+    vertex_ids = sorted(occurrences)
+    if vertex_ids != list(range(len(vertex_ids))):
+        raise ValueError("source vertex endpoint labels are not contiguous")
+
+    result: dict[int, list[float]] = {}
+    for vertex_id in vertex_ids:
+        points = np.asarray(occurrences[vertex_id], dtype=np.float64)
+        # Check the full diameter, not only distance from an average, so two
+        # extreme occurrences cannot each consume the tolerance in opposite
+        # directions and pass with a two-tolerance separation.
+        diameter = max(
+            (
+                float(np.linalg.norm(points[left] - points[right]))
+                for left in range(len(points))
+                for right in range(left + 1, len(points))
+            ),
+            default=0.0,
+        )
+        if not math.isfinite(diameter) or diameter > absolute_tolerance:
+            raise ValueError(
+                f"source vertex {vertex_id} endpoint occurrences exceed tolerance"
+            )
+        representative = np.mean(points, axis=0)
+        if representative.shape != (3,) or not np.isfinite(representative).all():
+            raise ValueError(
+                f"source vertex {vertex_id} representative is non-finite"
+            )
+        result[vertex_id] = [float(value) for value in representative]
+    return result
+
+
+def _identity_match_indices(value: Any, candidates: Sequence[Any]) -> list[int]:
+    """Return all native-identity matches without using sequence position."""
+    matches = []
+    for index, candidate in enumerate(candidates):
+        if _same_occ_shape(value, candidate):
+            matches.append(index)
+    return matches
+
+
+def _match_step_vertex_incidence(
+    mapped_edge_occurrences: Sequence[Mapping[str, Any]],
+    step_vertices: Sequence[Mapping[str, Any]] | None,
+    *,
+    source_vertex_points: Mapping[int, Any] | Sequence[Any] | np.ndarray | None,
+    expected_source_edge_ids: Sequence[int] | None = None,
+    scale: float,
+    tolerance: float = STEP_EDGE_TOLERANCE_NORMALIZED,
+) -> dict[str, Any]:
+    """Prove one global source-vertex to STEP-vertex bijection.
+
+    Source vertex identities come only from the two endpoint labels carried by
+    each uniquely mapped source edge.  STEP vertex identities come only from
+    native ``IsSame`` identity.  Candidate pairs must have the exact same
+    multiset of incident mapped source-edge ids (so a self-loop contributes
+    the same edge id twice) and be geometrically within ``tolerance * scale``.
+    The resulting bijection is accepted only when its perfect matching is
+    unique and every mapped edge endpoint pair agrees direction-free.
+    """
+    shape_scale = float(scale)
+    normalized_tolerance = float(tolerance)
+    if not math.isfinite(shape_scale) or shape_scale <= 0:
+        raise ValueError("STEP vertex proof scale must be finite and positive")
+    if not math.isfinite(normalized_tolerance) or normalized_tolerance < 0:
+        raise ValueError("STEP vertex proof tolerance must be finite and nonnegative")
+    absolute_tolerance = normalized_tolerance * shape_scale
+    if not math.isfinite(absolute_tolerance):
+        raise ValueError("STEP vertex proof absolute tolerance is non-finite")
+
+    public: dict[str, Any] = {
+        "vertex_proof_method": STEP_VERTEX_PROOF_METHOD,
+        "vertex_tolerance_normalized": normalized_tolerance,
+        "vertex_candidate_degree_counts": {},
+        "vertex_matching_count_capped": 0,
+        "source_vertex_count": 0,
+        "step_vertex_count": 0,
+        "mapped_source_edge_count": 0,
+        "edge_endpoint_pair_expected_count": 0,
+        "edge_endpoint_pair_proof_count": 0,
+        "edge_endpoint_occurrence_expected_count": 0,
+        "edge_endpoint_occurrence_proof_count": 0,
+        "self_loop_endpoint_pair_expected_count": 0,
+        "self_loop_endpoint_pair_proof_count": 0,
+    }
+
+    # Collapse repeated face occurrences only after the global edge proof has
+    # established that they carry one STEP edge identity per source edge id.
+    by_source_edge: dict[int, list[Mapping[str, Any]]] = defaultdict(list)
+    for occurrence in mapped_edge_occurrences:
+        source_edge_id = occurrence.get("source_edge_id")
+        if type(source_edge_id) is not int or source_edge_id < 0:
+            return {
+                "status": "unavailable",
+                "failure_codes": ["vertex_proof_mapped_edge_invalid"],
+                **public,
+            }
+        by_source_edge[int(source_edge_id)].append(occurrence)
+    if not by_source_edge:
+        return {
+            "status": "unavailable",
+            "failure_codes": ["vertex_proof_mapped_edges_missing"],
+            **public,
+        }
+    public["mapped_source_edge_count"] = len(by_source_edge)
+    if expected_source_edge_ids is not None:
+        try:
+            expected_edges = [int(value) for value in expected_source_edge_ids]
+        except (TypeError, ValueError):
+            expected_edges = []
+        if (
+            any(
+                isinstance(value, (bool, np.bool_))
+                or not isinstance(value, (int, np.integer))
+                or int(value) < 0
+                for value in expected_source_edge_ids
+            )
+            or len(expected_edges) != len(set(expected_edges))
+            or sorted(by_source_edge) != sorted(expected_edges)
+        ):
+            return {
+                "status": "unavailable",
+                "failure_codes": ["mapped_source_edge_census_incomplete"],
+                **public,
+            }
+
+    edge_rows: list[dict[str, Any]] = []
+    source_vertex_ids: set[int] = set()
+    for source_edge_id, occurrences in sorted(by_source_edge.items()):
+        representative = occurrences[0]
+        raw_labels = representative.get("source_vertex_ids")
+        if (
+            not isinstance(raw_labels, Sequence)
+            and not isinstance(raw_labels, np.ndarray)
+        ) or isinstance(raw_labels, (str, bytes)):
+            return {
+                "status": "unavailable",
+                "failure_codes": [
+                    f"source_edge_{source_edge_id}_endpoint_labels_missing"
+                ],
+                **public,
+            }
+        labels = list(raw_labels)
+        if len(labels) != 2 or any(
+            isinstance(value, (bool, np.bool_))
+            or not isinstance(value, (int, np.integer))
+            or int(value) < 0
+            for value in labels
+        ):
+            return {
+                "status": "unavailable",
+                "failure_codes": [
+                    f"source_edge_{source_edge_id}_endpoint_labels_malformed"
+                ],
+                **public,
+            }
+        source_labels = tuple(int(value) for value in labels)
+        endpoint_pairs: list[list[Mapping[str, Any]]] = []
+        for duplicate in occurrences[1:]:
+            duplicate_labels = duplicate.get("source_vertex_ids")
+            if (
+                not isinstance(duplicate_labels, Sequence)
+                and not isinstance(duplicate_labels, np.ndarray)
+            ) or isinstance(duplicate_labels, (str, bytes)):
+                same_labels = False
+            else:
+                duplicate_labels = list(duplicate_labels)
+                same_labels = (
+                    len(duplicate_labels) == 2
+                    and not any(
+                        isinstance(value, (bool, np.bool_))
+                        or not isinstance(value, (int, np.integer))
+                        or int(value) < 0
+                        for value in duplicate_labels
+                    )
+                    and Counter(int(value) for value in duplicate_labels)
+                    == Counter(source_labels)
+                )
+            if not same_labels:
+                return {
+                    "status": "unavailable",
+                    "failure_codes": [
+                        f"source_edge_{source_edge_id}_endpoint_labels_inconsistent"
+                ],
+                **public,
+            }
+        endpoints = representative.get("step_vertex_endpoints")
+        if (
+            not isinstance(endpoints, Sequence)
+            or isinstance(endpoints, (str, bytes))
+            or len(endpoints) != 2
+            or any(not isinstance(row, Mapping) for row in endpoints)
+        ):
+            return {
+                "status": "unavailable",
+                "failure_codes": [
+                    f"source_edge_{source_edge_id}_step_endpoints_missing"
+                ],
+                **public,
+            }
+        endpoint_pairs.append(list(endpoints))
+        for duplicate in occurrences[1:]:
+            duplicate_endpoints = duplicate.get("step_vertex_endpoints")
+            if (
+                not isinstance(duplicate_endpoints, Sequence)
+                or isinstance(duplicate_endpoints, (str, bytes))
+                or len(duplicate_endpoints) != 2
+                or any(not isinstance(row, Mapping) for row in duplicate_endpoints)
+            ):
+                return {
+                    "status": "unavailable",
+                    "failure_codes": [
+                        f"source_edge_{source_edge_id}_step_endpoints_inconsistent"
+                    ],
+                    **public,
+                }
+            endpoint_pairs.append(list(duplicate_endpoints))
+        source_vertex_ids.update(source_labels)
+        edge_rows.append(
+            {
+                "source_edge_id": source_edge_id,
+                "source_vertex_ids": source_labels,
+                "step_vertex_endpoint_pairs": endpoint_pairs,
+            }
+        )
+
+    source_ids = sorted(source_vertex_ids)
+    points_by_source = _normalize_source_vertex_points(
+        source_vertex_points, source_ids
+    )
+    public["source_vertex_count"] = len(source_ids)
+    public["edge_endpoint_pair_expected_count"] = len(edge_rows)
+    public["edge_endpoint_occurrence_expected_count"] = 2 * len(edge_rows)
+    public["self_loop_endpoint_pair_expected_count"] = sum(
+        labels[0] == labels[1]
+        for labels in (row["source_vertex_ids"] for row in edge_rows)
+    )
+    if points_by_source is None:
+        return {
+            "status": "unavailable",
+            "failure_codes": ["source_vertex_points_missing_or_malformed"],
+            **public,
+        }
+
+    if (
+        not isinstance(step_vertices, Sequence)
+        or isinstance(step_vertices, (str, bytes))
+        or not step_vertices
+        or any(not isinstance(row, Mapping) for row in step_vertices)
+    ):
+        return {
+            "status": "unavailable",
+            "failure_codes": ["step_vertices_missing_or_malformed"],
+            **public,
+        }
+    step_handles: list[Any] = []
+    step_points: list[np.ndarray] = []
+    for row in step_vertices:
+        handle = row.get("observed_vertex")
+        point = _finite_point3(row.get("point"))
+        if handle is None or point is None:
+            return {
+                "status": "unavailable",
+                "failure_codes": ["step_vertices_missing_or_malformed"],
+                **public,
+            }
+        step_handles.append(handle)
+        step_points.append(point)
+    public["step_vertex_count"] = len(step_handles)
+    for index, handle in enumerate(step_handles):
+        if _identity_match_indices(handle, step_handles[index + 1 :]):
+            return {
+                "status": "unavailable",
+                "failure_codes": ["step_vertex_identity_not_unique"],
+                **public,
+            }
+    if len(source_ids) != len(step_handles):
+        return {
+            "status": "unavailable",
+            "failure_codes": ["source_step_vertex_count_mismatch"],
+            **public,
+        }
+
+    source_incidence = {vertex_id: Counter() for vertex_id in source_ids}
+    step_incidence = [Counter() for _ in step_handles]
+    endpoint_step_indices: dict[int, tuple[int, int]] = {}
+    endpoint_identity_proofs = 0
+    for row in edge_rows:
+        source_edge_id = int(row["source_edge_id"])
+        for source_vertex_id in row["source_vertex_ids"]:
+            source_incidence[int(source_vertex_id)][source_edge_id] += 1
+        representative_step_indices: tuple[int, int] | None = None
+        for occurrence_position, endpoints in enumerate(
+            row["step_vertex_endpoint_pairs"]
+        ):
+            step_indices = []
+            for endpoint in endpoints:
+                endpoint_handle = endpoint.get("observed_vertex")
+                endpoint_point = _finite_point3(endpoint.get("point"))
+                if endpoint_handle is None or endpoint_point is None:
+                    return {
+                        "status": "unavailable",
+                        "failure_codes": [
+                            f"source_edge_{source_edge_id}_step_endpoint_malformed"
+                        ],
+                        **public,
+                    }
+                matches = _identity_match_indices(endpoint_handle, step_handles)
+                if len(matches) != 1:
+                    reason = (
+                        "step_endpoint_not_in_global_vertices"
+                        if not matches
+                        else "step_endpoint_global_vertex_not_unique"
+                    )
+                    return {
+                        "status": "unavailable",
+                        "failure_codes": [
+                            f"source_edge_{source_edge_id}_{reason}"
+                        ],
+                        **public,
+                    }
+                step_index = matches[0]
+                if (
+                    float(
+                        np.linalg.norm(
+                            endpoint_point - step_points[step_index]
+                        )
+                    )
+                    > absolute_tolerance
+                ):
+                    return {
+                        "status": "unavailable",
+                        "failure_codes": [
+                            f"source_edge_{source_edge_id}_step_endpoint_point_drifted"
+                        ],
+                        **public,
+                    }
+                step_indices.append(step_index)
+            current_pair = (step_indices[0], step_indices[1])
+            if occurrence_position == 0:
+                representative_step_indices = current_pair
+                for step_index in current_pair:
+                    step_incidence[step_index][source_edge_id] += 1
+                    endpoint_identity_proofs += 1
+            elif Counter(current_pair) != Counter(representative_step_indices):
+                return {
+                    "status": "unavailable",
+                    "failure_codes": [
+                        f"source_edge_{source_edge_id}_step_endpoints_inconsistent"
+                    ],
+                    **public,
+                }
+        assert representative_step_indices is not None
+        endpoint_step_indices[source_edge_id] = representative_step_indices
+
+    graph = [
+        [
+            step_index
+            for step_index, step_point in enumerate(step_points)
+            if source_incidence[source_vertex_id] == step_incidence[step_index]
+            and float(
+                np.linalg.norm(points_by_source[source_vertex_id] - step_point)
+            )
+            <= absolute_tolerance
+        ]
+        for source_vertex_id in source_ids
+    ]
+    matching_count, assignment = _matching_count_capped(graph, len(step_handles))
+    public["vertex_candidate_degree_counts"] = dict(
+        sorted(
+            (
+                str(degree),
+                int(count),
+            )
+            for degree, count in Counter(len(row) for row in graph).items()
+        )
+    )
+    public["vertex_matching_count_capped"] = int(matching_count)
+    if matching_count != 1 or assignment is None:
+        reason = (
+            "vertex_assignment_has_no_perfect_matching"
+            if matching_count == 0
+            else "vertex_assignment_not_unique"
+        )
+        return {
+            "status": "unavailable" if matching_count == 0 else "ambiguous",
+            "failure_codes": [reason],
+            **public,
+        }
+
+    source_id_by_step_index = {
+        int(step_index): int(source_ids[source_position])
+        for source_position, step_index in enumerate(assignment)
+    }
+    endpoint_pair_proofs = 0
+    self_loop_proofs = 0
+    for row in edge_rows:
+        source_edge_id = int(row["source_edge_id"])
+        expected_labels = Counter(int(value) for value in row["source_vertex_ids"])
+        observed_labels = Counter(
+            source_id_by_step_index[step_index]
+            for step_index in endpoint_step_indices[source_edge_id]
+        )
+        if observed_labels != expected_labels:
+            return {
+                "status": "unavailable",
+                "failure_codes": [
+                    f"source_edge_{source_edge_id}_endpoint_pair_reconnected"
+                ],
+                **public,
+            }
+        endpoint_pair_proofs += 1
+        if len(expected_labels) == 1:
+            # Counter equality above proves multiplicity two, not merely that
+            # both endpoint sets contain the same single label.
+            self_loop_proofs += 1
+
+    public["edge_endpoint_pair_proof_count"] = endpoint_pair_proofs
+    public["edge_endpoint_occurrence_proof_count"] = endpoint_identity_proofs
+    public["self_loop_endpoint_pair_proof_count"] = self_loop_proofs
+    return {
+        "status": "exact",
+        "failure_codes": [],
+        **public,
+    }
+
+
 def _match_step_geometry_incidence(
     source_faces: Sequence[Mapping[str, Any]],
     step_faces: Sequence[Mapping[str, Any]],
     *,
     scale: float,
     tolerance: float = STEP_EDGE_TOLERANCE_NORMALIZED,
+    step_vertices: Sequence[Mapping[str, Any]] | None = None,
+    source_vertex_points: Mapping[int, Any] | Sequence[Any] | np.ndarray | None = None,
+    require_vertex_proof: bool = False,
 ) -> dict[str, Any]:
-    """Prove unique face, edge-occurrence, and global-edge STEP lineage."""
+    """Prove unique face, edge, and optionally global-vertex STEP lineage.
+
+    The vertex proof is opt-in for compatibility with the historical
+    downstream experiment.  New S7 callers provide both source vertex points
+    and STEP vertex signatures and set ``require_vertex_proof`` (providing
+    either proof input also enables it), so ``exact_geometry_incidence`` then
+    cannot be returned from face/edge evidence alone.
+    """
+    vertex_proof_required = bool(
+        require_vertex_proof
+        or step_vertices is not None
+        or source_vertex_points is not None
+    )
+    shape_scale = float(scale)
+    normalized_tolerance = float(tolerance)
+    if not math.isfinite(shape_scale) or shape_scale <= 0:
+        raise ValueError("STEP geometry incidence scale must be finite and positive")
+    if not math.isfinite(normalized_tolerance) or normalized_tolerance < 0:
+        raise ValueError(
+            "STEP geometry incidence tolerance must be finite and nonnegative"
+        )
     if len(source_faces) != len(step_faces) or not source_faces:
         return {
             "status": "unavailable",
             "failure_codes": ["source_step_face_count_mismatch"],
             "face_rows": [],
+            "vertex_proof_required": vertex_proof_required,
+            "vertex_proof_status": (
+                "not_evaluated"
+                if vertex_proof_required
+                else "legacy_not_required"
+            ),
         }
     face_graph = [
         [
@@ -1347,11 +2020,25 @@ def _match_step_geometry_incidence(
     ]
     face_count, face_assignment = _matching_count_capped(face_graph, len(step_faces))
     public = {
-        "tolerance_normalized": float(tolerance),
+        "tolerance_normalized": normalized_tolerance,
         "face_candidate_degree_counts": dict(
-            sorted(Counter(len(row) for row in face_graph).items())
+            sorted(
+                (
+                    str(degree),
+                    int(count),
+                )
+                for degree, count in Counter(
+                    len(row) for row in face_graph
+                ).items()
+            )
         ),
         "face_matching_count_capped": int(face_count),
+        "vertex_proof_required": vertex_proof_required,
+        "vertex_proof_status": (
+            "not_evaluated"
+            if vertex_proof_required
+            else "legacy_not_required"
+        ),
     }
     if face_count != 1 or face_assignment is None:
         reason = (
@@ -1394,6 +2081,10 @@ def _match_step_geometry_incidence(
             int(step_edge_position): int(source_edges[source_position]["source_edge_id"])
             for source_position, step_edge_position in enumerate(edge_assignment)
         }
+        source_position_by_step_position = {
+            int(step_edge_position): int(source_position)
+            for source_position, step_edge_position in enumerate(edge_assignment)
+        }
         wire_rows = []
         flat_position = 0
         for step_wire in step_face["wires"]:
@@ -1406,12 +2097,19 @@ def _match_step_geometry_incidence(
                         "observed_edge": edge_row["observed_edge"],
                     }
                 )
-                global_occurrences.append(
-                    {
-                        "source_edge_id": source_edge_id,
-                        "observed_edge": edge_row["observed_edge"],
-                    }
-                )
+                occurrence = {
+                    "source_edge_id": source_edge_id,
+                    "observed_edge": edge_row["observed_edge"],
+                }
+                source_vertex_ids = source_edges[
+                    source_position_by_step_position[flat_position]
+                ].get("source_vertex_ids")
+                if source_vertex_ids is not None:
+                    occurrence["source_vertex_ids"] = source_vertex_ids
+                step_vertex_endpoints = edge_row.get("step_vertex_endpoints")
+                if step_vertex_endpoints is not None:
+                    occurrence["step_vertex_endpoints"] = step_vertex_endpoints
+                global_occurrences.append(occurrence)
                 flat_position += 1
             wire_rows.append(
                 {
@@ -1440,6 +2138,43 @@ def _match_step_geometry_incidence(
             "face_rows": [],
             **public,
         }
+    vertex_proof: dict[str, Any] | None = None
+    if vertex_proof_required:
+        vertex_proof = _match_step_vertex_incidence(
+            global_occurrences,
+            step_vertices,
+            source_vertex_points=source_vertex_points,
+            expected_source_edge_ids=sorted(
+                {
+                    int(edge["source_edge_id"])
+                    for source_face in source_faces
+                    for edge in _flat_face_edges(source_face)
+                }
+            ),
+            scale=shape_scale,
+            tolerance=normalized_tolerance,
+        )
+        vertex_public = {
+            key: value
+            for key, value in vertex_proof.items()
+            if key not in {"status", "failure_codes"}
+        }
+        public.update(vertex_public)
+        if vertex_proof["status"] != "exact":
+            public["vertex_proof_status"] = str(vertex_proof["status"])
+            return {
+                "status": (
+                    "ambiguous"
+                    if vertex_proof["status"] == "ambiguous"
+                    else "unavailable"
+                ),
+                "failure_codes": [
+                    str(value) for value in vertex_proof["failure_codes"]
+                ],
+                "face_rows": [],
+                **public,
+            }
+        public["vertex_proof_status"] = "exact"
     return {
         "status": "exact_geometry_incidence",
         "failure_codes": [],
@@ -1471,7 +2206,21 @@ def _step_observation(
     breparg_root: Path,
     source_face_references: Mapping[int, Mapping[str, Any]] | None = None,
     face_edge_adj: Sequence[Sequence[int]] | None = None,
+    edge_vertex_adj: Sequence[Sequence[int]] | None = None,
+    source_edge_wcs: Sequence[Any] | np.ndarray | None = None,
+    source_vertex_points: Mapping[int, Any] | Sequence[Any] | np.ndarray | None = None,
+    require_vertex_proof: bool = False,
+    fail_on_matching_exception: bool = False,
 ) -> dict[str, Any]:
+    """Diagnose one STEP round trip and optionally require vertex lineage.
+
+    New S7 callers pass ``source_edge_wcs`` plus the ordered
+    ``edge_vertex_adj``.  Source vertex representatives are then derived only
+    after the reimported STEP bounding-box scale is known, so endpoint
+    consistency and STEP matching use exactly the same normalized tolerance.
+    ``source_vertex_points`` remains an explicit pure-test/advanced-caller
+    alternative and is mutually exclusive with ``source_edge_wcs``.
+    """
     try:
         from .diagnose_assembly_face_wires import (
             diagnose_face_wires_v2,
@@ -1485,9 +2234,34 @@ def _step_observation(
 
     diagnosis = diagnose_step_face_wires_v2(step_path, breparg_root=breparg_root)
     matching_proof: dict[str, Any] | None = None
+    vertex_proof_required = bool(
+        require_vertex_proof
+        or edge_vertex_adj is not None
+        or source_edge_wcs is not None
+        or source_vertex_points is not None
+    )
     if source_face_references is not None and face_edge_adj is not None:
         try:
             step_shape, step_face_handles = _read_step_faces(step_path)
+            bounds = _occ_shape_bbox(step_shape)
+            scale = max(float(np.linalg.norm(bounds[3:] - bounds[:3])), 1e-12)
+            if source_edge_wcs is not None and source_vertex_points is not None:
+                raise ValueError(
+                    "source_edge_wcs and source_vertex_points are mutually exclusive"
+                )
+            proof_source_vertex_points = source_vertex_points
+            if source_edge_wcs is not None:
+                if edge_vertex_adj is None:
+                    raise ValueError(
+                        "source_edge_wcs requires ordered edge_vertex_adj"
+                    )
+                proof_source_vertex_points = (
+                    _source_vertex_points_from_edge_endpoints(
+                        source_edge_wcs,
+                        edge_vertex_adj,
+                        scale=scale,
+                    )
+                )
             source_faces = []
             for source_face_index in range(len(face_edge_adj)):
                 reference = source_face_references.get(source_face_index)
@@ -1501,13 +2275,29 @@ def _step_observation(
                         reference["face"],
                         reference["source_mapping"],
                         expected_edge_ids=face_edge_adj[source_face_index],
+                        edge_vertex_adj=(
+                            edge_vertex_adj if vertex_proof_required else None
+                        ),
                     )
                 )
-            step_faces = [_occ_step_face_signature(face) for face in step_face_handles]
-            bounds = _occ_shape_bbox(step_shape)
-            scale = max(float(np.linalg.norm(bounds[3:] - bounds[:3])), 1e-12)
+            step_faces = [
+                _occ_step_face_signature(
+                    face, include_vertex_proof=vertex_proof_required
+                )
+                for face in step_face_handles
+            ]
+            step_vertices = (
+                _occ_step_vertex_signatures(step_shape)
+                if vertex_proof_required
+                else None
+            )
             matching = _match_step_geometry_incidence(
-                source_faces, step_faces, scale=scale
+                source_faces,
+                step_faces,
+                scale=scale,
+                step_vertices=step_vertices,
+                source_vertex_points=proof_source_vertex_points,
+                require_vertex_proof=vertex_proof_required,
             )
             matching_proof = {
                 key: value for key, value in matching.items() if key != "face_rows"
@@ -1550,6 +2340,11 @@ def _step_observation(
                 }
             failure_codes = [str(value) for value in matching["failure_codes"]]
         except Exception as exc:
+            if fail_on_matching_exception:
+                raise StepGeometryIncidenceMatchingError(
+                    "step_geometry_incidence_matching_failed:"
+                    f"{type(exc).__name__}"
+                ) from exc
             failure_codes = [
                 f"step_geometry_incidence_matching_failed:{type(exc).__name__}"
             ]
@@ -1719,6 +2514,9 @@ def run_worker(
                     breparg_root=breparg_root,
                     source_face_references=post_sewing_source_faces,
                     face_edge_adj=face_edge_adj,
+                    # The historical downstream experiment predates the S7
+                    # vertex contract, so keep its archived semantics unless
+                    # its run protocol is explicitly versioned and rebound.
                 )
                 observations.append(step_observation)
                 step_roundtrip_status = str(

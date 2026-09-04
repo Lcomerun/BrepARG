@@ -9,7 +9,10 @@ import numpy as np
 import pytest
 
 from tools.directed_trim_assembly import (
+    _bindings_with_vertex_lineage_gate,
     _invalidate_colliding_sewing_targets,
+    _prove_global_source_vertex_lineage,
+    _prove_stage_local_occ_topology,
     _unique_face_local_geometry_target,
     _unique_sewing_history_target,
     construct_brep_directed,
@@ -17,6 +20,226 @@ from tools.directed_trim_assembly import (
     effective_topology_summary,
     loop_bbox_diagonal,
 )
+
+
+class _VertexIdentity:
+    def __init__(self, identity):
+        self.identity = identity
+
+    def IsSame(self, other):
+        return self.identity == other.identity
+
+
+class _EndpointEdge:
+    def __init__(self, first, second):
+        self.endpoints = (first, second)
+
+
+class _VertexShape:
+    def __init__(self, vertices):
+        self.vertices = list(vertices)
+
+
+def _vertex_binding(face_id, edge_ids, edges):
+    return {
+        "source_face_index": face_id,
+        "face": object(),
+        "sewing_lineage": {"status": "mapped", "failure_codes": []},
+        "source_mapping": {
+            "status": "exact_sewing_history",
+            "wire_rows": [
+                {
+                    "source_edge_candidates": [
+                        {
+                            "source_edge_id": edge_id,
+                            "observed_edge": edges[edge_id],
+                        }
+                        for edge_id in edge_ids
+                    ]
+                }
+            ],
+        },
+    }
+
+
+@pytest.mark.parametrize(
+    "sewing_mapping_status",
+    ["exact_sewing_history", "exact_sewing_face_local_geometry"],
+)
+def test_global_source_vertex_lineage_is_direction_independent_and_unique(
+    monkeypatch, sewing_mapping_status
+):
+    import tools.directed_trim_assembly as module
+
+    v0, v1, v2 = (_VertexIdentity(index) for index in range(3))
+    # Reverse both endpoint occurrence orders.  The proof must be independent
+    # of edge orientation while retaining the shared v1 identity constraint.
+    edges = {
+        0: _EndpointEdge(v1, v0),
+        1: _EndpointEdge(v2, v1),
+        2: _EndpointEdge(v0, v2),
+    }
+    monkeypatch.setattr(module, "_shape_vertex_handles", lambda shape: shape.vertices)
+    monkeypatch.setattr(module, "_edge_endpoint_handles", lambda edge: edge.endpoints)
+
+    binding = _vertex_binding(0, [0, 1, 2], edges)
+    binding["source_mapping"]["status"] = sewing_mapping_status
+    proof = _prove_global_source_vertex_lineage(
+        _VertexShape([v2, v0, v1]),
+        [binding],
+        [[0, 1, 2]],
+        [[0, 1], [1, 2], [0, 2]],
+    )
+
+    assert proof["status"] == "exact_identity"
+    assert proof["solution_count"] == 1
+    assert proof["source_vertex_count"] == 3
+    assert proof["observed_vertex_count"] == 3
+    assert proof["constraint_occurrence_count"] == 3
+    assert proof["failure_codes"] == []
+    assert all(
+        not key.endswith("handle") and "assignment" not in key
+        for key in proof
+    )
+
+
+def test_global_source_vertex_lineage_rejects_split_merge_and_nonunique(monkeypatch):
+    import tools.directed_trim_assembly as module
+
+    monkeypatch.setattr(module, "_shape_vertex_handles", lambda shape: shape.vertices)
+    monkeypatch.setattr(module, "_edge_endpoint_handles", lambda edge: edge.endpoints)
+    v0, v1, v2 = (_VertexIdentity(index) for index in range(3))
+
+    split_edges = {
+        0: _EndpointEdge(v0, v1),
+        1: _EndpointEdge(v2, v1),
+    }
+    split = _prove_global_source_vertex_lineage(
+        _VertexShape([v0, v1, v2]),
+        [_vertex_binding(0, [0, 1], split_edges)],
+        [[0, 1]],
+        [[0, 1], [0, 1]],
+    )
+    assert split["status"] == "ambiguous"
+    assert "source_vertex_split_or_extra_observed_vertex" in split["failure_codes"]
+
+    merge_edges = {0: _EndpointEdge(v0, v0)}
+    merge = _prove_global_source_vertex_lineage(
+        _VertexShape([v0]),
+        [_vertex_binding(0, [0], merge_edges)],
+        [[0]],
+        [[0, 1]],
+    )
+    assert merge["status"] == "ambiguous"
+    assert "source_edge_0_distinct_endpoints_merged_after_sewing" in merge[
+        "failure_codes"
+    ]
+
+    # A single self-loop supplies no evidence selecting which of two source
+    # vertices maps to which observed vertex, so the global assignment has two
+    # solutions and cannot be coerced by explorer order.
+    a, b = _VertexIdentity("a"), _VertexIdentity("b")
+    nonunique_edges = {0: _EndpointEdge(a, b), 1: _EndpointEdge(a, b)}
+    nonunique = _prove_global_source_vertex_lineage(
+        _VertexShape([a, b]),
+        [_vertex_binding(0, [0, 1], nonunique_edges)],
+        [[0, 1]],
+        [[0, 1], [0, 1]],
+    )
+    assert nonunique["status"] == "ambiguous"
+    assert nonunique["solution_count"] == 2
+    assert nonunique["failure_codes"] == ["source_vertex_assignment_nonunique"]
+
+
+def test_stage_local_topology_allows_independent_edge_and_face_copy_handles(monkeypatch):
+    import tools.directed_trim_assembly as module
+
+    monkeypatch.setattr(module, "_edge_endpoint_handles", lambda edge: edge.endpoints)
+    # Source vertex 1 has different legal handles in independently built edge
+    # scopes.  No cross-edge IsSame or fabricated global bijection is claimed.
+    edge0 = _EndpointEdge(_VertexIdentity("a0"), _VertexIdentity("a1"))
+    edge1 = _EndpointEdge(_VertexIdentity("b1"), _VertexIdentity("b2"))
+    proof = _prove_stage_local_occ_topology(
+        [[(0, (0, 1), edge0)], [(1, (1, 2), edge1)]],
+        scope_kind="source_edge",
+    )
+    assert proof["status"] == "exact_stage_local_topology"
+
+    # A face-local copy may differ from S2 handles, while the shared source
+    # label must still be one identity inside this face.
+    shared = _VertexIdentity("face_shared")
+    face_proof = _prove_stage_local_occ_topology(
+        [[
+            (0, (0, 1), _EndpointEdge(_VertexIdentity("face_0"), shared)),
+            (1, (1, 2), _EndpointEdge(shared, _VertexIdentity("face_2"))),
+        ]],
+        scope_kind="source_face",
+    )
+    assert face_proof["status"] == "exact_stage_local_topology"
+
+
+def test_stage_local_topology_rejects_true_split_within_one_face(monkeypatch):
+    import tools.directed_trim_assembly as module
+
+    monkeypatch.setattr(module, "_edge_endpoint_handles", lambda edge: edge.endpoints)
+    proof = _prove_stage_local_occ_topology(
+        [[
+            (0, (0, 1), _EndpointEdge(_VertexIdentity("v0"), _VertexIdentity("v1a"))),
+            (1, (1, 2), _EndpointEdge(_VertexIdentity("v1b"), _VertexIdentity("v2"))),
+        ]],
+        scope_kind="source_face",
+    )
+    assert proof["status"] == "ambiguous"
+    assert "scope_0_source_vertex_split" in proof["failure_codes"]
+
+
+def test_vertex_lineage_gate_clones_bindings_and_never_serializes_native_handles():
+    original = [{
+        "source_face_index": 0,
+        "face": object(),
+        "sewing_lineage": {"status": "mapped", "failure_codes": []},
+        "source_mapping": {},
+    }]
+    gated = _bindings_with_vertex_lineage_gate(
+        original,
+        {
+            "status": "ambiguous",
+            "solution_count": 2,
+            "failure_codes": ["source_vertex_assignment_nonunique"],
+        },
+    )
+
+    assert original[0]["sewing_lineage"]["status"] == "mapped"
+    assert gated[0]["sewing_lineage"]["status"] == "mapping_failed"
+    assert gated[0]["sewing_lineage"]["failure_codes"] == [
+        "global_source_vertex_lineage_not_exact",
+        "source_vertex_assignment_nonunique",
+    ]
+
+
+def test_global_vertex_lineage_fails_closed_on_malformed_edge_candidate(monkeypatch):
+    import tools.directed_trim_assembly as module
+
+    vertex = _VertexIdentity(0)
+    monkeypatch.setattr(module, "_shape_vertex_handles", lambda shape: shape.vertices)
+    monkeypatch.setattr(module, "_edge_endpoint_handles", lambda edge: edge.endpoints)
+    binding = _vertex_binding(0, [0], {0: _EndpointEdge(vertex, vertex)})
+    binding["source_mapping"]["wire_rows"][0]["source_edge_candidates"][0][
+        "source_edge_id"
+    ] = "not-an-int"
+
+    proof = _prove_global_source_vertex_lineage(
+        _VertexShape([vertex]),
+        [binding],
+        [[0]],
+        [[0, 0]],
+    )
+
+    assert proof["status"] == "ambiguous"
+    assert "source_face_0_edge_candidate_id_invalid" in proof["failure_codes"]
+    assert "source_vertex_constraint_occurrence_coverage_incomplete" in proof[
+        "failure_codes"
+    ]
 
 
 def test_face_local_geometry_target_requires_exactly_one_edge_multiset(monkeypatch):
